@@ -15,16 +15,41 @@ namespace pk
 
 		if (app != nullptr)
 		{
-			app->_pMasterRenderer->render();
+			SceneManager& sceneManager = app->_sceneManager;
+			sceneManager.handleSceneUpdate();
+
+			// Begin renderpass...
+			app->_pMasterRenderer->beginRenderPass();
+			// Render all shit...
+			for(const std::pair<ComponentType, Renderer*>& r : app->_renderers)
+			{
+				r.second->render();
+			}
+			// End renderpass...
+			app->_pMasterRenderer->endRenderPass();
 			
+			// Attempt to detect and handle possible scene switching..
+			sceneManager.handleSceneSwitching();
 			app->_timing.update();
 		}
 	}
 
 	Application* Application::s_pApplication = nullptr;
 
-	Application::Application(std::string name, Window* window, MasterRenderer* mRenderer) :
-		_name(name), _pWindow(window), _pMasterRenderer(mRenderer)
+	Application::Application(
+		std::string name,
+		Window* window,
+		Context* graphicsContext,
+		InputManager* inputManager,
+		Renderer* masterRenderer,
+		std::unordered_map<ComponentType, Renderer*> renderers
+	) :
+		_name(name), 
+		_pWindow(window),
+		_pGraphicsContext(graphicsContext),
+		_pInputManager(inputManager),
+		_pMasterRenderer(masterRenderer),
+		_renderers(renderers)
 	{
 		s_pApplication = this;
 	}
@@ -51,6 +76,12 @@ namespace pk
 		_pWindow->resize(w, h);
 		_pMasterRenderer->resize(w, h);
 	}
+
+	void Application::switchScene(Scene* newScene)
+	{
+		_sceneManager.assignNextScene(newScene);
+	}
+
 
 
 	Application* Application::get()
