@@ -11,13 +11,13 @@ namespace pk
 
 	void update()
 	{
-		if (Application::s_application != nullptr)
+		Application* app = Application::s_application;
+
+		if (app != nullptr)
 		{
-			Application::s_application->_pMasterRenderer->render();
-		}
-		else
-		{
-			Debug::log("hmm... no mitahan vittua sitten...?", Debug::MessageType::PK_FATAL_ERROR);
+			app->_pMasterRenderer->render();
+			
+			app->_timing.update();
 		}
 	}
 

@@ -2,6 +2,8 @@
 
 #include <string>
 #include "../graphics/MasterRenderer.h"
+#include "Timing.h"
+
 #include <memory>
 
 namespace pk
@@ -13,6 +15,8 @@ namespace pk
 
 		std::string _name;
 		bool _running = true;
+
+		Timing _timing;
 
 		static Application* s_application;
 

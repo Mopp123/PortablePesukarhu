@@ -1,14 +1,13 @@
 
 
+#include "../pk/core/platform/web/WebWindow.h"
+#include "../pk/core/input/platform/web/WebInputManager.h"
+#include "../pk/core/Application.h"
+#include "../pk/graphics/platform/web/WebContext.h"
 
-#include "core/platform/web/WebWindow.h"
-#include "core/input/platform/web/WebInputManager.h"
-#include "core/Application.h"
-#include "graphics/platform/web/WebContext.h"
+#include "../pk/graphics/platform/web/WebMasterRenderer.h"
 
-#include "graphics/platform/web/WebMasterRenderer.h"
-
-#include "core/Debug.h"
+#include "../pk/core/Debug.h"
 
 
 using namespace pk;

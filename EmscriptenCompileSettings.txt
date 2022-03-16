@@ -1,5 +1,0 @@
-em++ Main.cpp core/Debug.cpp core/Window.cpp core/platform/web/WebWindow.cpp graphics/Context.cpp graphics/platform/web/WebContext.cpp core/input/InputManager.cpp core/input/platform/web/WebInputManager.cpp core/Application.cpp graphics/MasterRenderer.cpp graphics/platform/web/WebMasterRenderer.cpp -s FULL_ES2=1 -s WASM=0 --memory-init-file 0 -s USE_SDL=2 -o HelloEmscripten.html
-
-
-hjelps:
-https://codingtidbit.com/2019/08/24/bring-your-c-opengl-code-to-the-web/
