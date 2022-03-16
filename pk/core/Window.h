@@ -16,5 +16,7 @@ namespace pk
 		Window(int width, int height);
 		virtual ~Window();
 
+
+		virtual void resize(int w, int h) {};
 	};
 }

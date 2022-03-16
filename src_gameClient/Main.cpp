@@ -25,7 +25,7 @@ int main(int argc, const char** argv)
 
 	WebMasterRenderer masterRenderer;
 
-	Application application("Emscripten testing..", &masterRenderer);
+	Application application("Emscripten testing..", &window, &masterRenderer);
 
 	application.run();
 

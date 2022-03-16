@@ -11,10 +11,12 @@ namespace pk
 
 	public:
 
-		MasterRenderer();
-		virtual ~MasterRenderer();
+		MasterRenderer() {}
+		virtual ~MasterRenderer() {}
 
 		virtual void render() = 0;
+		virtual void resize(int w, int h) = 0;
+
 	};
 
 }

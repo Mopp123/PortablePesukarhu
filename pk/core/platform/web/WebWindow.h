@@ -13,6 +13,8 @@ namespace pk
 			WebWindow(int width, int height);
 			~WebWindow();
 
+
+			virtual void resize(int w, int h) override;
 		};
 	}
 }

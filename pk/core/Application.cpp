@@ -11,7 +11,7 @@ namespace pk
 
 	void update()
 	{
-		Application* app = Application::s_application;
+		Application* app = Application::s_pApplication;
 
 		if (app != nullptr)
 		{
@@ -21,12 +21,12 @@ namespace pk
 		}
 	}
 
-	Application* Application::s_application = nullptr;
+	Application* Application::s_pApplication = nullptr;
 
-	Application::Application(std::string name, MasterRenderer* mRenderer) :
-		_name(name), _pMasterRenderer(mRenderer)
+	Application::Application(std::string name, Window* window, MasterRenderer* mRenderer) :
+		_name(name), _pWindow(window), _pMasterRenderer(mRenderer)
 	{
-		s_application = this;
+		s_pApplication = this;
 	}
 	Application::~Application()
 	{
@@ -45,4 +45,17 @@ namespace pk
 		}
 	#endif
 	}
+
+	void Application::resizeWindow(int w, int h)
+	{
+		_pWindow->resize(w, h);
+		_pMasterRenderer->resize(w, h);
+	}
+
+
+	Application* Application::get()
+	{
+		return s_pApplication;
+	}
+
 }

@@ -8,6 +8,13 @@ namespace pk
 {
 	namespace web
 	{
+
+		EM_JS(void, resize_canvas, (int w, int h), {
+			var c = document.getElementById('canvas');
+			c.width = w;
+			c.height = h;
+		});
+
 		WebWindow::WebWindow(int width, int height) : 
 			Window(width, height)
 		{
@@ -20,5 +27,13 @@ namespace pk
 
 		}
 
+
+		void WebWindow::resize(int w, int h)
+		{
+			_width = w;
+			_height = h;
+
+			resize_canvas(_width, _height);
+		}
 	}
 }

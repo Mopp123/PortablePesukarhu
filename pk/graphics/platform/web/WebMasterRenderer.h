@@ -15,7 +15,7 @@ namespace pk
 			~WebMasterRenderer();
 
 			virtual void render();
-
+			virtual void resize(int w, int h);
 		};
 	}
 }
