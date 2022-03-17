@@ -32,7 +32,7 @@ namespace pk
 		void WebMasterRenderer::beginRenderPass() 
 		{
 			glClear(GL_COLOR_BUFFER_BIT);
-			glClearColor(1, 0, 0, 1);
+			glClearColor(0, 0, 1, 1);
 		}
 
 		void WebMasterRenderer::endRenderPass()

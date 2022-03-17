@@ -22,8 +22,10 @@ namespace pk
 
 		virtual void resize(int w, int h) = 0;
 
+		virtual void beginFrame() {}
 		virtual void beginRenderPass(){}
 		virtual void endRenderPass() {}
+		virtual void endFrame() {}
 
 	};
 

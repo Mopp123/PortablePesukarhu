@@ -28,6 +28,7 @@ namespace pk
 		virtual ~VertexBuffer() {}
 		virtual void update(const std::vector<PK_float>& newData, int offset, int size) {}
 		inline const std::vector<PK_float>& getData() const { return _data; }
+		inline std::vector<PK_float>& accessRawData() { return _data; }
 	};
 
 

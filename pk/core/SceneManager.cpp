@@ -11,12 +11,14 @@ namespace pk
 			_pCurrentScene->update();
 
 
-		// Fetch all renderables for rendering...
+		// Submit all "renderable components" for rendering...
 		
 		Application* pApp = Application::get();
 		Renderer* pGuiRenderer = pApp->getRenderer(ComponentType::PK_RENDERABLE_GUI);
 
-		for (const Component* c_renderableGUI : _pCurrentScene->components[ComponentType::PK_RENDERABLE_GUI])
+		Debug::log("renderable component count: " + std::to_string(_pCurrentScene->components[ComponentType::PK_RENDERABLE_GUI].size()));
+
+		for (const Component * const c_renderableGUI : _pCurrentScene->components[ComponentType::PK_RENDERABLE_GUI])
 		{
 			if(c_renderableGUI->isActive())
 				pGuiRenderer->submit(c_renderableGUI);

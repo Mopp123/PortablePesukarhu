@@ -27,7 +27,18 @@ public:
 
 	virtual void init()
 	{
-		components[ComponentType::PK_RENDERABLE_GUI].push_back(new GUIRenderable);
+		GUIRenderable* r1 = new GUIRenderable;
+		r1->pos = vec2(0.1f, 0);
+		r1->scale = vec2(0.5f, 0.5f);
+
+		GUIRenderable* r2 = new GUIRenderable;
+		r2->pos = vec2(-1, 0);
+		r2->scale = vec2(0.25f, 0.5f);
+
+
+		components[ComponentType::PK_RENDERABLE_GUI].push_back(r1);
+		components[ComponentType::PK_RENDERABLE_GUI].push_back(r2);
+
 	}
 
 	virtual void update()

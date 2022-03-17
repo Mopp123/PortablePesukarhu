@@ -20,7 +20,10 @@ namespace pk
 			WebShader(const std::string& vertexSource, const std::string& fragmentSource);
 			~WebShader();
 
+			PK_int getAttribLocation(const char* name);
+
 			inline PK_uint getProgramID() const { return _programID; }
+
 
 		private:
 

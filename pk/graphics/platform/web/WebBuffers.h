@@ -19,6 +19,7 @@ namespace pk
 			WebVertexBuffer(const std::vector<PK_float>& data, VertexBufferUsage usage);
 			~WebVertexBuffer();
 
+			virtual void update(const std::vector<PK_float>& newData, int offset, int size) override;
 
 			inline PK_uint getID() const { return _id; }
 		};

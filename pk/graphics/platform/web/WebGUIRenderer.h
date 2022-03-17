@@ -5,18 +5,64 @@
 #include "WebBuffers.h"
 #include "shaders/WebShader.h"
 
-#include <vector>
+#include "../../../core/Debug.h"
 
+#include <vector>
+#include <unordered_map>
 
 namespace pk
 {
 	namespace web
 	{
+		struct GUIBatchData
+		{
+			WebVertexBuffer* vertexBuffer = nullptr;
+			WebIndexBuffer* indexBuffer = nullptr;
+
+			// length of a single instance's data (not to be confused with "instanceCount")
+			int instanceDataLen = -1; // ..kind of like "data slot" for each vertex of each instance. For example: one vec2 for each of the quad's 4 vertices -> instanceDataLength=8
+			int maxTotalBatchDataLen = 0;
+
+			int ID = -1;
+			bool isFree = true;
+			int currentDataPtr = 0;
+			
+			int instanceCount = 0;
+
+			// *Ownerships gets always transferred to this GUIBatchData
+			GUIBatchData(int dataEntryLen, int totalDataLen, WebVertexBuffer* vb, WebIndexBuffer* ib) :
+				instanceDataLen(dataEntryLen), maxTotalBatchDataLen(totalDataLen), vertexBuffer(vb), indexBuffer(ib)
+			{}
+			// *Ownerships gets always transferred to this GUIBatchData
+			GUIBatchData(const GUIBatchData& other) :
+				instanceDataLen(other.instanceDataLen),
+				maxTotalBatchDataLen(other.maxTotalBatchDataLen), 
+				vertexBuffer(other.vertexBuffer), 
+				indexBuffer(other.indexBuffer)
+			{
+
+			}
+
+			void clear()
+			{
+				ID = -1;
+				isFree = true;
+				currentDataPtr = 0;
+				instanceCount = 0;
+			}
+
+			inline bool isFull() const { return currentDataPtr >= maxTotalBatchDataLen; }
+		};
+
 		class WebGUIRenderer : public Renderer
 		{
 		private:
 
 			WebShader _shader;
+
+			PK_int _vertexAttribLocation_pos = -1;
+			
+			std::vector<GUIBatchData> _batches;
 
 		public:
 
@@ -30,6 +76,11 @@ namespace pk
 
 			virtual void resize(int w, int h) {}
 
+		private:
+
+			void allocateBatches(int maxBatchCount, int maxBatchLength, int entryLength);
+			void occupyBatch(GUIBatchData& batch, int batchId);
+			void addToBatch(GUIBatchData& batch, const std::vector<float>& data);
 		};
 	}
 

@@ -11,6 +11,8 @@ namespace pk
 		float x = 0;
 		float y = 0;
 
+		vec2() {}
+
 		vec2(float x, float y) :  x(x), y(y) {}
 
 		float length() const

@@ -36,6 +36,11 @@ namespace pk
 			glDeleteBuffers(1, &_id);
 		}
 
+		void WebVertexBuffer::update(const std::vector<PK_float>& newData, int offset, int size)
+		{
+			glBufferSubData(GL_ARRAY_BUFFER, offset, size, &newData[0]);
+		}
+
 
 
 		WebIndexBuffer::WebIndexBuffer(const std::vector<PK_ushort>& data) : 

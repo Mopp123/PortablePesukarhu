@@ -67,6 +67,11 @@ namespace pk
 			glDeleteProgram(_programID);
 		}
 
+		PK_int WebShader::getAttribLocation(const char* name)
+		{
+			return glGetAttribLocation(_programID, name);
+		}
+
 
 		PK_uint WebShader::createShaderStage(const std::string& source, GLenum type)
 		{
