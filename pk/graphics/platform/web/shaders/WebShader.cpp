@@ -67,10 +67,26 @@ namespace pk
 			glDeleteProgram(_programID);
 		}
 
-		PK_int WebShader::getAttribLocation(const char* name)
+		PK_int WebShader::getAttribLocation(const char* name) const
 		{
 			return glGetAttribLocation(_programID, name);
 		}
+
+		PK_int WebShader::getUniformLocation(const char* name) const
+		{
+			return glGetUniformLocation(_programID, name);
+		}
+
+		void WebShader::setUniform(PK_int location, mat4& matrix) const
+		{
+			glUniformMatrix4fv(location, 1, false, &matrix[0]);
+		}
+
+		void WebShader::setUniform(PK_int location, float val) const
+		{
+			glUniform1fv(location, 1, &val);
+		}
+
 
 
 		PK_uint WebShader::createShaderStage(const std::string& source, GLenum type)

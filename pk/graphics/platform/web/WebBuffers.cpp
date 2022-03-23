@@ -38,6 +38,7 @@ namespace pk
 
 		void WebVertexBuffer::update(const std::vector<PK_float>& newData, int offset, int size)
 		{
+			glBindBuffer(GL_ARRAY_BUFFER, _id);
 			glBufferSubData(GL_ARRAY_BUFFER, offset, size, &newData[0]);
 		}
 

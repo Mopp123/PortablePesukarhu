@@ -1,6 +1,9 @@
 
 #include "WebGUIRenderer.h"
 #include "shaders/sources/WebTestShader.h"
+#include "WebTexture.h"
+
+#include "WebFontRenderer.h"
 
 #include "../../../core/Timing.h"
 
@@ -15,79 +18,73 @@ namespace pk
                 precision mediump float;
                 
                 attribute vec2 position;
+                attribute vec2 uv;
                 
+				uniform mat4 projectionMatrix;
+			
+				varying vec2 var_uv;
+
                 void main()
                 {
-                   gl_Position = vec4(position, 0, 1.0);
-                }
+					gl_Position = projectionMatrix * vec4(position, 0, 1.0);
+					var_uv = uv;
+				}
             )";
 
 		static std::string s_fragmentSource = R"(
                 precision mediump float;
                 
+				varying vec2 var_uv;
+				
+				uniform sampler2D textureSampler;
+				
                 void main()
                 {
-                    gl_FragColor = vec4(0,1,0,1);
+                    gl_FragColor = texture2D(textureSampler, var_uv);
                 }
             )";
 
 		
+		static WebTexture* s_testTexture = nullptr;
 		
 		WebGUIRenderer::WebGUIRenderer() : 
 			_shader(s_vertexSource, s_fragmentSource)
 		{
 			_vertexAttribLocation_pos = _shader.getAttribLocation("position");
-			
+			_vertexAttribLocation_uv = _shader.getAttribLocation("uv");
 
-			std::vector<PK_float> vertexPositions = {
-				0, 0,
-				0, -0.5f,
-				0.5f, -0.5f,
-				0.5f, 0
-			};
+			_uniformLocation_projMat = _shader.getUniformLocation("projectionMatrix");
+			_uniformLocation_texSampler = _shader.getUniformLocation("textureSampler");
 
-			std::vector<PK_float> translation = {
-				-1,0,
-				-1,0,
-				-1,0,
-				-1,0
-			};
+			s_testTexture = new WebTexture("assets/test.png");
 
-			std::vector<PK_ushort> indices = {
-				0,1,2,
-				2,3,0
-			};
-
-
-			allocateBatches(4, PK_LIMITS_DRAWCALL_MAX_VERTEX_COUNT / 8, 8);
+			allocateBatches(4, PK_LIMITS_DRAWCALL_MAX_VERTEX_DATA_LEN / 8, 8);
 		}
 		
 		WebGUIRenderer::~WebGUIRenderer()
 		{
+			for (GUIBatchData& batch : _batches)
+			{
+				delete batch.vertexBuffer;
+				delete batch.vertexBuffer_uvs;
+				delete batch.indexBuffer;
+			}
+
+			delete s_testTexture;
 		}
 
 		// submit renderable component for rendering (batch preparing, before rendering)
 		void WebGUIRenderer::submit(const Component* const renderableComponent)
 		{
-			
 			// <#M_DANGER>
 			const GUIRenderable* const  renderable = (const GUIRenderable* const)(renderableComponent);
 
-
-			/*
-				0, 0,
-				0, -0.5f,
-				0.5f, -0.5f,
-				0.5f, 0
-			*/
 			std::vector<float> dataToSubmit{ 
 				renderable->pos.x, renderable->pos.y, 
 				renderable->pos.x, renderable->pos.y - renderable->scale.y,
 				renderable->pos.x + renderable->scale.x, renderable->pos.y - renderable->scale.y,
 				renderable->pos.x + renderable->scale.x, renderable->pos.y
 			};
-
-
 
 			// Find suitable batch
 			for (int i = 0; i < _batches.size(); ++i)
@@ -117,10 +114,16 @@ namespace pk
 		}
 
 
-		void WebGUIRenderer::render()
+		void WebGUIRenderer::render(mat4& projectionMatrix, mat4& viewMatrix)
 		{
-			glUseProgram(_shader.getProgramID());
+			/*glUseProgram(_shader.getProgramID());
 
+			// all common uniforms..
+			_shader.setUniform(_uniformLocation_projMat, projectionMatrix);
+
+
+			glDisable(GL_CULL_FACE);
+			//glCullFace(GL_BACK);
 
 			for (GUIBatchData& batch : _batches)
 			{
@@ -129,6 +132,8 @@ namespace pk
 
 				
 				WebVertexBuffer* vb = batch.vertexBuffer;
+				WebVertexBuffer* vb_uv = batch.vertexBuffer_uvs;
+
 				WebIndexBuffer* ib = batch.indexBuffer;
 				// hardcoded just as temp..
 				const GLsizei instanceIndexCount = 6;
@@ -141,16 +146,23 @@ namespace pk
 				vb->update(updatedVBData, 0, sizeof(float) * batch.instanceDataLen * batch.instanceCount);
 				glVertexAttribPointer(_vertexAttribLocation_pos, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, sizeof(PK_float) * 2, 0);
 
+				// uv coord vertex buffer
+				glEnableVertexAttribArray(_vertexAttribLocation_uv);
+				glBindBuffer(GL_ARRAY_BUFFER, vb_uv->getID());
+				glVertexAttribPointer(_vertexAttribLocation_uv, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, sizeof(PK_float) * 2, 0);
+
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->getID());
+				
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, s_testTexture->getID());
+				
+				glUniform1i(_uniformLocation_texSampler, 0);
+
 				glDrawElements(GL_TRIANGLES, instanceIndexCount * batch.instanceCount, GL_UNSIGNED_SHORT, 0);
-
-				Debug::log("TEST:" + std::to_string(batch.instanceCount) + ")");
-
-				//Debug::log("Rendering a batch(instance count: " + std::to_string(batch.instanceCount) + ")");
 
 				// JUST TEMPORARELY FREE HERE!!!
 				batch.clear();
-			}
+			}*/
 		}
 
 
@@ -161,8 +173,24 @@ namespace pk
 
 			std::vector<float> vertexData(maxBatchLength * entryLength);
 
+			std::vector<float> vertexData_uvs(maxBatchLength * 2);
+
 			std::vector<PK_ushort> indices(maxBatchLength * 6);
 
+			for (int i = 0; i < vertexData_uvs.size(); i += 8)
+			{
+				vertexData_uvs[i] = 0;
+				vertexData_uvs[i + 1] = 1;
+
+				vertexData_uvs[i + 2] = 0;
+				vertexData_uvs[i + 3] = 0;
+
+				vertexData_uvs[i + 4] = 1;
+				vertexData_uvs[i + 5] = 0;
+
+				vertexData_uvs[i + 6] = 1;
+				vertexData_uvs[i + 7] = 1;
+			}
 
 			const int vertexCount = 4;
 			int vertexIndex = 0;
@@ -178,28 +206,13 @@ namespace pk
 				vertexIndex += vertexCount;
 			}
 
-			/*
-			indices[0] = 0;
-			indices[1] = 1;
-			indices[2] = 2;
-			indices[3] = 2;
-			indices[4] = 3;
-			indices[5] = 0;
-
-			indices[6] =	4;
-			indices[7] =	5;
-			indices[8] =	6;
-			indices[9] =	6;
-			indices[10] =	7;
-			indices[11] =	4;
-			*/
-
 			for (int i = 0; i < maxBatchCount; ++i)
 			{
 				WebVertexBuffer* vb = new WebVertexBuffer(vertexData, VertexBufferUsage::PK_BUFFER_USAGE_DYNAMIC);
+				WebVertexBuffer* vb_uvs = new WebVertexBuffer(vertexData_uvs, VertexBufferUsage::PK_BUFFER_USAGE_STATIC);
 				WebIndexBuffer* ib = new WebIndexBuffer(indices);
 
-				_batches.push_back({ entryLength, maxBatchLength, vb, ib });
+				_batches.push_back({ entryLength, maxBatchLength, vb, vb_uvs, ib });
 			}
 		}
 		
@@ -213,7 +226,7 @@ namespace pk
 		void WebGUIRenderer::addToBatch(GUIBatchData& batch, const std::vector<float>& data)
 		{
 			//memcpy((&batch.vertexBuffer->accessRawData()[0]) + batch.currentDataPtr, &data[0], sizeof(float) * batch.instanceDataLen);
-
+			/*
 			batch.vertexBuffer->accessRawData()[batch.currentDataPtr] = data[0];
 			batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 1] = data[1];
 
@@ -228,7 +241,7 @@ namespace pk
 
 
 			batch.currentDataPtr += batch.instanceDataLen;
-			batch.instanceCount++;
+			batch.instanceCount++;*/
 		}
 	}
 }

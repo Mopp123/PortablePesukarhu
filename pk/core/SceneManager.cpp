@@ -15,13 +15,18 @@ namespace pk
 		
 		Application* pApp = Application::get();
 		Renderer* pGuiRenderer = pApp->getRenderer(ComponentType::PK_RENDERABLE_GUI);
-
-		Debug::log("renderable component count: " + std::to_string(_pCurrentScene->components[ComponentType::PK_RENDERABLE_GUI].size()));
+		Renderer* pFontRenderer = pApp->getRenderer(ComponentType::PK_RENDERABLE_TEXT);
 
 		for (const Component * const c_renderableGUI : _pCurrentScene->components[ComponentType::PK_RENDERABLE_GUI])
 		{
 			if(c_renderableGUI->isActive())
 				pGuiRenderer->submit(c_renderableGUI);
+		}
+
+		for (const Component* const c_renderableText : _pCurrentScene->components[ComponentType::PK_RENDERABLE_TEXT])
+		{
+			if (c_renderableText->isActive())
+				pFontRenderer->submit(c_renderableText);
 		}
 	}
 

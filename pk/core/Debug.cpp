@@ -13,7 +13,6 @@ namespace pk
 {
 	void Debug::log(std::string message, MessageType t)
 	{
-
 		switch (t)
 		{
 		case pk::Debug::PK_MESSAGE:		std::cout << LS_DEBUG_MESSAGE_TAG__MESSAGE << " " << message << std::endl; break;

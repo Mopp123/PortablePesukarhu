@@ -3,6 +3,8 @@
 #include "Debug.h"
 #include "../Common.h"
 
+#include "../utils/pkmath.h"
+
 #include <emscripten.h>
 
 
@@ -12,6 +14,9 @@ namespace pk
 	void update()
 	{
 		Application* app = Application::s_pApplication;
+
+		mat4 projMat = create_proj_mat_ortho(0, 800, 600, 0, 0.0f, 100.0f);
+		mat4 viewMat;
 
 		if (app != nullptr)
 		{
@@ -25,7 +30,7 @@ namespace pk
 			// 'Render all "actual renderers"' (in Vulkan (re)record all secondary cmdbufs here)
 			for(const std::pair<ComponentType, Renderer*>& r : app->_renderers)
 			{
-				r.second->render();
+				r.second->render(projMat, viewMat);
 			}
 			masterRenderer->endRenderPass();
 			masterRenderer->endFrame(); // (submit cmdbuf[currentFrameIndex] to swapchain for execution, AND attempt to present the "top" swapchain image)
@@ -33,6 +38,8 @@ namespace pk
 			// Detect and handle possible scene switching..
 			sceneManager.handleSceneSwitching();
 			app->_timing.update();
+
+			Debug::log("delta: " + std::to_string(Timing::get_delta_time()));
 		}
 	}
 

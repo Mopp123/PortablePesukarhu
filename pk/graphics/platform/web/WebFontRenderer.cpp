@@ -1,0 +1,507 @@
+
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+
+#include "WebFontRenderer.h"
+
+#include "../../../core/Timing.h"
+#include "../../../Common.h"
+
+#include <algorithm>
+
+namespace pk
+{
+	namespace web
+	{
+
+		static std::string s_vertexSource = R"(
+                precision mediump float;
+                
+                attribute vec2 position;
+                attribute vec2 uv;
+                
+				uniform mat4 projectionMatrix;
+				uniform float texAtlasRows;
+			
+				varying vec2 var_uv;
+
+                void main()
+                {
+					gl_Position = projectionMatrix * vec4(position, 0, 1.0);
+					var_uv = uv / texAtlasRows;
+				}
+            )";
+
+		static std::string s_fragmentSource = R"(
+                precision mediump float;
+                
+				varying vec2 var_uv;
+				
+				uniform sampler2D textureSampler;
+				
+                void main()
+                {
+					vec4 texColor = texture2D(textureSampler, var_uv);
+                    gl_FragColor = texColor;
+					if(texColor.r < 0.5)
+					{
+						discard;
+					}
+                }
+            )";
+
+
+		WebFontRenderer::WebFontRenderer() :
+			_shader(s_vertexSource, s_fragmentSource)
+		{
+			_vertexAttribLocation_pos = _shader.getAttribLocation("position");
+			_vertexAttribLocation_uv = _shader.getAttribLocation("uv");
+
+			_uniformLocation_projMat = _shader.getUniformLocation("projectionMatrix");
+			_uniformLocation_texAtlasRows = _shader.getUniformLocation("texAtlasRows");
+			_uniformLocation_texSampler = _shader.getUniformLocation("textureSampler");
+
+
+			std::vector<GlyphData> glyphs = createGlyphs("qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890.,:;?!&_'+-*^/", "assets/arial.ttf");
+
+			_fontTexAtlas = createFontTextureAtlas(glyphs);
+
+			// Create character mapping..
+			for (const GlyphData& glyph : glyphs)
+			{
+				_characterMapping.insert(
+					std::pair<unsigned char, CharacterData>(
+						glyph.character,
+						{ glyph.visualWidth, glyph.visualHeight, glyph.bearingX, glyph.bearingY, glyph.advance, glyph.texOffsetX, glyph.texOffsetY }
+						)
+				);
+			}
+
+			const int maxBatchInstanceCount = 2048;
+			const int batchInstanceDataLen = 8;
+
+			allocateBatches(4, maxBatchInstanceCount * batchInstanceDataLen, batchInstanceDataLen);
+		}
+		
+		WebFontRenderer::~WebFontRenderer()
+		{
+			for (BatchData& batch : _batches)
+			{
+				for (VertexBuffer* vb : batch.vertexBuffers)
+					delete vb;
+
+				delete batch.indexBuffer;
+			}
+
+			delete _fontTexAtlas;
+		}
+
+		// submit renderable component for rendering (batch preparing, before rendering)
+		void WebFontRenderer::submit(const Component* const renderableComponent)
+		{
+			// <#M_DANGER>
+			const TextRenderable* const  renderable = (const TextRenderable* const)(renderableComponent);
+
+			const int maxBatchLen = _batches[0].maxTotalBatchDataLen;
+			const int strDataLen = renderable->getStr().size() * _batches[0].instanceDataLen;
+			if (strDataLen >= maxBatchLen)
+			{
+				Debug::log("(@WebFontRenderer::submit) Attempted to submit too long string for rendering\nCurrent limit is " + std::to_string(maxBatchLen) + "\nAttempted: " + std::to_string(strDataLen), Debug::MessageType::PK_ERROR);
+				return;
+			}
+
+			int identifier = 1;
+
+			// Find suitable batch
+			for (int i = 0; i < _batches.size(); ++i)
+			{
+				BatchData& batch = _batches[i];
+				
+				int newSize = batch.currentDataPtr + batch.instanceDataLen * renderable->getStr().size();
+				
+				if (newSize >= maxBatchLen)
+				{
+					continue;
+				}
+
+				if (batch.isFree)
+				{
+					batch.occupy(identifier);// occupyBatch(batch, identifier);
+					addToBatch(batch, renderable);
+					//Debug::log("created new batch");
+					return;
+				}
+				else if (batch.ID == identifier)
+				{
+					addToBatch(batch, renderable);
+					//Debug::log("assigned to existing");
+					return;
+				}
+			}
+			
+			Debug::log("(@WebFontRenderer::submit) No batches available", Debug::MessageType::PK_ERROR);
+		}
+
+
+		void WebFontRenderer::render(mat4& projectionMatrix, mat4& viewMatrix)
+		{
+			glUseProgram(_shader.getProgramID());
+
+			// all common uniforms..
+			_shader.setUniform(_uniformLocation_projMat, projectionMatrix);
+			_shader.setUniform(_uniformLocation_texAtlasRows, _fontAtlasRowCount);
+
+			glDisable(GL_CULL_FACE);
+			//glCullFace(GL_BACK);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, _fontTexAtlas->getID());
+
+
+			for (BatchData& batch : _batches)
+			{
+				if (batch.isFree)
+					continue;
+
+				WebVertexBuffer* vb = (WebVertexBuffer*)batch.vertexBuffers[0];
+				WebVertexBuffer* vb_uv = (WebVertexBuffer*)batch.vertexBuffers[1];
+
+				WebIndexBuffer* ib = (WebIndexBuffer*)batch.indexBuffer;
+				// hardcoded just as temp..
+				const GLsizei instanceIndexCount = 6;
+
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->getID());
+
+				glEnableVertexAttribArray(_vertexAttribLocation_pos);
+				glBindBuffer(GL_ARRAY_BUFFER, vb->getID());
+
+				// Update the vertex buffer's data
+				//const std::vector<float>& updatedVBData = vb->getData();
+				//vb->update(updatedVBData, 0, sizeof(float) * batch.instanceDataLen * batch.instanceCount);
+				glVertexAttribPointer(_vertexAttribLocation_pos, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, sizeof(PK_float) * 2, 0);
+
+				// uv coord vertex buffer
+				glEnableVertexAttribArray(_vertexAttribLocation_uv);
+				glBindBuffer(GL_ARRAY_BUFFER, vb_uv->getID());
+				//const std::vector<float>& updatedUvs = vb_uv->getData();
+				//vb_uv->update(updatedUvs, 0, sizeof(float) * batch.instanceDataLen * batch.instanceCount);
+				glVertexAttribPointer(_vertexAttribLocation_uv, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, sizeof(PK_float) * 2, 0);
+				
+				
+				glDrawElements(GL_TRIANGLES, instanceIndexCount * batch.getInstanceCount(), GL_UNSIGNED_SHORT, 0);
+
+				glBindBuffer(GL_ARRAY_BUFFER, 0);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+				// JUST TEMPORARELY FREE HERE!!!
+				batch.clear();
+			}
+		}
+
+		std::vector<GlyphData> WebFontRenderer::createGlyphs(std::string characters, std::string fontFilePath)
+		{
+			std::vector<GlyphData> glyphs;
+			glyphs.reserve(characters.size());
+
+			FT_Library ftLib;
+			if (FT_Init_FreeType(&ftLib))
+			{
+				Debug::log("Failed to init FreeType library", Debug::MessageType::PK_FATAL_ERROR);
+				return glyphs;
+			}
+
+			FT_Face fontFace;
+			if (FT_New_Face(ftLib, fontFilePath.c_str(), 0, &fontFace))
+			{
+				Debug::log("Failed to create FT_Face from: " + fontFilePath, Debug::MessageType::PK_FATAL_ERROR);
+				FT_Done_FreeType(ftLib);
+				return glyphs;
+			}
+
+			FT_Set_Pixel_Sizes(fontFace, _fontAtlasPixelSize, _fontAtlasPixelSize);
+
+			std::string::const_iterator it;
+			for (it = characters.begin(); it != characters.end(); it++)
+			{
+				unsigned char c = *it;
+
+				FT_UInt glyphIndex = FT_Get_Char_Index(fontFace, c);
+				if (FT_Load_Glyph(fontFace, glyphIndex, FT_LOAD_DEFAULT))
+				{
+					Debug::log("Failed to load character from font(@FontRenderer::createGlyphs)", Debug::MessageType::PK_FATAL_ERROR);
+					continue;
+				}
+
+				FT_Error error = FT_Render_Glyph(fontFace->glyph, FT_Render_Mode::FT_RENDER_MODE_NORMAL);
+				if (error)
+				{
+					Debug::log("Hups... @WebFontRenderer", Debug::MessageType::PK_WARNING);
+				}
+				/*
+				if (FT_Load_Char(fontFace, c, FT_LOAD_RENDER))
+				{
+					Debug::log_error("Failed to load character from font(@FontRenderer::createGlyphs)");
+					continue;
+				}
+				*/
+
+				unsigned int glyphWidth = fontFace->glyph->bitmap.width;
+				unsigned int glyphHeight = fontFace->glyph->bitmap.rows;
+
+
+				// We need to copy the bitmap for later use when we combine all glyphs into a single texture
+				// *NOTE! Atm we convert the bitmaps to 4 color channel component img data, because.. THAT Vulkan format img issue thing..
+				unsigned int channels = 4;
+
+				unsigned int bmpDataWidth = glyphWidth * channels;
+				unsigned int bmpDataHeight = glyphHeight;
+
+				unsigned char* bmp = new unsigned char[bmpDataWidth * bmpDataHeight * channels];
+				memset(bmp, 0, bmpDataWidth * bmpDataHeight * channels);
+
+				// TESTING DISTANCE MAP GENERATION...
+				// First create distancefield map from the greyscale..
+				//unsigned char* distanceMap = make_distance_map(fontFace->glyph->bitmap.buffer, glyphWidth, glyphHeight);
+
+				for (int py = 0; py < bmpDataHeight; ++py)
+				{
+					for (int px = 0; px < bmpDataWidth; px += channels)
+					{
+						bmp[px + py * bmpDataWidth] = fontFace->glyph->bitmap.buffer[(px / channels) + py * glyphWidth];
+					}
+				}
+
+				glyphs.push_back(
+					{
+						c,
+						bmp,
+						glyphWidth,
+						glyphHeight,
+						(int)fontFace->glyph->bitmap_left,
+						(int)fontFace->glyph->bitmap_top,
+						(unsigned int)fontFace->glyph->advance.x,
+						0,0,
+						0,0
+					}
+				);
+			}
+
+			FT_Done_Face(fontFace);
+			FT_Done_FreeType(ftLib);
+			Debug::log("Font loading finished");
+			return glyphs;
+		}
+
+		
+		WebTexture* WebFontRenderer::createFontTextureAtlas(std::vector<GlyphData>& glyphs)
+		{
+			int bitmapColorChannels = 4;
+
+			unsigned int cellWidth = 0;
+			_fontAtlasMaxCellHeight = 0;
+
+			// First find the glyph that is the widest to get maxWidth and tallest to get maxHeight
+			for (const GlyphData& gd : glyphs)
+			{
+				cellWidth = std::max(cellWidth, gd.width);
+				_fontAtlasMaxCellHeight = std::max(_fontAtlasMaxCellHeight, gd.height);
+			}
+			// We want each cell to be perfect square
+			cellWidth = get_next_pow2(std::max(cellWidth, _fontAtlasMaxCellHeight));
+			_fontAtlasMaxCellHeight = get_next_pow2(std::max(cellWidth, _fontAtlasMaxCellHeight));
+
+			// total length in pixels of the combined "final" font texture atlas
+			unsigned int bitmapPixelsLength = (cellWidth * _fontAtlasMaxCellHeight) * glyphs.size();
+			// *We require our textures to be always pow2s...
+			unsigned int bitmapPixelsWidth = get_next_pow2((unsigned int)std::sqrt((double)bitmapPixelsLength));
+
+			// ..Use that to get the actual final size of the texture *NOTE! we need to also add the other color channels here..
+			unsigned char* bitmapFont = new unsigned char[bitmapPixelsWidth * bitmapPixelsWidth * bitmapColorChannels];
+			memset(bitmapFont, 0, sizeof(unsigned char) * bitmapPixelsWidth * bitmapPixelsWidth * bitmapColorChannels);
+
+			_fontAtlasRowCount = bitmapPixelsWidth / cellWidth;
+
+			// Then combine all the glyphs into a single "image"
+			// ..we go through each glyph .. "scanline style"
+			for (int bpy = 0; bpy < bitmapPixelsWidth; bpy += cellWidth)
+			{
+				for (int bpx = 0; bpx < bitmapPixelsWidth; bpx += cellWidth)
+				{
+					int glyphIndexX = std::floor((double)bpx / (double)cellWidth);
+					int glyphIndexY = std::floor((double)bpy / (double)cellWidth);
+					int glyphsIndex = glyphIndexX + glyphIndexY * _fontAtlasRowCount;
+					if (glyphsIndex < glyphs.size())
+					{
+						GlyphData& currentGlyph = glyphs[glyphsIndex];
+						currentGlyph.texOffsetX = (float)glyphIndexX;
+						currentGlyph.texOffsetY = (float)glyphIndexY;
+						currentGlyph.visualWidth = currentGlyph.width; //+ (cellWidth - currentGlyph.width);
+						currentGlyph.visualHeight = currentGlyph.height; //+ (_fontAtlasMaxCellHeight - currentGlyph.height);
+
+
+						// For each pixel in the glyph
+						for (int gpy = 0; gpy < currentGlyph.height; gpy++)
+						{
+							for (int gpx = 0; gpx < currentGlyph.width; gpx++)
+							{
+								bitmapFont[(bpx * bitmapColorChannels + gpx * bitmapColorChannels) + (bpy + gpy) * (bitmapPixelsWidth * bitmapColorChannels)] = currentGlyph.bitmap[gpx * bitmapColorChannels + gpy * (currentGlyph.width * bitmapColorChannels)];
+							}
+						}
+					}
+				}
+			}
+
+			return new WebTexture(bitmapFont, bitmapPixelsWidth, bitmapPixelsWidth, bitmapColorChannels);
+		}
+
+
+		
+		void WebFontRenderer::allocateBatches(int maxBatchCount, int maxBatchLength, int entryLength)
+		{
+			std::vector<float> vertexData(maxBatchLength);
+			std::vector<float> vertexData_uvs(maxBatchLength);
+
+
+			const int vertexCount = 4;
+			std::vector<PK_ushort> indices(maxBatchLength);
+
+			int vertexIndex = 0;
+			for (int i = 0; i < indices.size(); i += 6)
+			{
+				indices[i] =	 0 + vertexIndex;
+				indices[i + 1] = 1 + vertexIndex;
+				indices[i + 2] = 2 + vertexIndex;
+				indices[i + 3] = 2 + vertexIndex;
+				indices[i + 4] = 3 + vertexIndex;
+				indices[i + 5] = 0 + vertexIndex;
+
+				vertexIndex += vertexCount;
+			}
+			Debug::log("last vertex index: " + std::to_string(vertexIndex) + "MAX BATCH DATA LEN: " + std::to_string(maxBatchLength));
+
+			for (int i = 0; i < maxBatchCount; ++i)
+			{
+				WebVertexBuffer* vb = new WebVertexBuffer(vertexData, VertexBufferUsage::PK_BUFFER_USAGE_DYNAMIC);
+				WebVertexBuffer* vb_uvs = new WebVertexBuffer(vertexData_uvs, VertexBufferUsage::PK_BUFFER_USAGE_DYNAMIC);
+				WebIndexBuffer* ib = new WebIndexBuffer(indices);
+
+				_batches.push_back({ entryLength, maxBatchLength, {vb, vb_uvs}, ib });
+			}
+		}
+		
+		/*
+		void WebFontRenderer::occupyBatch(FontBatchData& batch, int batchId)
+		{
+			batch.ID = batchId;
+			batch.isFree = false;
+		}*/
+
+		void WebFontRenderer::addToBatch(BatchData& batch, const TextRenderable* const renderable)
+		{
+			//memcpy((&batch.vertexBuffer->accessRawData()[0]) + batch.currentDataPtr, &data[0], sizeof(float) * batch.instanceDataLen);
+			const vec2& position = renderable->pos;
+
+			const float originalX = position.x;
+			float posX = originalX;
+			float posY = position.y;
+
+			float charWidth = _fontAtlasPixelSize;
+			float charHeight = _fontAtlasPixelSize;
+
+			float scaleFactorX = 1.0f;
+			float scaleFactorY = 1.0f;
+
+			for (const char c : renderable->getStr())
+			{
+				// JUST DEBUG TESTING!
+				// Make sure we are still in range...
+				if (batch.currentDataPtr >= batch.maxTotalBatchDataLen)
+				{
+					Debug::log("ERROR FOUND!!!");
+					break;
+				}
+				
+				// Check, do we want to change line?
+				if (c == '\n')
+				{
+					posY -= (charHeight) * (scaleFactorY);
+					posX = originalX;
+					continue;
+				}
+
+				// If this was just an empy space -> add to next posX and continue..
+				if (c == ' ')
+				{
+					posX += (charWidth * 0.25f) * scaleFactorX;
+					continue;
+				}
+				
+				const CharacterData& charData = _characterMapping[c];
+
+				float x = (posX + charData.bearingX * scaleFactorX);
+				float y = ((posY + (float)charData.bearingY) - _fontAtlasMaxCellHeight) * scaleFactorY;
+
+				// float ypos = y - (ch.Size.y - ch.Bearing.y);   
+				float cw = charWidth * scaleFactorX;
+				float ch = charHeight * scaleFactorY;
+
+				std::vector<float> vertexPositions = {
+					x, y - ch,
+					x, y,
+					x + cw, y,
+					x + cw, y - ch
+				};
+
+				std::vector<float> uvCoords = {
+					charData.texOffsetX, charData.texOffsetY + 1,
+					charData.texOffsetX, charData.texOffsetY,
+					charData.texOffsetX + 1, charData.texOffsetY,
+					charData.texOffsetX + 1, charData.texOffsetY + 1
+				};
+
+				batch.insertInstanceData(0, vertexPositions);
+				batch.insertInstanceData(1, uvCoords);
+
+				/*
+				batch.vertexBuffer->accessRawData()[batch.currentDataPtr] = x;
+				batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 1] = y - ch;
+
+				batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 2] = x;
+				batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 3] = y;
+
+				batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 4] = x + cw;
+				batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 5] = y;
+
+				batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 6] = x + cw;
+				batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 7] = y - ch;
+
+
+				// tex coords
+
+				batch.vertexBuffer_uvs->accessRawData()[batch.currentDataPtr] = charData.texOffsetX;
+				batch.vertexBuffer_uvs->accessRawData()[batch.currentDataPtr + 1] = charData.texOffsetY + 1;
+
+				batch.vertexBuffer_uvs->accessRawData()[batch.currentDataPtr + 2] = charData.texOffsetX;
+				batch.vertexBuffer_uvs->accessRawData()[batch.currentDataPtr + 3] = charData.texOffsetY;
+
+				batch.vertexBuffer_uvs->accessRawData()[batch.currentDataPtr + 4] = charData.texOffsetX + 1;
+				batch.vertexBuffer_uvs->accessRawData()[batch.currentDataPtr + 5] = charData.texOffsetY;
+
+				batch.vertexBuffer_uvs->accessRawData()[batch.currentDataPtr + 6] = charData.texOffsetX + 1;
+				batch.vertexBuffer_uvs->accessRawData()[batch.currentDataPtr + 7] = charData.texOffsetY + 1;
+
+
+				batch.currentDataPtr += batch.instanceDataLen;
+				batch.instanceCount++;
+				*/
+
+				batch.addNewInstance();
+				posX += (float)(charData.advance >> 6) * scaleFactorX;
+				
+			}
+		}
+
+	}
+}

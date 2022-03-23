@@ -17,6 +17,7 @@ namespace pk
 		struct GUIBatchData
 		{
 			WebVertexBuffer* vertexBuffer = nullptr;
+			WebVertexBuffer* vertexBuffer_uvs = nullptr;
 			WebIndexBuffer* indexBuffer = nullptr;
 
 			// length of a single instance's data (not to be confused with "instanceCount")
@@ -30,14 +31,15 @@ namespace pk
 			int instanceCount = 0;
 
 			// *Ownerships gets always transferred to this GUIBatchData
-			GUIBatchData(int dataEntryLen, int totalDataLen, WebVertexBuffer* vb, WebIndexBuffer* ib) :
-				instanceDataLen(dataEntryLen), maxTotalBatchDataLen(totalDataLen), vertexBuffer(vb), indexBuffer(ib)
+			GUIBatchData(int dataEntryLen, int totalDataLen, WebVertexBuffer* vb, WebVertexBuffer* vb_uvs, WebIndexBuffer* ib) :
+				instanceDataLen(dataEntryLen), maxTotalBatchDataLen(totalDataLen), vertexBuffer(vb), vertexBuffer_uvs(vb_uvs), indexBuffer(ib)
 			{}
 			// *Ownerships gets always transferred to this GUIBatchData
 			GUIBatchData(const GUIBatchData& other) :
 				instanceDataLen(other.instanceDataLen),
 				maxTotalBatchDataLen(other.maxTotalBatchDataLen), 
 				vertexBuffer(other.vertexBuffer), 
+				vertexBuffer_uvs(other.vertexBuffer_uvs),
 				indexBuffer(other.indexBuffer)
 			{
 
@@ -61,6 +63,10 @@ namespace pk
 			WebShader _shader;
 
 			PK_int _vertexAttribLocation_pos = -1;
+			PK_int _vertexAttribLocation_uv = -1;
+
+			PK_int _uniformLocation_projMat = -1;
+			PK_int _uniformLocation_texSampler = -1;
 			
 			std::vector<GUIBatchData> _batches;
 
@@ -72,7 +78,7 @@ namespace pk
 			// submit renderable component for rendering (batch preparing, before rendering)
 			virtual void submit(const Component* const renderableComponent);
 
-			virtual void render();
+			virtual void render(mat4& projectionMatrix, mat4& viewMatrix);
 
 			virtual void resize(int w, int h) {}
 

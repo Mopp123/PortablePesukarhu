@@ -20,7 +20,10 @@
 
 // Limits ---
 
-#define PK_LIMITS_DRAWCALL_MAX_VERTEX_COUNT (USHRT_MAX)
+// Maximum total mem our application can use (in bytes)
+#define PK_LIMITS_MAX_TOTAL_MEM 16777216
+#define PK_LIMITS_DRAWCALL_MAX_VERTEX_DATA_LEN (USHRT_MAX)
+
 
 
 enum PK_ShaderDatatype

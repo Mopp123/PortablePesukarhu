@@ -16,7 +16,7 @@ namespace pk
 
 			virtual void submit(const Component * const c);
 
-			virtual void render();
+			virtual void render(mat4& projectionMatrix, mat4& viewMatrix);
 			virtual void resize(int w, int h);
 
 

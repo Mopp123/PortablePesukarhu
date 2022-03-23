@@ -19,7 +19,7 @@ namespace pk
 		void WebMasterRenderer::submit(const Component * const c)
 		{}
 
-		void WebMasterRenderer::render()
+		void WebMasterRenderer::render(mat4& projectionMatrix, mat4& viewMatrix)
 		{}
 
 

@@ -22,8 +22,8 @@ namespace pk
 		});
 
 		// Then call
-		int width = canvas_get_width();
-		int height = canvas_get_height();
+		//int width = canvas_get_width();
+		//int height = canvas_get_height();
 
 		EM_BOOL key_callback(int eventType, const EmscriptenKeyboardEvent* keyEvent, void* userData)
 		{

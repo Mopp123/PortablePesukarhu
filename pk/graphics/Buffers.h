@@ -18,17 +18,16 @@ namespace pk
 	class VertexBuffer
 	{
 	protected:
-		std::vector<PK_float> _data;
-
+		
 		VertexBufferUsage _usage = VertexBufferUsage::PK_BUFFER_USAGE_STATIC;
 
 	public:
 
-		VertexBuffer(const std::vector<PK_float>& data, VertexBufferUsage usage) : _data(data), _usage(usage) {}
+		VertexBuffer(const std::vector<PK_float>& data, VertexBufferUsage usage) : _usage(usage) {}
 		virtual ~VertexBuffer() {}
 		virtual void update(const std::vector<PK_float>& newData, int offset, int size) {}
-		inline const std::vector<PK_float>& getData() const { return _data; }
-		inline std::vector<PK_float>& accessRawData() { return _data; }
+		//inline const std::vector<PK_float>& getData() const { return _data; }
+		//inline std::vector<PK_float>& accessRawData() { return _data; }
 	};
 
 
