@@ -20,5 +20,7 @@ namespace pk
 
 		// Detects and handles scene switching
 		void handleSceneSwitching();
+
+		inline Scene* getCurrentScene() { return _pCurrentScene; }
 	};
 }

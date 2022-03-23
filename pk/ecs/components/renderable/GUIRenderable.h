@@ -10,12 +10,12 @@ namespace pk
 	{
 	public:
 
-		vec2 pos;
-		vec2 scale;
+		vec3 color;
 		int textureID = 0;
 
 		GUIRenderable() :
-			Component(ComponentType::PK_RENDERABLE_GUI)
+			Component(ComponentType::PK_RENDERABLE_GUI),
+			color(1,1,1)
 		{}
 
 	};

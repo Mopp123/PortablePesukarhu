@@ -9,8 +9,10 @@
 #include "../pk/graphics/platform/web/WebGUIRenderer.h"
 #include "../pk/graphics/platform/web/WebFontRenderer.h"
 
-#include "../pk/ecs/components/renderable/GUIRenderable.h"
-#include "../pk/ecs/components/renderable/TextRenderable.h"
+#include "../pk/ecs/systems/ui/GUIImage.h"
+#include "../pk/ecs/systems/ui/Text.h"
+
+#include "../pk/ecs/systems/ui/Constraints.h"
 
 #include "../pk/core/Debug.h"
 
@@ -19,6 +21,7 @@
 
 using namespace pk;
 using namespace web;
+using namespace ui;
 
 /*
 	Current issues:
@@ -30,19 +33,15 @@ class TestScene : public Scene
 {
 public:
 
-	std::vector<float> t1;
+	std::vector<Text*> texts;
+	std::vector<GUIImage*> images;
 
 	TestScene() {}
 	~TestScene() {}
 
 	virtual void init()
 	{
-		/*GUIRenderable* r1 = new GUIRenderable;
-		r1->pos = vec2(0,600);
-		r1->scale = vec2(800,600);
 		
-		components[ComponentType::PK_RENDERABLE_GUI].push_back(r1);
-		*/
 
 		/*
 		
@@ -66,26 +65,56 @@ Sed tempor accumsan imperdiet. Aliquam tincidunt hendrerit magna, sit amet lobor
 felis laoreet et. Morbi ut faucibus diam. Proin eget leo non quam scelerisque fermentum 
 eu nec justo. Etiam efficitur, urna sit amet suscipit non.)";
 		
-		TextRenderable* r = new TextRenderable(testStr);
-		r->pos = vec2(0, 600);
-		components[ComponentType::PK_RENDERABLE_TEXT].push_back(r);
+		images.push_back(new GUIImage(
+			{
+				{ConstraintType::PIXEL_LEFT, 5},
+				{ConstraintType::PIXEL_BOTTOM, 600}
+			},
+			800,600
+		));
 
-		TextRenderable* r2 = new TextRenderable(testStr);
-		r2->pos = vec2(0, 300);
-		components[ComponentType::PK_RENDERABLE_TEXT].push_back(r2);
-		
-		TextRenderable* r3 = new TextRenderable(testStr);
-		r3->pos = vec2(0, 300 + 150);
-		components[ComponentType::PK_RENDERABLE_TEXT].push_back(r3);
+		texts.push_back(new Text(
+			"Testing1",
+			{
+				{ConstraintType::PIXEL_LEFT, 5},
+				{ConstraintType::PIXEL_BOTTOM, 16}
+			}
+		));
 
-		TextRenderable* r4 = new TextRenderable(testStr);
-		r4->pos = vec2(0, 300 - 150);
-		components[ComponentType::PK_RENDERABLE_TEXT].push_back(r4);
+		texts.push_back(new Text(
+			"Testing2",
+			{
+				{ConstraintType::PIXEL_LEFT, 5},
+				{ConstraintType::PIXEL_TOP, 0}
+			}
+		));
 
+		texts.push_back(new Text(
+			"Testing3",
+			{
+				{ConstraintType::PIXEL_RIGHT, 120},
+				{ConstraintType::PIXEL_BOTTOM, 16}
+			}
+		));
+
+		texts.push_back(new Text(
+			"Testing4",
+			{
+				{ConstraintType::PIXEL_RIGHT, 120},
+				{ConstraintType::PIXEL_TOP, 0}
+			}
+		));
 	}
 
 	virtual void update()
 	{
+
+		for (GUIImage* i : images)
+			i->applyConstraints();
+
+		for (Text* t : texts)
+			t->applyConstraints();
+
 	}
 };
 
@@ -94,7 +123,7 @@ int main(int argc, const char** argv)
 {
 	bool initSuccess = true;
 
-	WebWindow window(800, 600);
+	WebWindow window;
 	WebContext graphicsContext;
 	WebInputManager inputManager;
 

@@ -58,7 +58,9 @@ namespace pk
 
 		static Application* get();
 
+		Scene* getCurrentScene();
 
+		inline const Window* const getWindow() const { return _pWindow; }
 		inline Renderer* getRenderer(ComponentType renderableType) { return _renderers[renderableType]; }
 		inline bool isRunning() const { return _running; }
 

@@ -12,6 +12,7 @@ namespace pk
 	public:
 
 		std::unordered_map<ComponentType, std::vector<Component*>> components;
+		std::vector<uint32_t> entities;
 
 		Scene() {}
 		virtual ~Scene() 
@@ -22,6 +23,31 @@ namespace pk
 					delete c;
 			}
 			components.clear();
+		}
+
+		uint32_t createEntity()
+		{
+			// *Start entity ids from 1 and NOT from 0
+			uint32_t id = entities.size() + 1;
+			entities.push_back(id);
+			return id;
+		}
+
+		void addComponent(uint32_t entity, Component* component)
+		{
+			component->_entity = entity;
+			components[component->getType()].push_back(component);
+		}
+
+		// Returns first component of "type"
+		Component* getComponent(uint32_t entity, ComponentType type)
+		{
+			for (Component* c : components[type])
+			{
+				if (c->getEntity() == entity)
+					return c;
+			}
+			return nullptr;
 		}
 
 		virtual void init() = 0;

@@ -9,6 +9,10 @@
 
 namespace pk
 {
+	/*
+	*	NOTE!
+	*		* Currently all vertex buffers inside BatchData HAS TO BE THE SAME SIZE (currentDataPtr advancing problem...)
+	*/
 	struct BatchData
 	{
 		std::vector<VertexBuffer*> vertexBuffers;
@@ -22,8 +26,6 @@ namespace pk
 		bool isFree = true; // If theres nobody yet in this batch (completely empty -> available for occupying for new batch)
 		int currentDataPtr = 0; // When submitting to this batch, we use this to determine, at which position of the batch, we want to insert new data
 
-		//int instanceCount = 0;
-
 		// *Ownerships gets always transferred to this BatchData instance
 		BatchData(int dataEntryLen, int totalDataLen, const std::vector<VertexBuffer*>& vbs, IndexBuffer* ib) :
 			instanceDataLen(dataEntryLen), maxTotalBatchDataLen(totalDataLen), vertexBuffers(vbs), indexBuffer(ib)
@@ -36,12 +38,19 @@ namespace pk
 			indexBuffer(other.indexBuffer)
 		{}
 
+		void destroy()
+		{
+			for (VertexBuffer* vb : vertexBuffers)
+				delete vb;
+
+			delete indexBuffer;
+		}
+
 		void clear()
 		{
 			ID = -1;
 			isFree = true;
 			currentDataPtr = 0;
-			//instanceCount = 0;
 		}
 
 		inline bool isFull() const { return currentDataPtr >= maxTotalBatchDataLen * instanceDataLen; }
@@ -53,7 +62,6 @@ namespace pk
 			ID = batchId;
 			isFree = false;
 		}
-
 
 		void addNewInstance()
 		{
@@ -77,7 +85,7 @@ namespace pk
 		virtual ~Renderer() {}
 
 		// submit renderable component for rendering (batch preparing, before rendering)
-		virtual void submit(const Component* const renderableComponent) = 0;
+		virtual void submit(const Component* const renderableComponent, const mat4& transformation) = 0;
 
 		virtual void render(mat4& projectionMatrix, mat4& viewMatrix) = 0;
 

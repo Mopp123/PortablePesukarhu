@@ -14,12 +14,14 @@ namespace pk
 
 	public:
 
-		vec2 pos;
+		vec3 color;
 		
 		TextRenderable(const std::string& txt) :
 			Component(ComponentType::PK_RENDERABLE_TEXT),
-			_txt(txt)
-		{}
+			_txt(txt),
+			color(1,1,1)
+		{
+		}
 
 		inline const std::string& getStr() const { return _txt; }
 	};

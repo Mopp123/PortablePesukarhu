@@ -13,11 +13,11 @@ namespace pk
 	namespace web
 	{
 
-		EM_JS(int, canvas_get_width, (), {
+		EM_JS(int, webwindow_get_width, (), {
 			return window.innerWidth;
 		});
 
-		EM_JS(int, canvas_get_height, (), {
+		EM_JS(int, webwindow_get_height, (), {
 			return window.innerHeight;
 		});
 
@@ -36,8 +36,8 @@ namespace pk
 		{
 			if (eventType == EMSCRIPTEN_EVENT_RESIZE)
 			{
-				int width = canvas_get_width();
-				int height = canvas_get_height();
+				int width = webwindow_get_width();
+				int height = webwindow_get_height();
 
 				Debug::log("w: " + std::to_string(width) + " h: " + std::to_string(height));
 				
@@ -56,5 +56,12 @@ namespace pk
 
 		WebInputManager::~WebInputManager()
 		{}
+
+
+		void WebInputManager::query_window_size(int* outWidth, int* outHeight)
+		{
+			*outWidth = webwindow_get_width();
+			*outHeight = webwindow_get_height();
+		}
 	}
 }

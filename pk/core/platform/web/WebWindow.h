@@ -10,6 +10,7 @@ namespace pk
 		{
 		public:
 
+			WebWindow();
 			WebWindow(int width, int height);
 			~WebWindow();
 

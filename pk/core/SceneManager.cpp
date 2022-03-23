@@ -2,6 +2,7 @@
 #include "SceneManager.h"
 #include "Debug.h"
 #include "Application.h"
+#include "../ecs/components/Transform.h"
 
 namespace pk
 {
@@ -19,14 +20,25 @@ namespace pk
 
 		for (const Component * const c_renderableGUI : _pCurrentScene->components[ComponentType::PK_RENDERABLE_GUI])
 		{
-			if(c_renderableGUI->isActive())
-				pGuiRenderer->submit(c_renderableGUI);
+			Component* rawTransform = _pCurrentScene->getComponent(c_renderableGUI->getEntity(), ComponentType::PK_TRANSFORM);
+			if (rawTransform)
+			{
+				Transform* transform = (Transform*)rawTransform;
+				pGuiRenderer->submit(c_renderableGUI, transform->getTransformationMatrix());
+			}
 		}
 
 		for (const Component* const c_renderableText : _pCurrentScene->components[ComponentType::PK_RENDERABLE_TEXT])
 		{
 			if (c_renderableText->isActive())
-				pFontRenderer->submit(c_renderableText);
+			{
+				Component* rawTransform = _pCurrentScene->getComponent(c_renderableText->getEntity(), ComponentType::PK_TRANSFORM);
+				if(rawTransform)
+				{
+					Transform* transform = (Transform*)rawTransform;
+					pFontRenderer->submit(c_renderableText, transform->getTransformationMatrix());
+				}
+			}
 		}
 	}
 

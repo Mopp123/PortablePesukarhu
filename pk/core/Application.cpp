@@ -14,8 +14,9 @@ namespace pk
 	void update()
 	{
 		Application* app = Application::s_pApplication;
-
-		mat4 projMat = create_proj_mat_ortho(0, 800, 600, 0, 0.0f, 100.0f);
+		Window* window = app->_pWindow;
+		
+		mat4 projMat = create_proj_mat_ortho(0, window->getWidth(), window->getHeight(), 0, 0.0f, 100.0f);
 		mat4 viewMat;
 
 		if (app != nullptr)
@@ -39,7 +40,7 @@ namespace pk
 			sceneManager.handleSceneSwitching();
 			app->_timing.update();
 
-			Debug::log("delta: " + std::to_string(Timing::get_delta_time()));
+			//Debug::log("delta: " + std::to_string(Timing::get_delta_time()));
 		}
 	}
 
@@ -71,7 +72,7 @@ namespace pk
 	void Application::run()
 	{
 	#ifdef PK_BUILD_WEB
-		emscripten_set_main_loop(update, 60, 1);
+		emscripten_set_main_loop(update, 0, 1);
 	#else
 		while (_running)
 		{
@@ -96,6 +97,11 @@ namespace pk
 	Application* Application::get()
 	{
 		return s_pApplication;
+	}
+
+	Scene* Application::getCurrentScene()
+	{
+		return _sceneManager.getCurrentScene();
 	}
 
 }

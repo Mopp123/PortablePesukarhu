@@ -21,16 +21,19 @@ namespace pk
                 
                 attribute vec2 position;
                 attribute vec2 uv;
+                attribute vec4 color;
                 
 				uniform mat4 projectionMatrix;
 				uniform float texAtlasRows;
 			
 				varying vec2 var_uv;
+				varying vec4 var_color;
 
                 void main()
                 {
 					gl_Position = projectionMatrix * vec4(position, 0, 1.0);
 					var_uv = uv / texAtlasRows;
+					var_color = color;
 				}
             )";
 
@@ -38,14 +41,17 @@ namespace pk
                 precision mediump float;
                 
 				varying vec2 var_uv;
+				varying vec4 var_color;
 				
 				uniform sampler2D textureSampler;
 				
                 void main()
                 {
 					vec4 texColor = texture2D(textureSampler, var_uv);
-                    gl_FragColor = texColor;
-					if(texColor.r < 0.5)
+                    
+					vec4 finalColor = var_color * texColor.r;
+					gl_FragColor = vec4(finalColor.rgb, 1.0);
+					if(texColor.r <= 0.0)
 					{
 						discard;
 					}
@@ -58,6 +64,7 @@ namespace pk
 		{
 			_vertexAttribLocation_pos = _shader.getAttribLocation("position");
 			_vertexAttribLocation_uv = _shader.getAttribLocation("uv");
+			_vertexAttribLocation_color = _shader.getAttribLocation("color");
 
 			_uniformLocation_projMat = _shader.getUniformLocation("projectionMatrix");
 			_uniformLocation_texAtlasRows = _shader.getUniformLocation("texAtlasRows");
@@ -80,7 +87,7 @@ namespace pk
 			}
 
 			const int maxBatchInstanceCount = 2048;
-			const int batchInstanceDataLen = 8;
+			const int batchInstanceDataLen = 8 * 4;
 
 			allocateBatches(4, maxBatchInstanceCount * batchInstanceDataLen, batchInstanceDataLen);
 		}
@@ -99,7 +106,7 @@ namespace pk
 		}
 
 		// submit renderable component for rendering (batch preparing, before rendering)
-		void WebFontRenderer::submit(const Component* const renderableComponent)
+		void WebFontRenderer::submit(const Component* const renderableComponent, const mat4& transformation)
 		{
 			// <#M_DANGER>
 			const TextRenderable* const  renderable = (const TextRenderable* const)(renderableComponent);
@@ -129,13 +136,13 @@ namespace pk
 				if (batch.isFree)
 				{
 					batch.occupy(identifier);// occupyBatch(batch, identifier);
-					addToBatch(batch, renderable);
+					addToBatch(batch, renderable, transformation);
 					//Debug::log("created new batch");
 					return;
 				}
 				else if (batch.ID == identifier)
 				{
-					addToBatch(batch, renderable);
+					addToBatch(batch, renderable, transformation);
 					//Debug::log("assigned to existing");
 					return;
 				}
@@ -166,7 +173,7 @@ namespace pk
 					continue;
 
 				WebVertexBuffer* vb = (WebVertexBuffer*)batch.vertexBuffers[0];
-				WebVertexBuffer* vb_uv = (WebVertexBuffer*)batch.vertexBuffers[1];
+				//WebVertexBuffer* vb_uv = (WebVertexBuffer*)batch.vertexBuffers[1];
 
 				WebIndexBuffer* ib = (WebIndexBuffer*)batch.indexBuffer;
 				// hardcoded just as temp..
@@ -174,21 +181,21 @@ namespace pk
 
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->getID());
 
-				glEnableVertexAttribArray(_vertexAttribLocation_pos);
+				int stride = sizeof(float) * 8;
 				glBindBuffer(GL_ARRAY_BUFFER, vb->getID());
 
-				// Update the vertex buffer's data
-				//const std::vector<float>& updatedVBData = vb->getData();
-				//vb->update(updatedVBData, 0, sizeof(float) * batch.instanceDataLen * batch.instanceCount);
-				glVertexAttribPointer(_vertexAttribLocation_pos, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, sizeof(PK_float) * 2, 0);
+				// position vertex attrib
+				glEnableVertexAttribArray(_vertexAttribLocation_pos);
+				glVertexAttribPointer(_vertexAttribLocation_pos, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, 0);
 
-				// uv coord vertex buffer
+				// uv coord vertex attrib
 				glEnableVertexAttribArray(_vertexAttribLocation_uv);
-				glBindBuffer(GL_ARRAY_BUFFER, vb_uv->getID());
-				//const std::vector<float>& updatedUvs = vb_uv->getData();
-				//vb_uv->update(updatedUvs, 0, sizeof(float) * batch.instanceDataLen * batch.instanceCount);
-				glVertexAttribPointer(_vertexAttribLocation_uv, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, sizeof(PK_float) * 2, 0);
+				glVertexAttribPointer(_vertexAttribLocation_uv, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 2));
 				
+				// color vertex attrib
+				glEnableVertexAttribArray(_vertexAttribLocation_color);
+				glVertexAttribPointer(_vertexAttribLocation_color, 4, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 4));
+
 				
 				glDrawElements(GL_TRIANGLES, instanceIndexCount * batch.getInstanceCount(), GL_UNSIGNED_SHORT, 0);
 
@@ -260,10 +267,6 @@ namespace pk
 
 				unsigned char* bmp = new unsigned char[bmpDataWidth * bmpDataHeight * channels];
 				memset(bmp, 0, bmpDataWidth * bmpDataHeight * channels);
-
-				// TESTING DISTANCE MAP GENERATION...
-				// First create distancefield map from the greyscale..
-				//unsigned char* distanceMap = make_distance_map(fontFace->glyph->bitmap.buffer, glyphWidth, glyphHeight);
 
 				for (int py = 0; py < bmpDataHeight; ++py)
 				{
@@ -361,10 +364,8 @@ namespace pk
 		void WebFontRenderer::allocateBatches(int maxBatchCount, int maxBatchLength, int entryLength)
 		{
 			std::vector<float> vertexData(maxBatchLength);
-			std::vector<float> vertexData_uvs(maxBatchLength);
 
-
-			const int vertexCount = 4;
+			const int instanceVertexCount = 4;
 			std::vector<PK_ushort> indices(maxBatchLength);
 
 			int vertexIndex = 0;
@@ -377,31 +378,24 @@ namespace pk
 				indices[i + 4] = 3 + vertexIndex;
 				indices[i + 5] = 0 + vertexIndex;
 
-				vertexIndex += vertexCount;
+				vertexIndex += instanceVertexCount;
 			}
-			Debug::log("last vertex index: " + std::to_string(vertexIndex) + "MAX BATCH DATA LEN: " + std::to_string(maxBatchLength));
-
+			
 			for (int i = 0; i < maxBatchCount; ++i)
 			{
 				WebVertexBuffer* vb = new WebVertexBuffer(vertexData, VertexBufferUsage::PK_BUFFER_USAGE_DYNAMIC);
-				WebVertexBuffer* vb_uvs = new WebVertexBuffer(vertexData_uvs, VertexBufferUsage::PK_BUFFER_USAGE_DYNAMIC);
 				WebIndexBuffer* ib = new WebIndexBuffer(indices);
 
-				_batches.push_back({ entryLength, maxBatchLength, {vb, vb_uvs}, ib });
+				_batches.push_back({ entryLength, maxBatchLength, {vb}, ib });
 			}
 		}
 		
-		/*
-		void WebFontRenderer::occupyBatch(FontBatchData& batch, int batchId)
-		{
-			batch.ID = batchId;
-			batch.isFree = false;
-		}*/
 
-		void WebFontRenderer::addToBatch(BatchData& batch, const TextRenderable* const renderable)
+		void WebFontRenderer::addToBatch(BatchData& batch, const TextRenderable* const renderable, const mat4& transform)
 		{
 			//memcpy((&batch.vertexBuffer->accessRawData()[0]) + batch.currentDataPtr, &data[0], sizeof(float) * batch.instanceDataLen);
-			const vec2& position = renderable->pos;
+			vec2 position(transform[0 + 3 * 4], transform[1 + 3 * 4]);
+			const vec3& color = renderable->color;
 
 			const float originalX = position.x;
 			float posX = originalX;
@@ -446,60 +440,18 @@ namespace pk
 				// float ypos = y - (ch.Size.y - ch.Bearing.y);   
 				float cw = charWidth * scaleFactorX;
 				float ch = charHeight * scaleFactorY;
-
-				std::vector<float> vertexPositions = {
-					x, y - ch,
-					x, y,
-					x + cw, y,
-					x + cw, y - ch
+				
+				std::vector<float> vertexData = {
+					x, y - ch,		charData.texOffsetX,	 charData.texOffsetY + 1,	color.x,color.y,color.z,1.0f,
+					x, y,			charData.texOffsetX,	 charData.texOffsetY,		color.x,color.y,color.z,1.0f,
+					x + cw, y,		charData.texOffsetX + 1, charData.texOffsetY,		color.x,color.y,color.z,1.0f,
+					x + cw, y - ch, charData.texOffsetX + 1, charData.texOffsetY + 1,	color.x,color.y,color.z,1.0f
 				};
 
-				std::vector<float> uvCoords = {
-					charData.texOffsetX, charData.texOffsetY + 1,
-					charData.texOffsetX, charData.texOffsetY,
-					charData.texOffsetX + 1, charData.texOffsetY,
-					charData.texOffsetX + 1, charData.texOffsetY + 1
-				};
-
-				batch.insertInstanceData(0, vertexPositions);
-				batch.insertInstanceData(1, uvCoords);
-
-				/*
-				batch.vertexBuffer->accessRawData()[batch.currentDataPtr] = x;
-				batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 1] = y - ch;
-
-				batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 2] = x;
-				batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 3] = y;
-
-				batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 4] = x + cw;
-				batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 5] = y;
-
-				batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 6] = x + cw;
-				batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 7] = y - ch;
-
-
-				// tex coords
-
-				batch.vertexBuffer_uvs->accessRawData()[batch.currentDataPtr] = charData.texOffsetX;
-				batch.vertexBuffer_uvs->accessRawData()[batch.currentDataPtr + 1] = charData.texOffsetY + 1;
-
-				batch.vertexBuffer_uvs->accessRawData()[batch.currentDataPtr + 2] = charData.texOffsetX;
-				batch.vertexBuffer_uvs->accessRawData()[batch.currentDataPtr + 3] = charData.texOffsetY;
-
-				batch.vertexBuffer_uvs->accessRawData()[batch.currentDataPtr + 4] = charData.texOffsetX + 1;
-				batch.vertexBuffer_uvs->accessRawData()[batch.currentDataPtr + 5] = charData.texOffsetY;
-
-				batch.vertexBuffer_uvs->accessRawData()[batch.currentDataPtr + 6] = charData.texOffsetX + 1;
-				batch.vertexBuffer_uvs->accessRawData()[batch.currentDataPtr + 7] = charData.texOffsetY + 1;
-
-
-				batch.currentDataPtr += batch.instanceDataLen;
-				batch.instanceCount++;
-				*/
+				batch.insertInstanceData(0, vertexData);
 
 				batch.addNewInstance();
 				posX += (float)(charData.advance >> 6) * scaleFactorX;
-				
 			}
 		}
 

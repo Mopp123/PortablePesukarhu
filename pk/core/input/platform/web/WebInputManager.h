@@ -14,6 +14,8 @@ namespace pk
 			WebInputManager();
 			~WebInputManager();
 
+
+			static void query_window_size(int* outWidth, int* outHeight);
 		};
 	}
 }

@@ -19,15 +19,18 @@ namespace pk
                 
                 attribute vec2 position;
                 attribute vec2 uv;
+                attribute vec4 color;
                 
 				uniform mat4 projectionMatrix;
 			
 				varying vec2 var_uv;
+				varying vec4 var_color;
 
                 void main()
                 {
 					gl_Position = projectionMatrix * vec4(position, 0, 1.0);
 					var_uv = uv;
+					var_color = color;
 				}
             )";
 
@@ -35,12 +38,15 @@ namespace pk
                 precision mediump float;
                 
 				varying vec2 var_uv;
+				varying vec4 var_color;
 				
 				uniform sampler2D textureSampler;
 				
                 void main()
                 {
-                    gl_FragColor = texture2D(textureSampler, var_uv);
+					vec4 texColor = texture2D(textureSampler, var_uv);
+                    //float fr = mix(texColor.r, var_color.r, var_color.r)
+					gl_FragColor = texColor * var_color;
                 }
             )";
 
@@ -52,133 +58,39 @@ namespace pk
 		{
 			_vertexAttribLocation_pos = _shader.getAttribLocation("position");
 			_vertexAttribLocation_uv = _shader.getAttribLocation("uv");
+			_vertexAttribLocation_color = _shader.getAttribLocation("color");
 
 			_uniformLocation_projMat = _shader.getUniformLocation("projectionMatrix");
 			_uniformLocation_texSampler = _shader.getUniformLocation("textureSampler");
 
 			s_testTexture = new WebTexture("assets/test.png");
 
-			allocateBatches(4, PK_LIMITS_DRAWCALL_MAX_VERTEX_DATA_LEN / 8, 8);
+			const int maxBatchInstanceCount = 256;
+			const int batchInstanceDataLen = 8 * 4;
+			allocateBatches(4, maxBatchInstanceCount * batchInstanceDataLen, batchInstanceDataLen);
 		}
 		
 		WebGUIRenderer::~WebGUIRenderer()
 		{
-			for (GUIBatchData& batch : _batches)
+			for (BatchData& batch : _batches)
 			{
-				delete batch.vertexBuffer;
-				delete batch.vertexBuffer_uvs;
-				delete batch.indexBuffer;
+				batch.destroy();
 			}
 
 			delete s_testTexture;
 		}
 
 		// submit renderable component for rendering (batch preparing, before rendering)
-		void WebGUIRenderer::submit(const Component* const renderableComponent)
+		void WebGUIRenderer::submit(const Component* const renderableComponent, const mat4& transformation)
 		{
 			// <#M_DANGER>
 			const GUIRenderable* const  renderable = (const GUIRenderable* const)(renderableComponent);
+			const vec2 pos(transformation[0 + 3 * 4], transformation[1 + 3 * 4]);
+			const vec2 scale(transformation[0 + 0 * 4], transformation[1 + 1 * 4]);
+			const vec3& color = renderable->color;
 
-			std::vector<float> dataToSubmit{ 
-				renderable->pos.x, renderable->pos.y, 
-				renderable->pos.x, renderable->pos.y - renderable->scale.y,
-				renderable->pos.x + renderable->scale.x, renderable->pos.y - renderable->scale.y,
-				renderable->pos.x + renderable->scale.x, renderable->pos.y
-			};
-
-			// Find suitable batch
-			for (int i = 0; i < _batches.size(); ++i)
-			{
-				
-				GUIBatchData& batch = _batches[i];
-				if (batch.isFull())
-				{
-					//Debug::log("Batch was full!");
-					continue;
-				}
-
-				if (batch.isFree)
-				{
-					occupyBatch(batch, renderable->textureID);
-					addToBatch(batch, dataToSubmit);
-					//Debug::log("created new batch");
-					return;
-				}
-				else if (batch.ID == renderable->textureID)
-				{
-					addToBatch(batch, dataToSubmit);
-					//Debug::log("assigned to existing");
-					return;
-				}
-			}
-		}
-
-
-		void WebGUIRenderer::render(mat4& projectionMatrix, mat4& viewMatrix)
-		{
-			/*glUseProgram(_shader.getProgramID());
-
-			// all common uniforms..
-			_shader.setUniform(_uniformLocation_projMat, projectionMatrix);
-
-
-			glDisable(GL_CULL_FACE);
-			//glCullFace(GL_BACK);
-
-			for (GUIBatchData& batch : _batches)
-			{
-				if (batch.isFree)
-					continue;
-
-				
-				WebVertexBuffer* vb = batch.vertexBuffer;
-				WebVertexBuffer* vb_uv = batch.vertexBuffer_uvs;
-
-				WebIndexBuffer* ib = batch.indexBuffer;
-				// hardcoded just as temp..
-				const GLsizei instanceIndexCount = 6;
-
-				glEnableVertexAttribArray(_vertexAttribLocation_pos);
-				glBindBuffer(GL_ARRAY_BUFFER, vb->getID());
-
-				// Update the vertex buffer's data
-				const std::vector<float>& updatedVBData = vb->getData();
-				vb->update(updatedVBData, 0, sizeof(float) * batch.instanceDataLen * batch.instanceCount);
-				glVertexAttribPointer(_vertexAttribLocation_pos, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, sizeof(PK_float) * 2, 0);
-
-				// uv coord vertex buffer
-				glEnableVertexAttribArray(_vertexAttribLocation_uv);
-				glBindBuffer(GL_ARRAY_BUFFER, vb_uv->getID());
-				glVertexAttribPointer(_vertexAttribLocation_uv, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, sizeof(PK_float) * 2, 0);
-
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->getID());
-				
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, s_testTexture->getID());
-				
-				glUniform1i(_uniformLocation_texSampler, 0);
-
-				glDrawElements(GL_TRIANGLES, instanceIndexCount * batch.instanceCount, GL_UNSIGNED_SHORT, 0);
-
-				// JUST TEMPORARELY FREE HERE!!!
-				batch.clear();
-			}*/
-		}
-
-
-
-		void WebGUIRenderer::allocateBatches(int maxBatchCount, int maxBatchLength, int entryLength)
-		{
-			Debug::log("Allocating batches. maxBatchCount: " + std::to_string(maxBatchCount) + ", maxBatchLength: " + std::to_string(maxBatchLength) + ", entryLength" + std::to_string(entryLength));
-
-			std::vector<float> vertexData(maxBatchLength * entryLength);
-
-			std::vector<float> vertexData_uvs(maxBatchLength * 2);
-
-			std::vector<PK_ushort> indices(maxBatchLength * 6);
-
-			for (int i = 0; i < vertexData_uvs.size(); i += 8)
-			{
+			/*
+			
 				vertexData_uvs[i] = 0;
 				vertexData_uvs[i + 1] = 1;
 
@@ -190,7 +102,108 @@ namespace pk
 
 				vertexData_uvs[i + 6] = 1;
 				vertexData_uvs[i + 7] = 1;
+			*/
+			const vec2 uv_v0(0, 1);
+			const vec2 uv_v1(0, 0);
+			const vec2 uv_v2(1, 0);
+			const vec2 uv_v3(1, 1);
+
+			std::vector<float> dataToSubmit{ 
+				pos.x,			 pos.y,			 	uv_v0.x, uv_v0.y,	color.x,color.y,color.z,1.0f,
+				pos.x,			 pos.y - scale.y,	uv_v1.x, uv_v1.y,	color.x,color.y,color.z,1.0f,
+				pos.x + scale.x, pos.y - scale.y,	uv_v2.x, uv_v2.y,	color.x,color.y,color.z,1.0f,
+				pos.x + scale.x, pos.y,				uv_v3.x, uv_v3.y,	color.x,color.y,color.z,1.0f
+			};
+
+			// Find suitable batch
+			for (int i = 0; i < _batches.size(); ++i)
+			{
+				BatchData& batch = _batches[i];
+				if (batch.isFull())
+				{
+					//Debug::log("Batch was full!");
+					continue;
+				}
+
+				if (batch.isFree)
+				{
+					batch.occupy(renderable->textureID);
+					batch.insertInstanceData(0, dataToSubmit);
+					batch.addNewInstance();
+					//Debug::log("created new batch");
+					return;
+				}
+				else if (batch.ID == renderable->textureID)
+				{
+					batch.insertInstanceData(0, dataToSubmit);
+					batch.addNewInstance();
+					//Debug::log("assigned to existing");
+					return;
+				}
 			}
+		}
+
+
+		void WebGUIRenderer::render(mat4& projectionMatrix, mat4& viewMatrix)
+		{
+			glUseProgram(_shader.getProgramID());
+
+			// all common uniforms..
+			_shader.setUniform(_uniformLocation_projMat, projectionMatrix);
+
+
+			glDisable(GL_CULL_FACE);
+			//glCullFace(GL_BACK);
+
+			for (BatchData& batch : _batches)
+			{
+				if (batch.isFree)
+					continue;
+
+				
+				WebVertexBuffer* vb = (WebVertexBuffer*)batch.vertexBuffers[0];
+				WebIndexBuffer* ib = (WebIndexBuffer*)batch.indexBuffer;
+				
+				// hardcoded just as temp..
+				const GLsizei instanceIndexCount = 6;
+
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->getID());
+
+				int stride = sizeof(float) * 8;
+				glBindBuffer(GL_ARRAY_BUFFER, vb->getID());
+
+				// position vertex attrib
+				glEnableVertexAttribArray(_vertexAttribLocation_pos);
+				glVertexAttribPointer(_vertexAttribLocation_pos, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, 0);
+
+				// uv coord vertex attrib
+				glEnableVertexAttribArray(_vertexAttribLocation_uv);
+				glVertexAttribPointer(_vertexAttribLocation_uv, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 2));
+				
+				// color vertex attrib
+				glEnableVertexAttribArray(_vertexAttribLocation_color);
+				glVertexAttribPointer(_vertexAttribLocation_color, 4, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 4));
+
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, s_testTexture->getID());
+
+				glDrawElements(GL_TRIANGLES, instanceIndexCount * batch.getInstanceCount(), GL_UNSIGNED_SHORT, 0);
+
+				glBindBuffer(GL_ARRAY_BUFFER, 0);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+
+				// JUST TEMPORARELY FREE HERE!!!
+				batch.clear();
+			}
+		}
+
+
+
+		void WebGUIRenderer::allocateBatches(int maxBatchCount, int maxBatchLength, int entryLength)
+		{
+			std::vector<float> vertexData(maxBatchLength);
+			std::vector<PK_ushort> indices(maxBatchLength);
 
 			const int vertexCount = 4;
 			int vertexIndex = 0;
@@ -209,39 +222,10 @@ namespace pk
 			for (int i = 0; i < maxBatchCount; ++i)
 			{
 				WebVertexBuffer* vb = new WebVertexBuffer(vertexData, VertexBufferUsage::PK_BUFFER_USAGE_DYNAMIC);
-				WebVertexBuffer* vb_uvs = new WebVertexBuffer(vertexData_uvs, VertexBufferUsage::PK_BUFFER_USAGE_STATIC);
 				WebIndexBuffer* ib = new WebIndexBuffer(indices);
 
-				_batches.push_back({ entryLength, maxBatchLength, vb, vb_uvs, ib });
+				_batches.push_back({ entryLength, maxBatchLength, {vb}, ib });
 			}
-		}
-		
-
-		void WebGUIRenderer::occupyBatch(GUIBatchData& batch, int batchId)
-		{
-			batch.ID = batchId;
-			batch.isFree = false;
-		}
-
-		void WebGUIRenderer::addToBatch(GUIBatchData& batch, const std::vector<float>& data)
-		{
-			//memcpy((&batch.vertexBuffer->accessRawData()[0]) + batch.currentDataPtr, &data[0], sizeof(float) * batch.instanceDataLen);
-			/*
-			batch.vertexBuffer->accessRawData()[batch.currentDataPtr] = data[0];
-			batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 1] = data[1];
-
-			batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 2] = data[2];
-			batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 3] = data[3];
-
-			batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 4] = data[4];
-			batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 5] = data[5];
-
-			batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 6] = data[6];
-			batch.vertexBuffer->accessRawData()[batch.currentDataPtr + 7] = data[7];
-
-
-			batch.currentDataPtr += batch.instanceDataLen;
-			batch.instanceCount++;*/
 		}
 	}
 }

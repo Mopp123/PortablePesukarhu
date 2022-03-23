@@ -18,5 +18,9 @@ namespace pk
 
 
 		virtual void resize(int w, int h) {};
+
+		inline int getWidth() const { return _width; }
+		inline int getHeight() const { return _height; }
+
 	};
 }

@@ -1,6 +1,6 @@
 
 #include "WebWindow.h"
-
+#include "../../input/platform/web/WebInputManager.h"
 #include <emscripten.h>
 #include <emscripten/html5.h>
 
@@ -14,6 +14,18 @@ namespace pk
 			c.width = w;
 			c.height = h;
 		});
+
+
+		WebWindow::WebWindow() : 
+			Window(0,0)
+		{
+			int w = 0;
+			int h = 0;
+
+			WebInputManager::query_window_size(&w, &h);
+			resize(w, h);
+		}
+
 
 		WebWindow::WebWindow(int width, int height) : 
 			Window(width, height)
