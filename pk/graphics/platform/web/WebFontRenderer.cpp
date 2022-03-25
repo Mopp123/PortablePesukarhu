@@ -10,6 +10,7 @@
 #include "../../../Common.h"
 
 #include <algorithm>
+#include <iostream>
 
 namespace pk
 {
@@ -22,18 +23,21 @@ namespace pk
                 attribute vec2 position;
                 attribute vec2 uv;
                 attribute vec4 color;
+				attribute float thickness;
                 
 				uniform mat4 projectionMatrix;
 				uniform float texAtlasRows;
 			
 				varying vec2 var_uv;
 				varying vec4 var_color;
-
+				varying float var_thickness;
+				
                 void main()
                 {
 					gl_Position = projectionMatrix * vec4(position, 0, 1.0);
 					var_uv = uv / texAtlasRows;
 					var_color = color;
+					var_thickness = thickness;
 				}
             )";
 
@@ -42,6 +46,7 @@ namespace pk
                 
 				varying vec2 var_uv;
 				varying vec4 var_color;
+				varying float var_thickness;
 				
 				uniform sampler2D textureSampler;
 				
@@ -49,9 +54,11 @@ namespace pk
                 {
 					vec4 texColor = texture2D(textureSampler, var_uv);
                     
-					vec4 finalColor = var_color * texColor.r;
+					vec4 finalColor = var_color * texColor.a * var_thickness;
+					
 					gl_FragColor = vec4(finalColor.rgb, 1.0);
-					if(texColor.r <= 0.0)
+
+					if(texColor.a <= 0.0)
 					{
 						discard;
 					}
@@ -65,19 +72,23 @@ namespace pk
 			_vertexAttribLocation_pos = _shader.getAttribLocation("position");
 			_vertexAttribLocation_uv = _shader.getAttribLocation("uv");
 			_vertexAttribLocation_color = _shader.getAttribLocation("color");
+			_vertexAttribLocation_thickness = _shader.getAttribLocation("thickness");
 
 			_uniformLocation_projMat = _shader.getUniformLocation("projectionMatrix");
 			_uniformLocation_texAtlasRows = _shader.getUniformLocation("texAtlasRows");
 			_uniformLocation_texSampler = _shader.getUniformLocation("textureSampler");
 
 
-			std::vector<GlyphData> glyphs = createGlyphs("qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890.,:;?!&_'+-*^/", "assets/arial.ttf");
+			std::vector<GlyphData> glyphs = createGlyphs("qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890.,:;?!&_'+-*^/‰Âˆƒ≈÷", "assets/rexlia rg.ttf");
 
 			_fontTexAtlas = createFontTextureAtlas(glyphs);
 
+			//Perse..
 			// Create character mapping..
 			for (const GlyphData& glyph : glyphs)
 			{
+				Debug::log("LOAD CHAR: " + std::to_string(glyph.character));
+				
 				_characterMapping.insert(
 					std::pair<unsigned char, CharacterData>(
 						glyph.character,
@@ -87,7 +98,7 @@ namespace pk
 			}
 
 			const int maxBatchInstanceCount = 2048;
-			const int batchInstanceDataLen = 8 * 4;
+			const int batchInstanceDataLen = 9 * 4;
 
 			allocateBatches(4, maxBatchInstanceCount * batchInstanceDataLen, batchInstanceDataLen);
 		}
@@ -181,7 +192,7 @@ namespace pk
 
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->getID());
 
-				int stride = sizeof(float) * 8;
+				int stride = sizeof(float) * 9;
 				glBindBuffer(GL_ARRAY_BUFFER, vb->getID());
 
 				// position vertex attrib
@@ -195,6 +206,10 @@ namespace pk
 				// color vertex attrib
 				glEnableVertexAttribArray(_vertexAttribLocation_color);
 				glVertexAttribPointer(_vertexAttribLocation_color, 4, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 4));
+
+				// thickness attrib
+				glEnableVertexAttribArray(_vertexAttribLocation_thickness);
+				glVertexAttribPointer(_vertexAttribLocation_thickness, 1, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 8));
 
 				
 				glDrawElements(GL_TRIANGLES, instanceIndexCount * batch.getInstanceCount(), GL_UNSIGNED_SHORT, 0);
@@ -260,7 +275,7 @@ namespace pk
 
 				// We need to copy the bitmap for later use when we combine all glyphs into a single texture
 				// *NOTE! Atm we convert the bitmaps to 4 color channel component img data, because.. THAT Vulkan format img issue thing..
-				unsigned int channels = 4;
+				unsigned int channels = 1;
 
 				unsigned int bmpDataWidth = glyphWidth * channels;
 				unsigned int bmpDataHeight = glyphHeight;
@@ -275,6 +290,8 @@ namespace pk
 						bmp[px + py * bmpDataWidth] = fontFace->glyph->bitmap.buffer[(px / channels) + py * glyphWidth];
 					}
 				}
+
+				_fontMaxBearingY = std::max(_fontMaxBearingY, (int)fontFace->glyph->bitmap_top);
 
 				glyphs.push_back(
 					{
@@ -300,7 +317,7 @@ namespace pk
 		
 		WebTexture* WebFontRenderer::createFontTextureAtlas(std::vector<GlyphData>& glyphs)
 		{
-			int bitmapColorChannels = 4;
+			int bitmapColorChannels = 1;
 
 			unsigned int cellWidth = 0;
 			_fontAtlasMaxCellHeight = 0;
@@ -356,7 +373,15 @@ namespace pk
 				}
 			}
 
-			return new WebTexture(bitmapFont, bitmapPixelsWidth, bitmapPixelsWidth, bitmapColorChannels);
+			WebTexture* texture = new WebTexture(
+				bitmapFont, bitmapPixelsWidth, bitmapPixelsWidth, bitmapColorChannels, 
+				{ 
+					TextureSamplerFilterMode::PK_SAMPLER_FILTER_MODE_LINEAR,
+					TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER
+				}
+			);
+			delete[] bitmapFont;
+			return texture;
 		}
 
 
@@ -396,15 +421,16 @@ namespace pk
 			//memcpy((&batch.vertexBuffer->accessRawData()[0]) + batch.currentDataPtr, &data[0], sizeof(float) * batch.instanceDataLen);
 			vec2 position(transform[0 + 3 * 4], transform[1 + 3 * 4]);
 			const vec3& color = renderable->color;
+			const float thickness = renderable->isBold() ? 3.0f : 1.0f;
 
 			const float originalX = position.x;
 			float posX = originalX;
-			float posY = position.y;
+			float posY = (int)position.y - _fontMaxBearingY / 2;
 
 			float charWidth = _fontAtlasPixelSize;
 			float charHeight = _fontAtlasPixelSize;
 
-			float scaleFactorX = 1.0f;
+			float scaleFactorX = 1.0f; // Atm scaling is disabled with webgl...
 			float scaleFactorY = 1.0f;
 
 			for (const char c : renderable->getStr())
@@ -434,24 +460,32 @@ namespace pk
 				
 				const CharacterData& charData = _characterMapping[c];
 
-				float x = (posX + charData.bearingX * scaleFactorX);
-				float y = ((posY + (float)charData.bearingY) - _fontAtlasMaxCellHeight) * scaleFactorY;
+				float x = (posX + charData.bearingX) * scaleFactorX;
+				//float y = posY + ((float)charData.bearingY - _fontAtlasMaxCellHeight) * scaleFactorY;
 
-				// float ypos = y - (ch.Size.y - ch.Bearing.y);   
+
+				/*int diff = (int)charData.height - charData.bearingY;
+				if (diff <= 0)
+				{
+					diff = -charData.bearingY;
+				}*/
+				//Debug::log("diff: " + std::to_string(diff));
+				float y = posY + charData.bearingY / 2;// - (_fontAtlasPixelSize - std::floor((float)charData.bearingY * 0.5f)); //+ (std::floor(_fontAtlasMaxCellHeight - (float)charData.bearingY)) - _fontAtlasMaxCellHeight * 0.5f * scaleFactorY;
+				
 				float cw = charWidth * scaleFactorX;
 				float ch = charHeight * scaleFactorY;
 				
 				std::vector<float> vertexData = {
-					x, y - ch,		charData.texOffsetX,	 charData.texOffsetY + 1,	color.x,color.y,color.z,1.0f,
-					x, y,			charData.texOffsetX,	 charData.texOffsetY,		color.x,color.y,color.z,1.0f,
-					x + cw, y,		charData.texOffsetX + 1, charData.texOffsetY,		color.x,color.y,color.z,1.0f,
-					x + cw, y - ch, charData.texOffsetX + 1, charData.texOffsetY + 1,	color.x,color.y,color.z,1.0f
+					x, y - ch,		charData.texOffsetX,	 charData.texOffsetY + 1,	color.x,color.y,color.z,1.0f, thickness,
+					x, y,			charData.texOffsetX,	 charData.texOffsetY + 0,		color.x,color.y,color.z,1.0f, thickness,
+					x + cw, y,		charData.texOffsetX + 1, charData.texOffsetY + 0,		color.x,color.y,color.z,1.0f, thickness,
+					x + cw, y - ch, charData.texOffsetX + 1, charData.texOffsetY + 1,	color.x,color.y,color.z,1.0f, thickness
 				};
 
 				batch.insertInstanceData(0, vertexData);
 
 				batch.addNewInstance();
-				posX += (float)(charData.advance >> 6) * scaleFactorX;
+				posX += (float)(charData.advance >> 7); // 2^5 = 32 (pixel size of the font..)
 			}
 		}
 

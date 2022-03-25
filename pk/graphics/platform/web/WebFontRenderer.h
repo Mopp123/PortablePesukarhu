@@ -83,6 +83,7 @@ namespace pk
 			int bearingX, bearingY;
 			unsigned int advance;
 			float texOffsetX, texOffsetY;
+			unsigned int actualHeight;
 		};
 		
 		class WebFontRenderer : public Renderer
@@ -94,15 +95,17 @@ namespace pk
 			PK_int _vertexAttribLocation_pos = -1;
 			PK_int _vertexAttribLocation_uv = -1;
 			PK_int _vertexAttribLocation_color = -1;
+			PK_int _vertexAttribLocation_thickness = -1;
 
 			PK_int _uniformLocation_projMat = -1;
 			PK_int _uniformLocation_texAtlasRows = -1;
 			PK_int _uniformLocation_texSampler = -1;
 
-			int _fontAtlasPixelSize = 16;
+			int _fontAtlasPixelSize = 32;
 
 			unsigned int _fontAtlasRowCount = 1;
 			unsigned int _fontAtlasMaxCellHeight = 0;
+			int _fontMaxBearingY = 0;
 
 			std::unordered_map<unsigned char, CharacterData> _characterMapping;
 

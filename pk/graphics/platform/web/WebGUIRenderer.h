@@ -4,6 +4,7 @@
 #include "../../../ecs/components/renderable/GUIRenderable.h"
 #include "WebBuffers.h"
 #include "shaders/WebShader.h"
+#include "WebTexture.h"
 
 #include "../../../core/Debug.h"
 
@@ -28,6 +29,8 @@ namespace pk
 			PK_int _uniformLocation_projMat = -1;
 			PK_int _uniformLocation_texSampler = -1;
 			
+			WebTexture* _defaultTexture = nullptr;
+
 			std::vector<BatchData> _batches;
 
 		public:

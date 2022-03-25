@@ -11,18 +11,21 @@ namespace pk
 	{
 	private:
 		std::string _txt;
+		bool _bold;
 
 	public:
 
 		vec3 color;
-		
-		TextRenderable(const std::string& txt) :
+
+		TextRenderable(const std::string& txt, bool bold = false) :
 			Component(ComponentType::PK_RENDERABLE_TEXT),
 			_txt(txt),
-			color(1,1,1)
+			color(1, 1, 1),
+			_bold(bold)
 		{
 		}
 
 		inline const std::string& getStr() const { return _txt; }
+		inline bool isBold() const { return _bold; }
 	};
 }

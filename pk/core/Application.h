@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <string>
 
@@ -59,6 +59,8 @@ namespace pk
 		static Application* get();
 
 		Scene* getCurrentScene();
+
+		inline InputManager* accessInputManager() { return _pInputManager; }
 
 		inline const Window* const getWindow() const { return _pWindow; }
 		inline Renderer* getRenderer(ComponentType renderableType) { return _renderers[renderableType]; }

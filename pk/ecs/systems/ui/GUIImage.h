@@ -19,6 +19,7 @@ namespace pk
 
 			// *Give width and height in pixels(even they are floats here...)
 			GUIImage(const std::vector<Constraint>& constraints, float width, float height);
+			GUIImage(const GUIImage& other);
 			~GUIImage();
 
 			inline GUIRenderable* accessRenderable() { return _renderable; }

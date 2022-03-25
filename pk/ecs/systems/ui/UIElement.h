@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../System.h"
 #include "Constraints.h"
 #include "../../components/Transform.h"
 #include <memory>
@@ -10,7 +11,7 @@ namespace pk
 	namespace ui
 	{
 
-		class UIElement
+		class UIElement : public Updateable
 		{
 		protected:
 
@@ -20,7 +21,7 @@ namespace pk
 
 		public:
 
-			UIElement(std::vector<Constraint> constraints) : 
+			UIElement(std::vector<Constraint> constraints) :
 				_constraints(constraints) 
 			{}
 			
@@ -30,6 +31,14 @@ namespace pk
 			{
 				for (Constraint& c : _constraints)
 					c.apply(*_transform);
+			}
+
+			Transform* accessTransform() { return _transform; }
+			std::vector<Constraint>& accessConstraints() { return _constraints; }
+
+			virtual void update() 
+			{
+				applyConstraints();
 			}
 		};
 	}

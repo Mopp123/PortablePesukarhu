@@ -1,4 +1,4 @@
-
+﻿
 #include "Application.h"
 #include "Debug.h"
 #include "../Common.h"

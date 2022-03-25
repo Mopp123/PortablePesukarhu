@@ -18,4 +18,5 @@ em++ ^
 ../pk/graphics/platform/web/shaders/WebShader.cpp ^
 ../pk/ecs/systems/ui/Text.cpp ^
 ../pk/ecs/systems/ui/GUIImage.cpp ^
+../pk/ecs/systems/ui/combinedFunctional/Button.cpp ^
 -s FULL_ES2=1 -s WASM=1 --memory-init-file 0 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_FREETYPE=1 --shell-file HTMLShell.html -o HelloEmscripten.html --preload-file assets --use-preload-plugins

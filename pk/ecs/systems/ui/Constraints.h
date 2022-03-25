@@ -40,8 +40,8 @@ namespace pk
 				{
 				case pk::ui::PIXEL_LEFT:		tMat[0 + 3 * 4] = value;									break;
 				case pk::ui::PIXEL_RIGHT:		tMat[0 + 3 * 4] = windowWidth - value - transformWidth;		break;
-				case pk::ui::PIXEL_BOTTOM:		tMat[1 + 3 * 4] = value;									break;
-				case pk::ui::PIXEL_TOP:			tMat[1 + 3 * 4] = windowHeight - value - transformHeight;	break;
+				case pk::ui::PIXEL_BOTTOM:		tMat[1 + 3 * 4] = value + transformHeight;					break;
+				case pk::ui::PIXEL_TOP:			tMat[1 + 3 * 4] = windowHeight - value;	break;
 				case pk::ui::PIXEL_CENTER_HORIZONTAl:break;
 				case pk::ui::PIXEL_CENTER_VERTICAL:break;
 

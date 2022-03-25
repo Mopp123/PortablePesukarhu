@@ -11,6 +11,9 @@ namespace pk
 		if (_pCurrentScene)
 			_pCurrentScene->update();
 
+		// Update all "updateable" systems of the scene
+		for (System* system : _pCurrentScene->systems[SystemType::PK_SYSTEM_TYPE_UPDATEABLE])
+			((Updateable*)system)->update();
 
 		// Submit all "renderable components" for rendering...
 		

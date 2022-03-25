@@ -20,8 +20,8 @@ namespace pk
 			
 		public:
 
-			WebTexture(const std::string& file);
-			WebTexture(void* data, int width, int height, int channels);
+			WebTexture(const std::string& file, const TextureSampler& sampler);
+			WebTexture(void* data, int width, int height, int channels, const TextureSampler& sampler);
 			WebTexture(const WebTexture& other) = delete;
 			
 			~WebTexture();

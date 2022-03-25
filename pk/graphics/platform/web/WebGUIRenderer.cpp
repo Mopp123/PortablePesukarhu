@@ -1,7 +1,6 @@
 
 #include "WebGUIRenderer.h"
 #include "shaders/sources/WebTestShader.h"
-#include "WebTexture.h"
 
 #include "WebFontRenderer.h"
 
@@ -49,9 +48,6 @@ namespace pk
 					gl_FragColor = texColor * var_color;
                 }
             )";
-
-		
-		static WebTexture* s_testTexture = nullptr;
 		
 		WebGUIRenderer::WebGUIRenderer() : 
 			_shader(s_vertexSource, s_fragmentSource)
@@ -63,7 +59,17 @@ namespace pk
 			_uniformLocation_projMat = _shader.getUniformLocation("projectionMatrix");
 			_uniformLocation_texSampler = _shader.getUniformLocation("textureSampler");
 
-			s_testTexture = new WebTexture("assets/test.png");
+			// Create default texture, if we want to just draw a colored rect
+			char* defaultTextureData = new char[1 * 4];
+			memset(defaultTextureData, 255, 4);
+			_defaultTexture = new WebTexture(
+				defaultTextureData, 1, 1, 4,
+				{
+					TextureSamplerFilterMode::PK_SAMPLER_FILTER_MODE_NEAR,
+					TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_REPEAT
+				}
+			);
+			delete[] defaultTextureData;
 
 			const int maxBatchInstanceCount = 256;
 			const int batchInstanceDataLen = 8 * 4;
@@ -77,7 +83,7 @@ namespace pk
 				batch.destroy();
 			}
 
-			delete s_testTexture;
+			delete _defaultTexture;
 		}
 
 		// submit renderable component for rendering (batch preparing, before rendering)
@@ -89,20 +95,6 @@ namespace pk
 			const vec2 scale(transformation[0 + 0 * 4], transformation[1 + 1 * 4]);
 			const vec3& color = renderable->color;
 
-			/*
-			
-				vertexData_uvs[i] = 0;
-				vertexData_uvs[i + 1] = 1;
-
-				vertexData_uvs[i + 2] = 0;
-				vertexData_uvs[i + 3] = 0;
-
-				vertexData_uvs[i + 4] = 1;
-				vertexData_uvs[i + 5] = 0;
-
-				vertexData_uvs[i + 6] = 1;
-				vertexData_uvs[i + 7] = 1;
-			*/
 			const vec2 uv_v0(0, 1);
 			const vec2 uv_v1(0, 0);
 			const vec2 uv_v2(1, 0);
@@ -184,8 +176,17 @@ namespace pk
 				glEnableVertexAttribArray(_vertexAttribLocation_color);
 				glVertexAttribPointer(_vertexAttribLocation_color, 4, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 4));
 
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, s_testTexture->getID());
+				// Bind texture only if we have one... (greater than 0 indicates that)
+				int textureID = batch.ID;
+				if(textureID > 0)
+				{
+				}
+				else
+				{
+					// ..otherwise user our "default texture"
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, _defaultTexture->getID());
+				}
 
 				glDrawElements(GL_TRIANGLES, instanceIndexCount * batch.getInstanceCount(), GL_UNSIGNED_SHORT, 0);
 

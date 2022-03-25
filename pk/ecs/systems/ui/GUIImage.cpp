@@ -20,6 +20,16 @@ namespace pk
 
 			currentScene->addComponent(_id, _transform);
 			currentScene->addComponent(_id, _renderable);
+
+			currentScene->addSystem(this);
+		}
+
+		GUIImage::GUIImage(const GUIImage& other) : 
+			UIElement(other._constraints),
+			_id(other._id)
+		{
+			_transform = other._transform;
+			_renderable = other._renderable;
 		}
 
 		GUIImage::~GUIImage()

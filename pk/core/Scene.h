@@ -1,6 +1,7 @@
-#pragma once
+﻿#pragma once
 
 #include "../ecs/components/Component.h"
+#include "../ecs/systems/System.h"
 #include <unordered_map>
 #include <vector>
 
@@ -12,6 +13,8 @@ namespace pk
 	public:
 
 		std::unordered_map<ComponentType, std::vector<Component*>> components;
+		std::unordered_map<SystemType, std::vector<System*>> systems;
+
 		std::vector<uint32_t> entities;
 
 		Scene() {}
@@ -37,6 +40,11 @@ namespace pk
 		{
 			component->_entity = entity;
 			components[component->getType()].push_back(component);
+		}
+
+		void addSystem(System* system)
+		{
+			systems[system->getType()].push_back(system);
 		}
 
 		// Returns first component of "type"
