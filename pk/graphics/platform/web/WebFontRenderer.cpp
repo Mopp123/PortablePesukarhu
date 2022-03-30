@@ -83,12 +83,9 @@ namespace pk
 
 			_fontTexAtlas = createFontTextureAtlas(glyphs);
 
-			//Perse..
 			// Create character mapping..
 			for (const GlyphData& glyph : glyphs)
 			{
-				Debug::log("LOAD CHAR: " + std::to_string(glyph.character));
-				
 				_characterMapping.insert(
 					std::pair<unsigned char, CharacterData>(
 						glyph.character,
@@ -446,7 +443,7 @@ namespace pk
 				// Check, do we want to change line?
 				if (c == '\n')
 				{
-					posY -= (charHeight) * (scaleFactorY);
+					posY -= (charHeight * 0.5f) * (scaleFactorY);
 					posX = originalX;
 					continue;
 				}
@@ -461,24 +458,15 @@ namespace pk
 				const CharacterData& charData = _characterMapping[c];
 
 				float x = (posX + charData.bearingX) * scaleFactorX;
-				//float y = posY + ((float)charData.bearingY - _fontAtlasMaxCellHeight) * scaleFactorY;
+				float y = posY + charData.bearingY / 2;
 
-
-				/*int diff = (int)charData.height - charData.bearingY;
-				if (diff <= 0)
-				{
-					diff = -charData.bearingY;
-				}*/
-				//Debug::log("diff: " + std::to_string(diff));
-				float y = posY + charData.bearingY / 2;// - (_fontAtlasPixelSize - std::floor((float)charData.bearingY * 0.5f)); //+ (std::floor(_fontAtlasMaxCellHeight - (float)charData.bearingY)) - _fontAtlasMaxCellHeight * 0.5f * scaleFactorY;
-				
 				float cw = charWidth * scaleFactorX;
 				float ch = charHeight * scaleFactorY;
 				
 				std::vector<float> vertexData = {
 					x, y - ch,		charData.texOffsetX,	 charData.texOffsetY + 1,	color.x,color.y,color.z,1.0f, thickness,
-					x, y,			charData.texOffsetX,	 charData.texOffsetY + 0,		color.x,color.y,color.z,1.0f, thickness,
-					x + cw, y,		charData.texOffsetX + 1, charData.texOffsetY + 0,		color.x,color.y,color.z,1.0f, thickness,
+					x, y,			charData.texOffsetX,	 charData.texOffsetY,		color.x,color.y,color.z,1.0f, thickness,
+					x + cw, y,		charData.texOffsetX + 1, charData.texOffsetY,		color.x,color.y,color.z,1.0f, thickness,
 					x + cw, y - ch, charData.texOffsetX + 1, charData.texOffsetY + 1,	color.x,color.y,color.z,1.0f, thickness
 				};
 

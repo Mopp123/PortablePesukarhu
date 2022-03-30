@@ -22,7 +22,9 @@ namespace pk
 			~Text();
 
 
+			inline const TextRenderable* const getRenderable() const { return _renderable; }
 			inline TextRenderable* accessRenderable() { return _renderable; }
+
 		};
 	}
 }

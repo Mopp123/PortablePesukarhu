@@ -68,7 +68,7 @@ namespace pk
 	{
 	public:
 		virtual ~KeyEvent() {};
-		virtual void func(InputKeyName key, int scancode, int action, int mods) = 0;
+		virtual void func(InputKeyName key, int scancode, InputAction action, int mods) = 0;
 	};
 
 	class MouseButtonEvent

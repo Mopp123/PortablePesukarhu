@@ -99,6 +99,7 @@ namespace pk
 
 			unsigned int parseSpecialCharCodepoint(unsigned int val) const;
 
+			bool isCharacter(const char* keyname) const;
 
 			inline InputKeyName convert_to_keyname(const std::string& key) 
 			{

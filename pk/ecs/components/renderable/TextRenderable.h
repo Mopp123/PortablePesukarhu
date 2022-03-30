@@ -25,6 +25,8 @@ namespace pk
 		{
 		}
 
+
+		inline std::string& accessStr() { return _txt; }
 		inline const std::string& getStr() const { return _txt; }
 		inline bool isBold() const { return _bold; }
 	};

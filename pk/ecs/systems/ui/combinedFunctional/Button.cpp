@@ -7,16 +7,71 @@ namespace pk
 {
 	namespace ui
 	{
+
+		void Button::ButtonMouseButtonEvent::func(InputMouseButtonName button, InputAction action, int mods)
+		{
+			if (_buttonRef.getImage().isMouseOver())
+			{
+				if (action == PK_INPUT_PRESS)
+					_buttonRef._state = 1;
+				else if (_buttonRef._state == 1 && action == PK_INPUT_RELEASE)
+					_buttonRef._state = 2;
+
+				// state: 0 = "nothing"
+				// state: 1 = pressed inside button
+				// state: 2 = pressed and released inside button
+
+				
+				if (_buttonRef._state == 2)
+				{
+					if (_buttonRef._selectable)
+					{
+						_buttonRef._isSelected = !_buttonRef._isSelected;
+						_buttonRef._img.setHighlighted(_buttonRef._isSelected);
+					}
+
+					if (_buttonRef._onClickEvent)
+						_buttonRef._onClickEvent->onClick(button);
+
+					_buttonRef._state = 0;
+				}
+			}
+			else
+			{
+				if (_buttonRef._selectable)
+				{
+					_buttonRef._isSelected = false;
+					_buttonRef._img.setHighlighted(false);
+				}
+
+				_buttonRef._state = 0;
+			}
+		}
+
+		void Button::ButtonMouseCursorPosEvent::func(int x, int y)
+		{
+			GUIImage& imgRef = _buttonRef._img;
+			
+			if (!_buttonRef._isSelected)
+				imgRef.setHighlighted(imgRef._isMouseOver);
+			
+		}
+
+
+
 		Button::Button(
 			std::string txt,
 			const std::vector<Constraint>& constraints,
 			float width, float height,
+			OnClickEvent* onClick,
+			bool selectable,
 			int txtDisplacementX,
 			int txtDisplacementY
 		) :
 			_img(constraints, width, height),
-			_text(txt, constraints, false)
-			//_onClickEvent(onClickEvent)
+			_text(txt, constraints, false),
+			_onClickEvent(onClick),
+			_selectable(selectable)
 		{
 			
 			_img.accessRenderable()->color = vec3(0.1f, 0.1f, 0.1f);
@@ -29,12 +84,14 @@ namespace pk
 
 			//InputManager::get()->addMouseButtonEvent(new ButtonMouseButtonEvent(*this));
 
+			Application::get()->accessInputManager()->addMouseButtonEvent(new ButtonMouseButtonEvent(*this));
+			Application::get()->accessInputManager()->addCursorPosEvent(new ButtonMouseCursorPosEvent(*this));
 		}
 
 
 		Button::~Button()
 		{
-			//delete _onClickEvent;
+			delete _onClickEvent;
 		}
 
 

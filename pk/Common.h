@@ -12,6 +12,7 @@
 
 #ifdef PK_BUILD_WEB
 
+#define PK_byte		char
 #define PK_float	GLfloat
 #define PK_int		GLint
 #define PK_uint		GLuint
@@ -32,3 +33,14 @@ enum PK_ShaderDatatype
 };
 
 #endif
+
+
+
+
+// Some funny ass macros --------------------------------------------
+// (to track all sorts of illegal and naughty behaviours xDdd)
+
+// <#M_DANGER>
+
+// This is ment ONLY when committing suicide... xDd (reason for this macro -> easily track fuckups caused by obj suicides..)
+#define PK_COMMIT_SUICIDE(obj) delete obj

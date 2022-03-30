@@ -11,7 +11,7 @@ namespace pk
 	{
 	protected:
 
-		std::vector<std::pair<KeyEvent*, void(KeyEvent::*)(InputKeyName, int, int, int)>>								_keyEvents;
+		std::vector<std::pair<KeyEvent*, void(KeyEvent::*)(InputKeyName, int, InputAction, int)>>								_keyEvents;
 		std::vector<std::pair<MouseButtonEvent*, void(MouseButtonEvent::*)(InputMouseButtonName, InputAction, int)>>	_mouseButtonEvents;
 		std::vector<std::pair<CursorPosEvent*, void(CursorPosEvent::*)(int, int)>>										_cursorPosEvents;
 		std::vector<std::pair<ScrollEvent*, void(ScrollEvent::*)(double, double)>>				_scrollEvents;
@@ -34,7 +34,7 @@ namespace pk
 
 		void destroyEvents();
 
-		void processKeyEvents(InputKeyName key, int scancode, int action, int mods);
+		void processKeyEvents(InputKeyName key, int scancode, InputAction action, int mods);
 		void processMouseButtonEvents(InputMouseButtonName button, InputAction action, int mods);
 		void processCursorPosEvents(int x, int y);
 		void processCharInputEvents(unsigned int codepoint);

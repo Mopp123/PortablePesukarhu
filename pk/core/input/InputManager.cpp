@@ -40,7 +40,7 @@ namespace pk
 
 	void InputManager::destroyEvents()
 	{
-		for (std::pair<KeyEvent*, void(KeyEvent::*)(InputKeyName, int, int, int)>& ev : _keyEvents)
+		for (std::pair<KeyEvent*, void(KeyEvent::*)(InputKeyName, int, InputAction, int)>& ev : _keyEvents)
 			delete ev.first;
 
 		for (std::pair<MouseButtonEvent*, void(MouseButtonEvent::*)(InputMouseButtonName, InputAction, int)>& ev : _mouseButtonEvents)
@@ -63,12 +63,12 @@ namespace pk
 	}
 
 
-	void InputManager::processKeyEvents(InputKeyName key, int scancode, int action, int mods)
+	void InputManager::processKeyEvents(InputKeyName key, int scancode, InputAction action, int mods)
 	{
-		for (std::pair<KeyEvent*, void(KeyEvent::*)(InputKeyName, int, int, int)>& ev : _keyEvents)
+		for (std::pair<KeyEvent*, void(KeyEvent::*)(InputKeyName, int, InputAction, int)>& ev : _keyEvents)
 		{
 			KeyEvent* caller = ev.first;
-			void(KeyEvent:: * eventFunc)(InputKeyName, int, int, int) = ev.second;
+			void(KeyEvent:: * eventFunc)(InputKeyName, int, InputAction, int) = ev.second;
 			(caller->*eventFunc)(key, scancode, action, mods);
 		}
 	}

@@ -27,22 +27,34 @@ namespace pk
 
 			InputKeyName key = inputManager->convert_to_keyname(keyEvent->key);
 			int scancode = 0;
-			int action = 0;
 			
-			inputManager->processKeyEvents(key, scancode, action, 0);
+			inputManager->processKeyEvents(key, scancode, PK_INPUT_PRESS, 0);
 			
-			unsigned char b1 = keyEvent->key[0];
-			unsigned char b2 = keyEvent->key[1];
+			Debug::log(keyEvent->key);
 
-			
-			unsigned int codepoint = inputManager->parseSpecialCharCodepoint(b2 == 0 ? (unsigned int)b1 : (unsigned int)b2);
+			// check is this just a 'char'
+			if (inputManager->isCharacter(keyEvent->key))
+			{
+				unsigned char b1 = keyEvent->key[0];
+				unsigned char b2 = keyEvent->key[1];
 
-			inputManager->processCharInputEvents(codepoint);
+				unsigned int codepoint = inputManager->parseSpecialCharCodepoint(b2 == 0 ? (unsigned int)b1 : (unsigned int)b2);
+
+				inputManager->processCharInputEvents(codepoint);
+			}
 
 			return true;
 		}
 		EM_BOOL keyup_callback(int eventType, const EmscriptenKeyboardEvent* keyEvent, void* userData)
 		{
+			WebInputManager* inputManager = (WebInputManager*)userData;
+
+			InputKeyName key = inputManager->convert_to_keyname(keyEvent->key);
+			int scancode = 0;
+
+			inputManager->processKeyEvents(key, scancode, PK_INPUT_RELEASE, 0);
+
+
 			return true;
 		}
 		// like input char callback?
@@ -77,8 +89,11 @@ namespace pk
 		{
 			WebInputManager* inputManager = (WebInputManager*)userData;
 
+			// In web gl our coords are flipped -> need to flip mouseY
+			const int windowWidth = Application::get()->getWindow()->getHeight(); //.. vittu miten kamala systeemi xDd, sormet ja silmät menee ristiin..
+
 			int mx = mouseEvent->targetX;
-			int my = mouseEvent->targetY;
+			int my = windowWidth - mouseEvent->targetY;
 			inputManager->setMousePos(mx, my);
 			inputManager->processCursorPosEvents(mx, my);
 
@@ -92,8 +107,6 @@ namespace pk
 				int width = webwindow_get_width();
 				int height = webwindow_get_height();
 
-				Debug::log("w: " + std::to_string(width) + " h: " + std::to_string(height));
-				
 				(Application::get())->resizeWindow(width, height);
 			}
 
@@ -133,6 +146,17 @@ namespace pk
 				return iter->second;
 			else
 				return val;
+		}
+
+		bool WebInputManager::isCharacter(const char* keyname) const
+		{
+			auto iter = _mapping_keyboard_emscToPk.find(keyname);
+			if (iter != _mapping_keyboard_emscToPk.end())
+			{
+				const InputKeyName& k = iter->second;
+				return k != PK_INPUT_KEY_BACKSPACE && k != PK_INPUT_KEY_ENTER && k != PK_INPUT_KEY_SHIFT && k != PK_INPUT_KEY_LCTRL;
+			}
+			return true;
 		}
 	}
 }
