@@ -34,6 +34,7 @@ namespace net
 
 		public:
 
+			WebRequest(OnCompletionEvent* onCompletion, PK_byte* reqBody, size_t bodySize);
 			WebRequest(ReqType reqType, OnCompletionEvent* onCompletion, const std::vector<ByteBuffer>& reqBody, size_t bodySize);
 			~WebRequest();
 		

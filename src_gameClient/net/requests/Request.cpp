@@ -4,6 +4,12 @@
 
 namespace net
 {
+	Request::Request(OnCompletionEvent* onCompletion, PK_byte* reqBody, size_t bodySize) :
+		_pOnCompletion(onCompletion), _pReqBody(reqBody)
+	{
+		_pClient = Client::get_instance();
+	}
+
 	Request::Request(ReqType type, OnCompletionEvent* onCompletion, const std::vector<ByteBuffer>& reqBody, size_t bodySize) :
 		_type(type), _pOnCompletion(onCompletion)
 	{

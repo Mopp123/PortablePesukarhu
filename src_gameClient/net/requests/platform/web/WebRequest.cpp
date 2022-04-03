@@ -17,6 +17,7 @@ namespace net
 			
 			WebRequest* req = (WebRequest*)fetch->userData;
 
+
 			std::vector<ByteBuffer> responseData;
 			if (fetch->numBytes > 0)
 			{
@@ -46,6 +47,26 @@ namespace net
 			WebRequest* req = (WebRequest*)fetch->userData;
 			PK_COMMIT_SUICIDE(req);
 		}
+
+		WebRequest::WebRequest(OnCompletionEvent* onCompletion, PK_byte* reqBody, size_t bodySize) :
+			Request(onCompletion, reqBody, bodySize)
+		{
+			emscripten_fetch_attr_init(&_fetchAttribs);
+
+			_fetchAttribs.userData = this;
+			strcpy(_fetchAttribs.requestMethod, "POST");
+
+			_fetchAttribs.requestDataSize = bodySize;
+			_fetchAttribs.requestData = _pReqBody;
+
+			_fetchAttribs.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
+			_fetchAttribs.onsuccess = download_succeeded;
+			_fetchAttribs.onerror = download_failed;
+			
+			emscripten_fetch(&_fetchAttribs, Client::get_instance()->getHostname().c_str());
+		}
+
+
 
 		WebRequest::WebRequest(ReqType reqType, OnCompletionEvent* onCompletion, const std::vector<ByteBuffer>& reqBody, size_t bodySize) :
 			Request(reqType, onCompletion, reqBody, bodySize)

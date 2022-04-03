@@ -3,13 +3,12 @@
 
 #include "../net/Client.h"
 
-#include "../net/ByteBuffer.h"
 #include "../net/Client.h"
-#include "../net/requests/platform/web/WebRequest.h"
+#include "../net/requests/Commands.h"
 #include "../net/NetCommon.h"
 
 #include "../../pk/core/Debug.h"
-
+#include <iostream>
 
 using namespace pk;
 using namespace ui;
@@ -47,38 +46,115 @@ public:
 
 };
 
+
+static std::string s_TEST_worldstate;
+static Text* s_TEST_text = nullptr;
+
+
+class OnCompletion_fetchWorldState : public OnCompletionEvent
+{
+public:
+
+	virtual void func(const std::vector<ByteBuffer>& data)
+	{
+		Debug::log("Req completed!");
+
+		const int dataWidth = (5 * 2) + 1;
+		const size_t expectedDataSize = (dataWidth * dataWidth) * sizeof(uint64_t);
+		
+		Debug::log("size was: " + std::to_string(data[0].getSize()) + " Expected: " + std::to_string(expectedDataSize));
+
+		// Attempt to print fetched area
+		if (data.size() > 0)
+		{
+			if (data[0].getSize() >= expectedDataSize)
+			{
+				const uint64_t* dataBuf = (const uint64_t*)data[0].getRawData();
+				
+				int x = 0;
+				for (size_t i = 0; i < dataWidth * dataWidth; ++i)
+				{
+					uint32_t tileStateUID = 0;
+					memcpy((void*)(&tileStateUID), (void*)(dataBuf + i), sizeof(uint32_t));
+
+					uint32_t s = tileStateUID > 0 ? 1 : 0;
+					s_TEST_worldstate += std::to_string(s) + " ";
+					x++;
+					if (x >= dataWidth)
+					{
+						s_TEST_worldstate += "\n";
+						x = 0;
+					}
+				}
+				/*
+				for (int y = 0; y < dataWidth; ++y)
+				{
+					for (int x = 0; x < dataWidth; ++x)
+					{
+						uint32_t tileStateUID = 0;
+						int areaTileIndex = (x * sizeof(uint32_t) + y * dataWidth);
+						memcpy((void*)(&tileStateUID), (void*)(dataBuf + areaTileIndex), sizeof(uint32_t));
+
+						if (tileStateUID > 0)
+							Debug::log("SOMETHING!!!");
+
+						uint32_t s = tileStateUID > 0 ? tileStateUID : 0;
+						s_TEST_worldstate += std::to_string(s) + " ";
+					}
+					s_TEST_worldstate += '\n';
+				}
+				*/
+			}
+			//std::string response(data[0].getRawData(), data[0].getSize());
+			//Debug::log("Server response: " + response);
+		}
+	}
+};
+
+
+static int s_TEST_xPos = 0;
+static int s_TEST_zPos = 0;
+
+
+class KeyEvent_move : public KeyEvent
+{
+public:
+
+	virtual void func(InputKeyName key, int scancode, InputAction action, int mods)
+	{
+		if (action != InputAction::PK_INPUT_RELEASE)
+		{
+			s_TEST_worldstate.clear();
+
+			if (key == PK_INPUT_KEY_W)
+				s_TEST_zPos -= 1;
+			else if (key == PK_INPUT_KEY_S)
+				s_TEST_zPos += 1;
+
+			if (key == PK_INPUT_KEY_A)
+				s_TEST_xPos -= 1;
+			else if (key == PK_INPUT_KEY_D)
+				s_TEST_xPos += 1;
+
+
+			std::string userID = "Persekorva123";
+			// Fetch world pos at these coords
+			send_command(userID, CMD_FetchWorldState, s_TEST_xPos, s_TEST_zPos, new OnCompletion_fetchWorldState);
+
+		}
+	}
+};
+
 void CreateFactionMenu::init()
 {
-
-	// JUST FOR TESTING
+	std::string userID = "Persekorva123";
 	
-	std::string userID_str = "Persekorva123";
-	char userID[32];
-	memcpy(userID, userID_str.data(), userID_str.size());
+	// Test loading world state
+	send_command(userID, CMD_FetchWorldState, 0, 0, new OnCompletion_fetchWorldState);
 
-	const int func_createFaction = 420;
-	int32_t funcName = func_createFaction;
-
-	std::string args = "SuperNation420";
-
-	ByteBuffer buf_userID(userID, 32);;
-	ByteBuffer buf_fName(funcName);
-	ByteBuffer buf_args(args.data(), args.size());
-
+	//send_command(userID, CMD_FetchServerMessage, new OnCompletion_test);
+	//send_command(userID, CMD_CreateFaction, "AmazingPpl", new OnCompletion_test);
 	
-	std::string userID_str2 = "TestUser";
-	char userID2[32];
-	memcpy(userID2, userID_str2.data(), userID_str2.size());
-
-	std::string args2 = "AmazingFaction";
-
-	ByteBuffer buf_userID2(userID2, 32);;
-	ByteBuffer buf_fName2(funcName);
-	ByteBuffer buf_args2(args2.data(), args2.size());
-
-	new WebRequest(Request::ReqType::POST, new OnCompletion_test, { buf_userID, buf_fName, buf_args }, buf_userID.getSize() + buf_fName.getSize() + buf_args.getSize());
-	new WebRequest(Request::ReqType::POST, new OnCompletion_test, { buf_userID2, buf_fName2, buf_args2 }, buf_userID2.getSize() + buf_fName2.getSize() + buf_args2.getSize());
-
 
 	const float textSize = 16;
 	const float rowPadding = 5;
@@ -89,7 +165,7 @@ void CreateFactionMenu::init()
 	const float panelY = 128;
 
 	_inputField_username = new InputField(
-		"Enter username",
+		" Enter username",
 		{
 			{ConstraintType::PIXEL_LEFT, panelX},
 			{ConstraintType::PIXEL_TOP, panelY}
@@ -99,7 +175,7 @@ void CreateFactionMenu::init()
 	);
 
 	_inputField_password = new InputField(
-		"Enter password",
+		" Enter password",
 		{
 			{ConstraintType::PIXEL_LEFT, panelX},
 			{ConstraintType::PIXEL_TOP, panelY + textSize + rowPadding}
@@ -109,7 +185,7 @@ void CreateFactionMenu::init()
 	);
 
 	_inputField_passwordRepeat = new InputField(
-		"Repeat password",
+		" Repeat password",
 		{
 			{ConstraintType::PIXEL_LEFT, panelX},
 			{ConstraintType::PIXEL_TOP, panelY + (textSize + rowPadding) * 2}
@@ -124,7 +200,7 @@ void CreateFactionMenu::init()
 			{ConstraintType::PIXEL_LEFT, panelX + 110},
 			{ConstraintType::PIXEL_TOP, panelY + (textSize + rowPadding) * 3}
 		},
-		100,
+		120,
 		buttonSize,
 		nullptr
 	);
@@ -135,12 +211,27 @@ void CreateFactionMenu::init()
 			{ConstraintType::PIXEL_LEFT, panelX},
 			{ConstraintType::PIXEL_TOP, panelY + (textSize + rowPadding) * 3}
 		},
-		100,
+		120,
 		buttonSize,
 		nullptr
 	);
+
+
+
+	Application::get()->accessInputManager()->addKeyEvent(new KeyEvent_move);
+
+	s_TEST_text = new Text(
+		"",
+		{
+			{ConstraintType::PIXEL_LEFT, panelX},
+			{ConstraintType::PIXEL_TOP, panelY + (textSize + rowPadding) * 4}
+		}
+	);
+
 }
 
 void CreateFactionMenu::update()
 {
+
+	s_TEST_text->accessRenderable()->accessStr() = s_TEST_worldstate;
 }

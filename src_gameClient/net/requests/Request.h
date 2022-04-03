@@ -38,6 +38,9 @@ namespace net
 
 	public:
 
+		// *NOTE! reqBody's ownership gets transferred to THIS Request
+		Request(OnCompletionEvent* onCompletion, PK_byte* reqBody, size_t bodySize);
+
 		Request(ReqType type, OnCompletionEvent* onCompletion, const std::vector<ByteBuffer>& reqBody, size_t bodySize);
 		virtual ~Request();
 

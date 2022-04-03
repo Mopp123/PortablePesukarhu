@@ -6,6 +6,7 @@ em++ ^
 ../src_gameClient/net/Client.cpp ^
 ../src_gameClient/net/ByteBuffer.cpp ^
 ../src_gameClient/net/requests/Request.cpp ^
+../src_gameClient/net/requests/Commands.cpp ^
 ../src_gameClient/net/requests/platform/web/WebRequest.cpp ^
 ../pk/core/Debug.cpp ^
 ../pk/core/Timing.cpp ^
