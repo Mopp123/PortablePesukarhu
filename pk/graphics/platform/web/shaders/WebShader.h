@@ -25,7 +25,8 @@ namespace pk
 
 			PK_int getAttribLocation(const char* name) const;
 			PK_int getUniformLocation(const char* name) const;
-			void setUniform(PK_int location, mat4& matrix) const;
+			void setUniform(PK_int location, const mat4& matrix) const;
+			void setUniform(PK_int location, const vec3& v) const;
 			void setUniform(PK_int location, float val) const;
 
 			inline PK_uint getProgramID() const { return _programID; }

@@ -122,7 +122,7 @@ namespace pk
 			// submit renderable component for rendering (batch preparing, before rendering)
 			virtual void submit(const Component* const renderableComponent, const mat4& transformation);
 
-			virtual void render(mat4& projectionMatrix, mat4& viewMatrix);
+			virtual void render(const Camera& cam);
 
 			virtual void resize(int w, int h) {}
 

@@ -13,6 +13,7 @@
 #ifdef PK_BUILD_WEB
 
 #define PK_byte		char
+#define PK_ubyte	unsigned char
 #define PK_float	GLfloat
 #define PK_int		GLint
 #define PK_uint		GLuint

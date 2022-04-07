@@ -17,8 +17,16 @@ namespace pk
 			EmscriptenWebGLContextAttributes contextAttribs;
 			emscripten_webgl_init_context_attributes(&contextAttribs);
 			// ..propably the most disgusting line ever...
-			contextAttribs.alpha = contextAttribs.depth = contextAttribs.stencil = contextAttribs.antialias = contextAttribs.preserveDrawingBuffer = contextAttribs.failIfMajorPerformanceCaveat = 0;
-			contextAttribs.premultipliedAlpha = 0;
+			contextAttribs.alpha = false;
+
+			contextAttribs.depth = true;
+			contextAttribs.stencil = false;
+			contextAttribs.antialias = true;
+			contextAttribs.premultipliedAlpha = true;
+			contextAttribs.preserveDrawingBuffer = false;
+
+			contextAttribs.failIfMajorPerformanceCaveat = false;
+			
 			contextAttribs.enableExtensionsByDefault = 1;
 
 			// using webgl 1.0 (widest support?)

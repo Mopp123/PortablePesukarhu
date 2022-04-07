@@ -160,16 +160,18 @@ namespace pk
 		}
 
 
-		void WebFontRenderer::render(mat4& projectionMatrix, mat4& viewMatrix)
+		void WebFontRenderer::render(const Camera& cam)
 		{
+			mat4 projectionMatrix = cam.getProjMat2D();
+
 			glUseProgram(_shader.getProgramID());
 
 			// all common uniforms..
 			_shader.setUniform(_uniformLocation_projMat, projectionMatrix);
 			_shader.setUniform(_uniformLocation_texAtlasRows, _fontAtlasRowCount);
 
-			glDisable(GL_CULL_FACE);
-			//glCullFace(GL_BACK);
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_FRONT);
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, _fontTexAtlas->getID());

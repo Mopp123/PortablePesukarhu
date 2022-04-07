@@ -19,19 +19,20 @@ namespace pk
 		void WebMasterRenderer::submit(const Component * const c, const mat4& transformation)
 		{}
 
-		void WebMasterRenderer::render(mat4& projectionMatrix, mat4& viewMatrix)
+		void WebMasterRenderer::render(const Camera& cam)
 		{}
 
 
 		void WebMasterRenderer::resize(int w, int h)
 		{
 			glViewport(0, 0, w, h);
+			glFrontFace(GL_CCW);
 		}
 
 
 		void WebMasterRenderer::beginRenderPass() 
 		{
-			glClear(GL_COLOR_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glClearColor(0, 0, 1, 1);
 		}
 

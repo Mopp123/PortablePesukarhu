@@ -34,8 +34,9 @@ public:
 		chatRef(chat)
 	{}
 
-	virtual void func(const std::vector<ByteBuffer>& data)
+	virtual void func(const uint64_t* data, size_t dataSize)
 	{
+		/*
 		if (data.size() > 0)
 		{
 			std::string msg = data[0].getString();
@@ -45,7 +46,7 @@ public:
 				chatRef.addMessage(msg);
 
 			}
-		}
+		}*/
 	}
 
 };
@@ -141,12 +142,13 @@ static float s_TEST_maxcooldown_getMessages = 1.0f;
 
 void ChatTest::update()
 {
+	/*
 	if (s_TEST_cooldown_getMessages <= 0.0f)
 	{
 		ByteBuffer buf_mType((PK_byte)1);
 		new WebRequest(Request::ReqType::POST, new OnCompletion_QueryMessage(*this), { buf_mType }, buf_mType.getSize());
 		s_TEST_cooldown_getMessages = s_TEST_maxcooldown_getMessages;
-	}
+	}*/
 
 
 	s_TEST_cooldown_getMessages -= 1.0f * Timing::get_delta_time();

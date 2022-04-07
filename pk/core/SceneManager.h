@@ -21,6 +21,8 @@ namespace pk
 		// Detects and handles scene switching
 		void handleSceneSwitching();
 
-		inline Scene* getCurrentScene() { return _pCurrentScene; }
+		inline const Scene* const getCurrentScene() const { return _pCurrentScene; }
+		inline Scene* accessCurrentScene() { return _pCurrentScene; }
+
 	};
 }

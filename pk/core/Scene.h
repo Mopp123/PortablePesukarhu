@@ -1,7 +1,10 @@
 ﻿#pragma once
 
 #include "../ecs/components/Component.h"
+#include "../ecs/components/Camera.h"
 #include "../ecs/systems/System.h"
+#include "../ecs/systems/CameraUtils.h"
+#include "Debug.h"
 #include <unordered_map>
 #include <vector>
 
@@ -17,7 +20,12 @@ namespace pk
 
 		std::vector<uint32_t> entities;
 
-		Scene() {}
+		Camera* activeCamera = nullptr;
+
+		Scene() 
+		{
+		}
+
 		virtual ~Scene() 
 		{
 			for (const std::pair<ComponentType, std::vector<Component*>>& cContainer : components)
@@ -26,6 +34,7 @@ namespace pk
 					delete c;
 			}
 			components.clear();
+			entities.clear();
 		}
 
 		uint32_t createEntity()
@@ -47,7 +56,7 @@ namespace pk
 			systems[system->getType()].push_back(system);
 		}
 
-		// Returns first component of "type"
+		// Returns first component of "type" associated with "entity"
 		Component* getComponent(uint32_t entity, ComponentType type)
 		{
 			for (Component* c : components[type])
@@ -58,7 +67,21 @@ namespace pk
 			return nullptr;
 		}
 
+		// Returns first found component found of type "type"
+		Component* getComponent(ComponentType type)
+		{
+			auto iter = components.find(type);
+			if (iter != components.end())
+			{
+				if (!iter->second.empty())
+					return iter->second[0];
+			}
+
+			return nullptr;
+		}
+
 		virtual void init() = 0;
 		virtual void update() = 0;
+
 	};	
 }

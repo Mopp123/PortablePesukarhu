@@ -117,6 +117,8 @@ namespace pk
 
 		mat4() { memset(_e, 0, sizeof(float) * 16); }
 		mat4(const mat4& other) { memcpy(_e, other._e, sizeof(float) * 16); }
+		mat4(mat4&& other) { memcpy(_e, other._e, sizeof(float) * 16); }
+		void operator=(const mat4& other) { memcpy(_e, other._e, sizeof(float) * 16); }
 
 		void setIdentity()
 		{
@@ -125,9 +127,157 @@ namespace pk
 				_e[i + i * 4] = 1.0f;
 		}
 
+		friend mat4 operator*(const mat4& left, const mat4& right)
+		{
+			mat4 result;
+
+			for (int y = 0; y < 4; ++y)
+			{
+				for (int x = 0; x < 4; ++x)
+					result[y + x * 4] =
+					left[y + 0 * 4] * right[0 + x * 4] +
+					left[y + 1 * 4] * right[1 + x * 4] +
+					left[y + 2 * 4] * right[2 + x * 4] +
+					left[y + 3 * 4] * right[3 + x * 4];
+			}
+
+			return result;
+		}
+
+		//	*Found from: https://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix
+		//		comment on the site about this :
+		//			"This was lifted from MESA implementation of the GLU library."
+		void inverse()
+		{
+			mat4 inverseMatrix;
+
+			inverseMatrix._e[0] = _e[5] * _e[10] * _e[15] -
+				_e[5] * _e[11] * _e[14] -
+				_e[9] * _e[6] * _e[15] +
+				_e[9] * _e[7] * _e[14] +
+				_e[13] * _e[6] * _e[11] -
+				_e[13] * _e[7] * _e[10];
+
+			inverseMatrix._e[4] = -_e[4] * _e[10] * _e[15] +
+				_e[4] * _e[11] * _e[14] +
+				_e[8] * _e[6] * _e[15] -
+				_e[8] * _e[7] * _e[14] -
+				_e[12] * _e[6] * _e[11] +
+				_e[12] * _e[7] * _e[10];
+
+			inverseMatrix._e[8] = _e[4] * _e[9] * _e[15] -
+				_e[4] * _e[11] * _e[13] -
+				_e[8] * _e[5] * _e[15] +
+				_e[8] * _e[7] * _e[13] +
+				_e[12] * _e[5] * _e[11] -
+				_e[12] * _e[7] * _e[9];
+
+			inverseMatrix._e[12] = -_e[4] * _e[9] * _e[14] +
+				_e[4] * _e[10] * _e[13] +
+				_e[8] * _e[5] * _e[14] -
+				_e[8] * _e[6] * _e[13] -
+				_e[12] * _e[5] * _e[10] +
+				_e[12] * _e[6] * _e[9];
+
+			inverseMatrix._e[1] = -_e[1] * _e[10] * _e[15] +
+				_e[1] * _e[11] * _e[14] +
+				_e[9] * _e[2] * _e[15] -
+				_e[9] * _e[3] * _e[14] -
+				_e[13] * _e[2] * _e[11] +
+				_e[13] * _e[3] * _e[10];
+
+			inverseMatrix._e[5] = _e[0] * _e[10] * _e[15] -
+				_e[0] * _e[11] * _e[14] -
+				_e[8] * _e[2] * _e[15] +
+				_e[8] * _e[3] * _e[14] +
+				_e[12] * _e[2] * _e[11] -
+				_e[12] * _e[3] * _e[10];
+
+			inverseMatrix._e[9] = -_e[0] * _e[9] * _e[15] +
+				_e[0] * _e[11] * _e[13] +
+				_e[8] * _e[1] * _e[15] -
+				_e[8] * _e[3] * _e[13] -
+				_e[12] * _e[1] * _e[11] +
+				_e[12] * _e[3] * _e[9];
+
+			inverseMatrix._e[13] = _e[0] * _e[9] * _e[14] -
+				_e[0] * _e[10] * _e[13] -
+				_e[8] * _e[1] * _e[14] +
+				_e[8] * _e[2] * _e[13] +
+				_e[12] * _e[1] * _e[10] -
+				_e[12] * _e[2] * _e[9];
+
+			inverseMatrix._e[2] = _e[1] * _e[6] * _e[15] -
+				_e[1] * _e[7] * _e[14] -
+				_e[5] * _e[2] * _e[15] +
+				_e[5] * _e[3] * _e[14] +
+				_e[13] * _e[2] * _e[7] -
+				_e[13] * _e[3] * _e[6];
+
+			inverseMatrix._e[6] = -_e[0] * _e[6] * _e[15] +
+				_e[0] * _e[7] * _e[14] +
+				_e[4] * _e[2] * _e[15] -
+				_e[4] * _e[3] * _e[14] -
+				_e[12] * _e[2] * _e[7] +
+				_e[12] * _e[3] * _e[6];
+
+			inverseMatrix._e[10] = _e[0] * _e[5] * _e[15] -
+				_e[0] * _e[7] * _e[13] -
+				_e[4] * _e[1] * _e[15] +
+				_e[4] * _e[3] * _e[13] +
+				_e[12] * _e[1] * _e[7] -
+				_e[12] * _e[3] * _e[5];
+
+			inverseMatrix._e[14] = -_e[0] * _e[5] * _e[14] +
+				_e[0] * _e[6] * _e[13] +
+				_e[4] * _e[1] * _e[14] -
+				_e[4] * _e[2] * _e[13] -
+				_e[12] * _e[1] * _e[6] +
+				_e[12] * _e[2] * _e[5];
+
+			inverseMatrix._e[3] = -_e[1] * _e[6] * _e[11] +
+				_e[1] * _e[7] * _e[10] +
+				_e[5] * _e[2] * _e[11] -
+				_e[5] * _e[3] * _e[10] -
+				_e[9] * _e[2] * _e[7] +
+				_e[9] * _e[3] * _e[6];
+
+			inverseMatrix._e[7] = _e[0] * _e[6] * _e[11] -
+				_e[0] * _e[7] * _e[10] -
+				_e[4] * _e[2] * _e[11] +
+				_e[4] * _e[3] * _e[10] +
+				_e[8] * _e[2] * _e[7] -
+				_e[8] * _e[3] * _e[6];
+
+			inverseMatrix._e[11] = -_e[0] * _e[5] * _e[11] +
+				_e[0] * _e[7] * _e[9] +
+				_e[4] * _e[1] * _e[11] -
+				_e[4] * _e[3] * _e[9] -
+				_e[8] * _e[1] * _e[7] +
+				_e[8] * _e[3] * _e[5];
+
+			inverseMatrix._e[15] = _e[0] * _e[5] * _e[10] -
+				_e[0] * _e[6] * _e[9] -
+				_e[4] * _e[1] * _e[10] +
+				_e[4] * _e[2] * _e[9] +
+				_e[8] * _e[1] * _e[6] -
+				_e[8] * _e[2] * _e[5];
+
+
+			float determinant = _e[0] * inverseMatrix._e[0] + _e[1] * inverseMatrix._e[4] + _e[2] * inverseMatrix._e[8] + _e[3] * inverseMatrix._e[12];
+
+			*this = inverseMatrix; // THIS MAY NOT WORK! <- wtf is going on here!?!? don't remember at all..
+
+			if (determinant == 0)
+				return;
+
+			for (int i = 0; i < 16; ++i)
+				_e[i] *= (1.0f / determinant);
+		}
 
 		float operator[](int i) const { return _e[i]; }
 		float& operator[](int i) { return _e[i]; }
+		const float* getRawArray() const { return _e; }
 	};
 
 	inline mat4 create_proj_mat_ortho(float left, float right, float top, float bottom, float zNear, float zFar)
@@ -145,7 +295,41 @@ namespace pk
 		
 		return result;
 	}
+	/*
+	inline mat4 create_perspective_projection_matrix(
+		float fov,
+		float aspectRatio,
+		float zNear,
+		float zFar
+	)
+	{
+		mat4 result;
+		result.setIdentity();
+		result[0 + 0 * 4] = 1.0f / (aspectRatio * std::tan(fov / 2.0f));
+		result[1 + 1 * 4] = 1.0f / (std::tan(fov / 2.0f));
+		result[2 + 2 * 4] = -((zFar + zNear) / (zFar - zNear));
+		result[2 + 3 * 4] = -((2.0f * zFar * zNear) / (zFar - zNear));
+		result[3 + 2 * 4] = -1.0f;
+		result[3 + 3 * 4] = 0.0f;
+		return result;
+	}*/
 
+	inline mat4 create_perspective_projection_matrix(
+		float aspectRatio,
+		float fov,
+		float zNear, float zFar
+	)
+	{
+		mat4 matrix;
+		matrix.setIdentity();
+		matrix[0] =			1.0f / (aspectRatio * tan(fov / 2.0f));
+		matrix[1 + 1 * 4] = 1.0f / (tan(fov / 2.0f));
+		matrix[2 + 2 * 4] = -((zFar + zNear) / (zFar - zNear));
+		matrix[3 + 2 * 4] = -1.0f;
+		matrix[2 + 3 * 4] = -((2.0f * zFar * zNear) / (zFar - zNear));
+		matrix[3 + 3 * 4] = 0.0f;
+		return matrix;
+	}
 
 
 	// MISC-----

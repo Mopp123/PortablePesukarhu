@@ -12,7 +12,7 @@ namespace net
 	{
 	public:
 
-		virtual void func(const std::vector<ByteBuffer>& data) = 0;
+		virtual void func(const PK_byte* data, size_t dataSize) = 0;
 		virtual ~OnCompletionEvent() {}
 	};
 

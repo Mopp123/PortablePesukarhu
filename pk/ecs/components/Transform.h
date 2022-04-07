@@ -23,10 +23,25 @@ namespace pk
 			setScale(scale);
 		}
 
+		Transform(vec3 pos, vec3 scale) :
+			Component(ComponentType::PK_TRANSFORM)
+		{
+			_transformationMatrix.setIdentity();
+			setPos(pos);
+			setScale(scale);
+		}
+
 		void setPos(vec2 pos)
 		{
 			_transformationMatrix[0 + 3 * 4] = pos.x;
 			_transformationMatrix[1 + 3 * 4] = pos.y;
+		}
+
+		void setPos(vec3 pos)
+		{
+			_transformationMatrix[0 + 3 * 4] = pos.x;
+			_transformationMatrix[1 + 3 * 4] = pos.y;
+			_transformationMatrix[2 + 3 * 4] = pos.z;
 		}
 
 		void setScale(vec2 scale)
@@ -35,8 +50,15 @@ namespace pk
 			_transformationMatrix[1 + 1 * 4] = scale.y;
 		}
 
-		inline vec2 getPos() const { return { _transformationMatrix[0 + 3 * 4], _transformationMatrix[1 + 3 * 4] }; }
+		void setScale(vec3 scale)
+		{
+			_transformationMatrix[0 + 0 * 4] = scale.x;
+			_transformationMatrix[1 + 1 * 4] = scale.y;
+			_transformationMatrix[2 + 1 * 4] = scale.z;
+		}
 
+		inline vec2 getPos() const { return { _transformationMatrix[0 + 3 * 4], _transformationMatrix[1 + 3 * 4] }; }
+		
 		const mat4& getTransformationMatrix() const { return _transformationMatrix; }
 		mat4& accessTransformationMatrix() { return _transformationMatrix; }
 	};

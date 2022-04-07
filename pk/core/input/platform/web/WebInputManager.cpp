@@ -108,6 +108,9 @@ namespace pk
 				int height = webwindow_get_height();
 
 				(Application::get())->resizeWindow(width, height);
+
+				WebInputManager* inputManager = (WebInputManager*)userData;
+				inputManager->processWindowResizeEvents(width, height);
 			}
 
 			return true;
@@ -125,7 +128,7 @@ namespace pk
 			
 			emscripten_set_mousemove_callback("canvas",							this, true, cursor_pos_callback);
 
-			emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, true, ui_callback);
+			emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW,		this, true, ui_callback);
 		}
 
 		WebInputManager::~WebInputManager()

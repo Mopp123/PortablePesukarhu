@@ -11,7 +11,7 @@ namespace pk
 		Text::Text(const std::string& str, const std::vector<Constraint>& constraints, bool bold) :
 			UIElement(constraints)
 		{
-			Scene* currentScene = Application::get()->getCurrentScene();
+			Scene* currentScene = Application::get()->accessCurrentScene();
 
 			_id = currentScene->createEntity();
 

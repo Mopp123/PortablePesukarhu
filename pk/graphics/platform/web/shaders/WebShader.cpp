@@ -77,10 +77,16 @@ namespace pk
 			return glGetUniformLocation(_programID, name);
 		}
 
-		void WebShader::setUniform(PK_int location, mat4& matrix) const
+		void WebShader::setUniform(PK_int location, const mat4& matrix) const
 		{
-			glUniformMatrix4fv(location, 1, false, &matrix[0]);
+			glUniformMatrix4fv(location, 1, GL_FALSE, matrix.getRawArray());
 		}
+
+		void WebShader::setUniform(PK_int location, const vec3& v) const
+		{
+			glUniform3f(location, v.x, v.y, v.z);
+		}
+
 
 		void WebShader::setUniform(PK_int location, float val) const
 		{

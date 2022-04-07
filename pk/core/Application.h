@@ -11,6 +11,7 @@
 #include "Timing.h"
 
 #include <vector>
+#include <map>
 #include <unordered_map>
 
 #include <memory>
@@ -36,7 +37,7 @@ namespace pk
 
 
 		Renderer* _pMasterRenderer = nullptr;
-		std::unordered_map<ComponentType, Renderer*> _renderers;
+		std::map<ComponentType, Renderer*> _renderers;
 
 
 	public:
@@ -47,7 +48,7 @@ namespace pk
 			Context* graphicsContext, 
 			InputManager* inputManager,
 			Renderer* masterRenderer,
-			std::unordered_map<ComponentType, Renderer*> renderers
+			std::map<ComponentType, Renderer*> renderers
 		);
 		~Application();
 
@@ -58,12 +59,16 @@ namespace pk
 
 		static Application* get();
 
-		Scene* getCurrentScene();
+		
+		inline InputManager* accessInputManager()	{ return _pInputManager; }
+		inline Scene* accessCurrentScene()			{ return _sceneManager.accessCurrentScene(); }
 
-		inline InputManager* accessInputManager() { return _pInputManager; }
+		inline const Window*	const getWindow()		const { return _pWindow; }
+		inline const Scene*		const getCurrentScene() const { return _sceneManager.getCurrentScene(); }
+		
+		inline Renderer*		const getRenderer(ComponentType renderableType)	{ return _renderers[renderableType]; }
+		
 
-		inline const Window* const getWindow() const { return _pWindow; }
-		inline Renderer* getRenderer(ComponentType renderableType) { return _renderers[renderableType]; }
 		inline bool isRunning() const { return _running; }
 
 	private:

@@ -11,6 +11,7 @@ namespace net
 
 		// actually its the complete url to server...
 		std::string _hostname;
+		std::string _userID;
 
 		static Client* s_pInstance;
 
@@ -23,7 +24,11 @@ namespace net
 
 		void sendRequest(Request* req);
 
-		inline const std::string& getHostname() const { return _hostname; }
+		inline void setUserID(const std::string& id) { _userID = id; }
+
+		inline const std::string& getHostname() const	{ return _hostname; }
+		inline const std::string& getUserID() const		{ return _userID; }
+
 
 		static Client* get_instance();
 

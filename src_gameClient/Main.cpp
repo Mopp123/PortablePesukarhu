@@ -8,10 +8,12 @@
 #include "../pk/graphics/platform/web/WebMasterRenderer.h"
 #include "../pk/graphics/platform/web/WebGUIRenderer.h"
 #include "../pk/graphics/platform/web/WebFontRenderer.h"
+#include "../pk/graphics/platform/web/WebTerrainRenderer.h"
+
 
 #include "scenes/LoginMenu.h"
 #include "scenes/CreateFactionMenu.h"
-#include "scenes/ChatTest.h"
+#include "scenes/InGame.h"
 
 #include "../pk/core/Debug.h"
 
@@ -37,6 +39,7 @@ int main(int argc, const char** argv)
 	WebInputManager inputManager;
 
 	WebMasterRenderer masterRenderer;
+	Renderer* pTerrainRenderer = (Renderer*)(new WebTerrainRenderer);
 	Renderer* pGuiRenderer = (Renderer*)(new WebGUIRenderer);
 	Renderer* pFontRenderer = (Renderer*)(new WebFontRenderer);
 
@@ -45,13 +48,14 @@ int main(int argc, const char** argv)
 		&window, &graphicsContext, &inputManager, 
 		&masterRenderer, 
 		{ 
-			{ ComponentType::PK_RENDERABLE_GUI, pGuiRenderer },
-			{ ComponentType::PK_RENDERABLE_TEXT, pFontRenderer }
+			{ ComponentType::PK_RENDERABLE_GUI,			pGuiRenderer	 },
+			{ ComponentType::PK_RENDERABLE_TEXT,		pFontRenderer	 },
+			{ ComponentType::PK_RENDERABLE_TERRAINTILE,	pTerrainRenderer }
 		});
 
-	Client::get_instance()->init("http://192.168.160.249:51421");
+	Client::get_instance()->init("http://192.168.15.249:51421");
 
-	application.switchScene(new CreateFactionMenu);
+	application.switchScene(new InGame);
 
 	// TESTING NET
 

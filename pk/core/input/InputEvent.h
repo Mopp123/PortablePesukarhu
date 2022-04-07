@@ -98,4 +98,11 @@ namespace pk
 		virtual ~CharInputEvent() {};
 		virtual void func(unsigned int codepoint) = 0;
 	};
+
+	class WindowResizeEvent
+	{
+	public:
+		virtual ~WindowResizeEvent() {};
+		virtual void func(int w, int h) = 0;
+	};
 }

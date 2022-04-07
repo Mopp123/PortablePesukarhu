@@ -18,7 +18,7 @@ namespace pk
 			_originalColor(originalColor), _highlightColor(highlightColor)
 		{
 			Application* app = Application::get();
-			Scene* currentScene = app->getCurrentScene();
+			Scene* currentScene = app->accessCurrentScene();
 
 			_id = currentScene->createEntity();
 

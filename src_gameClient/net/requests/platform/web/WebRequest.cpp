@@ -3,6 +3,8 @@
 #include "../../../Client.h"
 #include "../../../../../pk/core/Debug.h"
 
+#include <iostream>
+
 using namespace pk;
 
 namespace net
@@ -17,22 +19,10 @@ namespace net
 			
 			WebRequest* req = (WebRequest*)fetch->userData;
 
-
-			std::vector<ByteBuffer> responseData;
-			if (fetch->numBytes > 0)
-			{
-				ByteBuffer responseBuffer(fetch->data, fetch->numBytes); // JUST TESTING...
-				responseData.push_back(responseBuffer);
-			}
-			else
-			{
-				Debug::log("Response didn't contain body");
-			}
+			if (req->_pOnCompletion)
+				req->_pOnCompletion->func(fetch->data, fetch->numBytes);
 
 			emscripten_fetch_close(fetch); // Free data associated with the fetch.
-
-			if (req->_pOnCompletion)
-				req->_pOnCompletion->func(responseData);
 
 			PK_COMMIT_SUICIDE(req);
 		}

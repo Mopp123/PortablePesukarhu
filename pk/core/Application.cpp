@@ -1,10 +1,10 @@
 ﻿
 #include "Application.h"
-#include "Debug.h"
 #include "../Common.h"
-
 #include "../utils/pkmath.h"
 
+#include "Debug.h"
+#include <iostream>
 #include <emscripten.h>
 
 
@@ -14,33 +14,47 @@ namespace pk
 	void update()
 	{
 		Application* app = Application::s_pApplication;
-		Window* window = app->_pWindow;
 		
-		mat4 projMat = create_proj_mat_ortho(0, window->getWidth(), window->getHeight(), 0, 0.0f, 100.0f);
-		mat4 viewMat;
-
-		if (app != nullptr)
+		if(app)
 		{
-			SceneManager& sceneManager = app->_sceneManager;
-			sceneManager.handleSceneUpdate();
-
-			// All "top level" rendering stuff...
-			Renderer* masterRenderer = app->_pMasterRenderer;
-			masterRenderer->beginFrame(); // (in Vulkan, acquire swapchain img here.., and maybe begin the primary cmd buf)
-			masterRenderer->beginRenderPass();
-			// 'Render all "actual renderers"' (in Vulkan (re)record all secondary cmdbufs here)
-			for(const std::pair<ComponentType, Renderer*>& r : app->_renderers)
+			const Scene* currentScene = app->getCurrentScene();
+			if (currentScene)
 			{
-				r.second->render(projMat, viewMat);
-			}
-			masterRenderer->endRenderPass();
-			masterRenderer->endFrame(); // (submit cmdbuf[currentFrameIndex] to swapchain for execution, AND attempt to present the "top" swapchain image)
+				const Camera* const activeCam = currentScene->activeCamera;
 
+				SceneManager& sceneManager = app->_sceneManager;
+				sceneManager.handleSceneUpdate();
+
+				if (activeCam != nullptr)
+				{
+					// All "top level" rendering stuff...
+					Renderer* masterRenderer = app->_pMasterRenderer;
+					masterRenderer->beginFrame(); // (in Vulkan, acquire swapchain img here.., and maybe begin the primary cmd buf)
+					masterRenderer->beginRenderPass();
+					// 'Render all "actual renderers"' (in Vulkan (re)record all secondary cmdbufs here)
+					for (const std::pair<ComponentType, Renderer*>& r : app->_renderers)
+					{
+						r.second->render(*activeCam);
+					}
+					masterRenderer->endRenderPass();
+					masterRenderer->endFrame(); // (submit cmdbuf[currentFrameIndex] to swapchain for execution, AND attempt to present the "top" swapchain image)
+
+				}
+				else
+				{
+					Debug::log("Scene doesn't have active camera", Debug::MessageType::PK_ERROR);
+				}
+				//Debug::log("delta: " + std::to_string(Timing::get_delta_time()));
+			}
 			// Detect and handle possible scene switching..
-			sceneManager.handleSceneSwitching();
+			
+			app->_sceneManager.handleSceneSwitching();
 			app->_timing.update();
 
-			//Debug::log("delta: " + std::to_string(Timing::get_delta_time()));
+
+			GLenum err = glGetError();
+			if (err != GL_NO_ERROR)
+				std::cout << "GL ERROR!: " << err << std::endl;
 		}
 	}
 
@@ -52,7 +66,7 @@ namespace pk
 		Context* graphicsContext,
 		InputManager* inputManager,
 		Renderer* masterRenderer,
-		std::unordered_map<ComponentType, Renderer*> renderers
+		std::map<ComponentType, Renderer*> renderers
 	) :
 		_name(name), 
 		_pWindow(window),
@@ -85,6 +99,8 @@ namespace pk
 	{
 		_pWindow->resize(w, h);
 		_pMasterRenderer->resize(w, h);
+
+
 	}
 
 	void Application::switchScene(Scene* newScene)
@@ -99,9 +115,5 @@ namespace pk
 		return s_pApplication;
 	}
 
-	Scene* Application::getCurrentScene()
-	{
-		return _sceneManager.getCurrentScene();
-	}
 
 }

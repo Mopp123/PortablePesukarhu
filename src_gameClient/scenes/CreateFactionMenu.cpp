@@ -33,15 +33,15 @@ class OnCompletion_test : public OnCompletionEvent
 {
 public:
 
-	virtual void func(const std::vector<ByteBuffer>& data)
+	virtual void func(const uint64_t* data, size_t dataSize)
 	{
-		Debug::log("Req completed!");
-
+		Debug::log("Req completed! A");
+		/*
 		if (data.size() > 0)
 		{
 			std::string response(data[0].getRawData(), data[0].getSize());
 			Debug::log("Server response: " + response);
-		}
+		}*/
 	}
 
 };
@@ -50,14 +50,14 @@ public:
 static std::string s_TEST_worldstate;
 static Text* s_TEST_text = nullptr;
 
-
+/*
 class OnCompletion_fetchWorldState : public OnCompletionEvent
 {
 public:
 
 	virtual void func(const std::vector<ByteBuffer>& data)
 	{
-		Debug::log("Req completed!");
+		Debug::log("Req completed! B");
 
 		const int dataWidth = (5 * 2) + 1;
 		const size_t expectedDataSize = (dataWidth * dataWidth) * sizeof(uint64_t);
@@ -86,24 +86,6 @@ public:
 						x = 0;
 					}
 				}
-				/*
-				for (int y = 0; y < dataWidth; ++y)
-				{
-					for (int x = 0; x < dataWidth; ++x)
-					{
-						uint32_t tileStateUID = 0;
-						int areaTileIndex = (x * sizeof(uint32_t) + y * dataWidth);
-						memcpy((void*)(&tileStateUID), (void*)(dataBuf + areaTileIndex), sizeof(uint32_t));
-
-						if (tileStateUID > 0)
-							Debug::log("SOMETHING!!!");
-
-						uint32_t s = tileStateUID > 0 ? tileStateUID : 0;
-						s_TEST_worldstate += std::to_string(s) + " ";
-					}
-					s_TEST_worldstate += '\n';
-				}
-				*/
 			}
 			//std::string response(data[0].getRawData(), data[0].getSize());
 			//Debug::log("Server response: " + response);
@@ -143,14 +125,14 @@ public:
 
 		}
 	}
-};
+};*/
 
 void CreateFactionMenu::init()
 {
 	std::string userID = "Persekorva123";
 	
 	// Test loading world state
-	send_command(userID, CMD_FetchWorldState, 0, 0, new OnCompletion_fetchWorldState);
+	//send_command(userID, CMD_FetchWorldState, 0, 0, new OnCompletion_fetchWorldState);
 
 	//send_command(userID, CMD_FetchServerMessage, new OnCompletion_test);
 	//send_command(userID, CMD_CreateFaction, "AmazingPpl", new OnCompletion_test);
@@ -218,7 +200,7 @@ void CreateFactionMenu::init()
 
 
 
-	Application::get()->accessInputManager()->addKeyEvent(new KeyEvent_move);
+	//Application::get()->accessInputManager()->addKeyEvent(new KeyEvent_move);
 
 	s_TEST_text = new Text(
 		"",

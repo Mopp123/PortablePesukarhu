@@ -35,7 +35,10 @@ namespace pk
 	{
 		_charInputEvents.push_back(std::make_pair(ev, &CharInputEvent::func));
 	}
-
+	void InputManager::addWindowResizeEvent(WindowResizeEvent* ev)
+	{
+		_windowResizeEvent.push_back(std::make_pair(ev, &WindowResizeEvent::func));
+	}
 
 
 	void InputManager::destroyEvents()
@@ -55,11 +58,15 @@ namespace pk
 		for (std::pair<CharInputEvent*, void(CharInputEvent::*)(unsigned int)>& ev : _charInputEvents)
 			delete ev.first;
 
+		for (std::pair<WindowResizeEvent*, void(WindowResizeEvent::*)(int, int)>& ev : _windowResizeEvent)
+			delete ev.first;
+
 		_keyEvents.clear();
 		_mouseButtonEvents.clear();
 		_cursorPosEvents.clear();
 		_scrollEvents.clear();
 		_charInputEvents.clear();
+		_windowResizeEvent.clear();
 	}
 
 
@@ -92,6 +99,7 @@ namespace pk
 			(caller->*eventFunc)(mx, my);
 		}
 	}
+
 	void InputManager::processCharInputEvents(unsigned int codepoint)
 	{
 		for (std::pair<CharInputEvent*, void(CharInputEvent::*)(unsigned int)>& ev : _charInputEvents)
@@ -99,6 +107,16 @@ namespace pk
 			CharInputEvent* caller = ev.first;
 			void(CharInputEvent:: * eventFunc)(unsigned int) = ev.second;
 			(caller->*eventFunc)(codepoint);
+		}
+	}
+
+	void InputManager::processWindowResizeEvents(int w, int h)
+	{
+		for (std::pair<WindowResizeEvent*, void(WindowResizeEvent::*)(int, int)>& ev : _windowResizeEvent)
+		{
+			WindowResizeEvent* caller = ev.first;
+			void(WindowResizeEvent:: * eventFunc)(int, int) = ev.second;
+			(caller->*eventFunc)(w, h);
 		}
 	}
 }
