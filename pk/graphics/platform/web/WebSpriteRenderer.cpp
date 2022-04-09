@@ -1,6 +1,6 @@
 
-#include "WebTerrainRenderer.h"
-#include "../../../ecs/components/renderable/TerrainTileRenderable.h"
+#include "WebSpriteRenderer.h"
+#include "../../../ecs/components/renderable/Sprite3DRenderable.h"
 #include "../../../ecs/components/lighting/Lights.h"
 
 #include "shaders/sources/WebTestShader.h"
@@ -24,24 +24,34 @@ namespace pk
                 
 				uniform mat4 projectionMatrix;
 				uniform mat4 viewMatrix;
-			
-				varying vec2 var_uv;
-				
+
+				varying vec2 var_uv;				
+
+				// this is kind of like a "fake normal" for now.. to apply at least some kind of lighting effect(dark night time)..
 				varying vec3 var_normal;
 
                 void main()
                 {	
-					gl_Position = projectionMatrix * viewMatrix * mat4(1.0) * vec4(position, 1.0);
-					var_uv = uv;
 
-					if(position.y > 0.0)
-					{
-						var_normal = vec3(uv.x, 1.0, uv.y) * position.y;
-					}					
-					else
-					{
-						var_normal = vec3(0,1.0,0);
-					}
+// Dont apply "rotation part" of view mat -> sprite always faces camera
+mat4 finalViewMat = viewMatrix;
+
+finalViewMat[0][0] = 1.0;
+finalViewMat[1][0] = 0.0;
+finalViewMat[2][0] = 0.0;
+
+finalViewMat[0][1] = 0.0;
+finalViewMat[1][1] = 1.0;
+finalViewMat[2][1] = 0.0;
+
+finalViewMat[0][2] = 0.0;
+finalViewMat[1][2] = 0.0;
+finalViewMat[2][2] = 1.0;
+
+
+					gl_Position = projectionMatrix * finalViewMat * mat4(1.0) * vec4(position, 1.0);
+					var_uv = uv;
+					var_normal = vec3(0,1.0,0);
 				}
             )";
 
@@ -56,10 +66,8 @@ namespace pk
 				
                 void main()
                 {
-
 					vec3 lightDir = normalize(dirLight_dir);
 					float diffFactor = clamp(dot(-lightDir, normalize(var_normal)), 0.0, 1.0);
-
 
 					vec4 texColor = texture2D(textureSampler, var_uv);
 
@@ -70,7 +78,7 @@ namespace pk
 	              }
             )";
 		
-		WebTerrainRenderer::WebTerrainRenderer() : 
+		WebSpriteRenderer::WebSpriteRenderer() : 
 			_shader(s_vertexSource, s_fragmentSource)
 		{
 			_vertexAttribLocation_pos = _shader.getAttribLocation("position");
@@ -99,7 +107,7 @@ namespace pk
 			allocateBatches(4, maxBatchInstanceCount * batchInstanceDataLen, batchInstanceDataLen);
 		}
 		
-		WebTerrainRenderer::~WebTerrainRenderer()
+		WebSpriteRenderer::~WebSpriteRenderer()
 		{
 			for (BatchData& batch : _batches)
 			{
@@ -112,31 +120,20 @@ namespace pk
 
 
 		// submit renderable component for rendering (batch preparing, before rendering)
-		void WebTerrainRenderer::submit(const Component* const renderableComponent, const mat4& transformation)
+		void WebSpriteRenderer::submit(const Component* const renderableComponent, const mat4& transformation)
 		{
 			// <#M_DANGER>
-			const TerrainTileRenderable* const  renderable = (const TerrainTileRenderable* const)(renderableComponent);
+			const Sprite3DRenderable* const  renderable = (const Sprite3DRenderable* const)(renderableComponent);
 			
-			const float xPos = (float)renderable->tileMapX;
-			const float zPos = (float)renderable->tileMapY;
+			const vec3& pos = renderable->position;
+			const vec2& scale = renderable->scale;
+			const vec2& texOffset = renderable->textureOffset;
+
 			
-			const float scale = renderable->scale;
-
-			float height_tl = renderable->vertexHeights[0];
-			float height_tr = renderable->vertexHeights[1];
-			float height_bl = renderable->vertexHeights[2];
-			float height_br = renderable->vertexHeights[3];
-
-			float combinedHeight = height_tl + height_tr + height_bl + height_br;
-
 			// We need to negate a single pixel on some uvs, otherwise ugly artifacts on tiles' borders
 			const float pixelUvSpace = (1.0f / _texAtlasWidth) /2.0f;
 			const float texAtlasRows = 8.0f;
 			
-			vec2 texOffset(0, 0);
-			if (combinedHeight <= 0.0f)
-				texOffset = vec2(0.0f, 1.0f);
-
 			vec2 uv_v0(0, 1);
 			vec2 uv_v1(0, 0);
 			vec2 uv_v2(1, 0);
@@ -149,11 +146,13 @@ namespace pk
 
 			const int batchIdentifier = 1; // atm everyone will go into the same batch, FOR TESTING PURPOSES!
 			
+			const vec2 halfScale = scale * 0.5f;
+			const float xPos = pos.x - halfScale.x; // We want the origin be the center of the sprite..
 			std::vector<float> dataToSubmit{ 
-				xPos,				height_tl,		zPos,				uv_v0.x, uv_v0.y - pixelUvSpace,			
-				xPos,				height_bl,		zPos + scale,		uv_v1.x, uv_v1.y,							
-				xPos + scale,		height_br,		zPos + scale,		uv_v2.x - pixelUvSpace, uv_v2.y,			
-				xPos + scale,		height_tr,		zPos,				uv_v3.x - pixelUvSpace, uv_v3.y - pixelUvSpace
+				xPos,				pos.y,					pos.z,			uv_v0.x,				uv_v0.y - pixelUvSpace,			
+				xPos,				pos.y + scale.y,		pos.z,			uv_v1.x,				uv_v1.y,							
+				xPos + scale.x,		pos.y + scale.y,		pos.z,			uv_v2.x - pixelUvSpace, uv_v2.y,
+				xPos + scale.x,		pos.y,					pos.z,			uv_v3.x - pixelUvSpace, uv_v3.y - pixelUvSpace
 			};
 			
 			
@@ -185,7 +184,7 @@ namespace pk
 		}
 
 
-		void WebTerrainRenderer::render(const Camera& cam)
+		void WebSpriteRenderer::render(const Camera& cam)
 		{
 
 
@@ -223,7 +222,7 @@ namespace pk
 			glDepthFunc(GL_LESS);
 
 			glEnable(GL_CULL_FACE);
-			glCullFace(GL_BACK);
+			glCullFace(GL_FRONT);
 
 
 
@@ -232,7 +231,6 @@ namespace pk
 				if (batch.isFree)
 					continue;
 
-				
 				WebVertexBuffer* vb = (WebVertexBuffer*)batch.vertexBuffers[0];
 				WebIndexBuffer* ib = (WebIndexBuffer*)batch.indexBuffer;
 				
@@ -271,7 +269,7 @@ namespace pk
 
 
 
-		void WebTerrainRenderer::allocateBatches(int maxBatchCount, int maxBatchLength, int entryLength)
+		void WebSpriteRenderer::allocateBatches(int maxBatchCount, int maxBatchLength, int entryLength)
 		{
 			std::vector<float> vertexData(maxBatchLength);
 			std::vector<PK_ushort> indices(maxBatchLength);

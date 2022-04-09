@@ -24,11 +24,10 @@ namespace pk
 		int32_t tileMapX = 0;
 		int32_t tileMapY = 0; // in 3d this is the actual world z coord (tuo kartta meinaa tässä 2d projektiota 3d maailmasta)
 		float scale = 10.0f;
-		vec3 color;
-
+		
 		TerrainTileRenderable(int32_t mapX, int32_t mapY, float scale) :
 			Component(ComponentType::PK_RENDERABLE_TERRAINTILE),
-			tileMapX(mapX), tileMapY(mapY), scale(scale), color(1, 1, 1)
+			tileMapX(mapX), tileMapY(mapY), scale(scale)
 		{
 			memset(vertexHeights, 0, sizeof(float) * 4);
 			memset(vertexNormals, 0, sizeof(vec3) * 4);

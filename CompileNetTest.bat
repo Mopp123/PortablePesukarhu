@@ -26,6 +26,7 @@ em++ ^
 ../pk/graphics/platform/web/WebGUIRenderer.cpp ^
 ../pk/graphics/platform/web/WebFontRenderer.cpp ^
 ../pk/graphics/platform/web/WebTerrainRenderer.cpp ^
+../pk/graphics/platform/web/WebSpriteRenderer.cpp ^
 ../pk/graphics/platform/web/WebBuffers.cpp ^
 ../pk/graphics/platform/web/shaders/WebShader.cpp ^
 ../pk/ecs/systems/ui/Text.cpp ^

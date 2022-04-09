@@ -8,6 +8,7 @@
 #include "../net/NetCommon.h"
 
 #include "../../pk/ecs/components/lighting/Lights.h"
+#include "../../pk/ecs/components/renderable/Sprite3DRenderable.h"
 
 #include "../../pk/core/Debug.h"
 #include <iostream>
@@ -37,38 +38,6 @@ InGame::~InGame()
 
 static std::string s_TEST_worldstate;
 static Text* s_TEST_text = nullptr;
-
-/*
-class OnCompletion_fetchWorldState : public OnCompletionEvent
-{
-public:
-
-	world::VisualWorld& visualWorldRef;
-	OnCompletion_fetchWorldState(world::VisualWorld& visualWorld) : visualWorldRef(visualWorld) {}
-
-	virtual void func(const std::vector<ByteBuffer>& data)
-	{
-		Debug::log("Req completed!");
-
-		const int dataWidth = (5 * 2) + 1;
-		const size_t expectedDataSize = (dataWidth * dataWidth) * sizeof(uint64_t);
-		
-		const size_t acquiredSize = (const size_t)data[0].getSize();
-
-		//Debug::log("size was: " + std::to_string(acquiredSize) + " Expected: " + std::to_string(expectedDataSize));
-
-		// Attempt to print fetched area
-		if (acquiredSize >= expectedDataSize)
-		{
-			const uint64_t* dataBuf = (const uint64_t*)data[0].getRawData();	
-			visualWorldRef.updateTileVisuals(dataBuf);
-		}
-	}
-};
-*/
-
-//static int s_TEST_xPos = 0;
-//static int s_TEST_zPos = 0;
 
 void InGame::init()
 {
@@ -103,7 +72,7 @@ void InGame::init()
 	std::chrono::time_point<std::chrono::steady_clock> startTime = std::chrono::high_resolution_clock::now();
 	
 	Client::get_instance()->setUserID("Persekorva666");
-	_visualWorld = new world::VisualWorld(*this);
+	_visualWorld = new world::VisualWorld(*this, 10);
 
 	float delta = (std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - startTime)).count();
 	
@@ -127,6 +96,12 @@ void InGame::init()
 
 
 	_pCamController = new CameraController(*activeCamera, this);
+
+
+	// TESTING 3D sprites..
+	uint32_t spriteEntity = createEntity();
+	Sprite3DRenderable* spriteComponent = new Sprite3DRenderable({ -2,1,0 }, { 10,10 });
+	addComponent(spriteEntity, spriteComponent);
 }
 
 void InGame::update()
@@ -136,8 +111,6 @@ void InGame::update()
 	float cx = camTransform[0 + 3 * 4];
 	float cy = camTransform[1 + 3 * 4];
 	float cz = camTransform[2 + 3 * 4];
-
-	Debug::log("cx: " + std::to_string(cx) + " cy: " + std::to_string(cy) + " cz: " + std::to_string(cz));
 
 	_visualWorld->update(cx, cz);
 

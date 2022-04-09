@@ -9,6 +9,7 @@
 #include "../pk/graphics/platform/web/WebGUIRenderer.h"
 #include "../pk/graphics/platform/web/WebFontRenderer.h"
 #include "../pk/graphics/platform/web/WebTerrainRenderer.h"
+#include "../pk/graphics/platform/web/WebSpriteRenderer.h"
 
 
 #include "scenes/LoginMenu.h"
@@ -39,18 +40,20 @@ int main(int argc, const char** argv)
 	WebInputManager inputManager;
 
 	WebMasterRenderer masterRenderer;
-	Renderer* pTerrainRenderer = (Renderer*)(new WebTerrainRenderer);
-	Renderer* pGuiRenderer = (Renderer*)(new WebGUIRenderer);
-	Renderer* pFontRenderer = (Renderer*)(new WebFontRenderer);
+	Renderer* pTerrainRenderer =	(Renderer*)(new WebTerrainRenderer);
+	Renderer* pSpriteRenderer =		(Renderer*)(new WebSpriteRenderer);
+	Renderer* pGuiRenderer =		(Renderer*)(new WebGUIRenderer);
+	Renderer* pFontRenderer =		(Renderer*)(new WebFontRenderer);
 
 	Application application(
 		"Emscripten testing..", 
 		&window, &graphicsContext, &inputManager, 
 		&masterRenderer, 
 		{ 
+			{ ComponentType::PK_RENDERABLE_TERRAINTILE,	pTerrainRenderer },
+			{ ComponentType::PK_RENDERABLE_SPRITE3D,	pSpriteRenderer	 },
 			{ ComponentType::PK_RENDERABLE_GUI,			pGuiRenderer	 },
-			{ ComponentType::PK_RENDERABLE_TEXT,		pFontRenderer	 },
-			{ ComponentType::PK_RENDERABLE_TERRAINTILE,	pTerrainRenderer }
+			{ ComponentType::PK_RENDERABLE_TEXT,		pFontRenderer	 }
 		});
 
 	Client::get_instance()->init("http://192.168.15.249:51421");

@@ -41,7 +41,7 @@ namespace world
 
 		WorldObserver _observer;
 		
-		float _maxUpdateCooldown = 0.25f;
+		float _maxUpdateCooldown = 1.0f;
 		float _updateCooldown = 0.0f;
 
 
@@ -49,7 +49,7 @@ namespace world
 
 	public:
 
-		VisualWorld(pk::Scene& scene);
+		VisualWorld(pk::Scene& scene, int observeRadius);
 		~VisualWorld();
 
 		void updateTileVisuals(const uint64_t* mapState);

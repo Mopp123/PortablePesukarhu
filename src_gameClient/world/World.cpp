@@ -21,7 +21,8 @@ namespace world
 
 	void VisualWorld::OnCompletion_fetchWorldState::func(const PK_byte* data, size_t dataSize)
 	{
-		const int dataWidth = (5 * 2) + 1;
+		
+		const int dataWidth = (visualWorldRef._observer.observeRadius * 2) + 1;
 		const size_t expectedDataSize = (dataWidth * dataWidth) * sizeof(uint64_t);
 
 		// Attempt to print fetched area
@@ -33,9 +34,11 @@ namespace world
 	}
 
 
-	VisualWorld::VisualWorld(pk::Scene& scene) : 
+	VisualWorld::VisualWorld(pk::Scene& scene, int observeRadius) :
 		_sceneRef(scene)
 	{
+		_observer.observeRadius = observeRadius;
+
 		// Create visual tiles at first as "blank" -> we configure these eventually, when we fetch world state from server
 		const int observeAreaWidth = _observer.observeRadius * 2 + 1;
 		for (int y = 0; y < observeAreaWidth; ++y)
@@ -113,7 +116,7 @@ namespace world
 	void VisualWorld::update(float worldX, float worldZ)
 	{
 		// JUST FOR TESTING
-		float offset = -11;
+		float offset = -21;
 
 		_worldX = worldX;
 		_worldZ = worldZ;
@@ -124,7 +127,7 @@ namespace world
 
 		if (_updateCooldown <= 0.0f)
 		{
-			send_command(Client::get_instance()->getUserID(), CMD_FetchWorldState, _observer.mapX, _observer.mapY, new OnCompletion_fetchWorldState(*this));
+			send_command(Client::get_instance()->getUserID(), CMD_FetchWorldState, _observer.mapX, _observer.mapY, _observer.observeRadius, new OnCompletion_fetchWorldState(*this));
 			_updateCooldown = _maxUpdateCooldown;
 		}
 		else

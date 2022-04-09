@@ -42,13 +42,14 @@ namespace net
 		new WebRequest(onCompletion, cmdData, totalCmdSize);
 	}
 
-	void send_command(const std::string& userID, int32_t function, int32_t arg1, int32_t arg2, OnCompletionEvent* onCompletion)
+	void send_command(const std::string& userID, int32_t function, int32_t arg1, int32_t arg2, int32_t arg3, OnCompletionEvent* onCompletion)
 	{
-		size_t totalCmdSize = CMD_MIN_LEN + sizeof(int32_t) * 2;
+		size_t totalCmdSize = CMD_MIN_LEN + sizeof(int32_t) * 3;
 		int ptr = CMD_MIN_LEN;
 		PK_byte* cmdData = alloc_command(userID, function, totalCmdSize);
 		add_to_command(cmdData, (const PK_byte*)(&arg1), sizeof(int32_t), &ptr);
 		add_to_command(cmdData, (const PK_byte*)(&arg2), sizeof(int32_t), &ptr);
+		add_to_command(cmdData, (const PK_byte*)(&arg3), sizeof(int32_t), &ptr);
 		new WebRequest(onCompletion, cmdData, totalCmdSize);
 	}
 }

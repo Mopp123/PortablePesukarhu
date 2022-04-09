@@ -23,6 +23,7 @@ namespace pk
 		Renderer* pFontRenderer =	pApp->getRenderer(ComponentType::PK_RENDERABLE_TEXT);
 		// find 3d renderers
 		Renderer* pTerrainRenderer = pApp->getRenderer(ComponentType::PK_RENDERABLE_TERRAINTILE);
+		Renderer* pSpriteRenderer =	 pApp->getRenderer(ComponentType::PK_RENDERABLE_SPRITE3D);
 
 		// submitting renderables
 
@@ -34,6 +35,14 @@ namespace pk
 			if (c_renderableTile->isActive())
 			{
 				pTerrainRenderer->submit(c_renderableTile, empty);
+			}
+		}
+		// 3D SPRITES
+		for (const Component* const c_renderableSprite : _pCurrentScene->components[ComponentType::PK_RENDERABLE_SPRITE3D])
+		{
+			if (c_renderableSprite->isActive())
+			{
+				pSpriteRenderer->submit(c_renderableSprite, empty);
 			}
 		}
 
