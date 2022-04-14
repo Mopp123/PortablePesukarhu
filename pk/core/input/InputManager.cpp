@@ -100,6 +100,17 @@ namespace pk
 		}
 	}
 
+	void InputManager::processScrollEvents(double dx, double dy)
+	{
+		for (std::pair<ScrollEvent*, void(ScrollEvent::*)(double, double)>& ev : _scrollEvents)
+		{
+			ScrollEvent* caller = ev.first;
+			void(ScrollEvent:: * eventFunc)(double, double) = ev.second;
+			(caller->*eventFunc)(dx, dy);
+		}
+	}
+
+
 	void InputManager::processCharInputEvents(unsigned int codepoint)
 	{
 		for (std::pair<CharInputEvent*, void(CharInputEvent::*)(unsigned int)>& ev : _charInputEvents)

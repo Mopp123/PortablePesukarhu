@@ -1,7 +1,9 @@
 #pragma once
 
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <cstring>
+
 
 namespace pk
 {
@@ -105,6 +107,59 @@ namespace pk
 		}
 	};
 
+	class vec4
+	{
+	public:
+		float x = 0;
+		float y = 0;
+		float z = 0;
+		float w = 0;
+
+		vec4() {}
+		vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+		vec4(const vec4& other) : x(other.x), y(other.y), z(other.z), w(other.w) {}
+
+		float length() const
+		{
+			return std::sqrtf((x * x) + (y * y) + (z * z) + (w * w));
+		}
+
+		friend vec4 operator+(const vec4& left, const vec4& right)
+		{
+			return { left.x + right.x, left.y + right.y, left.z + right.z, left.w + right.w };
+		}
+		friend vec4 operator-(const vec4& left, const vec4& right)
+		{
+			return { left.x - right.x, left.y - right.y, left.z - right.z, left.w - right.w };
+		}
+		friend vec4 operator*(const vec4& left, const vec4& right)
+		{
+			return { left.x * right.x, left.y * right.y, left.z * right.z, left.w * right.w };
+		}
+		friend vec4 operator*(const vec4& left, float right)
+		{
+			return { left.x * right, left.y * right, left.z * right, left.w * right };
+		}
+		friend vec4 operator/(const vec4& left, float right)
+		{
+			return { left.x / right, left.y / right, left.z / right, left.w / right };
+		}
+
+		float dotp(const vec4& other) const
+		{
+			return ((x * other.x) + (y * other.y) + (z * other.z) + (w * other.w));
+		}
+
+		void normalize()
+		{
+			const float len = length();
+			x /= len;
+			y /= len;
+			z /= len;
+			w /= len;
+		}
+	};
+
 
 	class mat4
 	{
@@ -142,6 +197,14 @@ namespace pk
 			}
 
 			return result;
+		}
+
+		friend vec4 operator*(const mat4& left, const vec4& right)
+		{
+			return { left[0 + 0 * 4] * right.x + left[0 + 1 * 4] * right.y + left[0 + 2 * 4] * right.z + left[0 + 3 * 4] * right.w,  // x
+					 left[1 + 0 * 4] * right.x + left[1 + 1 * 4] * right.y + left[1 + 2 * 4] * right.z + left[1 + 3 * 4] * right.w,  // y
+					 left[2 + 0 * 4] * right.x + left[2 + 1 * 4] * right.y + left[2 + 2 * 4] * right.z + left[2 + 3 * 4] * right.w,  // z
+					 left[3 + 0 * 4] * right.x + left[3 + 1 * 4] * right.y + left[3 + 2 * 4] * right.z + left[3 + 3 * 4] * right.w };// w
 		}
 
 		//	*Found from: https://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix
@@ -335,7 +398,7 @@ namespace pk
 	// MISC-----
 
 	// Returns next closest power of 2 value from v
-	inline unsigned int get_next_pow2(unsigned int v)
+	/*inline unsigned int get_next_pow2(unsigned int v)
 	{
 		v--;
 		v |= v >> 1;
@@ -345,5 +408,5 @@ namespace pk
 		v |= v >> 16;
 		v++;
 		return v;
-	}
+	}*/
 }

@@ -195,7 +195,7 @@ namespace pk
 
 			// Find scene's active camera's transform
 			// This quite disgusting, just atm for testing purposes..
-			Transform* camTransform = (Transform*)scene->getComponent(cam.getEntity(), ComponentType::PK_TRANSFORM);
+			const Transform* camTransform = (Transform*)scene->getComponent(cam.getEntity(), ComponentType::PK_TRANSFORM);
 			mat4 viewMat = camTransform->getTransformationMatrix();
 			viewMat.inverse(); // omg this quite heavy operation ...
 

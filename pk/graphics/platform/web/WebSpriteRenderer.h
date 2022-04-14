@@ -26,6 +26,7 @@ namespace pk
 
 			PK_int _uniformLocation_projMat = -1;
 			PK_int _uniformLocation_viewMat = -1;
+			PK_int _uniformLocation_camTransform = -1;
 			PK_int _uniformLocation_texSampler = -1;
 			
 			PK_int _uniformLocation_dirLight_color = -1;

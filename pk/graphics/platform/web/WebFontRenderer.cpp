@@ -7,6 +7,7 @@
 #include "WebFontRenderer.h"
 
 #include "../../../core/Timing.h"
+#include "../../../utils/Algorithms.h"
 #include "../../../Common.h"
 
 #include <algorithm>

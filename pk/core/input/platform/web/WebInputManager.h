@@ -72,6 +72,11 @@ namespace pk
 				{"n", PK_INPUT_KEY_N},
 				{"m", PK_INPUT_KEY_M},
 
+				{"ArrowUp",		PK_INPUT_KEY_UP},
+				{"ArrowDown",	PK_INPUT_KEY_DOWN},
+				{"ArrowLeft",	PK_INPUT_KEY_LEFT},
+				{"ArrowRight",	PK_INPUT_KEY_RIGHT},
+
 				{" ", PK_INPUT_KEY_SPACE},
 				{"Backspace", PK_INPUT_KEY_BACKSPACE},
 				{"Enter", PK_INPUT_KEY_ENTER},

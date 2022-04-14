@@ -15,8 +15,14 @@ namespace world
 	struct WorldObserver
 	{
 		int observeRadius = 5;
-		int mapX = 0;
-		int mapY = 0;
+
+		// Coordinates where we requested our latest "world state update" (not immediately received from server!)
+		int requestedMapX = 0;
+		int requestedMapY = 0;
+
+		// Coordinates where we got the latest "world state update" successfully
+		int lastReceivedMapX = 0;
+		int lastReceivedMapY = 0;
 	};
 
 
@@ -44,9 +50,6 @@ namespace world
 		float _maxUpdateCooldown = 1.0f;
 		float _updateCooldown = 0.0f;
 
-
-		float _worldX, _worldZ;
-
 	public:
 
 		VisualWorld(pk::Scene& scene, int observeRadius);
@@ -55,6 +58,10 @@ namespace world
 		void updateTileVisuals(const uint64_t* mapState);
 
 		void update(float worldX, float worldZ);
+
+		float getTileVisualHeightAt(float worldX, float worldZ) const;
+
+		pk::vec3 getMousePickCoords(const pk::mat4& projMat, const pk::mat4& viewMat) const;
 	};
 
 }

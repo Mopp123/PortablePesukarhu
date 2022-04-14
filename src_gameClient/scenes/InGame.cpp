@@ -8,7 +8,6 @@
 #include "../net/NetCommon.h"
 
 #include "../../pk/ecs/components/lighting/Lights.h"
-#include "../../pk/ecs/components/renderable/Sprite3DRenderable.h"
 
 #include "../../pk/core/Debug.h"
 #include <iostream>
@@ -95,25 +94,33 @@ void InGame::init()
 	camTransform[2 + 2 * 4] = cos(angle);
 
 
-	_pCamController = new CameraController(*activeCamera, this);
+	_pCamController = new RTSCamController(*activeCamera, this);
 
 
 	// TESTING 3D sprites..
 	uint32_t spriteEntity = createEntity();
-	Sprite3DRenderable* spriteComponent = new Sprite3DRenderable({ -2,1,0 }, { 10,10 });
-	addComponent(spriteEntity, spriteComponent);
+	_testSprite = new Sprite3DRenderable({ 0,0,0 }, { 5,5 });
+	addComponent(spriteEntity, _testSprite);
 }
 
 void InGame::update()
 {
-	mat4& camTransform = *_pCamTransform;
-
-	float cx = camTransform[0 + 3 * 4];
-	float cy = camTransform[1 + 3 * 4];
-	float cz = camTransform[2 + 3 * 4];
-
-	_visualWorld->update(cx, cz);
+	vec3 camPivotPoint = _pCamController->getPivotPoint();
+	
+	// attempt to glue cam's height to terrain's height
+	camPivotPoint.y = _visualWorld->getTileVisualHeightAt(camPivotPoint.x, camPivotPoint.z);
+	_pCamController->setPivotPoint(camPivotPoint);
+	
+	_visualWorld->update(camPivotPoint.x, camPivotPoint.z);
+	
+	
 
 	_pText_debug_delta->accessRenderable()->accessStr() = "Delta: " + std::to_string(Timing::get_delta_time());
 
+
+	// debug mouse picking testing..
+	mat4 viewMatrix = *_pCamTransform;
+	viewMatrix.inverse();
+
+	_testSprite->position = vec3(22, 5, 22);//_visualWorld->getMousePickCoords(activeCamera->getProjMat3D(), viewMatrix);
 }

@@ -17,43 +17,83 @@ namespace pk
 		virtual void func(int w, int h);
 	};
 
-	class CameraController : public Updateable
+	class RTSCamController : public Updateable
 	{
 	private:
-		class CamControllerKeyEvent : public KeyEvent
+
+		class RTSCamControllerKeyEvent : public KeyEvent
 		{
 		private:
-			
-			CameraController& _camControlRef;
-
+			RTSCamController& _camControlRef;
 		public:
-
-			CamControllerKeyEvent(CameraController& camControl) : _camControlRef(camControl) {}
+			RTSCamControllerKeyEvent(RTSCamController& camControl) : _camControlRef(camControl) {}
 			virtual void func(InputKeyName key, int scancode, InputAction action, int mods);
 		};
+		class RTSCamControllerMouseButtonEvent : public MouseButtonEvent
+		{
+		private:
+			RTSCamController& _camControlRef;
+		public:
+			RTSCamControllerMouseButtonEvent(RTSCamController& camControl) : _camControlRef(camControl) {}
+			virtual void func(InputMouseButtonName button, InputAction action, int mods);
+		};
+		class RTSCamControllerCursorPosEvent : public CursorPosEvent
+		{
+		private:
+			RTSCamController& _camControlRef;
+		public:
+			RTSCamControllerCursorPosEvent(RTSCamController& camControl) : _camControlRef(camControl) {}
+			virtual void func(int x, int y);
+		};
+		class RTSCamControllerScrollEvent : public ScrollEvent
+		{
+		private:
+			RTSCamController& _camControlRef;
+		public:
+			RTSCamControllerScrollEvent(RTSCamController& camControl) : _camControlRef(camControl) {}
+			virtual void func(double dx, double dy);
+		};
 
-		friend class CameraController;
+		friend class RTSCamControllerKeyEvent;
+		friend class RTSCamControllerMouseButtonEvent;
+		friend class RTSCamControllerCursorPosEvent;
+		friend class RTSCamControllerScrollEvent;
 
 		Transform* _pToControl = nullptr;
 
 		float _movingSpeed = 10.0f;
-		float _rotationSpeed = 5.0f;
+		float _zoomingSpeed = 0.1f;
 
-		bool _moveForward = false;
-		bool _moveBackwards = false;
-		bool _moveLeft = false;
-		bool _moveRight = false;
+		enum MoveFlags
+		{
+			CAM_MOVE_DIR_FORWARD =		0x01,
+			CAM_MOVE_DIR_BACKWARDS =	0x02,
+			CAM_MOVE_DIR_LEFT =			0x04,
+			CAM_MOVE_DIR_RIGHT =		0x08
+		};
 
-		bool _moveUp = false;
-		bool _moveDown = false;
+		int _moveFlags = 0;
 
-		bool _turnLeft = false;
+		bool _enableRotating = false;
 
-		float angle = 0.0f;
+		vec3 _pivotPoint;
+		float _distToPivotPoint = 20.0f;
+		float _pitch = 0.0f;
+		float _yaw = 0.0f;
+
+		float _prevMouseX = 0.0f;
+		float _prevMouseY = 0.0f;
 
 	public:
-		CameraController(Camera& toControl, Scene* scene);
+
+		RTSCamController(Camera& toControl, Scene* scene);
 		virtual void update();
 
+		inline void setPivotPoint(const vec3& pos) { _pivotPoint = pos; }
+		inline const vec3& getPivotPoint() const { return _pivotPoint; }
+		
+	private:
+
+		void movePivotPoint(int moveFlags);
 	};
 }

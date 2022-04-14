@@ -16,7 +16,7 @@ namespace pk
 		std::vector<std::pair<CursorPosEvent*, void(CursorPosEvent::*)(int, int)>>										_cursorPosEvents;
 		std::vector<std::pair<ScrollEvent*, void(ScrollEvent::*)(double, double)>>										_scrollEvents;
 		std::vector<std::pair<CharInputEvent*, void(CharInputEvent::*)(unsigned int codepoint)>>						_charInputEvents;
-		std::vector<std::pair<WindowResizeEvent*, void(WindowResizeEvent::*)(int, int)>>									_windowResizeEvent;
+		std::vector<std::pair<WindowResizeEvent*, void(WindowResizeEvent::*)(int, int)>>								_windowResizeEvent;
 
 
 		int _mouseX = 0;
@@ -40,12 +40,14 @@ namespace pk
 		void processKeyEvents(InputKeyName key, int scancode, InputAction action, int mods);
 		void processMouseButtonEvents(InputMouseButtonName button, InputAction action, int mods);
 		void processCursorPosEvents(int x, int y);
+		void processScrollEvents(double dx, double dy);
 		void processCharInputEvents(unsigned int codepoint);
 		void processWindowResizeEvents(int w, int h);
 
 		inline void setMousePos(int x, int y) { _mouseX = x; _mouseY = y; }
 		inline int getMouseX() const { return _mouseX; }
 		inline int getMouseY() const { return _mouseY; }
+
 	};
 
 }

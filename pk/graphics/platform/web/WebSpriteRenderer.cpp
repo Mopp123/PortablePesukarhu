@@ -24,6 +24,7 @@ namespace pk
                 
 				uniform mat4 projectionMatrix;
 				uniform mat4 viewMatrix;
+				uniform mat4 camTransform;
 
 				varying vec2 var_uv;				
 
@@ -34,22 +35,28 @@ namespace pk
                 {	
 
 // Dont apply "rotation part" of view mat -> sprite always faces camera
-mat4 finalViewMat = viewMatrix;
 
-finalViewMat[0][0] = 1.0;
+vec3 v = vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]) * -1.0;
+float d = sqrt( v.x * v.x + v.y * v.y + v.z * v.z );
+
+mat4 finalViewMat = camTransform;
+
+finalViewMat[0][0] = d;
 finalViewMat[1][0] = 0.0;
 finalViewMat[2][0] = 0.0;
 
 finalViewMat[0][1] = 0.0;
-finalViewMat[1][1] = 1.0;
+finalViewMat[1][1] = d;
 finalViewMat[2][1] = 0.0;
 
 finalViewMat[0][2] = 0.0;
 finalViewMat[1][2] = 0.0;
-finalViewMat[2][2] = 1.0;
+finalViewMat[2][2] = d;
+
+finalViewMat[3][3] = 1.0;
 
 
-					gl_Position = projectionMatrix * finalViewMat * mat4(1.0) * vec4(position, 1.0);
+					gl_Position = projectionMatrix * finalViewMat * vec4(position, 1.0);
 					var_uv = uv;
 					var_normal = vec3(0,1.0,0);
 				}
@@ -86,6 +93,7 @@ finalViewMat[2][2] = 1.0;
 			
 			_uniformLocation_projMat = _shader.getUniformLocation("projectionMatrix");
 			_uniformLocation_viewMat = _shader.getUniformLocation("viewMatrix");
+			_uniformLocation_camTransform = _shader.getUniformLocation("camTransform");
 			_uniformLocation_texSampler = _shader.getUniformLocation("textureSampler");
 
 			_uniformLocation_dirLight_dir = _shader.getUniformLocation("dirLight_dir");
@@ -195,7 +203,8 @@ finalViewMat[2][2] = 1.0;
 			// Find scene's active camera's transform
 			// This quite disgusting, just atm for testing purposes..
 			Transform* camTransform = (Transform*)scene->getComponent(cam.getEntity(), ComponentType::PK_TRANSFORM);
-			mat4 viewMat = camTransform->getTransformationMatrix();
+			mat4 camTransformationMatrix = camTransform->getTransformationMatrix();
+			mat4 viewMat = camTransformationMatrix;
 			viewMat.inverse(); // omg this quite heavy operation ...
 
 			// Find scene's "sun(dir light)"
@@ -206,6 +215,7 @@ finalViewMat[2][2] = 1.0;
 			// all common uniforms..
 			_shader.setUniform(_uniformLocation_projMat, projectionMatrix);
 			_shader.setUniform(_uniformLocation_viewMat, viewMat);
+			_shader.setUniform(_uniformLocation_camTransform, camTransformationMatrix);
 
 			// Light
 			if (dirLight)

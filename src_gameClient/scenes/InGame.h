@@ -5,7 +5,9 @@
 
 #include "../../pk/ecs/systems/ui/Text.h"
 
+#include "../../pk/ecs/components/renderable/Sprite3DRenderable.h"
 #include "../../pk/ecs/components/renderable/TerrainTileRenderable.h"
+
 #include "../../pk/ecs/systems/CameraUtils.h"
 
 #include "../world/World.h"
@@ -20,8 +22,9 @@ private:
 
 	world::VisualWorld* _visualWorld = nullptr;
 
-	pk::CameraController* _pCamController = nullptr;
+	pk::Sprite3DRenderable* _testSprite = nullptr;
 
+	pk::RTSCamController* _pCamController = nullptr;
 	pk::mat4* _pCamTransform = nullptr;
 
 public:

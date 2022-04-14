@@ -12,12 +12,14 @@ namespace pk
 	namespace web
 	{
 
+		// *NOTE! We force removing few pixels from these, cuz browser windows dont fit this shit correctly inside it... or smhtn...
+
 		EM_JS(int, webwindow_get_width, (), {
-			return window.innerWidth;
+			return window.innerWidth - 32;
 		});
 
 		EM_JS(int, webwindow_get_height, (), {
-			return window.innerHeight;
+			return window.innerHeight - 32;
 		});
 
 		
@@ -100,6 +102,17 @@ namespace pk
 			return true;
 		}
 
+		EM_BOOL scroll_callback(int eventType, const EmscriptenWheelEvent* wheelEvent, void* userData)
+		{
+			WebInputManager* inputManager = (WebInputManager*)userData;
+
+			double scroll = wheelEvent->deltaY;
+
+			inputManager->processScrollEvents(0, scroll);
+
+			return true;
+		}
+
 		EM_BOOL ui_callback(int eventType, const EmscriptenUiEvent* uiEvent, void* userData)
 		{
 			if (eventType == EMSCRIPTEN_EVENT_RESIZE)
@@ -127,6 +140,8 @@ namespace pk
 			emscripten_set_mouseup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW,		this, true, mouse_up_callback);
 			
 			emscripten_set_mousemove_callback("canvas",							this, true, cursor_pos_callback);
+			emscripten_set_wheel_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW,		this, true, scroll_callback);
+
 
 			emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW,		this, true, ui_callback);
 		}

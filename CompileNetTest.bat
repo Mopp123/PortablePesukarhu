@@ -21,6 +21,7 @@ em++ ^
 ../pk/core/input/platform/web/WebInputManager.cpp ^
 ../pk/core/Application.cpp ^
 ../pk/core/SceneManager.cpp ^
+../pk/utils/Algorithms.cpp ^
 ../pk/graphics/platform/web/WebMasterRenderer.cpp ^
 ../pk/graphics/platform/web/WebTexture.cpp ^
 ../pk/graphics/platform/web/WebGUIRenderer.cpp ^
