@@ -44,5 +44,6 @@ namespace pk
 		inline ComponentType getType() const { return _type; }
 		inline bool isActive() const { return _isActive; }
 	
+		inline void setActive(bool arg) { _isActive = arg; }
 	};
 }

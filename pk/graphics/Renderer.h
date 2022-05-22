@@ -24,7 +24,8 @@ namespace pk
 		int maxTotalBatchDataLen = 0; // total number of "float" spots to distribute for each instance
 
 		int ID = -1; // Identifier, how we find suitable batch for a renderable (can be anythin u want)
-		bool isFree = true; // If theres nobody yet in this batch (completely empty -> available for occupying for new batch)
+		bool isFree = true; // If theres nobody yet in this batch (completely empty -> available for occupying for new batch)(DON'T confuse with fullness:D)
+		bool isFull = false;
 		int currentDataPtr = 0; // When submitting to this batch, we use this to determine, at which position of the batch, we want to insert new data
 
 		// *Ownerships gets always transferred to this BatchData instance
@@ -51,10 +52,9 @@ namespace pk
 		{
 			ID = -1;
 			isFree = true;
+			isFull = false;
 			currentDataPtr = 0;
 		}
-
-		inline bool isFull() const { return currentDataPtr >= maxTotalBatchDataLen * instanceDataLen; }
 
 		inline int getInstanceCount() const { return currentDataPtr / instanceDataLen; }
 
@@ -67,6 +67,7 @@ namespace pk
 		void addNewInstance()
 		{
 			currentDataPtr += instanceDataLen;
+			isFull = currentDataPtr >= maxTotalBatchDataLen;
 		}
 		void insertInstanceData(int bufferIndex, const std::vector<float>& data)
 		{

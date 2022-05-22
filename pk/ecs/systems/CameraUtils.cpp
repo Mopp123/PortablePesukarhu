@@ -15,7 +15,7 @@ namespace pk
 
 		const float aspectRatio = windowWidth / windowHeight;
 		mat4 projMat_ortho = create_proj_mat_ortho(0, windowWidth, windowHeight, 0, 0.0f, 100.0f);
-		mat4 projMat_pers = create_perspective_projection_matrix(aspectRatio, 1.3f, 0.1f, 500.0f);
+		mat4 projMat_pers = create_perspective_projection_matrix(aspectRatio, 1.3f, 0.1f, 100.0f);
 
 		Scene* currentScene = app->accessCurrentScene();
 
@@ -98,8 +98,6 @@ namespace pk
 
 
 		transformationMatrix = translationMat * rotMatYaw * rotMatPitch;
-
-		Debug::log("camX: " + std::to_string(transformationMatrix[0 + 3 * 4]) + " camY: " + std::to_string(transformationMatrix[1 + 3 * 4]) + " camZ: " + std::to_string(transformationMatrix[2 + 3 * 4]));
 	}
 
 

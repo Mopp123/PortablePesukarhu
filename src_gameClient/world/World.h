@@ -1,13 +1,19 @@
 #pragma once
 
-#include <cstdint>
-#include <vector>
 
 #include "../../pk/core/Scene.h"
 
 #include "../../pk/ecs/components/renderable/TerrainTileRenderable.h"
+#include "../../pk/ecs/components/renderable/Sprite3DRenderable.h"
+#include "../../pk/ecs/systems/animations/SpriteAnimations.h"
+
 #include "../net/requests/Request.h"
 #include "../../pk/Common.h"
+#include "../../pk/utils/pkmath.h"
+
+#include <cstdint>
+#include <vector>
+#include <unordered_map>
 
 namespace world
 {
@@ -26,12 +32,33 @@ namespace world
 	};
 
 
+	// *NOTE! Visual tile doesnt own any of this mem. Its just collection of ptrs to elsewhere managed mem
+	struct VisualTile
+	{
+		pk::TerrainTileRenderable*  renderable_tile		=	nullptr;
+		pk::Sprite3DRenderable*		renderable_effect	=	nullptr;
+		pk::Sprite3DRenderable*		renderable_thing	=	nullptr;
+
+		VisualTile(pk::TerrainTileRenderable* tile, pk::Sprite3DRenderable* effect, pk::Sprite3DRenderable* thing)
+		{
+			renderable_tile		=	tile;
+			renderable_effect	=	effect;
+			renderable_thing	=	thing;
+		}
+
+		VisualTile(const VisualTile& other)
+		{
+			renderable_tile		=	other.renderable_tile;
+			renderable_effect	=	other.renderable_effect;
+			renderable_thing	=	other.renderable_thing;
+		}
+	};
+
 	//	Visual representation of server's "world state" at currently observed coordinates
 	class VisualWorld
 	{
 	private:
 
-		
 		class OnCompletion_fetchWorldState : public net::OnCompletionEvent
 		{
 		public:
@@ -42,26 +69,50 @@ namespace world
 
 
 		pk::Scene& _sceneRef;
-		std::vector<pk::TerrainTileRenderable*> _tileRenderables;
+		// Tile data acquired from the server. First = the actual tile data, second = just the "visual renderable"
+		std::vector<std::pair<uint64_t, VisualTile>> _tileData;
+
 		float _tileVisualScale = 2.0f;
 
 		WorldObserver _observer;
+
 		
 		float _maxUpdateCooldown = 1.0f;
 		float _updateCooldown = 0.0f;
+
+		PK_byte* _pBlendmapData = nullptr;
+		int _blendmapWidth = 0;
+		// Just temp here -> clean up later..
+
+		// Key = tile's terrain state, value = tex offset to use for that state
+		std::unordered_map<PK_ubyte, pk::vec2> _tileTexOffsetMapping =
+		{
+			{ 0, {0,0} }, // deadland
+			{ 1, {0,1} }, // water
+			{ 2, {1,0} }  // vulcanic
+		};
+
+		std::unordered_map<PK_ubyte, pk::SpriteAnimator*> _tileEffectAnimMapping;
 
 	public:
 
 		VisualWorld(pk::Scene& scene, int observeRadius);
 		~VisualWorld();
 
-		void updateTileVisuals(const uint64_t* mapState);
+		void updateObservedArea(const uint64_t* mapState);
 
 		void update(float worldX, float worldZ);
+		inline std::vector<std::pair<uint64_t, VisualTile>>& getObservedTiles() { return _tileData; }
 
 		float getTileVisualHeightAt(float worldX, float worldZ) const;
 
 		pk::vec3 getMousePickCoords(const pk::mat4& projMat, const pk::mat4& viewMat) const;
+
+	private:
+
+		pk::vec3 getMidpoint(pk::vec3 rayStartPos, pk::vec3 ray, int recCount) const;
+
+		void updateBlendmapData(PK_ubyte tileType, int x, int y);
 	};
 
 }

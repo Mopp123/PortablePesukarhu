@@ -26,7 +26,8 @@ namespace pk
 			
 			~WebTexture();
 			
-			
+			virtual void update(void* data);
+
 			inline GLuint getID() const { return _id; }
 		};
 	}

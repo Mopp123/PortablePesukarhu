@@ -24,6 +24,8 @@
 #include "net/requests/platform/web/WebRequest.h"
 #include "net/NetCommon.h"
 
+#include <unordered_set>
+
 using namespace pk;
 using namespace pk::web;
 using namespace ui;
@@ -33,6 +35,13 @@ using namespace net;
 
 int main(int argc, const char** argv)
 {
+
+	std::unordered_set<int> test;
+
+	for (auto w : test)
+	{
+	}
+
 	bool initSuccess = true;
 
 	WebWindow window;
@@ -56,7 +65,7 @@ int main(int argc, const char** argv)
 			{ ComponentType::PK_RENDERABLE_TEXT,		pFontRenderer	 }
 		});
 
-	Client::get_instance()->init("http://192.168.15.249:51421");
+	Client::get_instance()->init("http://192.168.162.249:51421");
 
 	application.switchScene(new InGame);
 

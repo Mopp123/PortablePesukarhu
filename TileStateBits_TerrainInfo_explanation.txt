@@ -1,0 +1,60 @@
+
+* alternative idea for tile types (swap type and elevation bits around so more elevation possibilities)
+
+water
+dirt
+plains_lower
+grass
+hill
+mountain
+snow
+
+
+
+Elevation (val range: 0 - 7)
+---------
+0 = abyss
+1 = lower mid (mid1)
+2 = higher mid (mid2)
+3 = highland
+4 = hills
+6 = mountains
+7 = highest mountains
+
+
+Misc info (val range: 0 - 15)
+---------
+
+common
+------
+	water
+	deadland
+	dirty/dry/wasteland(not as "dead" as above tho)
+	rocky
+	snow
+
+
+Biome unique options (each has 3 unique options):
+---------------------
+
+	warm/tropical
+	-------------
+		desert/dunes 'n shit
+		savanna/bit dryer tropical
+		jungle
+		
+	mid
+	---
+		steppes
+		plains/grassland
+		forest(lehtimetsä)
+
+	northern
+	--------
+		boreal
+		snowy boreal
+		tundra
+
+arctic
+	glacier
+	

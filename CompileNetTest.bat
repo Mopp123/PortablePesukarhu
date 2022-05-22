@@ -22,6 +22,7 @@ em++ ^
 ../pk/core/Application.cpp ^
 ../pk/core/SceneManager.cpp ^
 ../pk/utils/Algorithms.cpp ^
+../pk/ecs/components/renderable/TerrainTileRenderable.cpp ^
 ../pk/graphics/platform/web/WebMasterRenderer.cpp ^
 ../pk/graphics/platform/web/WebTexture.cpp ^
 ../pk/graphics/platform/web/WebGUIRenderer.cpp ^
@@ -35,4 +36,5 @@ em++ ^
 ../pk/ecs/systems/ui/combinedFunctional/Button.cpp ^
 ../pk/ecs/systems/ui/combinedFunctional/InputField.cpp ^
 ../pk/ecs/systems/CameraUtils.cpp ^
--s FULL_ES2=1 -s WASM=1 --memory-init-file 0 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_FREETYPE=1 --shell-file HTMLShell.html -o HelloEmscripten.html --preload-file assets --use-preload-plugins -sFETCH
+../pk/ecs/systems/animations/SpriteAnimations.cpp ^
+-s FULL_ES2=1 -s WASM=1 --memory-init-file 0 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_FREETYPE=1 --shell-file HTMLShell.html -o HelloEmscripten.html --preload-file assets --use-preload-plugins -sFETCH -sALLOW_MEMORY_GROWTH

@@ -24,7 +24,7 @@ namespace pk
 
 				SceneManager& sceneManager = app->_sceneManager;
 				sceneManager.handleSceneUpdate();
-
+				
 				if (activeCam != nullptr)
 				{
 					// All "top level" rendering stuff...
@@ -53,8 +53,8 @@ namespace pk
 
 
 			GLenum err = glGetError();
-			if (err != GL_NO_ERROR)
-				std::cout << "GL ERROR!: " << err << std::endl;
+			//if (err != GL_NO_ERROR)
+			//	std::cout << "GL ERROR!: " << err << std::endl;
 		}
 	}
 

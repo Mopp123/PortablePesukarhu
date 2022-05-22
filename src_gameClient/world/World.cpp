@@ -1,6 +1,7 @@
 
 #include "World.h"
 #include "Tile.h"
+#include "../../pk/graphics/platform/web/WebTexture.h"
 #include "../net/Client.h"
 #include "../net/requests/Commands.h"
 #include "../net/NetCommon.h"
@@ -12,6 +13,8 @@
 #include <algorithm>
 
 using namespace pk;
+using namespace pk::web;
+
 using namespace net;
 using namespace net::web;
 
@@ -32,7 +35,7 @@ namespace world
 		if (dataSize >= expectedDataSize)
 		{
 			const uint64_t* dataBuf = (const uint64_t*)data;
-			visualWorldRef.updateTileVisuals(dataBuf);
+			visualWorldRef.updateObservedArea(dataBuf);
 
 			observerRef.lastReceivedMapX = visualWorldRef._observer.requestedMapX;
 			observerRef.lastReceivedMapY = visualWorldRef._observer.requestedMapY;
@@ -45,6 +48,7 @@ namespace world
 	{
 		_observer.observeRadius = observeRadius;
 
+
 		// Create visual tiles at first as "blank" -> we configure these eventually, when we fetch world state from server
 		const int observeAreaWidth = _observer.observeRadius * 2 + 1;
 		for (int y = 0; y < observeAreaWidth; ++y)
@@ -52,20 +56,60 @@ namespace world
 			for (int x = 0; x < observeAreaWidth; ++x)
 			{
 				uint32_t tileEntity = _sceneRef.createEntity();
-				TerrainTileRenderable* tileRenderable = new TerrainTileRenderable(x * _tileVisualScale, y * _tileVisualScale, _tileVisualScale);
+				
+				TerrainTileRenderable* tileRenderable = new TerrainTileRenderable(
+					x * _tileVisualScale, y * _tileVisualScale,
+					x, y,
+					_tileVisualScale
+				);
+
+				Sprite3DRenderable* effectRenderable = new Sprite3DRenderable({ x * _tileVisualScale, 0, y * _tileVisualScale }, { _tileVisualScale, _tileVisualScale });
+
 				_sceneRef.addComponent(tileEntity, tileRenderable);
-				_tileRenderables.push_back(tileRenderable);
+				_sceneRef.addComponent(tileEntity, effectRenderable);
+
+				VisualTile t{ tileRenderable, effectRenderable, nullptr };
+
+				_tileData.push_back(std::make_pair(0, t));
 			}
 		}
+
+		// Create blendmap
+		int blendmapChannels = 4;
+		_blendmapWidth = get_next_pow2(observeAreaWidth);
+		size_t blendmapDataSize = (_blendmapWidth * _blendmapWidth) * blendmapChannels;
+		_pBlendmapData = new PK_byte[blendmapDataSize];
+		memset(_pBlendmapData, 0, blendmapDataSize);
+		WebTexture* blendmapTexture = new WebTexture(
+			_pBlendmapData, _blendmapWidth, _blendmapWidth, blendmapChannels,
+			{
+				TextureSamplerFilterMode::PK_SAMPLER_FILTER_MODE_LINEAR,
+				TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+				2
+			}
+		);
+		TerrainTileRenderable::s_blendmapTexture = blendmapTexture;
+		TerrainTileRenderable::s_gridWidth = _blendmapWidth;
+
+		// init anim mappings
+		SpriteAnimator* effectSpriteAnimator = new SpriteAnimator({ {0,0},{1,0},{2,0},{1,0} }, 0.25f);
+		_sceneRef.addSystem(effectSpriteAnimator);
+		_tileEffectAnimMapping.insert(std::make_pair((PK_ubyte)TileStateTerrEffectFlags::TILE_STATE_terrEffectRain, effectSpriteAnimator));
+		
+		effectSpriteAnimator->enableLooping(true);
+		effectSpriteAnimator->play();
 	}
 
 	VisualWorld::~VisualWorld()
-	{}
+	{
+		delete[] _pBlendmapData;
+	}
 
 	// ..quite shit and inefficient
-	void VisualWorld::updateTileVisuals(const uint64_t* mapState)
+	void VisualWorld::updateObservedArea(const uint64_t* mapState)
 	{
 		const int observeAreaWidth = _observer.observeRadius * 2 + 1;
+
 
 		// this is used to group together all tiles' vertices which share the same pos
 		std::unordered_map<int, float> sharedVertexHeights;
@@ -75,21 +119,49 @@ namespace world
 		{
 			for (int x = 0; x < observeAreaWidth; ++x)
 			{
-				uint64_t tile = mapState[x + y * observeAreaWidth];
+				const int tileIndex = x + y * observeAreaWidth;
+				uint64_t tileState = mapState[tileIndex];
+				_tileData[tileIndex].first = tileState;
 
-				_tileRenderables[x + y * observeAreaWidth]->tileMapX = (_observer.requestedMapX + x) * _tileVisualScale;
-				_tileRenderables[x + y * observeAreaWidth]->tileMapY = (_observer.requestedMapY + y) * _tileVisualScale;
+				TerrainTileRenderable* tileRenderable = _tileData[tileIndex].second.renderable_tile;
+				tileRenderable->worldX = (_observer.requestedMapX + x) * _tileVisualScale;
+				tileRenderable->worldZ = (_observer.requestedMapY + y) * _tileVisualScale;
 
-				PK_ubyte terrInfo = get_tile_terrinfo(tile);
+				float height = (float)get_tile_terrelevation(tileState);
+				height *= height;
+				height *= 0.15f;
 
 				for (int j = 0; j < 2; ++j)
 				{
 					for (int i = 0; i < 2; ++i)
 					{
 						int sharedHeightIndex = (x + i) + (y + j) * observeAreaWidth;
-						float height = (float)terrInfo;
 						sharedVertexHeights[sharedHeightIndex] = std::max(sharedVertexHeights[sharedHeightIndex], height);
 					}
+				}
+
+				// Alter texturing depending on terrain type
+				PK_ubyte tileType = get_tile_terrtype(tileState);
+				updateBlendmapData(tileType, x, y);
+				tileRenderable->textureOffset = _tileTexOffsetMapping[tileType];
+
+				Debug::log("Received tiletype was: " + std::to_string(tileType));
+
+				// Alter effect sprite, if there are effects on the tile
+				// JUST TESTING ATM!!!
+				PK_ubyte tileEffect = get_tile_terreffect(tileState);
+				Sprite3DRenderable* tileEffectSprite = _tileData[tileIndex].second.renderable_effect;				
+				
+				if (tileEffect & (PK_ubyte)TileStateTerrEffectFlags::TILE_STATE_terrEffectRain)
+				{
+					Debug::log("Received tile was raining!");
+					tileEffectSprite->position = vec3(tileRenderable->worldX + _tileVisualScale * 0.5f, tileRenderable->getAverageHeight() + 2.0f, tileRenderable->worldZ + _tileVisualScale * 0.5f);
+					tileEffectSprite->setActive(true);
+					tileEffectSprite->textureOffset = _tileEffectAnimMapping[tileEffect]->getCurrentTexOffset();
+				}
+				else
+				{
+					tileEffectSprite->setActive(false);
 				}
 			}
 		}
@@ -100,7 +172,7 @@ namespace world
 			for (int x = 0; x < observeAreaWidth; ++x)
 			{
 				int tileIndex = x + y * observeAreaWidth;
-				TerrainTileRenderable* t = _tileRenderables[tileIndex];
+				TerrainTileRenderable* tileRenderable = _tileData[tileIndex].second.renderable_tile;
 
 				for (int j = 0; j < 2; ++j)
 				{
@@ -111,11 +183,14 @@ namespace world
 
 						int heightIndex = i + j * 2;
 						int sharedVertexIndex = (x + i) + (y + j) * observeAreaWidth;
-						_tileRenderables[tileIndex]->vertexHeights[heightIndex] = sharedVertexHeights[sharedVertexIndex];
+						tileRenderable->vertexHeights[heightIndex] = sharedVertexHeights[sharedVertexIndex];
 					}
 				}
+
 			}
 		}
+
+		TerrainTileRenderable::s_blendmapTexture->update(_pBlendmapData);
 	}
 
 
@@ -124,6 +199,8 @@ namespace world
 		// Calc the "map pos" according to "visual float pos"(this should be camera's pivot point, if rts style camera)
 		_observer.requestedMapX = (int)std::floor((worldX - (float)_observer.observeRadius * _tileVisualScale) / _tileVisualScale);
 		_observer.requestedMapY = (int)std::floor((worldZ - (float)_observer.observeRadius * _tileVisualScale) / _tileVisualScale);
+
+		//Debug::log("observer pos: " + std::to_string(_observer.requestedMapX) + ", " + std::to_string(_observer.requestedMapY));
 
 		if (_updateCooldown <= 0.0f)
 		{
@@ -165,9 +242,9 @@ namespace world
 
 		
 		int tileIndex = mapX + mapY * gridWidth;
-		if(tileIndex >= 0 && tileIndex < _tileRenderables.size())
+		if(tileIndex >= 0 && tileIndex < _tileData.size())
 		{
-			TerrainTileRenderable* currentTile = _tileRenderables[tileIndex];
+			TerrainTileRenderable* tileRenderable = _tileData[tileIndex].second.renderable_tile;
 
 			// Coordinates in relation to the current tile, in range 0 to 1
 			float tileSpaceX = std::fmod(worldX, _tileVisualScale) / _tileVisualScale;
@@ -175,16 +252,16 @@ namespace world
 
 			
 
-			const float height_tl = currentTile->vertexHeights[0];
-			const float height_tr = currentTile->vertexHeights[1];
-			const float height_bl = currentTile->vertexHeights[2];
-			const float height_br = currentTile->vertexHeights[3];
+			const float height_tl = tileRenderable->vertexHeights[0];
+			const float height_tr = tileRenderable->vertexHeights[1];
+			const float height_bl = tileRenderable->vertexHeights[2];
+			const float height_br = tileRenderable->vertexHeights[3];
 
 
 			const int verticesPerRow = 2;
 
 			// Check which triangle of the tile we are standing on..
-			if (tileSpaceX <= (1.0f - tileSpaceZ)) {
+			if (tileSpaceX <= tileSpaceZ) {
 				return get_triangle_height_barycentric(
 					vec3(0, height_tl, 0),
 					vec3(0, height_bl, 1),
@@ -214,14 +291,67 @@ namespace world
 
 		vec3 screenToWorldSpace = screen_to_world_space(mouseX, mouseY, projMat, viewMat);
 		screenToWorldSpace.normalize();
-
+		
 		Transform* pCamTransform = (Transform*)_sceneRef.getComponent(_sceneRef.activeCamera->getEntity(), ComponentType::PK_TRANSFORM);
 		
 		mat4 camTMat = pCamTransform->getTransformationMatrix();
 		vec3 startPos(camTMat[0 + 3 * 4], camTMat[1 + 3 * 4], camTMat[2 + 3 * 4]);
 
-		vec3 ray = vec3(0,0,-1.0f) * 2.0f;
 
-		return startPos;
+		const float maxPickingDist = 500.0f;
+		const int maxPickRecursionCount = 500;
+
+
+		return getMidpoint(startPos, screenToWorldSpace * maxPickingDist, maxPickRecursionCount);
+	}
+
+	vec3 VisualWorld::getMidpoint(vec3 rayStartPos, vec3 ray, int recCount) const
+	{
+		vec3 halfRay = ray * 0.5f;
+		vec3 midPoint = rayStartPos + halfRay;
+
+		if (recCount <= 0)
+		{
+			return midPoint;
+		}
+		else
+		{
+
+			//float terrHeight = -terrain->getHeightAt(midPoint.x, midPoint.z);
+			float terrainHeight = getTileVisualHeightAt(midPoint.x, midPoint.z);
+			if (midPoint.y < terrainHeight)
+			{
+				return getMidpoint(rayStartPos, halfRay, recCount - 1);
+			}
+			else
+			{
+				return getMidpoint(midPoint, halfRay, recCount - 1);
+			}
+		}
+	}
+
+
+	void VisualWorld::updateBlendmapData(PK_ubyte tileType, int x, int y)
+	{
+		int r = 127;//std::rand() % 255;
+		int g = 127;//std::rand() % 255;
+		int b = 127;//std::rand() % 255;
+		int a = 255;
+
+
+		if (tileType == 1)
+		{
+			_pBlendmapData[(x + y * _blendmapWidth) * 4] = r;
+			_pBlendmapData[(x + y * _blendmapWidth) * 4 + 1] = g;
+			_pBlendmapData[(x + y * _blendmapWidth) * 4 + 2] = b;
+			_pBlendmapData[(x + y * _blendmapWidth) * 4 + 3] = a;
+		}
+		else
+		{
+			_pBlendmapData[(x + y * _blendmapWidth) * 4] = 0;
+			_pBlendmapData[(x + y * _blendmapWidth) * 4 + 1] = 0;
+			_pBlendmapData[(x + y * _blendmapWidth) * 4 + 2] = 0;
+			_pBlendmapData[(x + y * _blendmapWidth) * 4 + 3] = 0;
+		}
 	}
 }

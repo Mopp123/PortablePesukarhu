@@ -111,7 +111,7 @@ namespace pk
 			for (int i = 0; i < _batches.size(); ++i)
 			{
 				BatchData& batch = _batches[i];
-				if (batch.isFull())
+				if (batch.isFull)
 				{
 					//Debug::log("Batch was full!");
 					continue;
@@ -145,6 +145,8 @@ namespace pk
 			// all common uniforms..
 			_shader.setUniform(_uniformLocation_projMat, projectionMatrix);
 
+			//glDisable(GL_DEPTH_TEST);
+			glDepthFunc(GL_ALWAYS);
 
 			glEnable(GL_CULL_FACE);
 			glCullFace(GL_BACK);
@@ -212,6 +214,9 @@ namespace pk
 			int vertexIndex = 0;
 			for (int i = 0; i < maxBatchLength; i += 6)
 			{
+				if (i + 5 >= indices.size())
+					break;
+
 				indices[i] =	 0 + vertexIndex;
 				indices[i + 1] = 1 + vertexIndex;
 				indices[i + 2] = 2 + vertexIndex;

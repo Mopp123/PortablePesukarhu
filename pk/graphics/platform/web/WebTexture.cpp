@@ -66,7 +66,7 @@ namespace pk
 				}
 				else if (sampler.getFilterMode() == TextureSamplerFilterMode::PK_SAMPLER_FILTER_MODE_NEAR)
 				{
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 				}
 
@@ -91,14 +91,36 @@ namespace pk
 			return texID;
 		}
 
+		static void update_GL_texture(void* data, int width, int height, WebTexture& texture)
+		{
+			GLint glFormat = 0;
+			switch (texture.getChannels())
+			{
+			case 1: glFormat = GL_ALPHA; break;
+			case 3: glFormat = GL_RGB;	break;
+			case 4: glFormat = GL_RGBA; break;
 
-		WebTexture::WebTexture(void* data, int width, int height, int channels, const TextureSampler& sampler)
+			default:
+				Debug::log("Invalid color channel count when loading texture", Debug::MessageType::PK_FATAL_ERROR);
+				return;
+			}
+
+			glBindTexture(GL_TEXTURE_2D, texture.getID());
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, glFormat, GL_UNSIGNED_BYTE, data);
+			
+			Debug::log("GL texture updated successfully: " + std::to_string(width) + ", " + std::to_string(height));
+		}
+
+
+		WebTexture::WebTexture(void* data, int width, int height, int channels, const TextureSampler& sampler) : 
+			Texture(sampler, width, height, channels)
 		{
 			_id = create_GL_texture(data, width, height, channels, sampler);
 		}
 
 
-		WebTexture::WebTexture(const std::string& filename, const TextureSampler& sampler)
+		WebTexture::WebTexture(const std::string& filename, const TextureSampler& sampler) : 
+			Texture(sampler)
 		{
 			SDL_Surface* surface = IMG_Load(filename.c_str());
 
@@ -107,12 +129,13 @@ namespace pk
 				Debug::log("Failed to create SDL surface from: " + filename, Debug::MessageType::PK_FATAL_ERROR);
 				return;
 			}
-
-			_id = create_GL_texture(surface->pixels, surface->w, surface->h, 4, sampler);
+			_width = surface->w;
+			_height = surface->h;
+			_channels = 4;
+			_id = create_GL_texture(surface->pixels, _width, _height, _channels, sampler);
 
 			SDL_FreeSurface(surface);
 		}
-
 
 
 		WebTexture::~WebTexture()
@@ -121,6 +144,11 @@ namespace pk
 			glDeleteTextures(1, &_id);
 		}
 
-		
+
+		void WebTexture::update(void* data)
+		{
+			update_GL_texture(data, _width, _height, *this);
+		}
+
 	}
 }

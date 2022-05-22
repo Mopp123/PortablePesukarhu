@@ -42,11 +42,27 @@ namespace pk
 
 	class Texture
 	{
+	protected:
+
+		TextureSampler _sampler;
+		int _width = 0;
+		int _height = 0;
+		int _channels = 3;
+
 	public:
 
-		Texture()
+		Texture(TextureSampler sampler) :
+			_sampler(sampler)
+		{}
+		Texture(TextureSampler sampler, int width, int height, int channels) : 
+			_sampler(sampler), _width(width), _height(height), _channels(channels)
 		{}
 		virtual ~Texture()
 		{}
+		virtual void update(void* data) = 0;
+
+		inline const TextureSampler& getSampler() const { return _sampler; }
+		inline int getChannels() const { return _channels; }
+
 	};
 }

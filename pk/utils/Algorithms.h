@@ -15,4 +15,6 @@ namespace pk
 	// Returns next closest power of 2 value from v
 	unsigned int get_next_pow2(unsigned int v);
 
+
+	float get_distance(const vec3& left, const vec3& right);
 }

@@ -95,7 +95,7 @@ namespace pk
 				);
 			}
 
-			const int maxBatchInstanceCount = 2048;
+			const int maxBatchInstanceCount = 512;
 			const int batchInstanceDataLen = 9 * 4;
 
 			allocateBatches(4, maxBatchInstanceCount * batchInstanceDataLen, batchInstanceDataLen);
@@ -170,6 +170,9 @@ namespace pk
 			// all common uniforms..
 			_shader.setUniform(_uniformLocation_projMat, projectionMatrix);
 			_shader.setUniform(_uniformLocation_texAtlasRows, _fontAtlasRowCount);
+
+			//glDisable(GL_DEPTH_TEST);
+			glDepthFunc(GL_ALWAYS);
 
 			glEnable(GL_CULL_FACE);
 			glCullFace(GL_FRONT);
@@ -396,6 +399,9 @@ namespace pk
 			int vertexIndex = 0;
 			for (int i = 0; i < indices.size(); i += 6)
 			{
+				if (i + 5 >= indices.size())
+					break;
+
 				indices[i] =	 0 + vertexIndex;
 				indices[i + 1] = 1 + vertexIndex;
 				indices[i + 2] = 2 + vertexIndex;

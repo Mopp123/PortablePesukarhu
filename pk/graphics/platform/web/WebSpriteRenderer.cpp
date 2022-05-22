@@ -19,12 +19,12 @@ namespace pk
 		static std::string s_vertexSource = R"(
                 precision mediump float;
                 
-                attribute vec3 position;
+                attribute vec2 vertPos;
+                attribute vec3 worldPos;
                 attribute vec2 uv;
                 
 				uniform mat4 projectionMatrix;
 				uniform mat4 viewMatrix;
-				uniform mat4 camTransform;
 
 				varying vec2 var_uv;				
 
@@ -36,27 +36,16 @@ namespace pk
 
 // Dont apply "rotation part" of view mat -> sprite always faces camera
 
-vec3 v = vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]) * -1.0;
-float d = sqrt( v.x * v.x + v.y * v.y + v.z * v.z );
+vec3 camRight = vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]);
+vec3 camUp = vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1]);
 
-mat4 finalViewMat = camTransform;
+vec3 finalVertexPos = 
+	worldPos + 
+	(camRight * vertPos.x) + 
+	(camUp * vertPos.y)
+;
 
-finalViewMat[0][0] = d;
-finalViewMat[1][0] = 0.0;
-finalViewMat[2][0] = 0.0;
-
-finalViewMat[0][1] = 0.0;
-finalViewMat[1][1] = d;
-finalViewMat[2][1] = 0.0;
-
-finalViewMat[0][2] = 0.0;
-finalViewMat[1][2] = 0.0;
-finalViewMat[2][2] = d;
-
-finalViewMat[3][3] = 1.0;
-
-
-					gl_Position = projectionMatrix * finalViewMat * vec4(position, 1.0);
+					gl_Position = projectionMatrix * viewMatrix * vec4(finalVertexPos, 1.0);
 					var_uv = uv;
 					var_normal = vec3(0,1.0,0);
 				}
@@ -80,20 +69,23 @@ finalViewMat[3][3] = 1.0;
 
 					vec4 finalColor = texColor * diffFactor;
 
-
 					gl_FragColor = finalColor;
+
+					float blackness = 1.0 - (texColor.r + texColor.g + texColor.b);
+					if(blackness >= 0.9)
+						discard;
 	              }
             )";
 		
 		WebSpriteRenderer::WebSpriteRenderer() : 
 			_shader(s_vertexSource, s_fragmentSource)
 		{
-			_vertexAttribLocation_pos = _shader.getAttribLocation("position");
+			_vertexAttribLocation_pos = _shader.getAttribLocation("vertPos");
+			_vertexAttribLocation_worldPos = _shader.getAttribLocation("worldPos");
 			_vertexAttribLocation_uv = _shader.getAttribLocation("uv");
 			
 			_uniformLocation_projMat = _shader.getUniformLocation("projectionMatrix");
 			_uniformLocation_viewMat = _shader.getUniformLocation("viewMatrix");
-			_uniformLocation_camTransform = _shader.getUniformLocation("camTransform");
 			_uniformLocation_texSampler = _shader.getUniformLocation("textureSampler");
 
 			_uniformLocation_dirLight_dir = _shader.getUniformLocation("dirLight_dir");
@@ -102,7 +94,7 @@ finalViewMat[3][3] = 1.0;
 			
 			// Load tex atlas
 			_textureAtlas = new WebTexture(
-				"assets/Terrain.png",
+				"assets/Effects.png",
 				{
 					TextureSamplerFilterMode::PK_SAMPLER_FILTER_MODE_NEAR,
 					TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
@@ -110,8 +102,9 @@ finalViewMat[3][3] = 1.0;
 				}
 			);
 
-			const int maxBatchInstanceCount = 512;
-			const int batchInstanceDataLen = 5 * 4; // (pos:vec3, uv:vec2 --> 5 floats)
+			const int maxBatchInstanceCount = 256;
+			const int batchInstanceDataLen = 7 * 4; // (vertexPos:vec2, worldPos: vec3, uv:vec2 --> 7 floats)
+
 			allocateBatches(4, maxBatchInstanceCount * batchInstanceDataLen, batchInstanceDataLen);
 		}
 		
@@ -140,7 +133,7 @@ finalViewMat[3][3] = 1.0;
 			
 			// We need to negate a single pixel on some uvs, otherwise ugly artifacts on tiles' borders
 			const float pixelUvSpace = (1.0f / _texAtlasWidth) /2.0f;
-			const float texAtlasRows = 8.0f;
+			const float texAtlasRows = 4.0f;
 			
 			vec2 uv_v0(0, 1);
 			vec2 uv_v1(0, 0);
@@ -152,15 +145,22 @@ finalViewMat[3][3] = 1.0;
 			uv_v2 = (uv_v2 + texOffset) / texAtlasRows;
 			uv_v3 = (uv_v3 + texOffset) / texAtlasRows;
 
+			vec2 v_0(-0.5f, 1.0f);
+			vec2 v_1(-0.5f, 0.0f);
+			vec2 v_2(0.5f, 0.0f);
+			vec2 v_3(0.5f, 1.0f);
+
+
 			const int batchIdentifier = 1; // atm everyone will go into the same batch, FOR TESTING PURPOSES!
 			
 			const vec2 halfScale = scale * 0.5f;
-			const float xPos = pos.x - halfScale.x; // We want the origin be the center of the sprite..
+
+			// ..dont remember why we are like.. flipped on y here..
 			std::vector<float> dataToSubmit{ 
-				xPos,				pos.y,					pos.z,			uv_v0.x,				uv_v0.y - pixelUvSpace,			
-				xPos,				pos.y + scale.y,		pos.z,			uv_v1.x,				uv_v1.y,							
-				xPos + scale.x,		pos.y + scale.y,		pos.z,			uv_v2.x - pixelUvSpace, uv_v2.y,
-				xPos + scale.x,		pos.y,					pos.z,			uv_v3.x - pixelUvSpace, uv_v3.y - pixelUvSpace
+				-0.5f * scale.x,	0.0f,					pos.x, pos.y, pos.z,		uv_v0.x,				uv_v0.y - pixelUvSpace,			
+				-0.5f * scale.x,	1.0f * scale.y,			pos.x, pos.y, pos.z,		uv_v1.x,				uv_v1.y,							
+				 0.5f * scale.x,	1.0f * scale.y,			pos.x, pos.y, pos.z,		uv_v2.x - pixelUvSpace, uv_v2.y,
+				 0.5f * scale.x,	0.0f,					pos.x, pos.y, pos.z,		uv_v3.x - pixelUvSpace, uv_v3.y - pixelUvSpace
 			};
 			
 			
@@ -169,12 +169,7 @@ finalViewMat[3][3] = 1.0;
 			for (int i = 0; i < _batches.size(); ++i)
 			{
 				BatchData& batch = _batches[i];
-				if (batch.isFull())
-				{
-					//Debug::log("Batch was full!");
-					continue;
-				}
-
+				
 				if (batch.isFree)
 				{
 					batch.occupy(batchIdentifier);
@@ -182,12 +177,16 @@ finalViewMat[3][3] = 1.0;
 					batch.addNewInstance();
 					return;
 				}
-				else if (batch.ID == batchIdentifier)
+				else if (batch.ID == batchIdentifier && !batch.isFull)
 				{
 					batch.insertInstanceData(0, dataToSubmit);
 					batch.addNewInstance();
 					return;
 				}
+				/*else
+				{
+					Debug::log("Batch was full!");
+				}*/
 			}
 		}
 
@@ -195,16 +194,14 @@ finalViewMat[3][3] = 1.0;
 		void WebSpriteRenderer::render(const Camera& cam)
 		{
 
-
 			const mat4& projectionMatrix = cam.getProjMat3D();
 
 			Scene* scene = Application::get()->accessCurrentScene();
 
 			// Find scene's active camera's transform
 			// This quite disgusting, just atm for testing purposes..
-			Transform* camTransform = (Transform*)scene->getComponent(cam.getEntity(), ComponentType::PK_TRANSFORM);
-			mat4 camTransformationMatrix = camTransform->getTransformationMatrix();
-			mat4 viewMat = camTransformationMatrix;
+			const Transform * const camTransform = (Transform*)scene->getComponent(cam.getEntity(), ComponentType::PK_TRANSFORM);
+			mat4 viewMat = camTransform->getTransformationMatrix();
 			viewMat.inverse(); // omg this quite heavy operation ...
 
 			// Find scene's "sun(dir light)"
@@ -215,8 +212,7 @@ finalViewMat[3][3] = 1.0;
 			// all common uniforms..
 			_shader.setUniform(_uniformLocation_projMat, projectionMatrix);
 			_shader.setUniform(_uniformLocation_viewMat, viewMat);
-			_shader.setUniform(_uniformLocation_camTransform, camTransformationMatrix);
-
+			
 			// Light
 			if (dirLight)
 			{
@@ -231,8 +227,8 @@ finalViewMat[3][3] = 1.0;
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_LESS);
 
-			glEnable(GL_CULL_FACE);
-			glCullFace(GL_FRONT);
+			glDisable(GL_CULL_FACE);
+			//glCullFace(GL_FRONT);
 
 
 
@@ -249,16 +245,20 @@ finalViewMat[3][3] = 1.0;
 
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->getID());
 
-				int stride = sizeof(float) * 5;
+				int stride = sizeof(float) * 7;
 				glBindBuffer(GL_ARRAY_BUFFER, vb->getID());
 
-				// position vertex attrib
+				// vertex pos vertex attrib
 				glEnableVertexAttribArray(_vertexAttribLocation_pos);
-				glVertexAttribPointer(_vertexAttribLocation_pos, 3, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, 0);
+				glVertexAttribPointer(_vertexAttribLocation_pos, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, 0);
 				
+				// world pos vertex attrib
+				glEnableVertexAttribArray(_vertexAttribLocation_worldPos);
+				glVertexAttribPointer(_vertexAttribLocation_worldPos, 3, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 2));
+
 				// uv coord vertex attrib
 				glEnableVertexAttribArray(_vertexAttribLocation_uv);
-				glVertexAttribPointer(_vertexAttribLocation_uv, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 3));
+				glVertexAttribPointer(_vertexAttribLocation_uv, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 5));
 				
 				
 
@@ -288,6 +288,9 @@ finalViewMat[3][3] = 1.0;
 			int vertexIndex = 0;
 			for (int i = 0; i < maxBatchLength; i += 6)
 			{
+				if (i + 5 >= indices.size())
+					break;
+
 				indices[i] =	 0 + vertexIndex;
 				indices[i + 1] = 1 + vertexIndex;
 				indices[i + 2] = 2 + vertexIndex;

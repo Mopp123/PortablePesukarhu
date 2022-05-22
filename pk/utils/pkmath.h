@@ -10,13 +10,13 @@ namespace pk
 	class vec2
 	{
 	public:
-		float x = 0;
-		float y = 0;
+		float x = 0.0f;
+		float y = 0.0f;
 
 		vec2() {}
 		vec2(float x, float y) :  x(x), y(y) {}
 		vec2(const vec2& other) : x(other.x), y(other.y) {}
-
+		
 		float length() const
 		{
 			return std::sqrtf((x * x) + (y * y));

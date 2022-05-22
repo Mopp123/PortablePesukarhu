@@ -3,7 +3,7 @@
 #include "../Component.h"
 #include <cstdint>
 #include "../../../utils/pkmath.h"
-
+#include "../../../graphics/Texture.h"
 
 #define PK_TERRAINTILE_HEIGHT_INDEX_TOP_LEFT		0
 #define PK_TERRAINTILE_HEIGHT_INDEX_BOTTOM_LEFT		1
@@ -18,20 +18,22 @@ namespace pk
 	{
 	public:
 
+		static Texture* s_blendmapTexture;
+		static int s_gridWidth;
+
 		float vertexHeights[4]; // 0 = "top left"	3 = "top right"
 		vec3 vertexNormals[4];
+		vec2 textureOffset;
+		int32_t worldX = 0;
+		int32_t worldZ = 0;
+		// These grid coords means what is the position of this specific tile in the "tile grid"
+		int gridX = 0;
+		int gridY = 0;
 
-		int32_t tileMapX = 0;
-		int32_t tileMapY = 0; // in 3d this is the actual world z coord (tuo kartta meinaa tässä 2d projektiota 3d maailmasta)
 		float scale = 10.0f;
 		
-		TerrainTileRenderable(int32_t mapX, int32_t mapY, float scale) :
-			Component(ComponentType::PK_RENDERABLE_TERRAINTILE),
-			tileMapX(mapX), tileMapY(mapY), scale(scale)
-		{
-			memset(vertexHeights, 0, sizeof(float) * 4);
-			memset(vertexNormals, 0, sizeof(vec3) * 4);
-		}
+		TerrainTileRenderable(int32_t worldX, int32_t worldZ, int gridX, int gridY, float scale);
 
+		inline float getAverageHeight() const { return (vertexHeights[0] + vertexHeights[1] + vertexHeights[2] + vertexHeights[3]) / 4; }
 	};
 }

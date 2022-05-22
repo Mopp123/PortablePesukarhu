@@ -64,4 +64,8 @@ namespace pk
 		return v;
 	}
 
+	float get_distance(const vec3& left, const vec3& right)
+	{
+		return std::sqrtf(((left.x - right.x) * (left.x - right.x)) + ((left.y - right.y) * (left.y - right.y)) + ((left.z - right.z) * (left.z - right.z)));
+	}
 }

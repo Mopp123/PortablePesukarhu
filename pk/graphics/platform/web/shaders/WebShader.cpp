@@ -87,12 +87,15 @@ namespace pk
 			glUniform3f(location, v.x, v.y, v.z);
 		}
 
-
 		void WebShader::setUniform(PK_int location, float val) const
 		{
 			glUniform1fv(location, 1, &val);
 		}
 
+		void WebShader::setUniform1i(PK_int location, int val) const
+		{
+			glUniform1i(location, val);
+		}
 
 
 		PK_uint WebShader::createShaderStage(const std::string& source, GLenum type)

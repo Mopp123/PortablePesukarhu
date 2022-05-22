@@ -8,6 +8,8 @@
 #include "../net/NetCommon.h"
 
 #include "../../pk/ecs/components/lighting/Lights.h"
+#include "../world/Tile.h"
+
 
 #include "../../pk/core/Debug.h"
 #include <iostream>
@@ -18,6 +20,37 @@ using namespace ui;
 using namespace net;
 using namespace net::web;
 
+
+class OnSubmit_position : public InputFieldOnSubmitEvent
+{
+public:
+	RTSCamController* camController = nullptr;
+	OnSubmit_position(RTSCamController* camcontrol)
+	{
+		camController = camcontrol;
+	}
+
+	void onSubmit(std::string inputFieldText)
+	{
+		std::string total = inputFieldText;
+
+		size_t delimPos = total.find(',');
+		std::string x_str = total.substr(0, delimPos);
+		total.erase(0, delimPos + 1);
+		std::string z_str = total;
+
+		Debug::log("parse result: x=" + x_str + " z=" + z_str);
+
+		const int tileSize = 2;
+
+		float worldX = (float)(std::stoi(x_str) * tileSize);
+		float worldZ = (float)(std::stoi(z_str) * tileSize);
+
+		camController->setPivotPoint({ worldX, 0, worldZ });
+
+	};
+
+};
 
 InGame::InGame()
 {}
@@ -71,13 +104,14 @@ void InGame::init()
 	std::chrono::time_point<std::chrono::steady_clock> startTime = std::chrono::high_resolution_clock::now();
 	
 	Client::get_instance()->setUserID("Persekorva666");
-	_visualWorld = new world::VisualWorld(*this, 10);
+	_visualWorld = new world::VisualWorld(*this, 15);
 
 	float delta = (std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - startTime)).count();
 	
 	Debug::log("building took: " + std::to_string(delta));
 
-	_pCamTransform = &((Transform*)getComponent(activeCamera->getEntity(), ComponentType::PK_TRANSFORM))->accessTransformationMatrix();
+	Transform* camTransformComponent = (Transform*)getComponent(activeCamera->getEntity(), ComponentType::PK_TRANSFORM);
+	_pCamTransform = &(camTransformComponent)->accessTransformationMatrix();
 	_pCamTransform->setIdentity();
 	mat4& camTransform = *_pCamTransform;
 
@@ -99,12 +133,43 @@ void InGame::init()
 
 	// TESTING 3D sprites..
 	uint32_t spriteEntity = createEntity();
-	_testSprite = new Sprite3DRenderable({ 0,0,0 }, { 5,5 });
+	_testSprite = new Sprite3DRenderable({ 0,0,0 }, { 2,2 });
 	addComponent(spriteEntity, _testSprite);
+
+	
+
+	// TESTING tile anims
+	_animator_water = new SpriteAnimator({ {0,1},{1,1},{2,1} }, 3.0f);
+	_animator_water->enableLooping(true);
+	_animator_water->play();
+	addSystem(_animator_water);
+
+	_animator_grass = new SpriteAnimator({ {2,0},{3,0},{4,0},{3,0} }, 4.0f);
+	_animator_grass->enableLooping(true);
+	_animator_grass->play();
+	addSystem(_animator_grass);
+
+
+
+
+	// JUST FOR DEBUGGING
+	_inputField_position = new InputField(
+		" Enter message",
+		{
+			{ConstraintType::PIXEL_LEFT, 32},
+			{ConstraintType::PIXEL_BOTTOM, 32}
+		},
+		300,
+		new OnSubmit_position(_pCamController),
+		true
+	);
 }
 
 void InGame::update()
 {
+	
+
+
 	vec3 camPivotPoint = _pCamController->getPivotPoint();
 	
 	// attempt to glue cam's height to terrain's height
@@ -121,6 +186,6 @@ void InGame::update()
 	// debug mouse picking testing..
 	mat4 viewMatrix = *_pCamTransform;
 	viewMatrix.inverse();
-
-	_testSprite->position = vec3(22, 5, 22);//_visualWorld->getMousePickCoords(activeCamera->getProjMat3D(), viewMatrix);
+	
+	_testSprite->position = _visualWorld->getMousePickCoords(activeCamera->getProjMat3D(), viewMatrix);
 }
