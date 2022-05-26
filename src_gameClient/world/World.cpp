@@ -333,25 +333,14 @@ namespace world
 
 	void VisualWorld::updateBlendmapData(PK_ubyte tileType, int x, int y)
 	{
-		int r = 127;//std::rand() % 255;
-		int g = 127;//std::rand() % 255;
-		int b = 127;//std::rand() % 255;
-		int a = 255;
+		const int r = tileType == 1 ? 255 : 0;
+		const int g = tileType == 2 ? 255 : 0;
+		const int b = tileType == 3 ? 255 : 0;
+		const int a = tileType == 4 ? 255 : 0;
 
-
-		if (tileType == 1)
-		{
-			_pBlendmapData[(x + y * _blendmapWidth) * 4] = r;
-			_pBlendmapData[(x + y * _blendmapWidth) * 4 + 1] = g;
-			_pBlendmapData[(x + y * _blendmapWidth) * 4 + 2] = b;
-			_pBlendmapData[(x + y * _blendmapWidth) * 4 + 3] = a;
-		}
-		else
-		{
-			_pBlendmapData[(x + y * _blendmapWidth) * 4] = 0;
-			_pBlendmapData[(x + y * _blendmapWidth) * 4 + 1] = 0;
-			_pBlendmapData[(x + y * _blendmapWidth) * 4 + 2] = 0;
-			_pBlendmapData[(x + y * _blendmapWidth) * 4 + 3] = 0;
-		}
+		_pBlendmapData[(x + y * _blendmapWidth) * 4] = r;
+		_pBlendmapData[(x + y * _blendmapWidth) * 4 + 1] = g;
+		_pBlendmapData[(x + y * _blendmapWidth) * 4 + 2] = b;
+		_pBlendmapData[(x + y * _blendmapWidth) * 4 + 3] = a;
 	}
 }

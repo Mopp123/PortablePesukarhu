@@ -4,6 +4,7 @@
 #include <cstdint>
 #include "../../../utils/pkmath.h"
 #include "../../../graphics/Texture.h"
+#include <vector>
 
 #define PK_TERRAINTILE_HEIGHT_INDEX_TOP_LEFT		0
 #define PK_TERRAINTILE_HEIGHT_INDEX_BOTTOM_LEFT		1
@@ -19,6 +20,11 @@ namespace pk
 	public:
 
 		static Texture* s_blendmapTexture;
+		static Texture* s_channelTexture0;
+		static Texture* s_channelTexture1;
+		static Texture* s_channelTexture2;
+		static Texture* s_channelTexture3;
+		static Texture* s_channelTexture4;
 		static int s_gridWidth;
 
 		float vertexHeights[4]; // 0 = "top left"	3 = "top right"

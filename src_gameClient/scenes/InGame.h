@@ -13,6 +13,9 @@
 #include "../../pk/ecs/systems/CameraUtils.h"
 #include "../../pk/ecs/systems/animations/SpriteAnimations.h"
 
+#include "../../pk/graphics/platform/web/WebTexture.h"
+
+
 #include "../world/World.h"
 
 #include <vector>
@@ -34,6 +37,12 @@ private:
 
 	pk::RTSCamController* _pCamController = nullptr;
 	pk::mat4* _pCamTransform = nullptr;
+
+	pk::web::WebTexture* _terrainTexture0 = nullptr;
+	pk::web::WebTexture* _terrainTexture1 = nullptr;
+	pk::web::WebTexture* _terrainTexture2 = nullptr;
+	pk::web::WebTexture* _terrainTexture3 = nullptr;
+	pk::web::WebTexture* _terrainTexture4 = nullptr;
 
 
 	pk::ui::InputField* _inputField_position = nullptr;

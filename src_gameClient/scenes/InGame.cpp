@@ -16,6 +16,8 @@
 #include <chrono>
 
 using namespace pk;
+using namespace pk::web;
+
 using namespace ui;
 using namespace net;
 using namespace net::web;
@@ -63,6 +65,12 @@ InGame::~InGame()
 	delete _visualWorld;
 
 	delete _pText_debug_delta;
+
+	delete _terrainTexture0;
+	delete _terrainTexture1;
+	delete _terrainTexture2;
+	delete _terrainTexture3;
+	delete _terrainTexture4;
 }
 
 
@@ -104,7 +112,29 @@ void InGame::init()
 	std::chrono::time_point<std::chrono::steady_clock> startTime = std::chrono::high_resolution_clock::now();
 	
 	Client::get_instance()->setUserID("Persekorva666");
+
+	// Load channel textures for terrain's tiles
+	TextureSampler terrainTileTexSampler =
+	{
+		TextureSamplerFilterMode::PK_SAMPLER_FILTER_MODE_NEAR,
+		TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_REPEAT,
+		2
+	};
+	_terrainTexture0 = new WebTexture("assets/deadland.png", terrainTileTexSampler);
+	_terrainTexture1 = new WebTexture("assets/water.png", terrainTileTexSampler);
+	_terrainTexture2 = new WebTexture("assets/dirt.png", terrainTileTexSampler);
+	_terrainTexture3 = new WebTexture("assets/grass.png", terrainTileTexSampler);
+	_terrainTexture4 = new WebTexture("assets/vulcanic.png", terrainTileTexSampler);
+	
+	TerrainTileRenderable::s_channelTexture0 = _terrainTexture0;
+	TerrainTileRenderable::s_channelTexture1 = _terrainTexture1;
+	TerrainTileRenderable::s_channelTexture2 = _terrainTexture2;
+	TerrainTileRenderable::s_channelTexture3 = _terrainTexture3;
+	TerrainTileRenderable::s_channelTexture4 = _terrainTexture4;
+
 	_visualWorld = new world::VisualWorld(*this, 15);
+
+
 
 	float delta = (std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - startTime)).count();
 	

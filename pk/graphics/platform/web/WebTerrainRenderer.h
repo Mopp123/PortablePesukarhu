@@ -22,21 +22,18 @@ namespace pk
 			WebShader _shader;
 
 			PK_int _vertexAttribLocation_pos = -1;
-			PK_int _vertexAttribLocation_uv_blendmap = -1;
-			PK_int _vertexAttribLocation_uv_texAtlas = -1;
-
+			PK_int _vertexAttribLocation_uv = -1;
+			
 			PK_int _uniformLocation_projMat = -1;
 			PK_int _uniformLocation_viewMat = -1;
 			
-			PK_int _uniformLocation_texSampler = -1;
-			PK_int _uniformLocation_texSampler2 = -1;
-			PK_int _uniformLocation_texSampler3 = -1;
-			PK_int _uniformLocation_texSampler4 = -1;
-			PK_int _uniformLocation_texSampler5 = -1;
-			PK_int _uniformLocation_texSampler6 = -1;
-			PK_int _uniformLocation_texSampler7 = -1;
-			PK_int _uniformLocation_texSampler8 = -1;
-
+			PK_int _uniformLocation_texSampler_blendmap = -1;
+			PK_int _uniformLocation_texSampler_black	= -1;
+			PK_int _uniformLocation_texSampler_red		= -1;
+			PK_int _uniformLocation_texSampler_green	= -1;
+			PK_int _uniformLocation_texSampler_blue		= -1;
+			PK_int _uniformLocation_texSampler_alpha	= -1;
+			
 			PK_int _uniformLocation_dirLight_color = -1;
 			PK_int _uniformLocation_dirLight_dir = -1;
 
