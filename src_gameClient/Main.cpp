@@ -65,7 +65,7 @@ int main(int argc, const char** argv)
 			{ ComponentType::PK_RENDERABLE_TEXT,		pFontRenderer	 }
 		});
 
-	Client::get_instance()->init("http://192.168.219.249:51421");
+	Client::get_instance()->init("http://192.168.69.249:51421");
 
 	application.switchScene(new InGame);
 

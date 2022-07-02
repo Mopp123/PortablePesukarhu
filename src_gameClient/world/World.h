@@ -77,20 +77,13 @@ namespace world
 		WorldObserver _observer;
 
 		
-		float _maxUpdateCooldown = 1.0f;
+		float _maxUpdateCooldown = 0.5f;
 		float _updateCooldown = 0.0f;
 
 		PK_byte* _pBlendmapData = nullptr;
 		int _blendmapWidth = 0;
 		// Just temp here -> clean up later..
 
-		// Key = tile's terrain state, value = tex offset to use for that state
-		std::unordered_map<PK_ubyte, pk::vec2> _tileTexOffsetMapping =
-		{
-			{ 0, {0,0} }, // deadland
-			{ 1, {0,1} }, // water
-			{ 2, {1,0} }  // vulcanic
-		};
 
 		std::unordered_map<PK_ubyte, pk::SpriteAnimator*> _tileEffectAnimMapping;
 

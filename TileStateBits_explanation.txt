@@ -13,7 +13,7 @@ bit positions
 
 "Tile terrain type"
 ----------------------------------------------------------------------
-4 = Misc info(unsigned 3 bit integer, val range 0 to 7) (supposed to use as enum)
+4 = Type(unsigned 3 bit integer, val range 0 to 7) (supposed to use as enum)
 5 = ^
 6 = ^
 

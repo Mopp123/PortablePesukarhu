@@ -122,9 +122,9 @@ void InGame::init()
 	};
 	_terrainTexture0 = new WebTexture("assets/deadland.png", terrainTileTexSampler);
 	_terrainTexture1 = new WebTexture("assets/water.png", terrainTileTexSampler);
-	_terrainTexture2 = new WebTexture("assets/dirt.png", terrainTileTexSampler);
-	_terrainTexture3 = new WebTexture("assets/grass.png", terrainTileTexSampler);
-	_terrainTexture4 = new WebTexture("assets/vulcanic.png", terrainTileTexSampler);
+	_terrainTexture2 = new WebTexture("assets/snow.png", terrainTileTexSampler);
+	_terrainTexture3 = new WebTexture("assets/rock.png", terrainTileTexSampler);
+	_terrainTexture4 = new WebTexture("assets/grass.png", terrainTileTexSampler);
 	
 	TerrainTileRenderable::s_channelTexture0 = _terrainTexture0;
 	TerrainTileRenderable::s_channelTexture1 = _terrainTexture1;

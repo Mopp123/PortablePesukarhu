@@ -127,9 +127,11 @@ namespace world
 				tileRenderable->worldX = (_observer.requestedMapX + x) * _tileVisualScale;
 				tileRenderable->worldZ = (_observer.requestedMapY + y) * _tileVisualScale;
 
-				float height = (float)get_tile_terrelevation(tileState);
-				height *= height;
-				height *= 0.15f;
+				float height = (float)(get_tile_terrelevation(tileState));
+				const float max = 15.0f;
+				if (height - max >= 0.0f)
+					height -= max;
+				//height *= 2.0f;
 
 				for (int j = 0; j < 2; ++j)
 				{
@@ -143,7 +145,6 @@ namespace world
 				// Alter texturing depending on terrain type
 				PK_ubyte tileType = get_tile_terrtype(tileState);
 				updateBlendmapData(tileType, x, y);
-				tileRenderable->textureOffset = _tileTexOffsetMapping[tileType];
 
 				Debug::log("Received tiletype was: " + std::to_string(tileType));
 
