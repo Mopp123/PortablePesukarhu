@@ -17,66 +17,84 @@ namespace pk
 	{
 
 		static std::string s_vertexSource = R"(
-                precision mediump float;
+                	precision mediump float;
+                	
+                	attribute vec3 position;
+                	attribute vec2 uv;
                 
-                attribute vec3 position;
-                attribute vec2 uv;
-                
-				uniform mat4 projectionMatrix;
-				uniform mat4 viewMatrix;
+			uniform mat4 projectionMatrix;
+			uniform mat4 viewMatrix;
 			
-				varying vec2 var_uv;
-				
-				varying vec3 var_normal;
-				varying vec3 var_fragPos;
+			varying vec2 var_uv;
+			
+			varying vec3 var_normal;
+			varying vec3 var_fragPos;
 
 
-                void main()
-                {	
-					gl_Position = projectionMatrix * viewMatrix * mat4(1.0) * vec4(position, 1.0);
-					var_uv = uv;
-					var_normal = vec3(0,1.0,0);
-					var_fragPos = position;
-				}
+                	void main()
+                	{	
+				gl_Position = projectionMatrix * viewMatrix * mat4(1.0) * vec4(position, 1.0);
+				var_uv = uv;
+				var_normal = vec3(0,1.0,0);
+				var_fragPos = position;
+			}
             )";
 
 		static std::string s_fragmentSource = R"(
-                precision mediump float;
+                	precision mediump float;
                 
-				varying vec2 var_uv;
-				varying vec3 var_normal;
-				varying vec3 var_fragPos;
+			varying vec2 var_uv;
+			varying vec3 var_normal;
+			varying vec3 var_fragPos;
+			
+			uniform sampler2D tex_blendmap;
+			uniform sampler2D tex_channel_black;
+			uniform sampler2D tex_channel_red;
+			uniform sampler2D tex_channel_green;
+			uniform sampler2D tex_channel_blue;
+			uniform sampler2D tex_channel_alpha;
+			
+			uniform vec3 dirLight_dir;
 				
+                	void main()
+                	{
+				vec3 lightDir = normalize(dirLight_dir);
+				float diffFactor = clamp(dot(-lightDir, normalize(var_normal)), 0.0, 1.0);
 
-				uniform sampler2D tex_blendmap;
-
-				uniform sampler2D tex_channel_black;
-				uniform sampler2D tex_channel_red;
-				uniform sampler2D tex_channel_green;
-				uniform sampler2D tex_channel_blue;
-				uniform sampler2D tex_channel_alpha;
+				vec4 blendmapColor = texture2D(tex_blendmap, var_uv);
+				vec2 tiledUvs = var_uv * (15.0 * 2.0 + 1.0);
+				float amount_black = 1.0 - (blendmapColor.r + blendmapColor.g + blendmapColor.b + blendmapColor.a);
+			
+				vec4 tex_black = texture2D(tex_channel_black, tiledUvs);
+				vec4 tex_red = texture2D(tex_channel_red, tiledUvs);
+				vec4 tex_green = texture2D(tex_channel_green, tiledUvs);
 				
-				uniform vec3 dirLight_dir;
+				vec4 tex_channel_black = tex_black * amount_black;
+				vec4 tex_channel_red   = tex_red * blendmapColor.r;
+				vec4 tex_channel_green = tex_green * blendmapColor.g;
+				vec4 tex_channel_blue  = texture2D(tex_channel_blue,	tiledUvs) * blendmapColor.b;
+				vec4 tex_channel_alpha = texture2D(tex_channel_alpha,	tiledUvs) * blendmapColor.a;
 				
-                void main()
-                {
-					vec3 lightDir = normalize(dirLight_dir);
-					float diffFactor = clamp(dot(-lightDir, normalize(var_normal)), 0.0, 1.0);
-
-					vec4 blendmapColor = texture2D(tex_blendmap, var_uv);
-					vec2 tiledUvs = var_uv * (15.0 * 2.0 + 1.0);
-					float amount_black = 1.0 - (blendmapColor.r + blendmapColor.g + blendmapColor.b + blendmapColor.a);
-					
-					vec4 tex_channel_black	=	texture2D(tex_channel_black, tiledUvs)  * amount_black;
-					vec4 tex_channel_red	=	texture2D(tex_channel_red,	 tiledUvs)	* blendmapColor.r;
-					vec4 tex_channel_green	=	texture2D(tex_channel_green, tiledUvs)	* blendmapColor.g;
-					vec4 tex_channel_blue	=	texture2D(tex_channel_blue,	 tiledUvs)	* blendmapColor.b;
-					vec4 tex_channel_alpha	=	texture2D(tex_channel_alpha, tiledUvs)	* blendmapColor.a;
-					
-					vec4 totalTextureColor = tex_channel_black + tex_channel_red + tex_channel_green + tex_channel_blue + tex_channel_alpha;
-
-					gl_FragColor = totalTextureColor; // * diffFactor; 
+				
+				// JUST FOR TESTING!!
+				float threshold = 0.25;
+				if (blendmapColor.g >= threshold)
+				{
+					tex_channel_green = tex_channel_green * 3.0;
 				}
+				
+				if (amount_black >= 0.4)
+				{
+					tex_channel_black = tex_channel_black * 2.0;
+				}
+				if (blendmapColor.r >= 0.125)
+				{
+					tex_channel_red = tex_channel_red * 2.0;
+				}
+				vec4 totalTextureColor = tex_channel_black + tex_channel_red + tex_channel_green + tex_channel_blue + tex_channel_alpha;
+				totalTextureColor = normalize(totalTextureColor);
+				gl_FragColor = totalTextureColor; // * diffFactor; 
+			}
             )";
 		
 		WebTerrainRenderer::WebTerrainRenderer() : 

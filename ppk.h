@@ -10,7 +10,13 @@
 #include "core/Application.h"
 #include "core/SceneManager.h"
 #include "utils/Algorithms.h"
+
 #include "ecs/components/renderable/TerrainTileRenderable.h"
+#include "ecs/components/renderable/Sprite3DRenderable.h"
+#include "ecs/components/renderable/GUIRenderable.h"
+#include "ecs/components/renderable/TextRenderable.h"
+#include "ecs/components/lighting/Lights.h"
+
 #include "graphics/platform/web/WebMasterRenderer.h"
 #include "graphics/platform/web/WebTexture.h"
 #include "graphics/platform/web/WebGUIRenderer.h"
@@ -19,6 +25,7 @@
 #include "graphics/platform/web/WebSpriteRenderer.h"
 #include "graphics/platform/web/WebBuffers.h"
 #include "graphics/platform/web/shaders/WebShader.h"
+
 #include "ecs/systems/ui/Text.h"
 #include "ecs/systems/ui/GUIImage.h"
 #include "ecs/systems/ui/combinedFunctional/Button.h"
