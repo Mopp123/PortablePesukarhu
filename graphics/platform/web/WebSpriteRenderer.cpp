@@ -23,58 +23,57 @@ namespace pk
                 attribute vec3 worldPos;
                 attribute vec2 uv;
                 
-				uniform mat4 projectionMatrix;
-				uniform mat4 viewMatrix;
+		uniform mat4 projectionMatrix;
+		uniform mat4 viewMatrix;
 
-				varying vec2 var_uv;				
+		varying vec2 var_uv;				
 
-				// this is kind of like a "fake normal" for now.. to apply at least some kind of lighting effect(dark night time)..
-				varying vec3 var_normal;
+		// this is kind of like a "fake normal" for now.. to apply at least some kind of lighting effect(dark night time)..
+		//varying vec3 var_normal;
 
                 void main()
                 {	
 
-// Dont apply "rotation part" of view mat -> sprite always faces camera
+			// Dont apply "rotation part" of view mat -> sprite always faces camera
+			
+			vec3 camRight = vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]);
+			vec3 camUp = vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1]);
+			
+			vec3 finalVertexPos = 
+				worldPos + 
+				(camRight * vertPos.x) + 
+				(camUp * vertPos.y);
 
-vec3 camRight = vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]);
-vec3 camUp = vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1]);
-
-vec3 finalVertexPos = 
-	worldPos + 
-	(camRight * vertPos.x) + 
-	(camUp * vertPos.y)
-;
-
-					gl_Position = projectionMatrix * viewMatrix * vec4(finalVertexPos, 1.0);
-					var_uv = uv;
-					var_normal = vec3(0,1.0,0);
-				}
+			gl_Position = projectionMatrix * viewMatrix * vec4(finalVertexPos, 1.0);
+			var_uv = uv;
+			//var_normal = vec3(0,1.0,0);
+		}
             )";
 
 		static std::string s_fragmentSource = R"(
                 precision mediump float;
                 
-				varying vec2 var_uv;
-				varying vec3 var_normal;
-				
-				uniform sampler2D textureSampler;
-				uniform vec3 dirLight_dir;
+		varying vec2 var_uv;
+		//varying vec3 var_normal;
+		
+		uniform sampler2D textureSampler;
+		//uniform vec3 dirLight_dir;
 				
                 void main()
                 {
-					vec3 lightDir = normalize(dirLight_dir);
-					float diffFactor = clamp(dot(-lightDir, normalize(var_normal)), 0.0, 1.0);
+			//vec3 lightDir = normalize(dirLight_dir);
+			//float diffFactor = clamp(dot(-lightDir, normalize(var_normal)), 0.0, 1.0);
 
-					vec4 texColor = texture2D(textureSampler, var_uv);
+			vec4 texColor = texture2D(textureSampler, var_uv);
 
-					vec4 finalColor = texColor * diffFactor;
+			vec4 finalColor = texColor;
 
-					gl_FragColor = finalColor;
+			gl_FragColor = finalColor;
 
-					float blackness = 1.0 - (texColor.r + texColor.g + texColor.b);
-					if(blackness >= 0.9)
-						discard;
-	              }
+			float blackness = 1.0 - (texColor.r + texColor.g + texColor.b);
+			if(blackness >= 0.9)
+				discard;
+		}
             )";
 		
 		WebSpriteRenderer::WebSpriteRenderer() : 
@@ -88,7 +87,7 @@ vec3 finalVertexPos =
 			_uniformLocation_viewMat = _shader.getUniformLocation("viewMatrix");
 			_uniformLocation_texSampler = _shader.getUniformLocation("textureSampler");
 
-			_uniformLocation_dirLight_dir = _shader.getUniformLocation("dirLight_dir");
+			//_uniformLocation_dirLight_dir = _shader.getUniformLocation("dirLight_dir");
 			//_uniformLocation_dirLight_color = _shader.getUniformLocation("dirLight_color");
 
 			
@@ -118,22 +117,21 @@ vec3 finalVertexPos =
 			delete _textureAtlas;
 		}
 
-
-
 		// submit renderable component for rendering (batch preparing, before rendering)
 		void WebSpriteRenderer::submit(const Component* const renderableComponent, const mat4& transformation)
 		{
 			// <#M_DANGER>
 			const Sprite3DRenderable* const  renderable = (const Sprite3DRenderable* const)(renderableComponent);
-			
+			// SpriteRenderer uses texture solely for "batch identifying"
+			const Texture* spriteTexture = renderable->texture;
+
 			const vec3& pos = renderable->position;
 			const vec2& scale = renderable->scale;
 			const vec2& texOffset = renderable->textureOffset;
 
-			
 			// We need to negate a single pixel on some uvs, otherwise ugly artifacts on tiles' borders
 			const float pixelUvSpace = (1.0f / _texAtlasWidth) /2.0f;
-			const float texAtlasRows = 4.0f;
+			const float texAtlasRows = (const float)spriteTexture->getTiling();
 			
 			vec2 uv_v0(0, 1);
 			vec2 uv_v1(0, 0);
@@ -150,21 +148,16 @@ vec3 finalVertexPos =
 			vec2 v_2(0.5f, 0.0f);
 			vec2 v_3(0.5f, 1.0f);
 
-
-			const int batchIdentifier = 1; // atm everyone will go into the same batch, FOR TESTING PURPOSES!
-			
 			const vec2 halfScale = scale * 0.5f;
-
+			
 			// ..dont remember why we are like.. flipped on y here..
 			std::vector<float> dataToSubmit{ 
-				-0.5f * scale.x,	0.0f,					pos.x, pos.y, pos.z,		uv_v0.x,				uv_v0.y - pixelUvSpace,			
-				-0.5f * scale.x,	1.0f * scale.y,			pos.x, pos.y, pos.z,		uv_v1.x,				uv_v1.y,							
-				 0.5f * scale.x,	1.0f * scale.y,			pos.x, pos.y, pos.z,		uv_v2.x - pixelUvSpace, uv_v2.y,
-				 0.5f * scale.x,	0.0f,					pos.x, pos.y, pos.z,		uv_v3.x - pixelUvSpace, uv_v3.y - pixelUvSpace
+				-0.5f * scale.x,	0.0f,			pos.x, pos.y, pos.z,		uv_v0.x,		uv_v0.y - pixelUvSpace,			
+				-0.5f * scale.x,	1.0f * scale.y,		pos.x, pos.y, pos.z,		uv_v1.x,		uv_v1.y,							
+				 0.5f * scale.x,	1.0f * scale.y,		pos.x, pos.y, pos.z,		uv_v2.x - pixelUvSpace, uv_v2.y,
+				 0.5f * scale.x,	0.0f,			pos.x, pos.y, pos.z,		uv_v3.x - pixelUvSpace, uv_v3.y - pixelUvSpace
 			};
 			
-			
-
 			// Find suitable batch
 			for (int i = 0; i < _batches.size(); ++i)
 			{
@@ -172,12 +165,12 @@ vec3 finalVertexPos =
 				
 				if (batch.isFree)
 				{
-					batch.occupy(batchIdentifier);
+					batch.occupy(0, spriteTexture);
 					batch.insertInstanceData(0, dataToSubmit);
 					batch.addNewInstance();
 					return;
 				}
-				else if (batch.ID == batchIdentifier && !batch.isFull)
+				else if (spriteTexture == batch.texture && !batch.isFull)
 				{
 					batch.insertInstanceData(0, dataToSubmit);
 					batch.addNewInstance();
@@ -218,20 +211,15 @@ vec3 finalVertexPos =
 			{
 				// *light color not used atm
 				//_shader.setUniform(_uniformLocation_dirLight_color, dirLight->color);
-				_shader.setUniform(_uniformLocation_dirLight_dir, dirLight->direction);
+				//_shader.setUniform(_uniformLocation_dirLight_dir, dirLight->direction);
 			}
 
-			
-
-			
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_LESS);
 
 			glDisable(GL_CULL_FACE);
 			//glCullFace(GL_FRONT);
-
-
-
+			
 			for (BatchData& batch : _batches)
 			{
 				if (batch.isFree)
@@ -263,11 +251,21 @@ vec3 finalVertexPos =
 				
 
 				// Bind texture
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, _textureAtlas->getID());
-				
+				if (batch.texture)
+				{
+					const WebTexture* webTexture = (const WebTexture*)(batch.texture);
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, webTexture->getID());
+				}
+				else
+				{
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, _textureAtlas->getID());
+				}
 
 				glDrawElements(GL_TRIANGLES, instanceIndexCount * batch.getInstanceCount(), GL_UNSIGNED_SHORT, 0);
+
+				glBindTexture(GL_TEXTURE_2D, 0);
 
 				glBindBuffer(GL_ARRAY_BUFFER, 0);
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

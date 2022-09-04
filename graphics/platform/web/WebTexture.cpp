@@ -91,7 +91,7 @@ namespace pk
 			return texID;
 		}
 
-		static void update_GL_texture(void* data, int width, int height, WebTexture& texture)
+		static void update_GL_texture(void* data, int width, int height, WebTexture& texture, int slot)
 		{
 			GLint glFormat = 0;
 			switch (texture.getChannels())
@@ -104,11 +104,18 @@ namespace pk
 				Debug::log("Invalid color channel count when loading texture", Debug::MessageType::PK_FATAL_ERROR);
 				return;
 			}
-
+			switch (slot)
+			{
+				case 0: glActiveTexture(GL_TEXTURE0); break;
+				case 1: glActiveTexture(GL_TEXTURE1); break;
+				case 2: glActiveTexture(GL_TEXTURE2); break;
+				case 3: glActiveTexture(GL_TEXTURE3); break;
+				case 4: glActiveTexture(GL_TEXTURE4); break;
+				case 5: glActiveTexture(GL_TEXTURE5); break;
+				default: break;
+			}
 			glBindTexture(GL_TEXTURE_2D, texture.getID());
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, glFormat, GL_UNSIGNED_BYTE, data);
-			
-			Debug::log("GL texture updated successfully: " + std::to_string(width) + ", " + std::to_string(height));
 		}
 
 
@@ -119,8 +126,8 @@ namespace pk
 		}
 
 
-		WebTexture::WebTexture(const std::string& filename, const TextureSampler& sampler) : 
-			Texture(sampler)
+		WebTexture::WebTexture(const std::string& filename, const TextureSampler& sampler, int tiling) : 
+			Texture(sampler, tiling)
 		{
 			SDL_Surface* surface = IMG_Load(filename.c_str());
 
@@ -145,9 +152,9 @@ namespace pk
 		}
 
 
-		void WebTexture::update(void* data)
+		void WebTexture::update(void* data, int slot)
 		{
-			update_GL_texture(data, _width, _height, *this);
+			update_GL_texture(data, _width, _height, *this, slot);
 		}
 
 	}

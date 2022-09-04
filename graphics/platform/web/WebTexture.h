@@ -20,13 +20,13 @@ namespace pk
 			
 		public:
 
-			WebTexture(const std::string& file, const TextureSampler& sampler);
+			WebTexture(const std::string& file, const TextureSampler& sampler, int tiling = 1);
 			WebTexture(void* data, int width, int height, int channels, const TextureSampler& sampler);
 			WebTexture(const WebTexture& other) = delete;
 			
 			~WebTexture();
 			
-			virtual void update(void* data);
+			virtual void update(void* data, int slot = 0);
 
 			inline GLuint getID() const { return _id; }
 		};

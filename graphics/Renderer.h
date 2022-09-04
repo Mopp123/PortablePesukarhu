@@ -6,6 +6,8 @@
 #include "../utils/pkmath.h"
 
 #include "Buffers.h"
+#include "Texture.h"
+#include <math.h>
 #include <vector>
 
 namespace pk
@@ -23,21 +25,24 @@ namespace pk
 		int instanceDataLen = -1; // ..kind of like "data slot" for each vertex of each instance. For example: one vec2 for each of the quad's 4 vertices -> instanceDataLength=8
 		int maxTotalBatchDataLen = 0; // total number of "float" spots to distribute for each instance
 
-		int ID = -1; // Identifier, how we find suitable batch for a renderable (can be anythin u want)
+		int ID = -1; // Identifier, how we find suitable batch for a renderable (can be anythin u want) (*NOTE! this is becomming quite obsolete after added 'Texture*' for this)
 		bool isFree = true; // If theres nobody yet in this batch (completely empty -> available for occupying for new batch)(DON'T confuse with fullness:D)
 		bool isFull = false;
 		int currentDataPtr = 0; // When submitting to this batch, we use this to determine, at which position of the batch, we want to insert new data
+		const Texture* texture = nullptr; // Optionally you can specify a texture which to use for this whole batch
 
-		// *Ownerships gets always transferred to this BatchData instance
-		BatchData(int dataEntryLen, int totalDataLen, const std::vector<VertexBuffer*>& vbs, IndexBuffer* ib) :
-			instanceDataLen(dataEntryLen), maxTotalBatchDataLen(totalDataLen), vertexBuffers(vbs), indexBuffer(ib)
+		// *Ownerships of the buffers gets always transferred to this BatchData instance
+		// *Ownership of the texture doesn't get transferred!
+		BatchData(int dataEntryLen, int totalDataLen, const std::vector<VertexBuffer*>& vbs, IndexBuffer* ib, const Texture* tex = nullptr) :
+			instanceDataLen(dataEntryLen), maxTotalBatchDataLen(totalDataLen), vertexBuffers(vbs), indexBuffer(ib), texture(tex)
 		{}
 		// *Ownerships gets always transferred to this BatchData
 		BatchData(const BatchData& other) :
 			instanceDataLen(other.instanceDataLen),
 			maxTotalBatchDataLen(other.maxTotalBatchDataLen),
 			vertexBuffers(other.vertexBuffers),
-			indexBuffer(other.indexBuffer)
+			indexBuffer(other.indexBuffer),
+			texture(other.texture)
 		{}
 
 		void destroy()
@@ -51,6 +56,7 @@ namespace pk
 		void clear()
 		{
 			ID = -1;
+			texture = nullptr;
 			isFree = true;
 			isFull = false;
 			currentDataPtr = 0;
@@ -58,9 +64,10 @@ namespace pk
 
 		inline int getInstanceCount() const { return currentDataPtr / instanceDataLen; }
 
-		void occupy(int batchId)
+		void occupy(int batchId, const Texture* tex = nullptr)
 		{
 			ID = batchId;
+			texture = tex;
 			isFree = false;
 		}
 

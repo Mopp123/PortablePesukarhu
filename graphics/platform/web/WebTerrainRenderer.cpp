@@ -62,7 +62,8 @@ namespace pk
 				float diffFactor = clamp(dot(-lightDir, normalize(var_normal)), 0.0, 1.0);
 
 				vec4 blendmapColor = texture2D(tex_blendmap, var_uv);
-				vec2 tiledUvs = var_uv * (15.0 * 2.0 + 1.0);
+				float tileWidthPow2 = 32.0;
+				vec2 tiledUvs = var_uv * (tileWidthPow2); // next closest pow2 as the texture is constructed dynamically (atm 15 * 2 + 1)
 				float amount_black = 1.0 - (blendmapColor.r + blendmapColor.g + blendmapColor.b + blendmapColor.a);
 			
 				vec4 tex_black = texture2D(tex_channel_black, tiledUvs);
@@ -77,22 +78,37 @@ namespace pk
 				
 				
 				// JUST FOR TESTING!!
-				float threshold = 0.25;
-				if (blendmapColor.g >= threshold)
-				{
-					tex_channel_green = tex_channel_green * 3.0;
-				}
+			//	float threshold = 0.25;
+			//	
+			//	if (amount_black >= 0.4)
+			//	{
+			//		tex_channel_black = tex_channel_black * 2.0;
+			//	}
+			//	if (blendmapColor.r >= 0.125)
+			//	{
+			//		tex_channel_red = tex_channel_red * 6.0;
+			//	}
+			//	if (blendmapColor.g >= threshold)
+			//	{
+			//		tex_channel_green = tex_channel_green * 3.0;
+			//	}
+			//	if (blendmapColor.b >= threshold)
+			//	{
+			//		tex_channel_blue = tex_channel_blue * 5.0;
+			//	}
+			//	if (blendmapColor.a >= threshold)
+			//	{
+
+			//		tex_channel_alpha = tex_channel_alpha * 3.0;
+			//	}
 				
-				if (amount_black >= 0.4)
-				{
-					tex_channel_black = tex_channel_black * 2.0;
-				}
-				if (blendmapColor.r >= 0.125)
-				{
-					tex_channel_red = tex_channel_red * 2.0;
-				}
 				vec4 totalTextureColor = tex_channel_black + tex_channel_red + tex_channel_green + tex_channel_blue + tex_channel_alpha;
-				totalTextureColor = normalize(totalTextureColor);
+				//totalTextureColor = normalize(totalTextureColor) * 1.5;
+				totalTextureColor.r = clamp(totalTextureColor.r, 0.0, 1.0);
+				totalTextureColor.g = clamp(totalTextureColor.g, 0.0, 1.0);
+				totalTextureColor.b = clamp(totalTextureColor.b, 0.0, 1.0);
+				totalTextureColor.a = clamp(totalTextureColor.a, 0.0, 1.0);
+
 				gl_FragColor = totalTextureColor; // * diffFactor; 
 			}
             )";
@@ -116,16 +132,6 @@ namespace pk
 			_uniformLocation_dirLight_dir = _shader.getUniformLocation("dirLight_dir");
 			//_uniformLocation_dirLight_color = _shader.getUniformLocation("dirLight_color");
 
-			
-			// Load tex atlas
-			_textureAtlas = new WebTexture(
-				"assets/Terrain.png",
-				{
-					TextureSamplerFilterMode::PK_SAMPLER_FILTER_MODE_NEAR,
-					TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER
-				}
-			);
-
 			const int maxBatchInstanceCount = 512;
 			const int batchInstanceDataLen = 5 * 4; // (pos:vec3, uv:vec2 --> 5 floats)
 			allocateBatches(4, maxBatchInstanceCount * batchInstanceDataLen, batchInstanceDataLen);
@@ -137,8 +143,6 @@ namespace pk
 			{
 				batch.destroy();
 			}
-
-			delete _textureAtlas;
 		}
 
 
@@ -191,10 +195,10 @@ namespace pk
 
 
 			std::vector<float> dataToSubmit{ 
-				xPos,				height_tl,		zPos,				uv_v0.x, uv_v0.y,
-				xPos,				height_bl,		zPos + scale,		uv_v1.x, uv_v1.y,
+				xPos,			height_tl,		zPos,			uv_v0.x, uv_v0.y,
+				xPos,			height_bl,		zPos + scale,		uv_v1.x, uv_v1.y,
 				xPos + scale,		height_br,		zPos + scale,		uv_v2.x, uv_v2.y,
-				xPos + scale,		height_tr,		zPos,				uv_v3.x, uv_v3.y
+				xPos + scale,		height_tr,		zPos,			uv_v3.x, uv_v3.y
 			};
 			
 			
@@ -331,7 +335,7 @@ namespace pk
 				glBindTexture(GL_TEXTURE_2D, tex4->getID());
 
 				glDrawElements(GL_TRIANGLES, instanceIndexCount * batch.getInstanceCount(), GL_UNSIGNED_SHORT, 0);
-				
+
 				glBindBuffer(GL_ARRAY_BUFFER, 0);
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 

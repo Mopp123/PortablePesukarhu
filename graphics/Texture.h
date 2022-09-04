@@ -22,7 +22,6 @@ namespace pk
 		TextureSamplerAddressMode _addressMode;
 		uint32_t _mipLevelCount;
 
-
 	public:
 
 		TextureSampler(
@@ -48,21 +47,23 @@ namespace pk
 		int _width = 0;
 		int _height = 0;
 		int _channels = 3;
-
+		// Can be used to specify how many "individual sprites" inside a "texture atlas", containing multiple sprites
+		int _tiling = 1; 
 	public:
 
-		Texture(TextureSampler sampler) :
-			_sampler(sampler)
+		Texture(TextureSampler sampler, int tiling = 1) :
+			_sampler(sampler), _tiling(tiling)
 		{}
 		Texture(TextureSampler sampler, int width, int height, int channels) : 
 			_sampler(sampler), _width(width), _height(height), _channels(channels)
 		{}
 		virtual ~Texture()
 		{}
-		virtual void update(void* data) = 0;
+		virtual void update(void* data, int slot = 0) = 0;
 
 		inline const TextureSampler& getSampler() const { return _sampler; }
 		inline int getChannels() const { return _channels; }
+		inline int getTiling() const { return _tiling ;}
 
 	};
 }

@@ -31,10 +31,9 @@ namespace pk
 
 		static Application* s_pApplication;
 
-		Window*			_pWindow =			nullptr;
-		InputManager*	_pInputManager =	nullptr;
-		Context*		_pGraphicsContext =	nullptr;
-
+		Window* _pWindow = nullptr;
+		InputManager* _pInputManager = nullptr;
+		Context* _pGraphicsContext = nullptr;
 
 		Renderer* _pMasterRenderer = nullptr;
 		std::map<ComponentType, Renderer*> _renderers;

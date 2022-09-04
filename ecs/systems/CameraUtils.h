@@ -61,7 +61,7 @@ namespace pk
 
 		Transform* _pToControl = nullptr;
 
-		float _movingSpeed = 20.0f;
+		float _movingSpeed = 10.0f;
 		float _zoomingSpeed = 0.1f;
 
 		enum MoveFlags
