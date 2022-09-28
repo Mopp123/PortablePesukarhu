@@ -168,8 +168,6 @@ namespace pk
 		float _e[16];
 
 	public:
-
-
 		mat4() { memset(_e, 0, sizeof(float) * 16); }
 		mat4(const mat4& other) { memcpy(_e, other._e, sizeof(float) * 16); }
 		mat4(mat4&& other) { memcpy(_e, other._e, sizeof(float) * 16); }

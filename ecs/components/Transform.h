@@ -9,11 +9,9 @@ namespace pk
 	class Transform : public Component
 	{
 	private:
-
 		mat4 _transformationMatrix;
 
 	public:
-
 		Transform(vec2 pos, vec2 scale) :
 			Component(ComponentType::PK_TRANSFORM)
 		{
@@ -55,6 +53,34 @@ namespace pk
 			_transformationMatrix[0 + 0 * 4] = scale.x;
 			_transformationMatrix[1 + 1 * 4] = scale.y;
 			_transformationMatrix[2 + 1 * 4] = scale.z;
+		}
+
+		vec3 right() const
+		{	
+			return vec3(
+				_transformationMatrix[0 + 0 * 4],
+				_transformationMatrix[1 + 0 * 4],
+				_transformationMatrix[2 + 0 * 4]
+			);
+		}
+
+		vec3 up() const
+		{	
+			return vec3(
+				_transformationMatrix[0 + 1 * 4],
+				_transformationMatrix[1 + 1 * 4],
+				_transformationMatrix[2 + 1 * 4]
+			);
+		}
+
+		vec3 forward() const
+		{	
+			vec3 backwards(
+				_transformationMatrix[0 + 2 * 4],
+				_transformationMatrix[1 + 2 * 4],
+				_transformationMatrix[2 + 2 * 4]
+			);
+			return backwards * -1.0f;
 		}
 
 		inline vec2 getPos() const { return { _transformationMatrix[0 + 3 * 4], _transformationMatrix[1 + 3 * 4] }; }
