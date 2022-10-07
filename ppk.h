@@ -1,4 +1,3 @@
-
 #include "core/Debug.h"
 #include "core/Timing.h"
 #include "core/Window.h"
@@ -31,5 +30,5 @@
 #include "ecs/systems/ui/combinedFunctional/Button.h"
 #include "ecs/systems/ui/combinedFunctional/InputField.h"
 #include "ecs/systems/CameraUtils.h"
-#include "ecs/systems/animations/SpriteAnimations.h"
+#include "ecs/systems/animations/Animations.h"
 

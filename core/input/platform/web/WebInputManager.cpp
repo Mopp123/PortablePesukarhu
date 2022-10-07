@@ -32,8 +32,6 @@ namespace pk
 			
 			inputManager->processKeyEvents(key, scancode, PK_INPUT_PRESS, 0);
 			
-			Debug::log(keyEvent->key);
-
 			// check is this just a 'char'
 			if (inputManager->isCharacter(keyEvent->key))
 			{

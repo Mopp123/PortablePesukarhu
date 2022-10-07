@@ -7,7 +7,7 @@
 namespace pk
 {
 
-	class SpriteAnimator : public Updateable
+	class Animation : public Updateable
 	{
 	private:
 		int _currentFrameIndex = 0;
@@ -16,8 +16,8 @@ namespace pk
 		float _maxChangeFrameCooldown = 1.0f;
 		
 		vec2 _anchorOffset = {0, 0};
-		std::vector<vec2> _frameTexOffsets;
-		vec2 _currentOffset;
+		std::vector<int> _frames;
+		int _currentFrame = 0;
 
 		float _speed = 0.0f;
 
@@ -25,16 +25,16 @@ namespace pk
 		bool _enableLooping = false;
 
 	public:
-		SpriteAnimator(const vec2& anchorOffset, const std::vector<vec2>& frameOffsets, float speed);
-		SpriteAnimator(const std::vector<vec2>& frameOffsets, float speed);
-		~SpriteAnimator();
+		Animation(std::vector<int> frames, float speed);
+		Animation(int frameCount, float speed);
+		~Animation();
 
 		virtual void update();
 
 		void play();
 		void stop();
 
-		const vec2& getCurrentTexOffset() const;
+		const int getCurrentFrame() const;
 
 		inline void enableLooping(bool arg) { _enableLooping = arg; }
 		inline bool isPlaying() const { return _isPlaying; }
