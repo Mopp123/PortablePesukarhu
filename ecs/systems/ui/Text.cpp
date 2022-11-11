@@ -1,6 +1,6 @@
-
 #include "Text.h"
 #include "../../../core/Application.h"
+
 
 namespace pk
 {

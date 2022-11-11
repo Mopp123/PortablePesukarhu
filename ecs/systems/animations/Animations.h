@@ -31,10 +31,18 @@ namespace pk
 
 		virtual void update();
 
+		//void getRaw(const std::vector<int>& frames)
+
 		void play();
 		void stop();
-
+		void reset();
+		// Copies another Animation's data into this
+		void copyFrom(const Animation& other);
+		
+		void setFrames(const std::vector<int>& frames);
 		const int getCurrentFrame() const;
+		const int getCurrentFrameIndex() const { return _currentFrameIndex; }
+		inline std::vector<int>& getFrames() { return _frames; }
 
 		inline void enableLooping(bool arg) { _enableLooping = arg; }
 		inline bool isPlaying() const { return _isPlaying; }

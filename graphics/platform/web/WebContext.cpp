@@ -52,6 +52,5 @@ namespace pk
 
 		WebContext::~WebContext()
 		{}
-
 	}
 }

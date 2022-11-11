@@ -22,7 +22,6 @@ namespace pk
 		void WebMasterRenderer::render(const Camera& cam)
 		{}
 
-
 		void WebMasterRenderer::resize(int w, int h)
 		{
 			glViewport(0, 0, w, h);

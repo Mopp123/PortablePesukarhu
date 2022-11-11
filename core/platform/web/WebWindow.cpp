@@ -16,22 +16,24 @@ namespace pk
 		});
 
 
+		EM_JS(void, fit_page, (), {
+			var c = document.getElementById('canvas');
+  			c.width  = window.innerWidth;
+  			c.height = window.innerHeight;
+		});
+
+
 		WebWindow::WebWindow() : 
 			Window(0,0)
 		{
-			int w = 0;
-			int h = 0;
-
-			WebInputManager::query_window_size(&w, &h);
-			resize(w, h);
+			resize(0, 0);
 		}
-
 
 		WebWindow::WebWindow(int width, int height) : 
 			Window(width, height)
 		{
-			emscripten_set_canvas_element_size("#canvas", _width, _height);
-
+			//emscripten_set_canvas_element_size("#canvas", _width, _height);
+			resize(0, 0);
 		}
 
 		WebWindow::~WebWindow()
@@ -39,13 +41,14 @@ namespace pk
 
 		}
 
-
+		// Currently handles the resizing to fit canvas' dimensions to the page's
 		void WebWindow::resize(int w, int h)
 		{
-			_width = w;
-			_height = h;
-
-			resize_canvas(_width, _height);
+			//_width = w;
+			//_height = h;
+			//resize_canvas(_width, _height);
+			WebInputManager::query_window_size(&_width, &_height);
+			fit_page();
 		}
 	}
 }

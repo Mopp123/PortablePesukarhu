@@ -8,13 +8,13 @@
 #include <unordered_map>
 #include <vector>
 
+
 namespace pk
 {
 
 	class Scene
 	{
 	public:
-
 		std::unordered_map<ComponentType, std::vector<Component*>> components;
 		std::unordered_map<SystemType, std::vector<System*>> systems;
 

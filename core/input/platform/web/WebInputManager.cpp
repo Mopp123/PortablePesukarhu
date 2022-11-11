@@ -15,11 +15,11 @@ namespace pk
 		// *NOTE! We force removing few pixels from these, cuz browser windows dont fit this shit correctly inside it... or smhtn...
 
 		EM_JS(int, webwindow_get_width, (), {
-			return window.innerWidth - 32;
+			return window.innerWidth;
 		});
 
 		EM_JS(int, webwindow_get_height, (), {
-			return window.innerHeight - 32;
+			return window.innerHeight;
 		});
 
 		

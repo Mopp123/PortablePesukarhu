@@ -7,20 +7,17 @@ namespace pk
 {
 	namespace ui
 	{
-
 		class InputFieldOnSubmitEvent
 		{
 		public:
-
 			virtual void onSubmit(std::string inputFieldText) = 0;
 			virtual ~InputFieldOnSubmitEvent() {}
 		};
 
+
 		class InputField
 		{
 		private:
-
-
 			class InputFieldKeyEvent : public KeyEvent
 			{
 			private:
@@ -69,9 +66,5 @@ namespace pk
 
 			bool isActive() const { return _inputFieldButton.isSelected(); }
 		};
-
-
-		
-
 	}
 }
