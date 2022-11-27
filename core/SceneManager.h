@@ -2,17 +2,16 @@
 
 #include "Scene.h"
 
+
 namespace pk
 {
 	class SceneManager
 	{
 	private:
-
 		Scene* _pCurrentScene = nullptr;
 		Scene* _pNextScene = nullptr;
 
 	public:
-
 		void handleSceneUpdate();
 
 		// triggers scene switching at the end of the frame

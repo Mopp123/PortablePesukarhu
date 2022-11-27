@@ -99,8 +99,6 @@ namespace pk
 	{
 		_pWindow->resize(w, h);
 		_pMasterRenderer->resize(w, h);
-
-
 	}
 
 	void Application::switchScene(Scene* newScene)
@@ -108,12 +106,8 @@ namespace pk
 		_sceneManager.assignNextScene(newScene);
 	}
 
-
-
 	Application* Application::get()
 	{
 		return s_pApplication;
 	}
-
-
 }

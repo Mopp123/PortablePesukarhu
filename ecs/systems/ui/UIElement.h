@@ -6,40 +6,37 @@
 #include <memory>
 #include <vector>
 
+
 namespace pk
 {
-	namespace ui
-	{
+    namespace ui
+    {
+        class UIElement : public Updateable
+        {
+            protected:
+                Transform* _transform = nullptr;
+                std::vector<Constraint> _constraints;
 
-		class UIElement : public Updateable
-		{
-		protected:
+            public:
+                UIElement(std::vector<Constraint> constraints) :
+                    _constraints(constraints) 
+                {}
 
-			Transform* _transform = nullptr;
+                virtual ~UIElement() {}
 
-			std::vector<Constraint> _constraints;
+                void applyConstraints()
+                {
+                    for (Constraint& c : _constraints)
+                        c.apply(*_transform);
+                }
 
-		public:
+                Transform* accessTransform() { return _transform; }
+                std::vector<Constraint>& accessConstraints() { return _constraints; }
 
-			UIElement(std::vector<Constraint> constraints) :
-				_constraints(constraints) 
-			{}
-			
-			virtual ~UIElement() {}
-
-			void applyConstraints()
-			{
-				for (Constraint& c : _constraints)
-					c.apply(*_transform);
-			}
-
-			Transform* accessTransform() { return _transform; }
-			std::vector<Constraint>& accessConstraints() { return _constraints; }
-
-			virtual void update() 
-			{
-				applyConstraints();
-			}
-		};
-	}
+                virtual void update() 
+                {
+                    applyConstraints();
+                }
+        };
+    }
 }

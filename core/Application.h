@@ -22,7 +22,6 @@ namespace pk
 	class Application
 	{
 	private:
-
 		std::string _name;
 		bool _running = true;
 
@@ -38,9 +37,7 @@ namespace pk
 		Renderer* _pMasterRenderer = nullptr;
 		std::map<ComponentType, Renderer*> _renderers;
 
-
 	public:
-
 		Application(
 			std::string name, 
 			Window* window, 
@@ -57,7 +54,6 @@ namespace pk
 		void switchScene(Scene* newScene);
 
 		static Application* get();
-
 		
 		inline InputManager* accessInputManager()	{ return _pInputManager; }
 		inline Scene* accessCurrentScene()			{ return _sceneManager.accessCurrentScene(); }
@@ -66,12 +62,10 @@ namespace pk
 		inline const Scene*		const getCurrentScene() const { return _sceneManager.getCurrentScene(); }
 		
 		inline Renderer*		const getRenderer(ComponentType renderableType)	{ return _renderers[renderableType]; }
-		
 
 		inline bool isRunning() const { return _running; }
 
 	private:
-
 		friend void update();
 	};
 

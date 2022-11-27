@@ -1,19 +1,19 @@
-
 #include "SceneManager.h"
 #include "Debug.h"
 #include "Application.h"
 #include "../ecs/components/Transform.h"
 
+
 namespace pk
 {
 	void SceneManager::handleSceneUpdate()
 	{
-
 		_pCurrentScene->update();
 
 		// Update all "updateable" systems of the scene
 		for (System* system : _pCurrentScene->systems[SystemType::PK_SYSTEM_TYPE_UPDATEABLE])
 			((Updateable*)system)->update();
+		
 
 		// Submit all "renderable components" for rendering...
 		
@@ -82,10 +82,9 @@ namespace pk
 	{
 		if (_pNextScene != nullptr)
 		{
-			Debug::log("Attempting to switch scene");
-
+			Debug::log("Attempting to switch scene...");
+			Application::get()->accessInputManager()->destroyEvents();
 			delete _pCurrentScene;
-
 			_pCurrentScene = _pNextScene;
 			_pCurrentScene->init();
 			_pNextScene = nullptr;
