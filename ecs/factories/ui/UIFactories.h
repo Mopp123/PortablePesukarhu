@@ -33,11 +33,12 @@ namespace pk
             ConstraintType horizontalType, float horizontalVal, 
             ConstraintType verticalType, float verticalVal, 
             float width, float height,
-            vec3 color
+            bool drawBorder = false,
+            vec3 color = vec3(0, 0, 0)
         );
 
 
-        uint32_t create_text(
+        std::pair<uint32_t, TextRenderable*> create_text(
             const std::string& str, 
             ConstraintType horizontalType, float horizontalVal, 
             ConstraintType verticalType, float verticalVal, 
@@ -52,9 +53,10 @@ namespace pk
             float width, float height,
             OnClickEvent* onClick,
             bool selectable = false,
-            int txtDisplacementX = 5,
-            int txtDisplacementY = 5,
-            UIElemState* pUIElemState = nullptr
+            int txtDisplacementX = 8,
+            int txtDisplacementY = 4,
+            UIElemState* pUIElemState = nullptr,
+            vec3 color = vec3(0.1f, 0.1f, 0.1f)
         );
 
         // return pair of InputField-entity and TextRenderable ptr of its' content

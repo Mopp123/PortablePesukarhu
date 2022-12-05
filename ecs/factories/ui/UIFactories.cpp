@@ -181,7 +181,6 @@ namespace pk
                     // <#M_DANGER>
                     // just for testing atm.. quite dumb way to do it like this..
                     unsigned char typedChar = (unsigned char)codepoint;
-                    Debug::log("___TEST___typeing: " + std::to_string(typedChar));
                     std::string& txt = _pContentText->accessStr();
                     txt.push_back(typedChar);
                 }
@@ -193,7 +192,8 @@ namespace pk
             ConstraintType horizontalType, float horizontalVal, 
             ConstraintType verticalType, float verticalVal, 
             float width, float height,
-            vec3 color = vec3(0, 0, 0)
+            bool drawBorder,
+            vec3 color
         )
         {
 	    Application* app = Application::get();
@@ -203,6 +203,7 @@ namespace pk
 
 	    Transform* transform = new Transform({ 0,0 }, { width, height });
 	    GUIRenderable* renderable = new GUIRenderable;
+            renderable->drawBorder = drawBorder;
             renderable->color = color;
 
 	    currentScene->addComponent(entity, transform);
@@ -215,7 +216,7 @@ namespace pk
         }
 
 
-        uint32_t create_text(
+        std::pair<uint32_t, TextRenderable*> create_text(
             const std::string& str, 
             ConstraintType horizontalType, float horizontalVal, 
             ConstraintType verticalType, float verticalVal, 
@@ -235,7 +236,7 @@ namespace pk
             currentScene->addSystem(new Constraint(transform, horizontalType, horizontalVal));
             currentScene->addSystem(new Constraint(transform, verticalType, verticalVal));
 
-            return entity;
+            return std::make_pair(entity, renderable);
         }
 
 
@@ -248,36 +249,43 @@ namespace pk
             bool selectable,
             int txtDisplacementX,
             int txtDisplacementY,
-            UIElemState* pUIElemState
+            UIElemState* pUIElemState,
+            vec3 color
         )
         {
             Scene* currentScene = Application::get()->accessCurrentScene();
             InputManager* inputManager = Application::get()->accessInputManager();
+            
             uint32_t buttonEntity = currentScene->createEntity();
             uint32_t imgEntity = create_image(
                 horizontalType, horizontalVal,
                 verticalType, verticalVal,
                 width, height,
-                vec3(0.1f, 0.1f, 0.1f)
+                true,
+                color
             );
+
+            // Add txt displacement
+            if (horizontalType == ConstraintType::PIXEL_LEFT || 
+                horizontalType == ConstraintType::PIXEL_CENTER_HORIZONTAL)
+                horizontalVal += (float)txtDisplacementX;
+            else if (horizontalType == ConstraintType::PIXEL_RIGHT)
+                horizontalVal -= (float)txtDisplacementX;
+
+            if (verticalType == ConstraintType::PIXEL_TOP)
+                verticalVal += (float)txtDisplacementY;
+            else if (horizontalType == ConstraintType::PIXEL_BOTTOM ||
+                verticalType == ConstraintType::PIXEL_CENTER_VERTICAL)
+                verticalVal -= (float)txtDisplacementY;
+
             uint32_t txtEntity = create_text(
                 txt, 
                 horizontalType, horizontalVal,
                 verticalType, verticalVal
-            );
+            ).first;
 
             currentScene->addChild(buttonEntity, imgEntity);
             currentScene->addChild(buttonEntity, txtEntity);
-
-            // Add txt displacement
-            if (horizontalType == ConstraintType::PIXEL_LEFT)
-                horizontalVal += (float)txtDisplacementX;
-            else if (horizontalType == ConstraintType::PIXEL_RIGHT)
-                horizontalVal -= (float)txtDisplacementX;
-            if (verticalType == ConstraintType::PIXEL_TOP)
-                verticalVal += (float)txtDisplacementY;
-            else if (horizontalType == ConstraintType::PIXEL_BOTTOM)
-                verticalVal -= (float)txtDisplacementY;
 
             GUIRenderable* imgRenderable = (GUIRenderable*)currentScene->getComponent(
                 imgEntity, 
@@ -345,14 +353,19 @@ namespace pk
                 nullptr,
                 true,
                 0, 0,
-                uiElemState
+                uiElemState,
+                { 0.05f, 0.05f, 0.05f}
             );
+
+            float infoTxtDisplacement = width;
+            if (horizontalType == ConstraintType::PIXEL_RIGHT)
+                infoTxtDisplacement = -width;
             // Create info txt
             uint32_t infoTxtEntity = create_text(
                 infoTxt, 
-                horizontalType, horizontalVal + width, // *Add displacement to info text, so its to the right of the box
+                horizontalType, horizontalVal + infoTxtDisplacement, // *Add displacement to info text, so its to the right of the box
                 verticalType, verticalVal
-            );
+            ).first;
 
             currentScene->addChild(inputFieldEntity, buttonEntity);
             currentScene->addChild(inputFieldEntity, infoTxtEntity);

@@ -11,10 +11,12 @@ namespace pk
     public:
         vec3 color;
         int textureID = 0;
+        bool drawBorder = false;
     
         GUIRenderable() :
             Component(ComponentType::PK_RENDERABLE_GUI),
-            color(1, 1, 1)
+            color(1, 1, 1),
+            drawBorder(false)
         {}
     };
 }

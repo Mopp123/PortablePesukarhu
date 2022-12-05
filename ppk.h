@@ -9,6 +9,7 @@
 #include "core/Application.h"
 #include "core/SceneManager.h"
 #include "utils/Algorithms.h"
+#include "utils/pkmath.h"
 
 #include "ecs/components/renderable/TerrainTileRenderable.h"
 #include "ecs/components/renderable/Sprite3DRenderable.h"
