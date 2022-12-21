@@ -15,6 +15,7 @@
 #include "ecs/components/renderable/Sprite3DRenderable.h"
 #include "ecs/components/renderable/GUIRenderable.h"
 #include "ecs/components/renderable/TextRenderable.h"
+#include "ecs/components/renderable/UIRenderableComponent.h"
 #include "ecs/components/lighting/Lights.h"
 #include "ecs/components/UIElemState.h"
 

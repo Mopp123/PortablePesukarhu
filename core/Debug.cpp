@@ -1,5 +1,4 @@
-﻿
-#include "Debug.h"
+﻿#include "Debug.h"
 
 #include <iostream>
 
@@ -11,17 +10,16 @@
 
 namespace pk
 {
-	void Debug::log(std::string message, MessageType t)
-	{
-		switch (t)
-		{
-		case pk::Debug::PK_MESSAGE:		std::cout << LS_DEBUG_MESSAGE_TAG__MESSAGE << " " << message << std::endl; break;
-		case pk::Debug::PK_WARNING:		std::cout << LS_DEBUG_MESSAGE_TAG__WARNING << " " << message << std::endl; break;
-		case pk::Debug::PK_ERROR:		std::cout << LS_DEBUG_MESSAGE_TAG__ERROR << " " << message << std::endl; break;
-		case pk::Debug::PK_FATAL_ERROR: std::cout << LS_DEBUG_MESSAGE_TAG__FATAL_ERROR << " " << message << std::endl; break;
-		default:
-			break;
-		}
-	}
-
+    void Debug::log(std::string message, MessageType t)
+    {
+        switch (t)
+        {
+            case pk::Debug::PK_MESSAGE:		std::cout << LS_DEBUG_MESSAGE_TAG__MESSAGE << " " << message << std::endl; break;
+            case pk::Debug::PK_WARNING:		std::cout << LS_DEBUG_MESSAGE_TAG__WARNING << " " << message << std::endl; break;
+            case pk::Debug::PK_ERROR:		std::cout << LS_DEBUG_MESSAGE_TAG__ERROR << " " << message << std::endl; break;
+            case pk::Debug::PK_FATAL_ERROR: std::cout << LS_DEBUG_MESSAGE_TAG__FATAL_ERROR << " " << message << std::endl; break;
+            default:
+                break;
+        }
+    }
 }

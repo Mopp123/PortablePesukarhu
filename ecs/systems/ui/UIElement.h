@@ -13,30 +13,30 @@ namespace pk
     {
         class UIElement : public Updateable
         {
-            protected:
-                Transform* _transform = nullptr;
-                std::vector<Constraint> _constraints;
+        protected:
+            Transform* _transform = nullptr;
+            std::vector<Constraint> _constraints;
 
-            public:
-                UIElement(std::vector<Constraint> constraints) :
-                    _constraints(constraints) 
-                {}
+        public:
+            UIElement(std::vector<Constraint> constraints) :
+                _constraints(constraints)
+            {}
 
-                virtual ~UIElement() {}
+            virtual ~UIElement() {}
 
-                void applyConstraints()
-                {
-                    for (Constraint& c : _constraints)
-                        c.apply(*_transform);
-                }
+            void applyConstraints()
+            {
+                for (Constraint& c : _constraints)
+                    c.apply(*_transform);
+            }
 
-                Transform* accessTransform() { return _transform; }
-                std::vector<Constraint>& accessConstraints() { return _constraints; }
+            Transform* accessTransform() { return _transform; }
+            std::vector<Constraint>& accessConstraints() { return _constraints; }
 
-                virtual void update() 
-                {
-                    applyConstraints();
-                }
+            virtual void update()
+            {
+                applyConstraints();
+            }
         };
     }
 }

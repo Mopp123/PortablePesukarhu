@@ -1,4 +1,5 @@
 #include <ft2build.h>
+#include <unordered_map>
 #include FT_FREETYPE_H
 
 
@@ -80,7 +81,7 @@ namespace pk
             _uniformLocation_texSampler = _shader.getUniformLocation("textureSampler");
 
 
-            std::vector<GlyphData> glyphs = createGlyphs("qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890.,:;?!&_'+-*^/‰Âˆƒ≈÷", "assets/rexlia rg.ttf");
+            std::vector<GlyphData> glyphs = createGlyphs("qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890.,:;?!&_'+-*^/()[]{}‰Âˆƒ≈÷", "assets/rexlia rg.ttf");
 
             _fontTexAtlas = createFontTextureAtlas(glyphs);
 
@@ -458,12 +459,16 @@ namespace pk
                     posX = originalX;
                     continue;
                 }
-
                 // If this was just an empy space -> add to next posX and continue..
-                if (c == ' ')
+                else if (c == ' ')
                 {
                     posX += (charWidth * 0.25f) * scaleFactorX;
                     continue;
+                }
+                // Make sure not draw nulldtm chars accidentally..
+                else if (c == 0)
+                {
+                    break;
                 }
 
                 const CharacterData& charData = _characterMapping[c];

@@ -107,6 +107,22 @@ namespace pk
             return nullptr;
         }
 
+        // Return all components of entity
+        std::vector<Component*> getComponents(uint32_t entity)
+        {
+            std::vector<Component*> foundComponents;
+            for (const std::pair<ComponentType, std::vector<Component*>>& componentTypes : components)
+            {
+               const  std::vector<Component*>& componentList = componentTypes.second;
+               for (Component* c : componentList)
+               {
+                   if (c->getEntity() == entity)
+                       foundComponents.push_back(c);
+               }
+            }
+            return foundComponents;
+        }
+
         // Returns first found component found of type "type"
         Component* getComponent(ComponentType type)
         {
@@ -118,6 +134,30 @@ namespace pk
             }
 
             return nullptr;
+        }
+
+        std::vector<Component*> getComponentsInChildren(uint32_t entity)
+        {
+            std::vector<Component*> childComponents;
+            for (uint32_t childEntity : getChildren(entity))
+            {
+                for (Component* c : getComponents(childEntity))
+                    childComponents.push_back(c);
+            }
+            return childComponents;
+        }
+
+        // Returns all components of entity and its' children all the way down the hierarchy
+        std::vector<Component*> getAllComponents(uint32_t entity)
+        {
+            std::vector<Component*> ownComponents = getComponents(entity);
+            for (uint32_t e : _entityChildMapping[entity])
+            {
+                std::vector<Component*> childComponents = getAllComponents(e);
+                for (Component* c : childComponents)
+                    ownComponents.push_back(c);
+            }
+            return ownComponents;
         }
 
         virtual void init() = 0;

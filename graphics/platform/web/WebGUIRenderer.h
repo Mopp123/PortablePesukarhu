@@ -11,45 +11,40 @@
 #include <vector>
 #include <unordered_map>
 
+
 namespace pk
 {
-	namespace web
-	{
-		
-		class WebGUIRenderer : public Renderer
-		{
-		private:
+    namespace web
+    {
+        class WebGUIRenderer : public Renderer
+        {
+        private:
+            WebShader _shader;
 
-			WebShader _shader;
+            PK_int _vertexAttribLocation_pos = -1;
+            PK_int _vertexAttribLocation_uv = -1;
+            PK_int _vertexAttribLocation_color = -1;
+            PK_int _vertexAttribLocation_properties = -1;
 
-			PK_int _vertexAttribLocation_pos = -1;
-			PK_int _vertexAttribLocation_uv = -1;
-			PK_int _vertexAttribLocation_color = -1;
-			PK_int _vertexAttribLocation_properties = -1;
+            PK_int _uniformLocation_projMat = -1;
+            PK_int _uniformLocation_texSampler = -1;
 
-			PK_int _uniformLocation_projMat = -1;
-			PK_int _uniformLocation_texSampler = -1;
-			
-			WebTexture* _defaultTexture = nullptr;
+            WebTexture* _defaultTexture = nullptr;
 
-			std::vector<BatchData> _batches;
+            std::vector<BatchData> _batches;
 
-		public:
+        public:
+            WebGUIRenderer();
+            ~WebGUIRenderer();
 
-			WebGUIRenderer();
-			~WebGUIRenderer();
+            // submit renderable component for rendering (batch preparing, before rendering)
+            virtual void submit(const Component* const renderableComponent, const mat4& transformation);
+            virtual void render(const Camera& cam);
+            virtual void resize(int w, int h) {}
 
-			// submit renderable component for rendering (batch preparing, before rendering)
-			virtual void submit(const Component* const renderableComponent, const mat4& transformation);
-
-			virtual void render(const Camera& cam);
-
-			virtual void resize(int w, int h) {}
-
-		private:
-
-			void allocateBatches(int maxBatchCount, int maxBatchLength, int entryLength);
-		};
-	}
+        private:
+            void allocateBatches(int maxBatchCount, int maxBatchLength, int entryLength);
+        };
+    }
 
 }

@@ -5,7 +5,7 @@
 
 namespace pk
 {
-    Camera* create_camera(const vec3& position)
+    Camera* create_camera(const vec3& position, float pitch, float yaw)
     {
         Application* app = Application::get();
         const Window* window = app->getWindow();
@@ -22,7 +22,7 @@ namespace pk
         uint32_t camEntity = currentScene->createEntity();
 
         Camera* camComponent = new Camera(projMat_ortho, projMat_pers);
-        Transform* camTransform = new Transform(position, { 1,1,1 });
+        Transform* camTransform = new Transform(position, { 1,1,1 }, pitch, yaw);
 
         currentScene->addComponent(camEntity, camTransform);
         currentScene->addComponent(camEntity, camComponent);
@@ -95,7 +95,6 @@ namespace pk
         rotMatPitch[1 + 2 * 4] = -std::sin(-_pitch);
         rotMatPitch[2 + 1 * 4] =  std::sin(-_pitch);
         rotMatPitch[2 + 2 * 4] =  std::cos(-_pitch);
-
 
         transformationMatrix = translationMat * rotMatYaw * rotMatPitch;
     }

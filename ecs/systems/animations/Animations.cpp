@@ -83,6 +83,16 @@ namespace pk
         _enableLooping = other._enableLooping;
     }
 
+    void Animation::copyStateFrom(const Animation& other)
+    {
+        _currentFrameIndex = other._currentFrameIndex;
+        _changeFrameCooldown = other._changeFrameCooldown;
+        _maxChangeFrameCooldown = other._maxChangeFrameCooldown;
+        _currentFrame = other._currentFrame;
+        _isPlaying = other._isPlaying;
+        _enableLooping = other._enableLooping;
+    }
+
     const int Animation::getCurrentFrame() const
     {
         return _currentFrame;

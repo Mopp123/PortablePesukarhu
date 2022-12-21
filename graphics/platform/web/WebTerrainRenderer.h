@@ -10,55 +10,53 @@
 #include <vector>
 #include <unordered_map>
 
+
 namespace pk
 {
-	namespace web
-	{
-		
-		class WebTerrainRenderer : public Renderer
-		{
-		private:
+    namespace web
+    {
 
-			WebShader _shader;
+        class WebTerrainRenderer : public Renderer
+        {
+        private:
+            WebShader _shader;
 
-			PK_int _vertexAttribLocation_pos = -1;
-			PK_int _vertexAttribLocation_uv = -1;
-			
-			PK_int _uniformLocation_projMat = -1;
-			PK_int _uniformLocation_viewMat = -1;
-			
-			PK_int _uniformLocation_texSampler_blendmap = -1;
-			PK_int _uniformLocation_texSampler_black	= -1;
-			PK_int _uniformLocation_texSampler_red		= -1;
-			PK_int _uniformLocation_texSampler_green	= -1;
-			PK_int _uniformLocation_texSampler_blue		= -1;
-			PK_int _uniformLocation_texSampler_alpha	= -1;
-			
-			PK_int _uniformLocation_dirLight_color = -1;
-			PK_int _uniformLocation_dirLight_dir = -1;
+            PK_int _vertexAttribLocation_pos = -1;
+            PK_int _vertexAttribLocation_uv = -1;
 
-			// Width of texture atlas(in pixels, but casted to float)
-			const float _texAtlasWidth = 256.0f;
-			WebTexture* _textureAtlas = nullptr;
+            PK_int _uniformLocation_projMat = -1;
+            PK_int _uniformLocation_viewMat = -1;
 
-			std::vector<BatchData> _batches;
+            PK_int _uniformLocation_texSampler_blendmap = -1;
+            PK_int _uniformLocation_texSampler_black	= -1;
+            PK_int _uniformLocation_texSampler_red		= -1;
+            PK_int _uniformLocation_texSampler_green	= -1;
+            PK_int _uniformLocation_texSampler_blue		= -1;
+            PK_int _uniformLocation_texSampler_alpha	= -1;
 
-		public:
+            PK_int _uniformLocation_dirLight_color = -1;
+            PK_int _uniformLocation_dirLight_dir = -1;
 
-			WebTerrainRenderer();
-			~WebTerrainRenderer();
+            // Width of texture atlas(in pixels, but casted to float)
+            const float _texAtlasWidth = 256.0f;
+            WebTexture* _textureAtlas = nullptr;
 
-			// submit renderable component for rendering (batch preparing, before rendering)
-			virtual void submit(const Component* const renderableComponent, const mat4& transformation);
+            std::vector<BatchData> _batches;
 
-			virtual void render(const Camera& cam);
+        public:
+            WebTerrainRenderer();
+            ~WebTerrainRenderer();
 
-			virtual void resize(int w, int h) {}
+            // submit renderable component for rendering (batch preparing, before rendering)
+            virtual void submit(const Component* const renderableComponent, const mat4& transformation);
 
-		private:
+            virtual void render(const Camera& cam);
 
-			void allocateBatches(int maxBatchCount, int maxBatchLength, int entryLength);
-		};
-	}
+            virtual void resize(int w, int h) {}
+
+        private:
+            void allocateBatches(int maxBatchCount, int maxBatchLength, int entryLength);
+        };
+    }
 
 }

@@ -7,7 +7,7 @@
 
 namespace pk
 {
-    Camera* create_camera(const vec3& position);
+    Camera* create_camera(const vec3& position, float pitch = 0.0f, float yaw = 0.0f);
 
     class CameraWindowResizeEvent : public WindowResizeEvent
     {
@@ -87,14 +87,14 @@ namespace pk
         float _prevMouseX = 0.0f;
         float _prevMouseY = 0.0f;
 
-        public:
-            RTSCamController(Camera& toControl, Scene* scene);
-            virtual void update();
+    public:
+        RTSCamController(Camera& toControl, Scene* scene);
+        virtual void update();
 
-            inline void setPivotPoint(const vec3& pos) { _pivotPoint = pos; }
-            inline const vec3& getPivotPoint() const { return _pivotPoint; }
+        inline void setPivotPoint(const vec3& pos) { _pivotPoint = pos; }
+        inline const vec3& getPivotPoint() const { return _pivotPoint; }
 
-        private:
-            void movePivotPoint(int moveFlags);
+    private:
+        void movePivotPoint(int moveFlags);
     };
 }

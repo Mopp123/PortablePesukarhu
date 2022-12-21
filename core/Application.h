@@ -16,57 +16,57 @@
 
 #include <memory>
 
+
 namespace pk
 {
-	
-	class Application
-	{
-	private:
-		std::string _name;
-		bool _running = true;
+    class Application
+    {
+    private:
+        std::string _name;
+        bool _running = true;
 
-		Timing _timing;
-		SceneManager _sceneManager;
+        Timing _timing;
+        SceneManager _sceneManager;
 
-		static Application* s_pApplication;
+        static Application* s_pApplication;
 
-		Window* _pWindow = nullptr;
-		InputManager* _pInputManager = nullptr;
-		Context* _pGraphicsContext = nullptr;
+        Window* _pWindow = nullptr;
+        InputManager* _pInputManager = nullptr;
+        Context* _pGraphicsContext = nullptr;
 
-		Renderer* _pMasterRenderer = nullptr;
-		std::map<ComponentType, Renderer*> _renderers;
+        Renderer* _pMasterRenderer = nullptr;
+        std::map<ComponentType, Renderer*> _renderers;
 
-	public:
-		Application(
-			std::string name, 
-			Window* window, 
-			Context* graphicsContext, 
-			InputManager* inputManager,
-			Renderer* masterRenderer,
-			std::map<ComponentType, Renderer*> renderers
-		);
-		~Application();
+    public:
+        Application(
+                std::string name,
+                Window* window,
+                Context* graphicsContext,
+                InputManager* inputManager,
+                Renderer* masterRenderer,
+                std::map<ComponentType, Renderer*> renderers
+                );
+        ~Application();
 
-		void run();
+        void run();
 
-		void resizeWindow(int w, int h);
-		void switchScene(Scene* newScene);
+        void resizeWindow(int w, int h);
+        void switchScene(Scene* newScene);
 
-		static Application* get();
-		
-		inline InputManager* accessInputManager()	{ return _pInputManager; }
-		inline Scene* accessCurrentScene()			{ return _sceneManager.accessCurrentScene(); }
+        static Application* get();
 
-		inline const Window*	const getWindow()		const { return _pWindow; }
-		inline const Scene*		const getCurrentScene() const { return _sceneManager.getCurrentScene(); }
-		
-		inline Renderer*		const getRenderer(ComponentType renderableType)	{ return _renderers[renderableType]; }
+        inline InputManager* accessInputManager() { return _pInputManager; }
+        inline Scene* accessCurrentScene() { return _sceneManager.accessCurrentScene(); }
 
-		inline bool isRunning() const { return _running; }
+        inline const Window* const getWindow() const { return _pWindow; }
+        inline const Scene* const getCurrentScene() const { return _sceneManager.getCurrentScene(); }
 
-	private:
-		friend void update();
-	};
+        inline Renderer* const getRenderer(ComponentType renderableType) { return _renderers[renderableType]; }
+
+        inline bool isRunning() const { return _running; }
+
+    private:
+        friend void update();
+    };
 
 }

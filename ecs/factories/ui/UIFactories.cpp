@@ -1,25 +1,49 @@
 #include "UIFactories.h"
 #include "../../../core/Application.h"
 #include "../../components/renderable/GUIRenderable.h"
+#include "../../components/renderable/UIRenderableComponent.h"
 
 
 namespace pk
 {
     namespace ui
     {
+
         class ButtonMouseButtonEvent : public MouseButtonEvent
         {
         private:
-            //BUTTON_STATE_INFO* _pBtnInfo = nullptr;
+            GUIRenderable* _pImg = nullptr;
+            vec3 _originalColor = vec3(0, 0, 0);
+            vec3 _highlightColor = vec3(1.0f, 1.0f, 1.0f);
             UIElemState& _stateRef;
             OnClickEvent* _onClick = nullptr;
         public:
-            ButtonMouseButtonEvent(UIElemState& elemStateRef, OnClickEvent* onClick) : 
+            ButtonMouseButtonEvent(
+                GUIRenderable* pImg,
+                vec3 highlightColor,
+                UIElemState& elemStateRef,
+                OnClickEvent* onClick
+            ) :
+                _pImg(pImg),
+                _highlightColor(highlightColor),
                 _stateRef(elemStateRef),
                 _onClick(onClick)
-            {}
+            {
+                _originalColor = _pImg->color;
+            }
+            // NOTE: ONLY TESTING THIS ATM!!!
+            virtual ~ButtonMouseButtonEvent()
+            {
+                if (_onClick)
+                {
+                    Debug::log("___TEST___DELETED ON CLICK!");
+                    delete _onClick;
+                }
+            }
             virtual void func(InputMouseButtonName button, InputAction action, int mods)
             {
+                if (!_stateRef.isActive())
+                    return;
                 if (_stateRef.mouseOver)
                 {
                     if (action == PK_INPUT_PRESS)
@@ -36,11 +60,7 @@ namespace pk
                         if (_stateRef.selectable)
                         {
                             _stateRef.selected = !_stateRef.selected;
-                            if (_stateRef.selected)
-                                Debug::log("___TEST___BUTTON SELECTED!");
-                            else
-                                Debug::log("___TEST___BUTTON DESELECTED!");
-                            // TODO: Set highlighted!
+                            _pImg->color = _highlightColor;
                         }
 
                         if (_onClick)
@@ -51,17 +71,16 @@ namespace pk
                 }
                 else
                 {
-                    if (_stateRef.selectable)
-                    {
-                        _stateRef.selected = false;
-                        // TODO: Set NOT highlighted!
-                    }
+                    _stateRef.selected = false;
+                    _pImg->color = _originalColor;
 
                     _stateRef.state = 0;
                 }
             }
         };
 
+        // TODO: Make cursor pos event for ALL GUI IMAGES
+        // (and maybe txt as well) to track if cursor is on ui
         class ButtonMouseCursorPosEvent : public CursorPosEvent
         {
         private:
@@ -69,7 +88,7 @@ namespace pk
             Transform* _pTransform = nullptr;
             vec3 _originalColor = vec3(0, 0, 0);
             vec3 _highlightColor = vec3(1, 1, 1);
-            
+
             UIElemState& _stateRef;
 
         public:
@@ -78,13 +97,14 @@ namespace pk
                 Transform* pTransform,
                 vec3 highlightColor,
                 UIElemState& elemStateRef
-            ) : 
+            ) :
                 _pImg(pImg),
                 _pTransform(pTransform),
                 _highlightColor(highlightColor),
                 _originalColor(pImg->color),
                 _stateRef(elemStateRef)
             {}
+
             virtual void func(int x, int y)
             {
                 mat4& tMat = _pTransform->accessTransformationMatrix();
@@ -93,15 +113,37 @@ namespace pk
 
                 float xPos = tMat[0 + 3 * 4];
                 float yPos = tMat[1 + 3 * 4];
-                
-                if (x >= xPos && x <= xPos + width && y <= yPos && y >= yPos - height)
+                // *ignore highlight coloring if selected
+                // set or remove highlight coloring
+                if (_stateRef.isActive() && x >= xPos && x <= xPos + width && y <= yPos && y >= yPos - height)
                 {
-                    _pImg->color = _highlightColor;
+                    // Make sure theres no overlap with other ui (layer vals check)
+                    int imgLayer = _pImg->getLayerVal();
+                    int currentLayer = UIRenderableComponent::get_current_selected_layer();
+
+                    if (UIRenderableComponent::get_current_selected_layer() > _pImg->getLayerVal())
+                    {
+                        // Reset mouseover to false if "layer switch"
+                        if (!_stateRef.selected)
+                            _pImg->color = _originalColor;
+
+                        _stateRef.mouseOver = false;
+                        return;
+                    }
+                    UIRenderableComponent::set_current_selected_layer(_pImg->getLayerVal());
+
+                    if (!_stateRef.selected)
+                        _pImg->color = _highlightColor;
                     _stateRef.mouseOver = true;
                 }
                 else
                 {
-                    _pImg->color = _originalColor;
+                    // Reset current selected layer if needed to..
+                    if (UIRenderableComponent::get_current_selected_layer() == _pImg->getLayerVal())
+                        UIRenderableComponent::set_current_selected_layer(0);
+
+                    if (!_stateRef.selected)
+                        _pImg->color = _originalColor;
                     _stateRef.mouseOver = false;
                 }
             }
@@ -116,10 +158,10 @@ namespace pk
             InputFieldOnSubmitEvent* _onSubmit = nullptr;
         public:
             InputFieldKeyEvent(
-                UIElemState& elemStateRef, 
-                TextRenderable* pContentText, 
+                UIElemState& elemStateRef,
+                TextRenderable* pContentText,
                 InputFieldOnSubmitEvent* onSubmit
-            ) : 
+            ) :
                 _stateRef(elemStateRef),
                 _pContentText(pContentText),
                 _onSubmit(onSubmit)
@@ -127,6 +169,8 @@ namespace pk
 
             void  func(InputKeyName key, int scancode, InputAction action, int mods)
             {
+                if (!_stateRef.isActive())
+                    return;
                 // NOTE: Not sure can this be used?
                 bool isActive = _stateRef.selected;
                 if (isActive)
@@ -166,15 +210,17 @@ namespace pk
             TextRenderable* _pContentText = nullptr;
         public:
             InputFieldCharInputEvent(
-                UIElemState& elemStateRef, 
+                UIElemState& elemStateRef,
                 TextRenderable* pContentText
-            ) : 
+            ) :
                 _stateRef(elemStateRef),
                 _pContentText(pContentText)
             {}
 
             void func(unsigned int codepoint)
             {
+                if (!_stateRef.isActive())
+                    return;
                 bool isActive = _stateRef.selected;
                 if (isActive)
                 {
@@ -189,10 +235,12 @@ namespace pk
 
 
         uint32_t create_image(
-            ConstraintType horizontalType, float horizontalVal, 
-            ConstraintType verticalType, float verticalVal, 
+            ConstraintType horizontalType, float horizontalVal,
+            ConstraintType verticalType, float verticalVal,
             float width, float height,
             bool drawBorder,
+            Texture* texture,
+            vec4 textureCropping,
             vec3 color
         )
         {
@@ -202,13 +250,13 @@ namespace pk
 	    uint32_t entity = currentScene->createEntity();
 
 	    Transform* transform = new Transform({ 0,0 }, { width, height });
-	    GUIRenderable* renderable = new GUIRenderable;
+	    GUIRenderable* renderable = new GUIRenderable(texture, textureCropping);
             renderable->drawBorder = drawBorder;
             renderable->color = color;
 
 	    currentScene->addComponent(entity, transform);
 	    currentScene->addComponent(entity, renderable);
-            
+
             currentScene->addSystem(new Constraint(transform, horizontalType, horizontalVal));
             currentScene->addSystem(new Constraint(transform, verticalType, verticalVal));
 
@@ -217,9 +265,10 @@ namespace pk
 
 
         std::pair<uint32_t, TextRenderable*> create_text(
-            const std::string& str, 
-            ConstraintType horizontalType, float horizontalVal, 
-            ConstraintType verticalType, float verticalVal, 
+            const std::string& str,
+            ConstraintType horizontalType, float horizontalVal,
+            ConstraintType verticalType, float verticalVal,
+            vec3 color,
             bool bold
         )
         {
@@ -228,7 +277,7 @@ namespace pk
             uint32_t entity = currentScene->createEntity();
 
             Transform* transform = new Transform({ 0,0 }, { 1,1 });
-            TextRenderable* renderable = new TextRenderable(str, bold);
+            TextRenderable* renderable = new TextRenderable(str, color, bold);
 
             currentScene->addComponent(entity, transform);
             currentScene->addComponent(entity, renderable);
@@ -242,31 +291,35 @@ namespace pk
 
         uint32_t create_button(
             std::string txt,
-            ConstraintType horizontalType, float horizontalVal, 
-            ConstraintType verticalType, float verticalVal, 
+            ConstraintType horizontalType, float horizontalVal,
+            ConstraintType verticalType, float verticalVal,
             float width, float height,
             OnClickEvent* onClick,
             bool selectable,
+            Texture* texture,
+            vec4 textureCropping,
+            vec3 color,
             int txtDisplacementX,
             int txtDisplacementY,
-            UIElemState* pUIElemState,
-            vec3 color
+            UIElemState* pUIElemState
         )
         {
             Scene* currentScene = Application::get()->accessCurrentScene();
             InputManager* inputManager = Application::get()->accessInputManager();
-            
+
             uint32_t buttonEntity = currentScene->createEntity();
             uint32_t imgEntity = create_image(
                 horizontalType, horizontalVal,
                 verticalType, verticalVal,
                 width, height,
                 true,
+                texture,
+                textureCropping,
                 color
             );
 
             // Add txt displacement
-            if (horizontalType == ConstraintType::PIXEL_LEFT || 
+            if (horizontalType == ConstraintType::PIXEL_LEFT ||
                 horizontalType == ConstraintType::PIXEL_CENTER_HORIZONTAL)
                 horizontalVal += (float)txtDisplacementX;
             else if (horizontalType == ConstraintType::PIXEL_RIGHT)
@@ -279,7 +332,7 @@ namespace pk
                 verticalVal -= (float)txtDisplacementY;
 
             uint32_t txtEntity = create_text(
-                txt, 
+                txt,
                 horizontalType, horizontalVal,
                 verticalType, verticalVal
             ).first;
@@ -288,15 +341,15 @@ namespace pk
             currentScene->addChild(buttonEntity, txtEntity);
 
             GUIRenderable* imgRenderable = (GUIRenderable*)currentScene->getComponent(
-                imgEntity, 
+                imgEntity,
                 ComponentType::PK_RENDERABLE_GUI
             );
             Transform* imgTransform = (Transform*)currentScene->getComponent(
-                imgEntity, 
+                imgEntity,
                 ComponentType::PK_TRANSFORM
             );
             Transform* txtTransform = (Transform*)currentScene->getComponent(
-                txtEntity, 
+                txtEntity,
                 ComponentType::PK_TRANSFORM
             );
 
@@ -311,13 +364,16 @@ namespace pk
                 uiElemState = new UIElemState;
                 currentScene->addComponent(buttonEntity, uiElemState);
             }
+            uiElemState->selectable = selectable;
 
-            inputManager->addMouseButtonEvent(new ButtonMouseButtonEvent(*uiElemState, onClick));
+            vec3 highlightColor(0.5f, 0.5f, 0.5f);
+            vec3 selectedColor(0.3f, 0.3f, 0.3f);
+            inputManager->addMouseButtonEvent(new ButtonMouseButtonEvent(imgRenderable, selectedColor, *uiElemState, onClick));
             inputManager->addCursorPosEvent(
                 new ButtonMouseCursorPosEvent(
-                    imgRenderable, 
+                    imgRenderable,
                     imgTransform,
-                    { 0.5f, 0.5f, 0.5f },
+                    highlightColor,
                     *uiElemState
                 )
             );
@@ -325,11 +381,11 @@ namespace pk
         }
 
 
-        #define PK_INPUTFIELD_DEFAULT_HEIGHT 16
+        #define PK_INPUTFIELD_DEFAULT_HEIGHT 21
         std::pair<uint32_t, TextRenderable*> create_input_field(
             std::string infoTxt,
-            ConstraintType horizontalType, float horizontalVal, 
-            ConstraintType verticalType, float verticalVal, 
+            ConstraintType horizontalType, float horizontalVal,
+            ConstraintType verticalType, float verticalVal,
             int width,
             InputFieldOnSubmitEvent* onSubmitEvent,
             bool clearOnSubmit
@@ -339,22 +395,24 @@ namespace pk
             InputManager* inputManager = Application::get()->accessInputManager();
 
             uint32_t inputFieldEntity = currentScene->createEntity();
-            
+
             UIElemState* uiElemState = new UIElemState;
             uiElemState->selectable = true;
             currentScene->addComponent(inputFieldEntity, uiElemState);
-            
+
             // Create button (*Override the button's UIElemState)
             uint32_t buttonEntity = create_button(
                 "",
-                horizontalType, horizontalVal, 
-                verticalType, verticalVal, 
+                horizontalType, horizontalVal,
+                verticalType, verticalVal,
                 (float)width, PK_INPUTFIELD_DEFAULT_HEIGHT,
                 nullptr,
                 true,
+                nullptr,
+                {0, 0, 1, 1},
+                { 0.05f, 0.05f, 0.05f },
                 0, 0,
-                uiElemState,
-                { 0.05f, 0.05f, 0.05f}
+                uiElemState
             );
 
             float infoTxtDisplacement = width;
@@ -362,7 +420,7 @@ namespace pk
                 infoTxtDisplacement = -width;
             // Create info txt
             uint32_t infoTxtEntity = create_text(
-                infoTxt, 
+                infoTxt,
                 horizontalType, horizontalVal + infoTxtDisplacement, // *Add displacement to info text, so its to the right of the box
                 verticalType, verticalVal
             ).first;
@@ -372,16 +430,16 @@ namespace pk
 
             // NOTE: button's text component is used as the InputField's "content text"
             TextRenderable* contentText = (TextRenderable*)currentScene->getComponentInChildren(
-                buttonEntity, 
+                buttonEntity,
                 ComponentType::PK_RENDERABLE_TEXT
             );
-            
+
             inputManager->addKeyEvent(new InputFieldKeyEvent(*uiElemState, contentText, onSubmitEvent));
             inputManager->addCharInputEvent(new InputFieldCharInputEvent(*uiElemState, contentText));
-            
+
             // Adjust the info text's transform a bit, so it doesnt look fucked..
             Transform* infoTextTransform = (Transform*)currentScene->getComponent(
-                infoTxtEntity, 
+                infoTxtEntity,
                 ComponentType::PK_TRANSFORM
             );
             infoTextTransform->accessTransformationMatrix()[0 + 0 * 4] = width;

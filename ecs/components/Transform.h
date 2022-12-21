@@ -29,6 +29,40 @@ namespace pk
 			setScale(scale);
 		}
 
+                Transform(vec3 pos, vec3 scale, float pitch, float yaw):
+		    Component(ComponentType::PK_TRANSFORM)
+                {
+                    _transformationMatrix.setIdentity();
+
+                    mat4 pitchMatrix;
+                    pitchMatrix.setIdentity();
+                    pitchMatrix[1 + 1 * 4] =  std::cos(-pitch);
+                    pitchMatrix[1 + 2 * 4] = -std::sin(-pitch);
+                    pitchMatrix[2 + 1 * 4] =  std::sin(-pitch);
+                    pitchMatrix[2 + 2 * 4] =  std::cos(-pitch);
+
+                    mat4 yawMatrix;
+                    yawMatrix.setIdentity();
+                    yawMatrix[0 + 0 * 4] = std::cos(yaw);
+                    yawMatrix[0 + 2 * 4] = std::sin(yaw);
+                    yawMatrix[2 + 0 * 4] = -std::sin(yaw);
+                    yawMatrix[2 + 2 * 4] = std::cos(yaw);
+
+                    mat4 scaleMatrix;
+                    scaleMatrix.setIdentity();
+                    scaleMatrix[0 + 0 * 4] = scale.x;
+                    scaleMatrix[1 + 1 * 4] = scale.y;
+                    scaleMatrix[2 + 2 * 4] = scale.z;
+
+                    mat4 translationMatrix;
+                    translationMatrix.setIdentity();
+                    translationMatrix[0 + 3 * 4] = pos.x;
+                    translationMatrix[1 + 3 * 4] = pos.y;
+                    translationMatrix[2 + 3 * 4] = pos.z;
+
+                    _transformationMatrix = translationMatrix * scaleMatrix * yawMatrix * pitchMatrix;
+                }
+
 		void setPos(vec2 pos)
 		{
 			_transformationMatrix[0 + 3 * 4] = pos.x;

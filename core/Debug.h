@@ -5,19 +5,18 @@
 
 namespace pk
 {
-	class Debug
-	{
-	public:
+    class Debug
+    {
+    public:
+        enum MessageType
+        {
+            PK_MESSAGE = 0x0,
+            PK_WARNING,
+            PK_ERROR,
+            PK_FATAL_ERROR
+        };
 
-		enum MessageType
-		{
-			PK_MESSAGE = 0x0,
-			PK_WARNING,
-			PK_ERROR,
-			PK_FATAL_ERROR
-		};
+        static void log(std::string message, MessageType t = PK_MESSAGE);
 
-		static void log(std::string message, MessageType t = PK_MESSAGE);
-
-	};
+    };
 }

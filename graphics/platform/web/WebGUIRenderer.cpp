@@ -44,7 +44,7 @@ namespace pk
             uniform sampler2D textureSampler;
 
             const float borderThickness = 1.0;
-            
+
             #define RECT_WIDTH (var_additionalProperties.x)
             #define RECT_HEIGHT (var_additionalProperties.y)
             #define DRAW_BORDER (var_additionalProperties.z == 1.0)
@@ -54,7 +54,7 @@ namespace pk
                 vec2 uvCoord = var_uv;
                 vec4 texColor = texture2D(textureSampler, uvCoord);
                 //float fr = mix(texColor.r, var_color.r, var_color.r)
-                
+
                 vec4 finalColor = texColor * var_color;
 
                 vec2 pos = vec2(uvCoord.x * RECT_WIDTH, uvCoord.y * RECT_HEIGHT);
@@ -81,7 +81,7 @@ namespace pk
         )";
 
 
-        WebGUIRenderer::WebGUIRenderer() : 
+        WebGUIRenderer::WebGUIRenderer() :
             _shader(s_vertexSource, s_fragmentSource)
         {
             _vertexAttribLocation_pos = _shader.getAttribLocation("position");
@@ -123,18 +123,19 @@ namespace pk
         void WebGUIRenderer::submit(const Component* const renderableComponent, const mat4& transformation)
         {
             // <#M_DANGER>
-            const GUIRenderable* const  renderable = (const GUIRenderable* const)(renderableComponent);
+            const GUIRenderable* const renderable = (const GUIRenderable* const)(renderableComponent);
             const vec2 pos(transformation[0 + 3 * 4], transformation[1 + 3 * 4]);
             const vec2 scale(transformation[0 + 0 * 4], transformation[1 + 1 * 4]);
             const vec3& color = renderable->color;
             const vec4 properties(scale.x, scale.y, (float)renderable->drawBorder, 0.0f);
+            const vec4& texCropping = renderable->textureCropping;
 
-            const vec2 uv_v0(0, 1);
-            const vec2 uv_v1(0, 0);
-            const vec2 uv_v2(1, 0);
-            const vec2 uv_v3(1, 1);
+            const vec2 uv_v0(texCropping.x, texCropping.y); // top left
+            const vec2 uv_v1(texCropping.x, texCropping.y + texCropping.w); // bottom left
+            const vec2 uv_v2(texCropping.x + texCropping.z, texCropping.y + texCropping.w); // bottom right
+            const vec2 uv_v3(texCropping.x + texCropping.z, texCropping.y); // rop right
 
-            std::vector<float> dataToSubmit{ 
+            std::vector<float> dataToSubmit{
                 pos.x, pos.y, uv_v0.x, uv_v0.y, color.x,color.y, color.z, 1.0f, properties.x, properties.y, properties.z, properties.w,
                 pos.x, pos.y - scale.y, uv_v1.x, uv_v1.y, color.x,color.y, color.z, 1.0f, properties.x, properties.y, properties.z, properties.w,
                 pos.x + scale.x, pos.y - scale.y, uv_v2.x, uv_v2.y, color.x, color.y, color.z, 1.0f, properties.x, properties.y, properties.z, properties.w,
@@ -151,9 +152,10 @@ namespace pk
                     continue;
                 }
 
+                /*
                 if (batch.isFree)
                 {
-                    batch.occupy(renderable->textureID);
+                    batch.occupy(0, renderable->texture);
                     batch.insertInstanceData(0, dataToSubmit);
                     batch.addNewInstance();
                     //Debug::log("created new batch");
@@ -164,6 +166,22 @@ namespace pk
                     batch.insertInstanceData(0, dataToSubmit);
                     batch.addNewInstance();
                     //Debug::log("assigned to existing");
+                    return;
+                }
+                */
+
+                // ---
+                if (batch.isFree)
+                {
+                    batch.occupy(0, renderable->texture);
+                    batch.insertInstanceData(0, dataToSubmit);
+                    batch.addNewInstance();
+                    return;
+                }
+                else if (renderable->texture == batch.texture && !batch.isFull)
+                {
+                    batch.insertInstanceData(0, dataToSubmit);
+                    batch.addNewInstance();
                     return;
                 }
             }
@@ -218,15 +236,15 @@ namespace pk
                 glEnableVertexAttribArray(_vertexAttribLocation_properties);
                 glVertexAttribPointer(_vertexAttribLocation_properties, 4, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 8));
 
-                // Bind texture only if we have one... (greater than 0 indicates that)
-                int textureID = batch.ID;
-                if(textureID > 0)
+                glActiveTexture(GL_TEXTURE0);
+                // Bind texture only if we have one...
+                if (batch.texture)
                 {
+                    const WebTexture* texture = (const WebTexture*)batch.texture;
+                    glBindTexture(GL_TEXTURE_2D, texture->getID());
                 }
                 else
                 {
-                    // ..otherwise user our "default texture"
-                    glActiveTexture(GL_TEXTURE0);
                     glBindTexture(GL_TEXTURE_2D, _defaultTexture->getID());
                 }
 
