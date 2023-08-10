@@ -23,7 +23,7 @@ namespace pk
 			case 1: glFormat = GL_ALPHA;break;
 			case 3: glFormat = GL_RGB;	break;
 			case 4: glFormat = GL_RGBA; break;
-			
+
 			default:
 				Debug::log("Invalid color channel count when loading texture", Debug::MessageType::PK_FATAL_ERROR);
 				return 0;
@@ -34,11 +34,11 @@ namespace pk
 			glGenTextures(1, &texID);
 			glBindTexture(GL_TEXTURE_2D, texID);
 			glTexImage2D(GL_TEXTURE_2D, 0, glFormat, width, height, 0, glFormat, GL_UNSIGNED_BYTE, data);
-			
+
 			// Address mode
 			switch (sampler.getAddressMode())
 			{
-			case TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_REPEAT : 
+			case TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_REPEAT :
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 				break;
@@ -119,21 +119,24 @@ namespace pk
 		}
 
 
-		WebTexture::WebTexture(void* data, int width, int height, int channels, const TextureSampler& sampler) : 
+		WebTexture::WebTexture(void* data, int width, int height, int channels, const TextureSampler& sampler) :
 			Texture(sampler, width, height, channels)
 		{
 			_id = create_GL_texture(data, width, height, channels, sampler);
 		}
 
 
-		WebTexture::WebTexture(const std::string& filename, const TextureSampler& sampler, int tiling) : 
+		WebTexture::WebTexture(const std::string& filename, const TextureSampler& sampler, int tiling) :
 			Texture(sampler, tiling)
 		{
 			SDL_Surface* surface = IMG_Load(filename.c_str());
 
 			if (surface == NULL)
 			{
-				Debug::log("Failed to create SDL surface from: " + filename, Debug::MessageType::PK_FATAL_ERROR);
+				Debug::log(
+                                    "Failed to create SDL surface from: " + filename + " SDL_image error: " + IMG_GetError(),
+                                    Debug::MessageType::PK_FATAL_ERROR
+                                );
 				return;
 			}
 			_width = surface->w;
