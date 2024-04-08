@@ -58,14 +58,17 @@ namespace pk
 
 	        vec4 finalColor = var_color * texColor.a * var_thickness;
 
-	        gl_FragColor = vec4(finalColor.rgb, 1.0);
 
 	        if(texColor.a <= 0.0)
 	        {
-	        	discard;
+	            discard;
 	        }
+
+	        gl_FragColor = vec4(finalColor.rgb, 1.0);
             }
         )";
+
+        static float s_TEST_anim = 1.0f;
 
 
         WebFontRenderer::WebFontRenderer() :
@@ -81,7 +84,7 @@ namespace pk
             _uniformLocation_texSampler = _shader.getUniformLocation("textureSampler");
 
 
-            std::vector<GlyphData> glyphs = createGlyphs("qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890.,:;?!&_'+-*^/()[]{}‰Âˆƒ≈÷", "assets/rexlia rg.ttf");
+            std::vector<GlyphData> glyphs = createGlyphs("qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890.,:;?!&_'+-*^/()[]{}‰Âˆƒ≈÷", "assets/Ubuntu-R.ttf");
 
             _fontTexAtlas = createFontTextureAtlas(glyphs);
 
@@ -96,7 +99,9 @@ namespace pk
                         );
             }
 
-            const int maxBatchInstanceCount = 512;
+            // TODO: Smaller batch size and automatically add to the next available batch
+            // if attempted batch was full!
+            const int maxBatchInstanceCount = 1000; // NOTE: This should be smaller
             const int batchInstanceDataLen = 9 * 4;
 
             allocateBatches(4, maxBatchInstanceCount * batchInstanceDataLen, batchInstanceDataLen);
@@ -164,6 +169,8 @@ namespace pk
 
         void WebFontRenderer::render(const Camera& cam)
         {
+            s_TEST_anim += 0.125f * Timing::get_delta_time();
+
             mat4 projectionMatrix = cam.getProjMat2D();
 
             glUseProgram(_shader.getProgramID());
@@ -380,8 +387,8 @@ namespace pk
             }
 
             WebTexture* texture = new WebTexture(
-                    bitmapFont, bitmapPixelsWidth, bitmapPixelsWidth, bitmapColorChannels, 
-                    { 
+                    bitmapFont, bitmapPixelsWidth, bitmapPixelsWidth, bitmapColorChannels,
+                    {
                     TextureSamplerFilterMode::PK_SAMPLER_FILTER_MODE_LINEAR,
                     TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER
                     }
@@ -424,7 +431,6 @@ namespace pk
             }
         }
 
-
         void WebFontRenderer::addToBatch(BatchData& batch, const TextRenderable* const renderable, const mat4& transform)
         {
             //memcpy((&batch.vertexBuffer->accessRawData()[0]) + batch.currentDataPtr, &data[0], sizeof(float) * batch.instanceDataLen);
@@ -432,15 +438,20 @@ namespace pk
             const vec3& color = renderable->color;
             const float thickness = renderable->isBold() ? 3.0f : 1.0f;
 
-            const float originalX = position.x;
-            float posX = originalX;
-            float posY = (int)position.y - _fontMaxBearingY / 2;
-
             float charWidth = _fontAtlasPixelSize;
             float charHeight = _fontAtlasPixelSize;
 
-            float scaleFactorX = 1.0f; // Atm scaling is disabled with webgl...
-            float scaleFactorY = 1.0f;
+
+            float scaleFactorX = 0.625f; // 0.5f + (std::sin(s_TEST_anim) + 1.0f) * 0.5f;// 1.0f; // Atm scaling is disabled with webgl...
+            float scaleFactorY = 0.625f; // 0.5f + (std::sin(s_TEST_anim) + 1.0f) * 0.5f;// 1.0f;
+
+            const float originalX = position.x - (float)_fontAtlasPixelSize * (scaleFactorX * 0.5f);
+            float posX = originalX;
+            float posY = (int)position.y - _fontMaxBearingY / 2;
+
+            // NOTE:
+            float cw = (float)charWidth * scaleFactorX;
+            float ch = (float)charHeight * scaleFactorY;
 
             for (const char c : renderable->getStr())
             {
@@ -455,7 +466,7 @@ namespace pk
                 // Check, do we want to change line?
                 if (c == '\n')
                 {
-                    posY -= (charHeight * 0.5f) * (scaleFactorY);
+                    posY -= charHeight * scaleFactorY;
                     posX = originalX;
                     continue;
                 }
@@ -473,11 +484,10 @@ namespace pk
 
                 const CharacterData& charData = _characterMapping[c];
 
-                float x = (posX + charData.bearingX) * scaleFactorX;
-                float y = posY + charData.bearingY / 2;
-
-                float cw = charWidth * scaleFactorX;
-                float ch = charHeight * scaleFactorY;
+                float x = (posX + ((float)charData.bearingX) * 0.5f); //* scaleFactorX;
+                // NOTE: For some reason on some fonts below needs to be divided by 2 or smthn
+                // to make it look right.. Not sure why..
+                float y = posY + (float)charData.bearingY * scaleFactorY;
 
                 std::vector<float> vertexData = {
                     x, y - ch,		charData.texOffsetX,	 charData.texOffsetY + 1,	color.x,color.y,color.z,1.0f, thickness,
@@ -489,7 +499,8 @@ namespace pk
                 batch.insertInstanceData(0, vertexData);
 
                 batch.addNewInstance();
-                posX += (float)(charData.advance >> 7); // 2^5 = 32 (pixel size of the font..)
+                // NOTE: Don't quite understand this.. For some reason on some fonts >> 7 works better...
+                posX += ((float)(charData.advance >> 6)) * scaleFactorX; // now advance cursors for next glyph (note that advance is number of 1/64 pixels). bitshift by 6 to get value in pixels (2^6 = 64) | OLD COMMENT: 2^5 = 32 (pixel size of the font..)
             }
         }
 
