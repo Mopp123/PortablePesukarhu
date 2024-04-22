@@ -1,5 +1,6 @@
 #pragma once
 
+// NOTE: This could cause issues. May require that ugly backtracking: "../../"
 #include "Common.h"
 
 #define GRAPHICS_API_NONE 0
