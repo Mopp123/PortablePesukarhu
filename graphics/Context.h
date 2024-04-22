@@ -1,14 +1,21 @@
 #pragma once
 
+#include "Common.h"
+
+#define GRAPHICS_API_NONE 0
+#define GRAPHICS_API_WEBGL 1
+
 
 namespace pk
 {
+    class Context
+    {
+    protected:
+        static PK_byte s_graphicsAPI;
 
-	class Context
-	{
-	public:
-
-		Context();
-		virtual ~Context();
-	};
+    public:
+        Context(PK_byte graphicsAPIType);
+        virtual ~Context();
+        static PK_byte get_api_type();
+    };
 }

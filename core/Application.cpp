@@ -14,7 +14,7 @@ namespace pk
 	void update()
 	{
 		Application* app = Application::s_pApplication;
-		
+
 		if(app)
 		{
 			const Scene* currentScene = app->getCurrentScene();
@@ -24,9 +24,13 @@ namespace pk
 
 				SceneManager& sceneManager = app->_sceneManager;
 				sceneManager.handleSceneUpdate();
-				
+
 				if (activeCam != nullptr)
 				{
+                                        // TODO: Call only masterRenderer.render() here!
+                                        // * Move all beginFrame(), etc stuff into the MasterRenderer's
+                                        // "main render func"
+
 					// All "top level" rendering stuff...
 					Renderer* masterRenderer = app->_pMasterRenderer;
 					masterRenderer->beginFrame(); // (in Vulkan, acquire swapchain img here.., and maybe begin the primary cmd buf)
@@ -47,7 +51,7 @@ namespace pk
 				//Debug::log("delta: " + std::to_string(Timing::get_delta_time()));
 			}
 			// Detect and handle possible scene switching..
-			
+
 			app->_sceneManager.handleSceneSwitching();
 			app->_timing.update();
 
@@ -68,7 +72,7 @@ namespace pk
 		Renderer* masterRenderer,
 		std::map<ComponentType, Renderer*> renderers
 	) :
-		_name(name), 
+		_name(name),
 		_pWindow(window),
 		_pGraphicsContext(graphicsContext),
 		_pInputManager(inputManager),
