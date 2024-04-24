@@ -4,14 +4,13 @@
 
 namespace pk
 {
-	namespace web
-	{
-		class WebContext : public Context
-		{
-		public:
-
-			WebContext();
-			~WebContext();
-		};
-	}
+    namespace web
+    {
+        class WebContext : public Context
+        {
+        public:
+            WebContext();
+            ~WebContext();
+        };
+    }
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 #include "Context.h"
 #include "CommandBuffer.h"
 #include "RenderCommand.h"
@@ -14,15 +15,17 @@ namespace pk
     {
     private:
         RenderCommand* _pRenderCommand = nullptr;
-        std::vector<Renderer*> _renderers;
+        std::map<ComponentType, Renderer*> _renderers;
 
     public:
-        MasterRenderer(const std::vector<Renderer*>& renderers);
+        MasterRenderer();
         ~MasterRenderer();
+        void addRenderer(ComponentType renderableComponentType, Renderer* renderer);
 
         void render(const Camera& cam);
 
-        // To resize screen
         void handleWindowResize(int w, int h);
+
+        inline Renderer* const getRenderer(ComponentType renderableType) { return _renderers[renderableType]; }
     };
 }

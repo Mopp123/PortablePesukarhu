@@ -7,6 +7,9 @@
 
 namespace pk
 {
+    // TODO: Split Animation system into Animator system and separate
+    // Animation component!
+    // (Currently this "Animation system" does kind of both things -> thats bad)
     class Animation : public Updateable
     {
     private:

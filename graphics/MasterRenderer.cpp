@@ -1,9 +1,9 @@
 #include "MasterRenderer.h"
+#include "../core/Debug.h"
 
 namespace pk
 {
-    MasterRenderer::MasterRenderer(const std::vector<Renderer*>& renderers) :
-        _renderers(renderers) // NOTE: Not sure if this works? (assigning that vec to another?)
+    MasterRenderer::MasterRenderer()
     {
         _pRenderCommand = RenderCommand::create();
     }
@@ -11,6 +11,21 @@ namespace pk
     MasterRenderer::~MasterRenderer()
     {
         delete _pRenderCommand;
+    }
+
+    void MasterRenderer::addRenderer(ComponentType renderableComponentType, Renderer* renderer)
+    {
+        if (_renderers.find(renderableComponentType) != _renderers.end())
+        {
+            Debug::log(
+                "Attempted to add Renderer to MasterRenderer but renderer of assigned renderable component type already exists",
+                Debug::MessageType::PK_ERROR
+            );
+        }
+        else
+        {
+            _renderers[renderableComponentType] = renderer;
+        }
     }
 
     void MasterRenderer::render(const Camera& cam)
@@ -24,10 +39,12 @@ namespace pk
 
         // NOTE: Not sure if I like these being raw ptrs here...
         std::vector<CommandBuffer*> secondaryCmdBufs;
-        for (Renderer* renderer : _renderers)
+        for (const auto& renderer : _renderers)
         {
-            if (CommandBuffer* secondaryBuf = renderer.recordCmdBuf())
-                secondaryCmdBufs.push_back(secondaryBuf);
+            // TODO: Switch below line to commented out style
+            renderer.second->render(cam);
+            // if (CommandBuffer* secondaryBuf = renderer.recordCmdBuf())
+            //     secondaryCmdBufs.push_back(secondaryBuf);
         }
 
         _pRenderCommand->endRenderPass();
@@ -38,16 +55,4 @@ namespace pk
     {
         _pRenderCommand->resizeViewport(w, h);
     }
-
-    // void MasterRenderer::beginFrame()
-    // {}
-
-    // void MasterRenderer::beginRenderPass()
-    // {}
-
-    // void MasterRenderer::endRenderPass()
-    // {}
-
-    // void MasterRenderer::endFrame()
-    // {}
 }

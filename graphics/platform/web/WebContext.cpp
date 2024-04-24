@@ -26,18 +26,18 @@ namespace pk
 			contextAttribs.preserveDrawingBuffer = false;
 
 			contextAttribs.failIfMajorPerformanceCaveat = false;
-			
+
 			contextAttribs.enableExtensionsByDefault = 1;
 
 			// using webgl 1.0 (widest support?)
-			contextAttribs.majorVersion = 1; 
+			contextAttribs.majorVersion = 1;
 			contextAttribs.majorVersion = 0;
 
 			EMSCRIPTEN_WEBGL_CONTEXT_HANDLE webglContext = emscripten_webgl_create_context("#canvas", &contextAttribs);
 			if (webglContext >= 0)
 			{
 				emscripten_webgl_make_context_current(webglContext);
-			
+
 				GLenum glewInitStatus = glewInit();
 				if (glewInitStatus == GLEW_OK)
 					Debug::log("Context(Web) created successfully");

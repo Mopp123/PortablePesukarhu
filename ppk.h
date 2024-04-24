@@ -3,7 +3,7 @@
 #include "core/Window.h"
 #include "core/platform/web/WebWindow.h"
 #include "graphics/Context.h"
-#include "graphics/platform/web/WebContext.h"
+//#include "graphics/platform/web/WebContext.h"
 #include "core/input/InputManager.h"
 #include "core/input/platform/web/WebInputManager.h"
 #include "core/Application.h"
@@ -19,7 +19,8 @@
 #include "ecs/components/lighting/Lights.h"
 #include "ecs/components/UIElemState.h"
 
-#include "graphics/platform/web/WebMasterRenderer.h"
+#include "graphics/MasterRenderer.h"
+//#include "graphics/platform/web/WebMasterRenderer.h"
 #include "graphics/platform/web/WebTexture.h"
 #include "graphics/platform/web/WebGUIRenderer.h"
 #include "graphics/platform/web/WebFontRenderer.h"

@@ -15,8 +15,9 @@ namespace pk
         static PK_byte s_graphicsAPI;
 
     public:
-        Context(PK_byte graphicsAPIType);
         virtual ~Context();
+        static Context* create(PK_byte graphicsAPIType);
+
         static PK_byte get_api_type();
     };
 }

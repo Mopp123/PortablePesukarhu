@@ -14,16 +14,22 @@ namespace pk
         for (System* system : _pCurrentScene->systems[SystemType::PK_SYSTEM_TYPE_UPDATEABLE])
             ((Updateable*)system)->update();
 
-
+        // NOTE: Deprecated old below!!!
         // Submit all "renderable components" for rendering...
 
+        // TODO:
+        // * Get application's master renderer
+        // * Get master renderer's renderers
+        // * Submit renderable components into those
         Application* pApp = Application::get();
+        MasterRenderer* pMasterRenderer = pApp->getMasterRenderer();
         // find gui renderers
-        Renderer* pGuiRenderer =	pApp->getRenderer(ComponentType::PK_RENDERABLE_GUI);
-        Renderer* pFontRenderer =	pApp->getRenderer(ComponentType::PK_RENDERABLE_TEXT);
+        Renderer* pGuiRenderer = pMasterRenderer->getRenderer(ComponentType::PK_RENDERABLE_GUI);
+        Renderer* pFontRenderer = pMasterRenderer->getRenderer(ComponentType::PK_RENDERABLE_TEXT);
         // find 3d renderers
-        Renderer* pTerrainRenderer = pApp->getRenderer(ComponentType::PK_RENDERABLE_TERRAINTILE);
-        Renderer* pSpriteRenderer =	 pApp->getRenderer(ComponentType::PK_RENDERABLE_SPRITE3D);
+        Renderer* pTerrainRenderer = pMasterRenderer->getRenderer(ComponentType::PK_RENDERABLE_TERRAINTILE);
+        Renderer* pSpriteRenderer = pMasterRenderer->getRenderer(ComponentType::PK_RENDERABLE_SPRITE3D);
+
 
         // submitting renderables
 

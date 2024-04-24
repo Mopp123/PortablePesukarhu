@@ -25,9 +25,11 @@ namespace pk
 
                 if (activeCam != nullptr)
                 {
-                    // TODO: Call only masterRenderer.render() here!
-                    // * Move all beginFrame(), etc stuff into the MasterRenderer's
-                    // "main render func"
+                    MasterRenderer* masterRenderer = app->_pMasterRenderer;
+                    masterRenderer->render(*activeCam);
+
+                    // TODO: Delete below!
+                    /* BELOW OLD VERSION!
 
                     // All "top level" rendering stuff...
                     Renderer* masterRenderer = app->_pMasterRenderer;
@@ -40,7 +42,7 @@ namespace pk
                     }
                     masterRenderer->endRenderPass();
                     masterRenderer->endFrame(); // (submit cmdbuf[currentFrameIndex] to swapchain for execution, AND attempt to present the "top" swapchain image)
-
+                    */
                 }
                 else
                 {
@@ -53,8 +55,7 @@ namespace pk
             app->_sceneManager.handleSceneSwitching();
             app->_timing.update();
 
-
-            GLenum err = glGetError();
+            //GLenum err = glGetError();
             //if (err != GL_NO_ERROR)
             //	std::cout << "GL ERROR!: " << err << std::endl;
         }
@@ -63,27 +64,25 @@ namespace pk
     Application* Application::s_pApplication = nullptr;
 
     Application::Application(
-            std::string name,
-            Window* window,
-            Context* graphicsContext,
-            InputManager* inputManager,
-            Renderer* masterRenderer,
-            std::map<ComponentType, Renderer*> renderers
-            ) :
+        std::string name,
+        Window* window,
+        Context* graphicsContext,
+        InputManager* inputManager,
+        MasterRenderer* pMasterRenderer
+    ) :
         _name(name),
         _pWindow(window),
         _pGraphicsContext(graphicsContext),
         _pInputManager(inputManager),
-        _pMasterRenderer(masterRenderer),
-        _renderers(renderers)
+        _pMasterRenderer(pMasterRenderer)
     {
         s_pApplication = this;
     }
+
     Application::~Application()
     {
         Debug::log("App destroyed");
     }
-
 
     void Application::run()
     {
@@ -100,7 +99,7 @@ namespace pk
     void Application::resizeWindow(int w, int h)
     {
         _pWindow->resize(w, h);
-        _pMasterRenderer->resize(w, h);
+        _pMasterRenderer->handleWindowResize(w, h);
     }
 
     void Application::switchScene(Scene* newScene)

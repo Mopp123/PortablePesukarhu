@@ -7,7 +7,7 @@
 #include "SceneManager.h"
 #include "../graphics/Context.h"
 
-#include "../graphics/Renderer.h"
+#include "../graphics/MasterRenderer.h"
 #include "Timing.h"
 
 #include <vector>
@@ -31,21 +31,19 @@ namespace pk
         static Application* s_pApplication;
 
         Window* _pWindow = nullptr;
-        InputManager* _pInputManager = nullptr;
         Context* _pGraphicsContext = nullptr;
+        InputManager* _pInputManager = nullptr;
 
-        Renderer* _pMasterRenderer = nullptr;
-        std::map<ComponentType, Renderer*> _renderers;
+        MasterRenderer* _pMasterRenderer = nullptr;
 
     public:
         Application(
-                std::string name,
-                Window* window,
-                Context* graphicsContext,
-                InputManager* inputManager,
-                Renderer* masterRenderer,
-                std::map<ComponentType, Renderer*> renderers
-                );
+            std::string name,
+            Window* window,
+            Context* graphicsContext,
+            InputManager* inputManager,
+            MasterRenderer* pMasterRenderer
+        );
         ~Application();
 
         void run();
@@ -61,7 +59,7 @@ namespace pk
         inline const Window* const getWindow() const { return _pWindow; }
         inline const Scene* const getCurrentScene() const { return _sceneManager.getCurrentScene(); }
 
-        inline Renderer* const getRenderer(ComponentType renderableType) { return _renderers[renderableType]; }
+        inline MasterRenderer* getMasterRenderer() { return _pMasterRenderer; }
 
         inline bool isRunning() const { return _running; }
 
