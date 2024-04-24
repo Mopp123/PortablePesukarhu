@@ -4,6 +4,7 @@
 #include "../../../utils/pkmath.h"
 #include "../../../graphics/Texture.h"
 
+
 namespace pk
 {
     class Sprite3DRenderable : public Component
@@ -18,6 +19,6 @@ namespace pk
             Component(ComponentType::PK_RENDERABLE_SPRITE3D),
             position(pos), scale(scale), textureOffset(0, 0),
             texture(texture)
-    {}
+        {}
     };
 }

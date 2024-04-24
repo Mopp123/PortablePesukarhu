@@ -15,6 +15,7 @@ namespace pk
         PK_RENDERABLE_TEXT,
         PK_RENDERABLE_SPRITE3D,
         PK_RENDERABLE_TERRAINTILE,
+        PK_RENDERABLE_STATIC3D,
 
         PK_UIELEM_STATE,
 
@@ -23,27 +24,26 @@ namespace pk
         PK_TRANSFORM,
 
         PK_CAMERA
-
     };
 
     class Component
     {
     protected:
         friend class Scene;
-    
+
         uint32_t _entity = 0;
         ComponentType _type;
-    
+
         bool _isActive = true;
 
     public:
         Component(ComponentType type) : _type(type) { }
         virtual ~Component() { }
-    
+
         inline uint32_t getEntity() const { return _entity; }
         inline ComponentType getType() const { return _type; }
         inline bool isActive() const { return _isActive; }
-    
+
         inline void setActive(bool arg) { _isActive = arg; }
     };
 }
