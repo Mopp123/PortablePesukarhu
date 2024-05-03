@@ -21,13 +21,13 @@ namespace pk
         private:
             WebShader _shader;
 
-            PK_int _vertexAttribLocation_pos = -1;
-            PK_int _vertexAttribLocation_uv = -1;
-            PK_int _vertexAttribLocation_color = -1;
-            PK_int _vertexAttribLocation_properties = -1;
+            int _vertexAttribLocation_pos = -1;
+            int _vertexAttribLocation_uv = -1;
+            int _vertexAttribLocation_color = -1;
+            int _vertexAttribLocation_properties = -1;
 
-            PK_int _uniformLocation_projMat = -1;
-            PK_int _uniformLocation_texSampler = -1;
+            int _uniformLocation_projMat = -1;
+            int _uniformLocation_texSampler = -1;
 
             WebTexture* _defaultTexture = nullptr;
 

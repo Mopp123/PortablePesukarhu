@@ -18,19 +18,18 @@ namespace pk
         class WebSpriteRenderer : public Renderer
         {
         private:
-
             WebShader _shader;
 
-            PK_int _vertexAttribLocation_pos = -1;
-            PK_int _vertexAttribLocation_worldPos = -1;
-            PK_int _vertexAttribLocation_uv = -1;
+            int _vertexAttribLocation_pos = -1;
+            int _vertexAttribLocation_worldPos = -1;
+            int _vertexAttribLocation_uv = -1;
 
-            PK_int _uniformLocation_projMat = -1;
-            PK_int _uniformLocation_viewMat = -1;
-            PK_int _uniformLocation_texSampler = -1;
+            int _uniformLocation_projMat = -1;
+            int _uniformLocation_viewMat = -1;
+            int _uniformLocation_texSampler = -1;
 
-            PK_int _uniformLocation_dirLight_color = -1;
-            PK_int _uniformLocation_dirLight_dir = -1;
+            int _uniformLocation_dirLight_color = -1;
+            int _uniformLocation_dirLight_dir = -1;
 
             // Width of texture atlas(in pixels, but casted to float)
             const float _texAtlasWidth = 256.0f;
@@ -39,7 +38,6 @@ namespace pk
             std::vector<BatchData> _batches;
 
         public:
-
             WebSpriteRenderer();
             ~WebSpriteRenderer();
 
@@ -51,9 +49,7 @@ namespace pk
             virtual void resize(int w, int h) {}
 
         private:
-
             void allocateBatches(int maxBatchCount, int maxBatchLength, int entryLength);
         };
     }
-
 }

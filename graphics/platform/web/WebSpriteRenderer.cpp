@@ -233,15 +233,15 @@ namespace pk
 
                 // vertex pos vertex attrib
                 glEnableVertexAttribArray(_vertexAttribLocation_pos);
-                glVertexAttribPointer(_vertexAttribLocation_pos, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, 0);
+                glVertexAttribPointer(_vertexAttribLocation_pos, 2, GL_FLOAT, GL_FALSE, stride, 0);
 
                 // world pos vertex attrib
                 glEnableVertexAttribArray(_vertexAttribLocation_worldPos);
-                glVertexAttribPointer(_vertexAttribLocation_worldPos, 3, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 2));
+                glVertexAttribPointer(_vertexAttribLocation_worldPos, 3, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 2));
 
                 // uv coord vertex attrib
                 glEnableVertexAttribArray(_vertexAttribLocation_uv);
-                glVertexAttribPointer(_vertexAttribLocation_uv, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 5));
+                glVertexAttribPointer(_vertexAttribLocation_uv, 2, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 5));
 
 
 
@@ -275,7 +275,7 @@ namespace pk
         void WebSpriteRenderer::allocateBatches(int maxBatchCount, int maxBatchLength, int entryLength)
         {
             std::vector<float> vertexData(maxBatchLength);
-            std::vector<PK_ushort> indices(maxBatchLength);
+            std::vector<unsigned short> indices(maxBatchLength);
 
             const int vertexCount = 4;
             int vertexIndex = 0;

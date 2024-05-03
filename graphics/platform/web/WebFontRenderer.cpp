@@ -208,19 +208,19 @@ namespace pk
 
                 // position vertex attrib
                 glEnableVertexAttribArray(_vertexAttribLocation_pos);
-                glVertexAttribPointer(_vertexAttribLocation_pos, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, 0);
+                glVertexAttribPointer(_vertexAttribLocation_pos, 2, GL_FLOAT, GL_FALSE, stride, 0);
 
                 // uv coord vertex attrib
                 glEnableVertexAttribArray(_vertexAttribLocation_uv);
-                glVertexAttribPointer(_vertexAttribLocation_uv, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 2));
+                glVertexAttribPointer(_vertexAttribLocation_uv, 2, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 2));
 
                 // color vertex attrib
                 glEnableVertexAttribArray(_vertexAttribLocation_color);
-                glVertexAttribPointer(_vertexAttribLocation_color, 4, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 4));
+                glVertexAttribPointer(_vertexAttribLocation_color, 4, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 4));
 
                 // thickness attrib
                 glEnableVertexAttribArray(_vertexAttribLocation_thickness);
-                glVertexAttribPointer(_vertexAttribLocation_thickness, 1, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 8));
+                glVertexAttribPointer(_vertexAttribLocation_thickness, 1, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 8));
 
 
                 glDrawElements(GL_TRIANGLES, instanceIndexCount * batch.getInstanceCount(), GL_UNSIGNED_SHORT, 0);
@@ -404,7 +404,7 @@ namespace pk
             std::vector<float> vertexData(maxBatchLength);
 
             const int instanceVertexCount = 4;
-            std::vector<PK_ushort> indices(maxBatchLength);
+            std::vector<unsigned short> indices(maxBatchLength);
 
             int vertexIndex = 0;
             for (int i = 0; i < indices.size(); i += 6)

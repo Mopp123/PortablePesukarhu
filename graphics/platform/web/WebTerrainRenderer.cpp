@@ -28,7 +28,7 @@ namespace pk
 
 
             void main()
-            {	
+            {
 	    	gl_Position = projectionMatrix * viewMatrix * mat4(1.0) * vec4(position, 1.0);
 	    	var_uv = uv;
 	    	var_normal = vec3(0,1.0,0);
@@ -75,7 +75,7 @@ namespace pk
 
 	    	// JUST FOR TESTING!!
 	    //	float threshold = 0.25;
-	    //	
+	    //
 	    //	if (amount_black >= 0.4)
 	    //	{
 	    //		tex_channel_black = tex_channel_black * 2.0;
@@ -105,11 +105,11 @@ namespace pk
 	    	totalTextureColor.b = clamp(totalTextureColor.b, 0.0, 1.0);
 	    	totalTextureColor.a = clamp(totalTextureColor.a, 0.0, 1.0);
 
-	    	gl_FragColor = totalTextureColor; // * diffFactor; 
+	    	gl_FragColor = totalTextureColor; // * diffFactor;
 	    }
         )";
 
-        WebTerrainRenderer::WebTerrainRenderer() : 
+        WebTerrainRenderer::WebTerrainRenderer() :
             _shader(s_vertexSource, s_fragmentSource)
         {
             _vertexAttribLocation_pos = _shader.getAttribLocation("position");
@@ -189,7 +189,7 @@ namespace pk
 
             //float bleed = scale * 0.25f; // "one eighth of the scale" same as div by 8
 
-            std::vector<float> dataToSubmit{ 
+            std::vector<float> dataToSubmit{
                 xPos,			height_tl,		zPos,			uv_v0.x, uv_v0.y,
                     xPos,			height_bl,		zPos + scale,		uv_v1.x, uv_v1.y,
                     xPos + scale,		height_br,		zPos + scale,		uv_v2.x, uv_v2.y,
@@ -281,11 +281,11 @@ namespace pk
 
                 // position vertex attrib
                 glEnableVertexAttribArray(_vertexAttribLocation_pos);
-                glVertexAttribPointer(_vertexAttribLocation_pos, 3, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, 0);
+                glVertexAttribPointer(_vertexAttribLocation_pos, 3, GL_FLOAT, GL_FALSE, stride, 0);
 
                 // uv coord vertex attrib
                 glEnableVertexAttribArray(_vertexAttribLocation_uv);
-                glVertexAttribPointer(_vertexAttribLocation_uv, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 3));
+                glVertexAttribPointer(_vertexAttribLocation_uv, 2, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 3));
 
                 // Bind textures
                 // <#M_DANGER> atm these may be nullptr -> make sure they never can be in the future!
@@ -338,7 +338,7 @@ namespace pk
         void WebTerrainRenderer::allocateBatches(int maxBatchCount, int maxBatchLength, int entryLength)
         {
             std::vector<float> vertexData(maxBatchLength);
-            std::vector<PK_ushort> indices(maxBatchLength);
+            std::vector<unsigned short> indices(maxBatchLength);
 
 
             const int vertexCount = 4;

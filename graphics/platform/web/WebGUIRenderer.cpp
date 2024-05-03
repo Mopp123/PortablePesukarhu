@@ -222,19 +222,19 @@ namespace pk
 
                 // position vertex attrib
                 glEnableVertexAttribArray(_vertexAttribLocation_pos);
-                glVertexAttribPointer(_vertexAttribLocation_pos, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, 0);
+                glVertexAttribPointer(_vertexAttribLocation_pos, 2, GL_FLOAT, GL_FALSE, stride, 0);
 
                 // uv coord vertex attrib
                 glEnableVertexAttribArray(_vertexAttribLocation_uv);
-                glVertexAttribPointer(_vertexAttribLocation_uv, 2, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 2));
+                glVertexAttribPointer(_vertexAttribLocation_uv, 2, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 2));
 
                 // color vertex attrib
                 glEnableVertexAttribArray(_vertexAttribLocation_color);
-                glVertexAttribPointer(_vertexAttribLocation_color, 4, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 4));
+                glVertexAttribPointer(_vertexAttribLocation_color, 4, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 4));
 
                 // additional properties attrib
                 glEnableVertexAttribArray(_vertexAttribLocation_properties);
-                glVertexAttribPointer(_vertexAttribLocation_properties, 4, PK_ShaderDatatype::PK_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 8));
+                glVertexAttribPointer(_vertexAttribLocation_properties, 4, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float) * 8));
 
                 glActiveTexture(GL_TEXTURE0);
                 // Bind texture only if we have one...
@@ -266,7 +266,7 @@ namespace pk
         void WebGUIRenderer::allocateBatches(int maxBatchCount, int maxBatchLength, int entryLength)
         {
             std::vector<float> vertexData(maxBatchLength);
-            std::vector<PK_ushort> indices(maxBatchLength);
+            std::vector<unsigned short> indices(maxBatchLength);
 
             const int vertexCount = 4;
             int vertexIndex = 0;

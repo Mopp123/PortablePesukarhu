@@ -51,7 +51,7 @@ namespace pk
     {
     public:
 
-        IndexBuffer(const std::vector<uint32_t>& data) {}
+        IndexBuffer(const std::vector<unsigned short>& data) {}
         virtual ~IndexBuffer() {}
     };
 

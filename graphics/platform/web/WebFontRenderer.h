@@ -33,7 +33,7 @@ namespace pk
 
             // *EXPLANATION! Bitmap ownership ambiguity between constructor and copyconstructor:
             // ---------------------------------------------------------------------------------
-            //		When passing bitmap as raw pointer it was constructed "the raw way" 
+            //		When passing bitmap as raw pointer it was constructed "the raw way"
             //			-> so its ownership gets transferred here, and the "raw bitmap's" lifetime is tied to this GlyphData object.
             //		If GlyphData is copied, we can safely assume that the one we copy into this will eventually go out of scope -> destroying its bitmap data
             //			-> so we create new bitmapdata in this Glyph and copy the other Glyph's bitmapdata into it(Not changing ownerships!)
@@ -90,14 +90,14 @@ namespace pk
         private:
             WebShader _shader;
 
-            PK_int _vertexAttribLocation_pos = -1;
-            PK_int _vertexAttribLocation_uv = -1;
-            PK_int _vertexAttribLocation_color = -1;
-            PK_int _vertexAttribLocation_thickness = -1;
+            int _vertexAttribLocation_pos = -1;
+            int _vertexAttribLocation_uv = -1;
+            int _vertexAttribLocation_color = -1;
+            int _vertexAttribLocation_thickness = -1;
 
-            PK_int _uniformLocation_projMat = -1;
-            PK_int _uniformLocation_texAtlasRows = -1;
-            PK_int _uniformLocation_texSampler = -1;
+            int _uniformLocation_projMat = -1;
+            int _uniformLocation_texAtlasRows = -1;
+            int _uniformLocation_texSampler = -1;
 
             int _fontAtlasPixelSize = 32;
 
