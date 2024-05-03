@@ -12,7 +12,6 @@
 
 namespace pk
 {
-
     enum ShaderDataType
     {
         None = 0,
@@ -28,10 +27,18 @@ namespace pk
         Float4
     };
 
+
     enum VertexBufferUsage
     {
         PK_BUFFER_USAGE_STATIC,
         PK_BUFFER_USAGE_DYNAMIC
+    };
+
+
+    enum BufferUsageFlagBits
+    {
+        BUFFER_USAGE_VERTEX_BUFFER_BIT = 0x1,
+        BUFFER_USAGE_INDEX_BUFFER_BIT = 0x2
     };
 
 
@@ -85,5 +92,10 @@ namespace pk
         {}
 
         inline const std::vector<VertexBufferElement>& getElements() const { return _elements; }
+    };
+
+    class Buffer
+    {
+    public:
     };
 }
