@@ -1,5 +1,6 @@
 
 #include "WebBuffers.h"
+#include <GL/glew.h>
 
 #include "../../../core/Debug.h"
 
@@ -21,12 +22,12 @@ namespace pk
 			}
 		}
 
-		WebVertexBuffer::WebVertexBuffer(const std::vector<PK_float>& data, VertexBufferUsage usage) :
+		WebVertexBuffer::WebVertexBuffer(const std::vector<float>& data, VertexBufferUsage usage) :
 			VertexBuffer(data, usage)
 		{
 			glGenBuffers(1, &_id);
 			glBindBuffer(GL_ARRAY_BUFFER, _id);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(PK_float) * data.size(), &data[0], to_webgl_usage(usage));
+			glBufferData(GL_ARRAY_BUFFER, sizeof(float) * data.size(), &data[0], to_webgl_usage(usage));
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
@@ -36,7 +37,7 @@ namespace pk
 			glDeleteBuffers(1, &_id);
 		}
 
-		void WebVertexBuffer::update(const std::vector<PK_float>& newData, int offset, int size)
+		void WebVertexBuffer::update(const std::vector<float>& newData, int offset, int size)
 		{
 			glBindBuffer(GL_ARRAY_BUFFER, _id);
 			glBufferSubData(GL_ARRAY_BUFFER, offset, size, &newData[0]);
@@ -44,13 +45,13 @@ namespace pk
 
 
 
-		WebIndexBuffer::WebIndexBuffer(const std::vector<PK_ushort>& data) : 
+		WebIndexBuffer::WebIndexBuffer(const std::vector<unsigned short>& data) :
 			IndexBuffer(data)
 		{
 			glGenBuffers(1, &_id);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _id);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(PK_ushort) * data.size(), &data[0], to_webgl_usage(VertexBufferUsage::PK_BUFFER_USAGE_STATIC));
-		
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * data.size(), &data[0], to_webgl_usage(VertexBufferUsage::PK_BUFFER_USAGE_STATIC));
+
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		}
 

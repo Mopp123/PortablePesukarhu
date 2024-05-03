@@ -1,6 +1,8 @@
 #pragma once
 
 #include <climits>
+// TODO: After "primitive datatype overhaul" completed, this is no more needed here!!
+// -> delete it
 #include <GL/glew.h>
 
 //#define PK_BUILD_WINDOWS
@@ -14,6 +16,9 @@
 
 #define PK_byte		char
 #define PK_ubyte	unsigned char
+// TODO: Find all places where below are used and replace with primitive types
+// (primitive types should work with opengl/gles as well)
+// * Delete below
 #define PK_float	GLfloat
 #define PK_int		GLint
 #define PK_uint		GLuint
@@ -27,11 +32,12 @@
 #define PK_LIMITS_DRAWCALL_MAX_VERTEX_DATA_LEN (USHRT_MAX)
 
 
-
-enum PK_ShaderDatatype
-{
-	PK_FLOAT = GL_FLOAT
-};
+// NOTE: Below moved to Buffers.h and platform specific <platform>Buffers.h files!
+// TODO: Delete below!
+// enum PK_ShaderDatatype
+// {
+// 	PK_FLOAT = GL_FLOAT
+// };
 
 #endif
 
