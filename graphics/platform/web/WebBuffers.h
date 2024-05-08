@@ -1,42 +1,54 @@
 #pragma once
 
-
 #include "../../Buffers.h"
+
 
 namespace pk
 {
-	namespace web
-	{
+    namespace web
+    {
+        class WebVertexBuffer : public VertexBuffer
+        {
+        private:
+            uint32_t _id = 0;
 
-		class WebVertexBuffer : public VertexBuffer
-		{
-		private:
+        public:
+            WebVertexBuffer(const std::vector<float>& data, VertexBufferUsage usage);
+            ~WebVertexBuffer();
 
-			uint32_t _id = 0;
+            virtual void update(const std::vector<float>& newData, int offset, int size) override;
 
-		public:
+            inline uint32_t getID() const { return _id; }
+        };
 
-			WebVertexBuffer(const std::vector<float>& data, VertexBufferUsage usage);
-			~WebVertexBuffer();
 
-			virtual void update(const std::vector<float>& newData, int offset, int size) override;
+        class WebIndexBuffer : public IndexBuffer
+        {
+        private:
+            uint32_t _id = 0;
 
-			inline uint32_t getID() const { return _id; }
-		};
+        public:
+            WebIndexBuffer(const std::vector<unsigned short>& data);
+            ~WebIndexBuffer();
 
-		class WebIndexBuffer : public IndexBuffer
-		{
-		private:
+            inline uint32_t getID() const { return _id; }
+        };
 
-			uint32_t _id = 0;
 
-		public:
+        class WebBuffer : public Buffer
+        {
+        private:
+            friend class Buffer;
 
-			WebIndexBuffer(const std::vector<unsigned short>& data);
-			~WebIndexBuffer();
+            uint32_t _id = 0;
+            bool _isIndexBuffer = false;
 
-			inline uint32_t getID() const { return _id; }
+        public:
+            ~WebBuffer();
+            inline uint32_t getID() const { return _id; }
 
-		};
-	}
+        private:
+            WebBuffer(void* data, size_t elementSize, size_t dataLength, uint32_t bufferUsageFlags);
+        };
+    }
 }

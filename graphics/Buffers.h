@@ -94,8 +94,28 @@ namespace pk
         inline const std::vector<VertexBufferElement>& getElements() const { return _elements; }
     };
 
+
     class Buffer
     {
+    protected:
+        void* _data = nullptr;
+        size_t _dataElemSize = 0; // size of a single entry in data
+        size_t _dataLength = 0; // number of elements in the data
+
     public:
+        virtual ~Buffer();
+
+        inline const void* getData() const { return _data; }
+        inline size_t getDataLength() const { return _dataLength; }
+        inline size_t getDataElemSize() const { return _dataElemSize; }
+
+        static Buffer* create(void* data, size_t elementSize, size_t dataLength, uint32_t bufferUsageFlags);
+
+    private:
+        // *NOTE! "dataLength" number of "elements" in the "data buffer" (NOT total size)
+        // *NOTE! "elementSize" single element's size in "data buffer"
+        // *NOTE! "Data" gets just copied here! Ownership of the data doesn't get transferred here!
+        // (This is to accomplish RAII(and resource lifetimes to be tied to objects' lifetimes) and copying to work correctly)
+        Buffer(void* data, size_t elementSize, size_t dataLength, uint32_t bufferUsageFlags);
     };
 }
