@@ -4,6 +4,7 @@
 #include <vector>
 // Not sure is it just YCM issues with emscripten why syntax error if not including this
 #include <cstdint>
+#include <cstring>
 
 // Don't remember why this was included in the first place!?
 // TODO: Delete?
@@ -27,7 +28,8 @@ namespace pk
         Float4
     };
 
-
+    // TODO: Get rid of this or rename!
+    // Explanation: Switched to use Vulkan engine style BufferUsageFlagBits
     enum VertexBufferUsage
     {
         PK_BUFFER_USAGE_STATIC,
