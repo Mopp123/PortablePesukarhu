@@ -67,9 +67,9 @@ namespace pk
             if (bufferUsageFlags & invalidMask)
             {
                 Debug::log(
-                    "Attempted to create WebBuffer with invalid bufferUsageFlags. WebBuffer can have only a single bufferUsageFlag bit set!",
-                    Debug::MessageType::PK_FATAL_ERROR
-                );
+                        "Attempted to create WebBuffer with invalid bufferUsageFlags. WebBuffer can have only a single bufferUsageFlag bit set!",
+                        Debug::MessageType::PK_FATAL_ERROR
+                        );
                 return;
             }
 

@@ -10,6 +10,7 @@ namespace pk
 {
     namespace web
     {
+        // TODO: SWITCH TO USE BELOW RATHER!
         class WebShader : public Shader
         {
         public:
@@ -29,10 +30,33 @@ namespace pk
             void setUniform1i(int location, int val) const;
 
             inline uint32_t getProgramID() const { return _programID; }
+        };
+
+
+        // TODO: Create and link the "combined gl shader program" in the pipeline creation
+        // -> this is to have completely separate "shader module structure" for different
+        // stages like in vulkan..
+        class WebShader_NEW : public Shader
+        {
+        public:
+            uint32_t _shaderID = 0;
+
+        public:
+            WebShader_NEW(const std::string& source);
+            ~WebShader_NEW();
+
+            int getAttribLocation(const char* name) const;
+            int getUniformLocation(const char* name) const;
+            void setUniform(int location, const mat4& matrix) const;
+            void setUniform(int location, const vec3& v) const;
+            void setUniform(int location, float val) const;
+            void setUniform1i(int location, int val) const;
+
+            inline uint32_t getID() const { return _shaderID; }
 
 
         private:
-            uint32_t createShaderStage(const std::string& source, GLenum type);
+            void getUniformLocations();
 
         };
     }

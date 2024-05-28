@@ -1,16 +1,96 @@
 #include "WebShader.h"
 #include "../../../../core/Debug.h"
+#include <vector>
+#include <sstream>
 
 
 namespace pk
 {
     namespace web
     {
+        uint32_t create_shader_stage(const std::string& source, GLenum type)
+        {
+            GLuint shaderID = glCreateShader(type);
+
+            if (shaderID == 0)
+            {
+                Debug::log("Failed to create shader stage(type: " + std::to_string(type) + ")", Debug::MessageType::PK_FATAL_ERROR);
+                return 0;
+            }
+
+            const char* source_cstr = source.c_str();
+            glShaderSource(shaderID, 1, &source_cstr, NULL);
+
+            glCompileShader(shaderID);
+
+            GLint compileStatus = 0;
+            glGetShaderiv(shaderID, GL_COMPILE_STATUS, &compileStatus);
+
+            if (!compileStatus)
+            {
+                GLint infoLogLength = 0;
+                glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
+
+                if (infoLogLength > 0)
+                {
+                    char* infoLog = new char[infoLogLength];
+
+                    glGetShaderInfoLog(shaderID, infoLogLength, &infoLogLength, infoLog);
+
+                    Debug::log("Failed to compile shader stage(type: " + std::to_string(type) + ")\nInfoLog:\n" + infoLog, Debug::MessageType::PK_FATAL_ERROR);
+
+                    delete[] infoLog;
+                }
+
+                glDeleteShader(shaderID);
+            }
+
+            Debug::log("Shader stage created successfully(type: " + std::to_string(type) + ")");
+
+            return shaderID;
+        }
+
+
+        // NOTE: Doesn't work properly if source contains /**/ kind of comments!
+        // NOTE: NOT COMPLETE YET!!!
+        // Supposed to be used to automatically get locations of uniforms
+        std::vector<std::string> get_uniform_locations(const std::string shaderSource)
+        {
+            std::string line = "";
+            std::istringstream in(shaderSource);
+            std::vector<std::string> uniforms;
+
+            while (getline(in, line))
+            {
+                std::vector<std::string> components;
+                size_t nextDelim = 0;
+                while ((nextDelim = line.find(" ")) != std::string::npos)
+                {
+                    std::string component = line.substr(0, nextDelim);
+                    if (component != " " && component != "\t" && component != "\0")
+                        components.push_back(component);
+                    line.erase(0, nextDelim + 1);
+                }
+                components.push_back(line);
+                if (components.size() >= 3)
+                {
+                    if (components[0] == "uniform")
+                    {
+                        std::string& name = components[2];
+                        size_t endpos = name.find(";");
+                        name.erase(endpos, 1);
+                        uniforms.push_back(name);
+                    }
+                }
+            }
+            return uniforms;
+        }
+
+
         WebShader::WebShader(const std::string& vertexSource, const std::string& fragmentSource)
         {
-
-            _vertexShaderID = createShaderStage(vertexSource, GL_VERTEX_SHADER);
-            _fragmentShaderID = createShaderStage(fragmentSource, GL_FRAGMENT_SHADER);
+            _vertexShaderID = create_shader_stage(vertexSource, GL_VERTEX_SHADER);
+            _fragmentShaderID = create_shader_stage(fragmentSource, GL_FRAGMENT_SHADER);
 
             _programID = glCreateProgram();
 
@@ -97,47 +177,6 @@ namespace pk
         }
 
 
-        uint32_t WebShader::createShaderStage(const std::string& source, GLenum type)
-        {
-            GLuint shaderID = glCreateShader(type);
-
-            if (shaderID == 0)
-            {
-                Debug::log("Failed to create shader stage(type: " + std::to_string(type) + ")", Debug::MessageType::PK_FATAL_ERROR);
-                return 0;
-            }
-
-            const char* source_cstr = source.c_str();
-            glShaderSource(shaderID, 1, &source_cstr, NULL);
-
-            glCompileShader(shaderID);
-
-            GLint compileStatus = 0;
-            glGetShaderiv(shaderID, GL_COMPILE_STATUS, &compileStatus);
-
-            if (!compileStatus)
-            {
-                GLint infoLogLength = 0;
-                glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
-
-                if (infoLogLength > 0)
-                {
-                    char* infoLog = new char[infoLogLength];
-
-                    glGetShaderInfoLog(shaderID, infoLogLength, &infoLogLength, infoLog);
-
-                    Debug::log("Failed to compile shader stage(type: " + std::to_string(type) + ")\nInfoLog:\n" + infoLog, Debug::MessageType::PK_FATAL_ERROR);
-
-                    delete[] infoLog;
-                }
-
-                glDeleteShader(shaderID);
-            }
-
-            Debug::log("Shader stage created successfully(type: " + std::to_string(type) + ")");
-
-            return shaderID;
-        }
 
     }
 }

@@ -44,10 +44,11 @@ namespace pk
             bool _isIndexBuffer = false;
 
         public:
+            WebBuffer(const WebBuffer&) = delete;
             ~WebBuffer();
             inline uint32_t getID() const { return _id; }
 
-        private:
+        protected:
             WebBuffer(void* data, size_t elementSize, size_t dataLength, uint32_t bufferUsageFlags);
         };
     }
