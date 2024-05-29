@@ -17,9 +17,22 @@ namespace pk
         uint32_t height;
     };
 
+
     class Pipeline
     {
     public:
+        Pipeline(const Pipeline&) = delete;
+        virtual ~Pipeline() {}
+
+        static Pipeline* create(
+            const std::vector<VertexBufferLayout>& vertexBufferLayouts,
+            const std::vector<DescriptorSetLayout>& descriptorLayouts,
+            const Shader* pVertexShader, const Shader* pFragmentShader,
+            float viewportWidth, float viewportHeight,
+            const Rect2D viewportScissor
+        );
+
+    protected:
         // TODO:
         // * RenderPass
         // * deal with push constants..
@@ -27,12 +40,12 @@ namespace pk
             //const RenderPass& renderPass,
             const std::vector<VertexBufferLayout>& vertexBufferLayouts,
             const std::vector<DescriptorSetLayout>& descriptorLayouts,
-            const Shader& vertexShader, const Shader& fragmentShader,
+            const Shader* pVertexShader, const Shader* pFragmentShader,
             float viewportWidth, float viewportHeight,
             const Rect2D viewportScissor
             //uint32_t pushConstantSize = 0, VkShaderStageFlags pushConstantStageFlags = VK_SHADER_STAGE_VERTEX_BIT
-        );
-        virtual ~Pipeline();
+        )
+        {}
 
         // Originally used on vulkan project to recreate pipeline on window resize/other swapchain inadequate event..
         /*

@@ -1,5 +1,6 @@
 #include "WebShader.h"
 #include "../../../../core/Debug.h"
+#include "graphics/platform/opengl/OpenglContext.h"
 #include <vector>
 #include <sstream>
 
@@ -51,42 +52,7 @@ namespace pk
         }
 
 
-        // NOTE: Doesn't work properly if source contains /**/ kind of comments!
-        // NOTE: NOT COMPLETE YET!!!
-        // Supposed to be used to automatically get locations of uniforms
-        std::vector<std::string> get_uniform_locations(const std::string shaderSource)
-        {
-            std::string line = "";
-            std::istringstream in(shaderSource);
-            std::vector<std::string> uniforms;
-
-            while (getline(in, line))
-            {
-                std::vector<std::string> components;
-                size_t nextDelim = 0;
-                while ((nextDelim = line.find(" ")) != std::string::npos)
-                {
-                    std::string component = line.substr(0, nextDelim);
-                    if (component != " " && component != "\t" && component != "\0")
-                        components.push_back(component);
-                    line.erase(0, nextDelim + 1);
-                }
-                components.push_back(line);
-                if (components.size() >= 3)
-                {
-                    if (components[0] == "uniform")
-                    {
-                        std::string& name = components[2];
-                        size_t endpos = name.find(";");
-                        name.erase(endpos, 1);
-                        uniforms.push_back(name);
-                    }
-                }
-            }
-            return uniforms;
-        }
-
-
+        // NOTE: OLD BELOW! atm want to be able to use the old system as well..
         WebShader::WebShader(const std::string& vertexSource, const std::string& fragmentSource)
         {
             _vertexShaderID = create_shader_stage(vertexSource, GL_VERTEX_SHADER);

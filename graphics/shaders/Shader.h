@@ -7,6 +7,7 @@ namespace pk
 {
     enum ShaderStageFlagBits
     {
+        SHADER_STAGE_NONE = 0,
         SHADER_STAGE_VERTEX_BIT = 0x1,
         SHADER_STAGE_FRAGMENT_BIT = 0x2
     };
@@ -14,8 +15,20 @@ namespace pk
 
     class Shader
     {
+    protected:
+        ShaderStageFlagBits _stage = ShaderStageFlagBits::SHADER_STAGE_NONE;
+
     public:
+        // NOTE: need to support old way of using shaders for now!
+        // TODO: Switch everythin to use new system eventually..
         Shader() {}
         virtual ~Shader() {}
+
+        static Shader* create(const std::string& shaderSource, ShaderStageFlagBits stage);
+
+    protected:
+        Shader(const std::string& shaderSource, ShaderStageFlagBits stage) :
+            _stage(stage)
+        {}
     };
 }
