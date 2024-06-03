@@ -24,7 +24,6 @@ namespace pk
         void WebRenderCommand::endFrame()
         {}
 
-
         // NOTE: atm just quick hack and only opengl specific!!!
         void WebRenderCommand::resizeViewport(int width, int height)
         {

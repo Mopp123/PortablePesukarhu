@@ -18,6 +18,14 @@ namespace pk
     };
 
 
+    enum PipelineBindPoint
+    {
+        PIPELINE_BIND_POINT_NONE = 0,
+        PIPELINE_BIND_POINT_COMPUTE = 1,
+        PIPELINE_BIND_POINT_GRAPHICS = 2
+    };
+
+
     class Pipeline
     {
     public:

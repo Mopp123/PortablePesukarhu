@@ -50,6 +50,14 @@ namespace pk
     };
 
 
+    enum IndexType
+    {
+        INDEX_TYPE_NONE = 0,
+        INDEX_TYPE_UINT16 = 1,
+        INDEX_TYPE_UINT32 = 2
+    };
+
+
     class VertexBuffer
     {
     protected:
