@@ -38,7 +38,8 @@ namespace pk
 
         virtual void bindPipeline(
             CommandBuffer* pCmdBuf,
-            PipelineBindPoint pipelineBindPoint
+            PipelineBindPoint pipelineBindPoint,
+            Pipeline* pPipeline
         ) = 0;
 
         virtual void bindIndexBuffer(

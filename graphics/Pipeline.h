@@ -56,6 +56,8 @@ namespace pk
         {}
 
         // Originally used on vulkan project to recreate pipeline on window resize/other swapchain inadequate event..
+        // NOTE: NOT TO BE CONFUSED IN THIS PROJECT'S GENERAL SYSTEM OF "create" FUNCS
+        // TO CREATE API SPECIFIC SYSTEMS!
         /*
         void cleanUp();
         void create(

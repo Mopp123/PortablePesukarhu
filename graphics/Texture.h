@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdint>
+
+
 namespace pk
 {
 
@@ -48,13 +51,13 @@ namespace pk
 		int _height = 0;
 		int _channels = 3;
 		// Can be used to specify how many "individual sprites" inside a "texture atlas", containing multiple sprites
-		int _tiling = 1; 
+		int _tiling = 1;
 	public:
 
 		Texture(TextureSampler sampler, int tiling = 1) :
 			_sampler(sampler), _tiling(tiling)
 		{}
-		Texture(TextureSampler sampler, int width, int height, int channels) : 
+		Texture(TextureSampler sampler, int width, int height, int channels) :
 			_sampler(sampler), _width(width), _height(height), _channels(channels)
 		{}
 		virtual ~Texture()
