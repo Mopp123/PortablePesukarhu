@@ -14,6 +14,7 @@ namespace pk
         class WebCommandBuffer : public CommandBuffer
         {
         private:
+            friend class CommandBuffer;
             friend class WebRenderCommand;
 
             // On all opengl shit we need to know about currently bound pipeline
@@ -26,8 +27,11 @@ namespace pk
             opengl::OpenglPipeline* _pPipeline = nullptr; // Might cause some problems tho.. figure that out.. bitch..
 
         public:
+            WebCommandBuffer(const WebCommandBuffer&) = delete;
+            ~WebCommandBuffer() {}
+
+        private:
             WebCommandBuffer() {}
-            virtual ~WebCommandBuffer() {}
         };
     }
 }

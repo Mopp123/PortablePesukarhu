@@ -8,9 +8,14 @@ namespace pk
     Pipeline* Pipeline::create(
         const std::vector<VertexBufferLayout>& vertexBufferLayouts,
         const std::vector<DescriptorSetLayout>& descriptorLayouts,
+        ShaderVersion shaderVersion,
         const Shader* pVertexShader, const Shader* pFragmentShader,
         float viewportWidth, float viewportHeight,
-        const Rect2D viewportScissor
+        const Rect2D viewportScissor,
+        CullMode cullMode,
+        FrontFace frontFace,
+        bool enableDepthTest,
+        DepthCompareOperation depthCmpOp
     )
     {
         const uint32_t api = Context::get_api_type();
@@ -20,9 +25,14 @@ namespace pk
                 return new opengl::OpenglPipeline(
                     vertexBufferLayouts,
                     descriptorLayouts,
+                    shaderVersion,
                     pVertexShader, pFragmentShader,
                     viewportWidth, viewportHeight,
-                    viewportScissor
+                    viewportScissor,
+                    cullMode,
+                    frontFace,
+                    enableDepthTest,
+                    depthCmpOp
                 );
             default:
                 Debug::log(

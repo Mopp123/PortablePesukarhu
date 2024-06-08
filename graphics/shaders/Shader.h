@@ -12,6 +12,15 @@ namespace pk
         SHADER_STAGE_FRAGMENT_BIT = 0x2
     };
 
+    // Atm used for determining how to handle gl shader
+    // attrib and uniform locations if required to handle
+    // at all..
+    enum class ShaderVersion
+    {
+        GLSL3,
+        ESSL1
+    };
+
 
     class Shader
     {

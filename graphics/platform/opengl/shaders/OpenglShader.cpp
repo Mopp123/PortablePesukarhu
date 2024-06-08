@@ -9,40 +9,6 @@ namespace pk
 {
     namespace opengl
     {
-        // NOTE: Doesn't work properly if source contains /**/ kind of comments!
-        // NOTE: NOT COMPLETE YET!!!
-        // Supposed to be used to automatically get locations of uniforms
-        std::vector<std::string> get_uniform_locations(const std::string shaderSource)
-        {
-            std::string line = "";
-            std::istringstream in(shaderSource);
-            std::vector<std::string> uniforms;
-
-            while (getline(in, line))
-            {
-                std::vector<std::string> components;
-                size_t nextDelim = 0;
-                while ((nextDelim = line.find(" ")) != std::string::npos)
-                {
-                    std::string component = line.substr(0, nextDelim);
-                    if (component != " " && component != "\t" && component != "\0")
-                        components.push_back(component);
-                    line.erase(0, nextDelim + 1);
-                }
-                components.push_back(line);
-                if (components.size() >= 3)
-                {
-                    if (components[0] == "uniform")
-                    {
-                        std::string& name = components[2];
-                        size_t endpos = name.find(";");
-                        name.erase(endpos, 1);
-                        uniforms.push_back(name);
-                    }
-                }
-            }
-            return uniforms;
-        }
 
 
         // NOTE: Not tested after moving this here from platform/web/shaders and
@@ -106,8 +72,9 @@ namespace pk
 
 
         OpenglShaderProgram::OpenglShaderProgram(
-            OpenglShader* pVertexShader,
-            OpenglShader* pFragmentShader
+            ShaderVersion shaderVersion,
+            const OpenglShader* pVertexShader,
+            const OpenglShader* pFragmentShader
         )
         {
             _pVertexShader = pVertexShader;
@@ -150,6 +117,15 @@ namespace pk
                 {
                     glValidateProgram(_programID);
                     Debug::log("OpenglShader created successfully");
+                    // NOTE: Below not tested!! May not work!
+                    if (shaderVersion == ShaderVersion::ESSL1)
+                    {
+                        Debug::log(
+                            "\t->Version was ESSL1. Attempting to get attrib and uniform locations..."
+                        );
+                        findLocationsESSL1(_pVertexShader->getSource());
+                        findLocationsESSL1(_pFragmentShader->getSource());
+                    }
                 }
             }
             else
@@ -172,15 +148,49 @@ namespace pk
             glDeleteProgram(_programID);
         }
 
-        int OpenglShaderProgram::getAttribLocation(const char* name) const
+        // NOTE: Works only with Opengl ES Shading language v1
+        //  * NOT TESTED, MAY NOT WORK!
+        //  * Doesn't work properly if source contains /**/ kind of comments!
+        // Supposed to be used to automatically get locations of attribs and uniforms
+        // NOTE: why source not in as ref?
+        void OpenglShaderProgram::findLocationsESSL1(const std::string shaderSource)
         {
-            return glGetAttribLocation(_programID, name);
+            std::string line = "";
+            std::istringstream in(shaderSource);
+            std::vector<std::string> locations;
+
+            while (getline(in, line))
+            {
+                std::vector<std::string> components;
+                size_t nextDelim = 0;
+                while ((nextDelim = line.find(" ")) != std::string::npos)
+                {
+                    std::string component = line.substr(0, nextDelim);
+                    if (component != " " && component != "\t" && component != "\0")
+                        components.push_back(component);
+                    line.erase(0, nextDelim + 1);
+                }
+                components.push_back(line);
+                if (components.size() >= 3)
+                {
+                    if (components[0] == "attribute")
+                        _attribLocations.push_back(glGetAttribLocation(_programID, components[2].c_str()));
+                    else if (components[0] == "uniform")
+                        _uniformLocations.push_back(glGetUniformLocation(_programID, components[2].c_str()));
+                }
+            }
         }
 
-        int OpenglShaderProgram::getUniformLocation(const char* name) const
-        {
-            return glGetUniformLocation(_programID, name);
-        }
+        // TODO: delete commented out?
+        //int32_t OpenglShaderProgram::getAttribLocation(const char* name) const
+        //{
+        //    return glGetAttribLocation(_programID, name);
+        //}
+
+        //int32_t OpenglShaderProgram::getUniformLocation(const char* name) const
+        //{
+        //    return glGetUniformLocation(_programID, name);
+        //}
 
         void OpenglShaderProgram::setUniform(int location, const mat4& matrix) const
         {

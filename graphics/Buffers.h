@@ -28,6 +28,8 @@ namespace pk
         Float4
     };
 
+    int32_t get_shader_data_type_component_count(ShaderDataType type);
+
     enum VertexInputRate
     {
         VERTEX_INPUT_RATE_VERTEX = 0,
@@ -103,6 +105,7 @@ namespace pk
         VertexInputRate _inputRate = VertexInputRate::VERTEX_INPUT_RATE_VERTEX;
 
     public:
+        // NOTE: Not sure if copying elems goes correctly here..
         VertexBufferLayout(std::vector<VertexBufferElement> elems, VertexInputRate inputRate) :
             _elements(elems),
             _inputRate(inputRate)
@@ -124,8 +127,8 @@ namespace pk
         virtual ~Buffer();
 
         inline const void* getData() const { return _data; }
-        inline size_t getDataLength() const { return _dataLength; }
         inline size_t getDataElemSize() const { return _dataElemSize; }
+        inline size_t getDataLength() const { return _dataLength; }
 
         // NOTE: Might not work.. not tested yet...
         static Buffer* create(void* data, size_t elementSize, size_t dataLength, uint32_t bufferUsageFlags);

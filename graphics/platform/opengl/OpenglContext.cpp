@@ -16,8 +16,47 @@ namespace pk
                     return GL_FRAGMENT_SHADER;
                 default:
                     Debug::log(
-                        "@GLenum to_gl_shader(ShaderStageFlagBits) "
+                        "@to_gl_shader "
                         "Invalid stage: " + std::to_string((uint32_t)stage),
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
+                    return 0;
+            }
+        }
+
+
+        GLenum to_gl_data_type(ShaderDataType shaderDataType)
+        {
+            switch (shaderDataType)
+            {
+                case ShaderDataType::None:
+                    Debug::log(
+                        "@to_gl_data_type Invalid shaderDataType <NONE>",
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
+                    return 0;
+
+                case ShaderDataType::Int:
+                    return GL_INT;
+                case ShaderDataType::Int2:
+                    return GL_INT;
+                case ShaderDataType::Int3:
+                    return GL_INT;
+                case ShaderDataType::Int4:
+                    return GL_INT;
+
+                case ShaderDataType::Float:
+                    return GL_FLOAT;
+                case ShaderDataType::Float2:
+                    return GL_FLOAT;
+                case ShaderDataType::Float3:
+                    return GL_FLOAT;
+                case ShaderDataType::Float4:
+                    return GL_FLOAT;
+
+                default:
+                    Debug::log(
+                        "@to_gl_data_type Invalid shaderDataType",
                         Debug::MessageType::PK_FATAL_ERROR
                     );
                     return 0;

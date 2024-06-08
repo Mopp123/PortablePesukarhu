@@ -26,6 +26,34 @@ namespace pk
     };
 
 
+    enum CullMode
+    {
+        CULL_MODE_NONE = 0,
+        CULL_MODE_FRONT = 1,
+        CULL_MODE_BACK = 2
+    };
+
+
+    enum FrontFace
+    {
+        FRONT_FACE_COUNTER_CLOCKWISE = 0,
+        FRONT_FACE_CLOCKWISE = 1
+    };
+
+
+    enum DepthCompareOperation
+    {
+        COMPARE_OP_NEVER = 0,
+        COMPARE_OP_LESS = 1,
+        COMPARE_OP_EQUAL = 2,
+        COMPARE_OP_LESS_OR_EQUAL = 3,
+        COMPARE_OP_GREATER = 4,
+        COMPARE_OP_NOT_EQUAL = 5,
+        COMPARE_OP_GREATER_OR_EQUAL = 6,
+        COMPARE_OP_ALWAYS = 7,
+    };
+
+
     class Pipeline
     {
     public:
@@ -35,9 +63,14 @@ namespace pk
         static Pipeline* create(
             const std::vector<VertexBufferLayout>& vertexBufferLayouts,
             const std::vector<DescriptorSetLayout>& descriptorLayouts,
+            ShaderVersion shaderVersion,
             const Shader* pVertexShader, const Shader* pFragmentShader,
             float viewportWidth, float viewportHeight,
-            const Rect2D viewportScissor
+            const Rect2D viewportScissor,
+            CullMode cullMode,
+            FrontFace frontFace,
+            bool enableDepthTest,
+            DepthCompareOperation depthCmpOp
         );
 
     protected:
@@ -48,10 +81,15 @@ namespace pk
             //const RenderPass& renderPass,
             const std::vector<VertexBufferLayout>& vertexBufferLayouts,
             const std::vector<DescriptorSetLayout>& descriptorLayouts,
+            ShaderVersion shaderVersion,
             const Shader* pVertexShader, const Shader* pFragmentShader,
             float viewportWidth, float viewportHeight,
-            const Rect2D viewportScissor
+            const Rect2D viewportScissor,
             //uint32_t pushConstantSize = 0, VkShaderStageFlags pushConstantStageFlags = VK_SHADER_STAGE_VERTEX_BIT
+            CullMode cullMode,
+            FrontFace frontFace,
+            bool enableDepthTest,
+            DepthCompareOperation depthCmpOp
         )
         {}
 

@@ -6,7 +6,7 @@
 namespace pk
 {
 
-    CommandBuffer* create()
+    CommandBuffer* CommandBuffer::create()
     {
         const uint32_t api = Context::get_api_type();
         switch(api)

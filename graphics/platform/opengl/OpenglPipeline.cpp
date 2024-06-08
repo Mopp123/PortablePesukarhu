@@ -1,4 +1,5 @@
 #include "graphics/platform/opengl/OpenglPipeline.h"
+#include "core/Debug.h"
 
 
 namespace pk
@@ -8,9 +9,14 @@ namespace pk
         OpenglPipeline::OpenglPipeline(
             const std::vector<VertexBufferLayout>& vertexBufferLayouts,
             const std::vector<DescriptorSetLayout>& descriptorLayouts,
+            ShaderVersion shaderVersion,
             const Shader* pVertexShader, const Shader* pFragmentShader,
             float viewportWidth, float viewportHeight,
-            const Rect2D viewportScissor
+            const Rect2D viewportScissor,
+            CullMode cullMode,
+            FrontFace frontFace,
+            bool enableDepthTest,
+            DepthCompareOperation depthCmpOp
         ) :
             // Kind of dumb...
             // inherited class doesnt really do anything with these,
@@ -18,9 +24,14 @@ namespace pk
             Pipeline(
                 vertexBufferLayouts,
                 descriptorLayouts,
+                shaderVersion,
                 pVertexShader, pFragmentShader,
                 viewportWidth, viewportHeight,
-                viewportScissor
+                viewportScissor,
+                cullMode,
+                frontFace,
+                enableDepthTest,
+                depthCmpOp
             ),
 
             _vertexBufferLayouts(vertexBufferLayouts),
@@ -29,9 +40,16 @@ namespace pk
             _viewportHeight(viewportHeight),
 
             _shaderProgram(
+                shaderVersion,
                 (const OpenglShader*)pVertexShader,
                 (const OpenglShader*)pFragmentShader
-            )
+            ),
+
+            _cullMode(cullMode),
+            _frontFace(frontFace),
+
+            _enableDepthTest(enableDepthTest),
+            _depthCmpOp(depthCmpOp)
         {
         }
     }
