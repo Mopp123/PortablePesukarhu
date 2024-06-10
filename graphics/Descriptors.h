@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Buffers.h"
+#include "Texture.h"
 #include "shaders/Shader.h"
 #include <vector>
 
@@ -14,6 +15,32 @@ namespace pk
     };
 
 
+    /*  Specifies Uniform buffer struct's layout
+     *  NOTE: This is only used by web platform (webgl1/ES2)
+     *  since no actual uniform buffers available
+     *
+     *  Example:
+     *
+     *  struct DirectionalLight
+     *  {
+     *      vec3 direction;
+     *      vec3 color;
+     *  };
+     *
+     *  above should specify UniformBufferInfo's layout as:
+     *  {
+     *      ShaderDataType::Float3, ShaderDataType::Float3
+     *  }
+     *
+     *  location index means how many"th" uniform in shader's all uniforms this one is at
+     * */
+    struct UniformInfo
+    {
+        std::vector<ShaderDataType> structLayout;
+        int locationIndex = -1;
+    };
+
+
     class DescriptorSetLayoutBinding
     {
     private:
@@ -21,18 +48,28 @@ namespace pk
         DescriptorType _type = DescriptorType::DESCRIPTOR_TYPE_NONE;
         unsigned int _shaderStageFlags = 0;
 
+        UniformInfo _uniformInfo;
+
     public:
         // NOTE: Don't remember why I allowed having multiple shader stage flags...
-        DescriptorSetLayoutBinding(uint32_t binding, uint32_t descriptorCount, DescriptorType type, unsigned int shaderStageFlags) :
+        DescriptorSetLayoutBinding(
+            uint32_t binding,
+            uint32_t descriptorCount,
+            DescriptorType type,
+            unsigned int shaderStageFlags,
+            UniformInfo uniformInfo = {}
+        ) :
             _binding(binding),
             _type(type),
-            _shaderStageFlags(shaderStageFlags)
+            _shaderStageFlags(shaderStageFlags),
+            _uniformInfo(uniformInfo)
         {}
 
         DescriptorSetLayoutBinding(const DescriptorSetLayoutBinding& other) :
             _binding(other._binding),
             _type(other._type),
-            _shaderStageFlags(other._shaderStageFlags)
+            _shaderStageFlags(other._shaderStageFlags),
+            _uniformInfo(other._uniformInfo)
         {}
 
         virtual ~DescriptorSetLayoutBinding() {}
@@ -40,6 +77,7 @@ namespace pk
         inline uint32_t getBinding() const { return _binding; }
         inline DescriptorType getType() const { return _type; }
         inline uint32_t getShaderStageFlags() const { return _shaderStageFlags; }
+        inline const UniformInfo& getUniformInfo() const { return _uniformInfo; }
     };
 
 
@@ -56,19 +94,41 @@ namespace pk
         virtual ~DescriptorSetLayout() {}
         // Don't remember why earlier I had separate func for destroying...
         // void destroy();
+
+        inline const std::vector<DescriptorSetLayoutBinding>& getBindings() const { return _bindings; }
     };
 
 
     class DescriptorSet
     {
     private:
+        DescriptorSetLayout _layout;
         std::vector<Buffer*> _pBuffers;
+        std::vector<Texture_new*> _pTextures;
 
     public:
-        DescriptorSet(DescriptorSetLayout layout, uint32_t descriptorCount, std::vector<Buffer*> pBuffers) :
+        DescriptorSet(
+            DescriptorSetLayout layout,
+            uint32_t descriptorCount,
+            std::vector<Buffer*> pBuffers
+        ) :
+            _layout(layout),
             _pBuffers(pBuffers)
         {}
 
+        DescriptorSet(
+            DescriptorSetLayout layout,
+            uint32_t descriptorCount,
+            std::vector<Texture_new*> pTextures
+        ) :
+            _layout(layout),
+            _pTextures(pTextures)
+        {}
+
         virtual ~DescriptorSet() {}
+
+        inline const DescriptorSetLayout& getLayout() const { return _layout; }
+        inline const std::vector<Buffer*>& getBuffers() const { return _pBuffers; }
+        inline const std::vector<Texture_new*>& getTextures() const { return _pTextures; }
     };
 }

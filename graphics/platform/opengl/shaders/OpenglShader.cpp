@@ -3,12 +3,28 @@
 #include "graphics/platform/opengl/OpenglContext.h"
 #include <vector>
 #include <sstream>
+#include <set>
 
 
 namespace pk
 {
     namespace opengl
     {
+        static std::set<std::string> s_ESSLBasicTypes = {
+            "bool",
+            "int",
+            "uint",
+            "float",
+            "double",
+            "ivec2",
+            "ivec3",
+            "ivec4",
+            "vec2",
+            "vec3",
+            "vec4",
+            "mat4",
+            "sampler2D"
+        };
 
 
         // NOTE: Not tested after moving this here from platform/web/shaders and
@@ -157,12 +173,20 @@ namespace pk
         {
             std::string line = "";
             std::istringstream in(shaderSource);
-            std::vector<std::string> locations;
+
+            std::unordered_map<std::string, std::vector<std::string>> structList;
+            bool recordStruct = false;
+            std::string recordStructName = "";
 
             while (getline(in, line))
             {
                 std::vector<std::string> components;
                 size_t nextDelim = 0;
+                // remove ';' completely, we dont need that here for anythin..
+                size_t endpos = line.find(";");
+                if (endpos != std::string::npos)
+                    line.erase(endpos, 1);
+
                 while ((nextDelim = line.find(" ")) != std::string::npos)
                 {
                     std::string component = line.substr(0, nextDelim);
@@ -171,12 +195,61 @@ namespace pk
                     line.erase(0, nextDelim + 1);
                 }
                 components.push_back(line);
-                if (components.size() >= 3)
+
+                if (!recordStruct)
                 {
-                    if (components[0] == "attribute")
-                        _attribLocations.push_back(glGetAttribLocation(_programID, components[2].c_str()));
-                    else if (components[0] == "uniform")
-                        _uniformLocations.push_back(glGetUniformLocation(_programID, components[2].c_str()));
+                    if (components.size() == 2)
+                    {
+                        if (components[0] == "struct")
+                        {
+                            recordStructName = components[1];
+                            recordStruct = true;
+                        }
+                    }
+                    if (components.size() >= 3)
+                    {
+                        if (components[0] == "attribute")
+                        {
+                            _attribLocations.push_back(glGetAttribLocation(_programID, components[2].c_str()));
+                        }
+                        else if (components[0] == "uniform")
+                        {
+                            const std::string& type = components[1];
+                            if (s_ESSLBasicTypes.find(type) != s_ESSLBasicTypes.end())
+                            {
+                                _uniformLocations.push_back(glGetUniformLocation(_programID, components[2].c_str()));
+                            }
+                            else
+                            {
+                                // If uniform struct, need to find all like: "uniformstructname.values"
+                                const std::string& structName = components[1];
+                                if (structList.find(structName) != structList.end())
+                                {
+                                    const std::string& uniformName = components[2];
+                                    for (std::string s : structList[structName])
+                                    {
+                                        std::string finalUniformName = uniformName + "." + s;
+                                        _uniformLocations.push_back(glGetUniformLocation(_programID, finalUniformName.c_str()));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (components.size() > 0)
+                    {
+                        if (components[0] == "}")
+                        {
+                            recordStructName.clear();
+                            recordStruct = false;
+                        }
+                        else if (components[0] != "{" && components.size() >= 2)
+                        {
+                            structList[recordStructName].push_back(components[1]);
+                        }
+                    }
                 }
             }
         }

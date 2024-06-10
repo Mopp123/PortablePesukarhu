@@ -26,6 +26,9 @@ namespace pk
             // This will be assigned when calling RenderCommand's bindPipeline function
             opengl::OpenglPipeline* _pPipeline = nullptr; // Might cause some problems tho.. figure that out.. bitch..
 
+            // Used to determine glDrawElements' type
+            IndexType _drawIndexedType = IndexType::INDEX_TYPE_NONE;
+
         public:
             WebCommandBuffer(const WebCommandBuffer&) = delete;
             ~WebCommandBuffer() {}

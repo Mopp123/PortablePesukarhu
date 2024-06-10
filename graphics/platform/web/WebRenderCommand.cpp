@@ -1,18 +1,70 @@
 #include "WebRenderCommand.h"
 #include <GL/glew.h>
-#include <GL/glext.h>
 #include "core/Debug.h"
 #include "graphics/Buffers.h"
 #include "graphics/platform/opengl/OpenglPipeline.h"
 #include "WebBuffers.h"
 #include "graphics/platform/opengl/shaders/OpenglShader.h"
 #include "graphics/platform/opengl/OpenglContext.h"
+#include "graphics/platform/opengl/OpenglTexture.h"
 
 
 namespace pk
 {
     namespace web
     {
+        static GLenum binding_to_gl_texture_slot(uint32_t binding)
+        {
+            switch (binding)
+            {
+                case 0:
+                    return GL_TEXTURE0;
+                case 1:
+                    return GL_TEXTURE1;
+                case 2:
+                    return GL_TEXTURE2;
+                case 3:
+                    return GL_TEXTURE3;
+                case 4:
+                    return GL_TEXTURE4;
+                case 5:
+                    return GL_TEXTURE5;
+                case 6:
+                    return GL_TEXTURE6;
+                default:
+                    Debug::log(
+                        "@binding_to_gl_texture_slot Max binding number exceeded",
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
+                    return 0;
+            }
+        }
+
+
+        GLenum index_type_to_glenum(IndexType type)
+        {
+            switch (type)
+            {
+                case IndexType::INDEX_TYPE_NONE:
+                    Debug::log(
+                        "@index_type_to_glenum IndexType was not set",
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
+                    return 0;
+                case IndexType::INDEX_TYPE_UINT16:
+                    return GL_UNSIGNED_SHORT;
+                case IndexType::INDEX_TYPE_UINT32:
+                    return GL_UNSIGNED_INT;
+                default:
+                    Debug::log(
+                        "@index_type_to_glenum Invalid index type",
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
+                    return 0;
+            }
+        }
+
+
         void WebRenderCommand::beginFrame()
         {}
 
@@ -45,8 +97,14 @@ namespace pk
 
         void WebRenderCommand::endCmdBuffer(CommandBuffer* pCmdBuf)
         {
+            // unbind all
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+
             // Make sure this cmd buf is unable to touch any pipeline until calling bindPipeline() again
             ((WebCommandBuffer*)pCmdBuf)->_pPipeline = nullptr;
+            ((WebCommandBuffer*)pCmdBuf)->_drawIndexedType = IndexType::INDEX_TYPE_NONE;
         }
 
         // NOTE: the whole "scissor" thing is ignored atm
@@ -61,8 +119,8 @@ namespace pk
         )
         {
             glViewport(0, 0, (int)width, (int)height);
-            // TODO: Make this configurable through pipeline
-            glFrontFace(GL_CCW);
+            FrontFace frontFace = ((WebCommandBuffer*)pCmdBuf)->_pPipeline->getFrontFace();
+            glFrontFace(frontFace == FrontFace::FRONT_FACE_COUNTER_CLOCKWISE ? GL_CCW : GL_CW);
         }
 
         void WebRenderCommand::bindPipeline(
@@ -139,6 +197,9 @@ namespace pk
             IndexType indexType
         )
         {
+            // quite dumb, but we need to be able to pass this to "drawIndexed" func somehow..
+            ((WebCommandBuffer*)pCmdBuf)->_drawIndexedType = indexType;
+
             // NOTE: DANGER! :D
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ((WebBuffer*)pBuffer)->getID());
         }
@@ -167,7 +228,7 @@ namespace pk
                     Debug::log(
                         "@WebRenderCommand::bindVertexBuffers No layout exists for inputted buffer",
                         Debug::MessageType::PK_FATAL_ERROR
-                    )
+                    );
             #endif
                 // NOTE: DANGER! ..again
                 glBindBuffer(GL_ARRAY_BUFFER, ((WebBuffer*)buffer)->getID());
@@ -197,6 +258,10 @@ namespace pk
             }
         }
 
+        // NOTE: Descriptor sets has to be given in the same order as
+        // corresponding uniforms are in the actual shader code for this to work!!!
+        // UPDATE TO ABOVE:
+        //  -> this may not be the case after added the UniformInfo's locationIndex
         void WebRenderCommand::bindDescriptorSets(
             CommandBuffer* pCmdBuf,
             PipelineBindPoint pipelineBindPoint,
@@ -205,12 +270,123 @@ namespace pk
             const std::vector<DescriptorSet*>& descriptorSets
         )
         {
-            #ifdef PK_DEBUG_FULL
-            Debug::log(
-                "@WebRenderCommand::bindDescriptorSets NOT IMPLEMENTED!",
-                Debug::MessageType::PK_FATAL_ERROR
-            );
-            #endif
+            opengl::OpenglPipeline* pipeline = ((WebCommandBuffer*)pCmdBuf)->_pPipeline;
+            const opengl::OpenglShaderProgram& shaderProgram = pipeline->getShaderProgram();
+            const std::vector<int32_t>& shaderUniformLocations = shaderProgram.getUniformLocations();
+
+            for (const DescriptorSet* descriptorSet : descriptorSets)
+            {
+                const DescriptorSetLayout& layout = descriptorSet->getLayout();
+                const std::vector<Buffer*>& buffers = descriptorSet->getBuffers();
+                const std::vector<Texture_new*>& textures = descriptorSet->getTextures();
+                // Not to be confused with binding number.
+                // This just index of the layout's bindings vector
+                int bufferBindingIndex = 0;
+                int textureBindingIndex = 0;
+
+                for (const DescriptorSetLayoutBinding& binding : layout.getBindings())
+                {
+                    const UniformInfo& uniformInfo = binding.getUniformInfo();
+                    if (binding.getType() == DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+                    {
+                        // TODO: some boundary checking..
+                        const Buffer* pBuf = buffers[bufferBindingIndex];
+                        const PK_byte* pBufData = (const PK_byte*)pBuf->getData();
+                        const std::vector<ShaderDataType>& uboLayout = uniformInfo.structLayout;
+
+                        size_t uboOffset = 0;
+                        for (const ShaderDataType& type : uboLayout)
+                        {
+                            size_t valSize = 0;
+                            const PK_byte* pCurrentData = pBufData + uboOffset;
+                            switch (type)
+                            {
+                                case ShaderDataType::Int:
+                                {
+                                    int val = (int)*pCurrentData;
+                                    valSize = sizeof(int);
+                                    glUniform1i(shaderUniformLocations[uniformInfo.locationIndex], val);
+                                    break;
+                                }
+                                case ShaderDataType::Float:
+                                {
+                                    float val = (float)*pCurrentData;
+                                    valSize = sizeof(float);
+                                    glUniform1fv(shaderUniformLocations[uniformInfo.locationIndex], 1, &val);
+                                    break;
+                                }
+                                case ShaderDataType::Float2:
+                                {
+                                    vec2 vec;
+                                    valSize = sizeof(vec2);
+                                    memcpy(&vec, pCurrentData, valSize);
+
+                                    glUniform2f(
+                                        shaderUniformLocations[uniformInfo.locationIndex],
+                                        vec.x,
+                                        vec.y
+                                    );
+                                    break;
+                                }
+                                case ShaderDataType::Float3:
+                                {
+                                    vec3 vec;
+                                    valSize = sizeof(vec3);
+                                    memcpy(&vec, pCurrentData, valSize);
+
+                                    glUniform3f(
+                                        shaderUniformLocations[uniformInfo.locationIndex],
+                                        vec.x,
+                                        vec.y,
+                                        vec.z
+                                    );
+                                    break;
+                                }
+                                case ShaderDataType::Float4:
+                                {
+                                    vec4 vec;
+                                    valSize = sizeof(vec4);
+                                    memcpy(&vec, pCurrentData, valSize);
+
+                                    glUniform4f(
+                                        shaderUniformLocations[uniformInfo.locationIndex],
+                                        vec.x,
+                                        vec.y,
+                                        vec.z,
+                                        vec.w
+                                    );
+                                    break;
+                                }
+
+                                default:
+                                    Debug::log(
+                                        "@WebRenderCommand::bindDescriptorSets "
+                                        "Unsupported ShaderDataType. "
+                                        "Currently implemented types are: "
+                                        "Int, Float, Float2, Float3, Float4",
+                                        Debug::MessageType::PK_FATAL_ERROR
+                                    );
+                                    break;
+                            }
+                            uboOffset += valSize;
+                        }
+                        ++bufferBindingIndex;
+                    }
+                    else if (binding.getType() == DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+                    {
+                        // TODO: some boundary checking..
+                        //
+                        glUniform1i(uniformInfo.locationIndex, binding.getBinding());
+                        // well following is quite fucking dumb.. dunno how could do this better
+                        glActiveTexture(binding_to_gl_texture_slot(binding.getBinding()));
+                        glBindTexture(
+                            GL_TEXTURE_2D,
+                            ((opengl::OpenglTexture*)textures[textureBindingIndex])->getID()
+                        );
+                        ++textureBindingIndex;
+                    }
+                }
+            }
         }
 
         void WebRenderCommand::draw(
@@ -238,12 +414,9 @@ namespace pk
             uint32_t firstInstance
         )
         {
-            #ifdef PK_DEBUG_FULL
-            Debug::log(
-                "@WebRenderCommand::drawIndexed NOT IMPLEMENTED!",
-                Debug::MessageType::PK_FATAL_ERROR
-            );
-            #endif
+            const IndexType& indexType = ((WebCommandBuffer*)pCmdBuf)->_drawIndexedType;
+            // NOTE: Don't remember why not giving the ptr to the indices here..
+            glDrawElements(GL_TRIANGLES, indexCount, index_type_to_glenum(indexType), 0);
         }
     }
 }

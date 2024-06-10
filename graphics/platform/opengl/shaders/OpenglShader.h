@@ -67,6 +67,7 @@ namespace pk
             void setUniform1i(int location, int val) const;
 
             inline const std::vector<int32_t>& getAttribLocations() const { return _attribLocations; }
+            inline const std::vector<int32_t>& getUniformLocations() const { return _uniformLocations; }
 
         private:
             // Finds attrib and/or uniform locations from shader source

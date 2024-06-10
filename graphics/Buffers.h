@@ -48,7 +48,8 @@ namespace pk
     enum BufferUsageFlagBits
     {
         BUFFER_USAGE_VERTEX_BUFFER_BIT = 0x1,
-        BUFFER_USAGE_INDEX_BUFFER_BIT = 0x2
+        BUFFER_USAGE_INDEX_BUFFER_BIT = 0x2,
+        BUFFER_USAGE_UNIFORM_BUFFER_BIT = 0x4
     };
 
 
