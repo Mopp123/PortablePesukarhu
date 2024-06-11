@@ -35,8 +35,7 @@
 //#include "ecs/systems/ui/combinedFunctional/InputField.h"
 
 #include "ecs/systems/CameraUtils.h"
-#include "ecs/systems/animations/Animations.h"
 
-#include "ecs/systems/ui/Constraints.h"
+#include "ecs/systems/ui/ConstraintSystem.h"
 #include "ecs/factories/ui/UIFactories.h"
 

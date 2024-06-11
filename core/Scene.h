@@ -3,10 +3,12 @@
 #include "../ecs/components/Component.h"
 #include "../ecs/components/Camera.h"
 #include "../ecs/systems/System.h"
-#include "../ecs/systems/CameraUtils.h"
 #include "Debug.h"
 #include <unordered_map>
 #include <vector>
+
+// NOTE: Only temporarely adding all systems here on Scene's constructor!
+#include "ecs/systems/ui/ConstraintSystem.h"
 
 
 namespace pk
@@ -19,7 +21,7 @@ namespace pk
 
     public:
         //std::unordered_map<ComponentType, std::vector<Component*>> components;
-        std::unordered_map<SystemType, std::vector<System*>> systems;
+        std::vector<System*> systems;
         std::vector<uint32_t> entities;
         std::unordered_map<uint32_t, Component*> components;
         std::unordered_map<ComponentType, std::vector<uint32_t>> typeComponentMapping;
@@ -28,6 +30,11 @@ namespace pk
 
         Scene()
         {
+            // NOTE: Only temporarely adding all default systems here!
+            // TODO: Some better way of handling this!!
+            //  Also you would need to create all default systems at start
+            //  and never even destroy them..
+            systems.push_back(new ui::ConstraintSystem);
         }
 
         virtual ~Scene()
@@ -39,11 +46,8 @@ namespace pk
             components.clear();
             entities.clear();
 
-            for (const std::pair<SystemType, std::vector<System*>>& sysContainer : systems)
-            {
-                for (System* system : sysContainer.second)
-                    delete system;
-            }
+            for (System* system : systems)
+                delete system;
 
             systems.clear();
 
@@ -75,10 +79,10 @@ namespace pk
             component->_entity = entity;
         }
 
-        void addSystem(System* system)
-        {
-            systems[system->getType()].push_back(system);
-        }
+        //void addSystem(System* system)
+        //{
+        //    systems.push_back(system);
+        //}
 
         // Returns first component of "type" associated with "entity"
         // TODO: Some kind of entity - component mapping to speed this up?

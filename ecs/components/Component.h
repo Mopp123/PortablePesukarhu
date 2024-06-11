@@ -23,6 +23,8 @@ namespace pk
 
         PK_TRANSFORM,
 
+        PK_UI_CONSTRAINT,
+
         PK_CAMERA
     };
 
@@ -41,6 +43,8 @@ namespace pk
     public:
         Component(ComponentType type);
         virtual ~Component() { }
+
+        inline uint32_t getID() const { return _id; }
 
         inline uint32_t getEntity() const { return _entity; }
         inline ComponentType getType() const { return _type; }

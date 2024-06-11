@@ -9,6 +9,7 @@
 #include "../../../utils/Algorithms.h"
 #include "../../../Common.h"
 
+#include <string>
 #include <algorithm>
 #include <iostream>
 

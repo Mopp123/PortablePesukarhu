@@ -8,7 +8,6 @@ namespace pk
 {
     namespace ui
     {
-
         class ButtonMouseButtonEvent : public MouseButtonEvent
         {
         private:
@@ -257,8 +256,27 @@ namespace pk
 	    currentScene->addComponent(entity, transform);
 	    currentScene->addComponent(entity, renderable);
 
-            currentScene->addSystem(new Constraint(transform, horizontalType, horizontalVal));
-            currentScene->addSystem(new Constraint(transform, verticalType, verticalVal));
+            //currentScene->addSystem(new Constraint(transform, horizontalType, horizontalVal));
+            //currentScene->addSystem(new Constraint(transform, verticalType, verticalVal));
+
+            // New constraint component system thing... old above..
+	    currentScene->addComponent(
+                entity,
+                new ConstraintData(
+                    transform->getID(),
+                    horizontalType,
+                    horizontalVal
+                )
+            );
+
+	    currentScene->addComponent(
+                entity,
+                new ConstraintData(
+                    transform->getID(),
+                    verticalType,
+                    verticalVal
+                )
+            );
 
             return entity;
         }
@@ -282,8 +300,25 @@ namespace pk
             currentScene->addComponent(entity, transform);
             currentScene->addComponent(entity, renderable);
 
-            currentScene->addSystem(new Constraint(transform, horizontalType, horizontalVal));
-            currentScene->addSystem(new Constraint(transform, verticalType, verticalVal));
+            //currentScene->addSystem(new Constraint(transform, horizontalType, horizontalVal));
+            //currentScene->addSystem(new Constraint(transform, verticalType, verticalVal));
+	    currentScene->addComponent(
+                entity,
+                new ConstraintData(
+                    transform->getID(),
+                    horizontalType,
+                    horizontalVal
+                )
+            );
+
+	    currentScene->addComponent(
+                entity,
+                new ConstraintData(
+                    transform->getID(),
+                    verticalType,
+                    verticalVal
+                )
+            );
 
             //currentScene->addToSystem(PK_SYSTEM_CONSTRAINT, { transform, constraintData });
 

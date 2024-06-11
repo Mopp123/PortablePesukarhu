@@ -2,10 +2,12 @@
 
 #include <string>
 
-#include "../../systems/ui/Constraints.h"
+#include "ecs/components/ui/ConstraintData.h"
 #include "../../components/renderable/TextRenderable.h"
 #include "../../components/UIElemState.h"
 #include "../../../core/input/InputEvent.h"
+
+#include "graphics/Texture.h"
 
 
 namespace pk

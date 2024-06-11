@@ -10,11 +10,9 @@ namespace pk
     {
         _pCurrentScene->update();
 
-        // Update all "updateable" systems of the scene
-        // for (System* system : _pCurrentScene->systems[SystemType::PK_SYSTEM_TYPE_UPDATEABLE])
-        //     ((Updateable*)system)->update();
-        for (System* system : _pCurrentScene->systems[SystemType::PK_SYSTEM_TYPE_UPDATEABLE])
-            ((Updateable*)system)->update();
+        // Update all systems of the scene
+        for (System* system : _pCurrentScene->systems)
+            system->update();
 
         // NOTE: Deprecated old below!!!
         // Submit all "renderable components" for rendering...
