@@ -31,13 +31,15 @@ namespace pk
     protected:
         friend class Scene;
 
+        uint32_t _id = 0;
+
         uint32_t _entity = 0;
         ComponentType _type;
 
         bool _isActive = true;
 
     public:
-        Component(ComponentType type) : _type(type) { }
+        Component(ComponentType type);
         virtual ~Component() { }
 
         inline uint32_t getEntity() const { return _entity; }

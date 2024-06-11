@@ -285,6 +285,8 @@ namespace pk
             currentScene->addSystem(new Constraint(transform, horizontalType, horizontalVal));
             currentScene->addSystem(new Constraint(transform, verticalType, verticalVal));
 
+            //currentScene->addToSystem(PK_SYSTEM_CONSTRAINT, { transform, constraintData });
+
             return std::make_pair(entity, renderable);
         }
 

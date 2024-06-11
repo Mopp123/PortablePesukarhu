@@ -18,33 +18,33 @@ namespace pk
         std::unordered_map<uint32_t, std::vector<uint32_t>> _entityChildMapping;
 
     public:
-        std::unordered_map<ComponentType, std::vector<Component*>> components;
+        //std::unordered_map<ComponentType, std::vector<Component*>> components;
         std::unordered_map<SystemType, std::vector<System*>> systems;
         std::vector<uint32_t> entities;
+        std::unordered_map<uint32_t, Component*> components;
+        std::unordered_map<ComponentType, std::vector<uint32_t>> typeComponentMapping;
 
         Camera* activeCamera = nullptr;
 
-        Scene() 
+        Scene()
         {
         }
 
-        virtual ~Scene() 
+        virtual ~Scene()
         {
-            for (const std::pair<ComponentType, std::vector<Component*>>& cContainer : components)
-            {
-                Debug::log("Destroying components...");
-                for (Component* c : cContainer.second)
-                    delete c;
-            }
+            Debug::log("Destroying components...");
+            for (const std::pair<uint32_t, Component*> c : components)
+                delete c.second;
+
             components.clear();
             entities.clear();
-            
+
             for (const std::pair<SystemType, std::vector<System*>>& sysContainer : systems)
             {
                 for (System* system : sysContainer.second)
                     delete system;
             }
-            
+
             systems.clear();
 
             _entityChildMapping.clear();
@@ -73,7 +73,6 @@ namespace pk
         void addComponent(uint32_t entity, Component* component)
         {
             component->_entity = entity;
-            components[component->getType()].push_back(component);
         }
 
         void addSystem(System* system)
@@ -82,57 +81,57 @@ namespace pk
         }
 
         // Returns first component of "type" associated with "entity"
+        // TODO: Some kind of entity - component mapping to speed this up?
         Component* getComponent(uint32_t entity, ComponentType type, bool nestedSearch = false)
         {
-            for (Component* c : components[type])
+            for (uint32_t componentID : typeComponentMapping[type])
             {
-                if (c->getEntity() == entity)
-                    return c;
+                Component* pComponent = components[componentID];
+                if (pComponent->getEntity() == entity)
+                    return pComponent;
             }
             if (!nestedSearch)
                 Debug::log("Couldn't find component of type: " + std::to_string(type) + " from entity: " + std::to_string(entity), Debug::MessageType::PK_MESSAGE);
             return nullptr;
         }
-        
+
         // Returns first component of "type" found in "entity"'s child entities
         Component* getComponentInChildren(uint32_t entity, ComponentType type)
         {
             for (const uint32_t& child : _entityChildMapping[entity])
             {
-                Component* component = getComponent(child, type, true);
-                if (component)
-                    return component;
-            } 
+                Component* pComponent = getComponent(child, type, true);
+                if (pComponent)
+                    return pComponent;
+            }
             Debug::log("Couldn't find component of type: " + std::to_string(type) + " from child entities of entity: " + std::to_string(entity), Debug::MessageType::PK_MESSAGE);
             return nullptr;
         }
 
         // Return all components of entity
+        // TODO: Some kind of entity - component mapping to speed this up?
         std::vector<Component*> getComponents(uint32_t entity)
         {
             std::vector<Component*> foundComponents;
-            for (const std::pair<ComponentType, std::vector<Component*>>& componentTypes : components)
+            for (const std::pair<uint32_t, Component*> component : components)
             {
-               const  std::vector<Component*>& componentList = componentTypes.second;
-               for (Component* c : componentList)
-               {
-                   if (c->getEntity() == entity)
-                       foundComponents.push_back(c);
-               }
+                Component* pComponent = component.second;
+                if (pComponent->getEntity() == entity)
+                    foundComponents.push_back(pComponent);
             }
             return foundComponents;
         }
 
-        // Returns first found component found of type "type"
+        // Returns first found component of type "type"
+        // TODO: Make this more safe?
         Component* getComponent(ComponentType type)
         {
-            auto iter = components.find(type);
-            if (iter != components.end())
+            auto iter = typeComponentMapping.find(type);
+            if (iter != typeComponentMapping.end())
             {
-                if (!iter->second.empty())
-                    return iter->second[0];
+                if (typeComponentMapping[type].size() > 0)
+                    return components[typeComponentMapping[type][0]];
             }
-
             return nullptr;
         }
 
@@ -160,7 +159,16 @@ namespace pk
             return ownComponents;
         }
 
+        // Returns all components in scene of specific type
+        std::vector<Component*> getComponentsOfTypeInScene(ComponentType type)
+        {
+            std::vector<Component*> foundComponents;
+            for (uint32_t componentID : typeComponentMapping[type])
+                foundComponents.push_back(components[componentID]);
+            return foundComponents;
+        }
+
         virtual void init() = 0;
         virtual void update() = 0;
-    };	
+    };
 }

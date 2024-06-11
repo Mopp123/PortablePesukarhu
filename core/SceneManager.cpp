@@ -38,7 +38,7 @@ namespace pk
         // TERRAIN TILES
         //*atm we want to pass just empty tMatrix, since tile figures out its' vertex positions from the tile component itself
         mat4 empty;
-        for (const Component* const c_renderableTile : _pCurrentScene->components[ComponentType::PK_RENDERABLE_TERRAINTILE])
+        for (const Component* const c_renderableTile : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_TERRAINTILE))
         {
             if (c_renderableTile->isActive())
             {
@@ -46,7 +46,7 @@ namespace pk
             }
         }
         // 3D SPRITES
-        for (const Component* const c_renderableSprite : _pCurrentScene->components[ComponentType::PK_RENDERABLE_SPRITE3D])
+        for (const Component* const c_renderableSprite : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_SPRITE3D))
         {
             if (c_renderableSprite->isActive())
             {
@@ -55,7 +55,7 @@ namespace pk
         }
 
         // GUI
-        for (const Component * const c_renderableGUI : _pCurrentScene->components[ComponentType::PK_RENDERABLE_GUI])
+        for (const Component * const c_renderableGUI : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_GUI))
         {
             Component* rawTransform = _pCurrentScene->getComponent(c_renderableGUI->getEntity(), ComponentType::PK_TRANSFORM);
             if (c_renderableGUI->isActive())
@@ -68,7 +68,7 @@ namespace pk
             }
         }
         // TEXT
-        for (const Component* const c_renderableText : _pCurrentScene->components[ComponentType::PK_RENDERABLE_TEXT])
+        for (const Component* const c_renderableText : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_TEXT))
         {
             if (c_renderableText->isActive())
             {

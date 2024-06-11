@@ -1,5 +1,8 @@
 #pragma once
 
+#include "ecs/components/Component.h"
+#include <vector>
+
 
 namespace pk
 {
