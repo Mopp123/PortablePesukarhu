@@ -26,23 +26,7 @@ namespace pk
                 if (activeCam != nullptr)
                 {
                     MasterRenderer* masterRenderer = app->_pMasterRenderer;
-                    masterRenderer->render(*activeCam);
-
-                    // TODO: Delete below!
-                    /* BELOW OLD VERSION!
-
-                    // All "top level" rendering stuff...
-                    Renderer* masterRenderer = app->_pMasterRenderer;
-                    masterRenderer->beginFrame(); // (in Vulkan, acquire swapchain img here.., and maybe begin the primary cmd buf)
-                    masterRenderer->beginRenderPass();
-                    // 'Render all "actual renderers"' (in Vulkan (re)record all secondary cmdbufs here)
-                    for (const std::pair<ComponentType, Renderer*>& r : app->_renderers)
-                    {
-                        r.second->render(*activeCam);
-                    }
-                    masterRenderer->endRenderPass();
-                    masterRenderer->endFrame(); // (submit cmdbuf[currentFrameIndex] to swapchain for execution, AND attempt to present the "top" swapchain image)
-                    */
+                    //masterRenderer->render(*activeCam);
                 }
                 else
                 {

@@ -25,10 +25,14 @@ namespace pk
         Float,
         Float2,
         Float3,
-        Float4
+        Float4,
+
+        // NOTE: Only used by opengl
+        Mat4
     };
 
     int32_t get_shader_data_type_component_count(ShaderDataType type);
+    size_t get_shader_data_type_size(ShaderDataType type);
 
     enum VertexInputRate
     {
@@ -104,15 +108,15 @@ namespace pk
     protected:
         std::vector<VertexBufferElement> _elements;
         VertexInputRate _inputRate = VertexInputRate::VERTEX_INPUT_RATE_VERTEX;
+        int32_t _stride = 0;
 
     public:
         // NOTE: Not sure if copying elems goes correctly here..
-        VertexBufferLayout(std::vector<VertexBufferElement> elems, VertexInputRate inputRate) :
-            _elements(elems),
-            _inputRate(inputRate)
-        {}
+        VertexBufferLayout(std::vector<VertexBufferElement> elems, VertexInputRate inputRate);
+        VertexBufferLayout(const VertexBufferLayout& other);
 
         inline const std::vector<VertexBufferElement>& getElements() const { return _elements; }
+        inline int32_t getStride() const { return _stride; }
     };
 
 
@@ -126,6 +130,9 @@ namespace pk
     public:
         Buffer(const Buffer&) = delete;
         virtual ~Buffer();
+
+        // TODO: allow updating "small portions on specified offsets"
+        void update(const void* data, size_t dataSize);
 
         inline const void* getData() const { return _data; }
         inline size_t getDataElemSize() const { return _dataElemSize; }

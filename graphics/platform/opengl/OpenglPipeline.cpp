@@ -24,7 +24,6 @@ namespace pk
             Pipeline(
                 vertexBufferLayouts,
                 descriptorLayouts,
-                shaderVersion,
                 pVertexShader, pFragmentShader,
                 viewportWidth, viewportHeight,
                 viewportScissor,

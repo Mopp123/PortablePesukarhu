@@ -36,8 +36,8 @@ namespace pk
      * */
     struct UniformInfo
     {
-        std::vector<ShaderDataType> structLayout;
-        int locationIndex = -1;
+        int locationIndex;
+        ShaderDataType type;
     };
 
 
@@ -48,7 +48,7 @@ namespace pk
         DescriptorType _type = DescriptorType::DESCRIPTOR_TYPE_NONE;
         unsigned int _shaderStageFlags = 0;
 
-        UniformInfo _uniformInfo;
+        std::vector<UniformInfo> _uniformInfo;
 
     public:
         // NOTE: Don't remember why I allowed having multiple shader stage flags...
@@ -57,7 +57,7 @@ namespace pk
             uint32_t descriptorCount,
             DescriptorType type,
             unsigned int shaderStageFlags,
-            UniformInfo uniformInfo = {}
+            std::vector<UniformInfo> uniformInfo = {}
         ) :
             _binding(binding),
             _type(type),
@@ -77,7 +77,7 @@ namespace pk
         inline uint32_t getBinding() const { return _binding; }
         inline DescriptorType getType() const { return _type; }
         inline uint32_t getShaderStageFlags() const { return _shaderStageFlags; }
-        inline const UniformInfo& getUniformInfo() const { return _uniformInfo; }
+        inline const std::vector<UniformInfo>& getUniformInfo() const { return _uniformInfo; }
     };
 
 

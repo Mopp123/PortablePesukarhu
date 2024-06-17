@@ -14,6 +14,8 @@ namespace pk
         for (System* system : _pCurrentScene->systems)
             system->update();
 
+        return;
+
         // NOTE: Deprecated old below!!!
         // Submit all "renderable components" for rendering...
 

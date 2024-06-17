@@ -10,6 +10,7 @@
 
 namespace pk
 {
+    // TODO: Some more dynamic kind of loader system!!!
     #ifdef PK_PLATFORM_WEB
     ImageData* load_image(const std::string filePath)
     {
@@ -33,6 +34,8 @@ namespace pk
         );
 
         SDL_FreeSurface(surface);
+
+        return imgData;
     }
     #else
     ImageData* load_image(const std::string filePath)

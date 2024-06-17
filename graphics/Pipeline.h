@@ -63,7 +63,6 @@ namespace pk
         static Pipeline* create(
             const std::vector<VertexBufferLayout>& vertexBufferLayouts,
             const std::vector<DescriptorSetLayout>& descriptorLayouts,
-            ShaderVersion shaderVersion,
             const Shader* pVertexShader, const Shader* pFragmentShader,
             float viewportWidth, float viewportHeight,
             const Rect2D viewportScissor,
@@ -81,7 +80,6 @@ namespace pk
             //const RenderPass& renderPass,
             const std::vector<VertexBufferLayout>& vertexBufferLayouts,
             const std::vector<DescriptorSetLayout>& descriptorLayouts,
-            ShaderVersion shaderVersion,
             const Shader* pVertexShader, const Shader* pFragmentShader,
             float viewportWidth, float viewportHeight,
             const Rect2D viewportScissor,

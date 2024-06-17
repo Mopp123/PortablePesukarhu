@@ -85,6 +85,10 @@ namespace pk
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
                     break;
                 default:
+                    Debug::log(
+                        "Invalid sampler address mode while trying to create OpenglTexture",
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
                     break;
             }
 

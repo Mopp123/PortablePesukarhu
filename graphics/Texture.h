@@ -88,8 +88,12 @@ namespace pk
     public:
         Texture_new(const Texture_new&) = delete;
         virtual ~Texture_new()
-        {}
+        {
+            if (_pImgData)
+                delete _pImgData;
+        }
 
+        // NOTE: Why pImgData is not const here?
         static Texture_new* create(TextureSampler sampler, ImageData* pImgData, int tiling = 1);
 
         // TODO: ?
@@ -104,5 +108,24 @@ namespace pk
             _pImgData(pImgData),
             _tiling(tiling)
         {}
+    };
+
+
+    class TextureAtlas
+    {
+    private:
+        Texture_new* _texture = nullptr;
+        int _tileCount = 1;
+
+    public:
+        TextureAtlas(
+            ImageData* imgdata,
+            int tileCount,
+            TextureSampler textureSampler
+        );
+        ~TextureAtlas();
+
+        inline const Texture_new * const getTexture() const { return _texture; }
+        inline int getTileCount() const { return _tileCount; }
     };
 }

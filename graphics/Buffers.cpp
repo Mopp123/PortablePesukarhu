@@ -45,6 +45,67 @@ namespace pk
         }
     }
 
+
+    size_t get_shader_data_type_size(ShaderDataType type)
+    {
+        switch (type)
+        {
+            case ShaderDataType::None:
+                Debug::log(
+                    "@get_shader_data_type_size Invalid shaderDataType <NONE>",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return 0;
+
+            case ShaderDataType::Int:
+                return sizeof(int);
+            case ShaderDataType::Int2:
+                return sizeof(int) * 2;
+            case ShaderDataType::Int3:
+                return sizeof(int) * 3;
+            case ShaderDataType::Int4:
+                return sizeof(int) * 4;
+
+            case ShaderDataType::Float:
+                return sizeof(float);
+            case ShaderDataType::Float2:
+                return sizeof(float) * 2;
+            case ShaderDataType::Float3:
+                return sizeof(float) * 3;
+            case ShaderDataType::Float4:
+                return sizeof(float) * 4;
+
+            default:
+                Debug::log(
+                    "@get_shader_data_type_size Invalid shaderDataType",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return 0;
+        }
+    }
+
+
+    VertexBufferLayout::VertexBufferLayout(std::vector<VertexBufferElement> elems, VertexInputRate inputRate) :
+        _elements(elems),
+        _inputRate(inputRate)
+    {
+        for (const VertexBufferElement& elem : _elements)
+            _stride += get_shader_data_type_size(elem.getType());
+    }
+
+    VertexBufferLayout::VertexBufferLayout(const VertexBufferLayout& other) :
+        _elements(other._elements),
+        _inputRate(other._inputRate),
+        _stride(other._stride)
+    {}
+
+
+    void Buffer::update(const void* data, size_t dataSize)
+    {
+        if (_dataElemSize * _dataLength >= dataSize)
+            memcpy(_data, data, dataSize);
+    }
+
     Buffer::~Buffer()
     {
         if (_data)

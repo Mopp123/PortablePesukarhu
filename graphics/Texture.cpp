@@ -20,6 +20,21 @@ namespace pk
                 );
                 return nullptr;
         }
+    }
 
+
+    TextureAtlas::TextureAtlas(
+        ImageData* imgdata,
+        int tileCount,
+        TextureSampler textureSampler
+    ) :
+        _tileCount(tileCount)
+    {
+        _texture = Texture_new::create(textureSampler, imgdata);
+    }
+
+    TextureAtlas::~TextureAtlas()
+    {
+        delete _texture;
     }
 }
