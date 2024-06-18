@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/systems/System.h"
+#include "graphics/Renderer.h"
 #include "graphics/Pipeline.h"
 #include "graphics/Buffers.h"
 #include "graphics/Texture.h"
@@ -12,7 +12,13 @@
 
 namespace pk
 {
-    class GUIRenderer : public System
+
+    struct CommonUBO
+    {
+        mat4 projMat;
+    };
+
+    class GUIRenderer : public Renderer
     {
     private:
         Shader* _pVertexShader = nullptr;
@@ -25,6 +31,7 @@ namespace pk
 
         // NOTE: atm these here only for testing!
         Buffer* _pVertexBuffer = nullptr;
+        Buffer* _pInstancedVertexBuffer = nullptr;
         Buffer* _pIndexBuffer = nullptr;
 
         Buffer* _pTestUBO = nullptr;
@@ -34,10 +41,14 @@ namespace pk
         DescriptorSet* _pUBODescriptorSet = nullptr;
         DescriptorSet* _pTextureDescriptorSet = nullptr;
 
+        float s_testX = 0.0f;
+
     public:
         GUIRenderer();
         ~GUIRenderer();
 
-        virtual void update();
+        virtual void submit(const Component* const renderableComponent, const mat4& transformation);
+        virtual void render(const Camera& cam);
+        virtual void resize(int w, int h);
     };
 }

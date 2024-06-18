@@ -102,5 +102,18 @@ namespace pk
                 glDeleteBuffers(1, &_id);
             Debug::log("WebBuffer deleted");
         }
+
+        // NOTE: Not sure does updating index buffers work, not tested!!!
+        void WebBuffer::update(const void* data, size_t dataSize)
+        {
+            if (_dataLength * _dataElemSize >= dataSize)
+            {
+                memcpy(_data, data, dataSize);
+                // Don't need to call any glBufferData or subData for uniform buffers on gl side
+                // UNTIL uniform buffer support..
+                if (!(_bufferUsageFlags & BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT))
+                    _shouldUpdate = true;
+            }
+        }
     }
 }

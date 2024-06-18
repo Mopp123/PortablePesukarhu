@@ -26,8 +26,7 @@ namespace pk
                 if (activeCam != nullptr)
                 {
                     MasterRenderer* masterRenderer = app->_pMasterRenderer;
-                    // NOTE: atm disabled to test new rendering systems!
-                    //masterRenderer->render(*activeCam);
+                    masterRenderer->render(*activeCam);
                 }
                 else
                 {
@@ -52,16 +51,19 @@ namespace pk
         std::string name,
         Window* window,
         Context* graphicsContext,
-        InputManager* inputManager,
-        MasterRenderer* pMasterRenderer
+        InputManager* inputManager
     ) :
         _name(name),
         _pWindow(window),
         _pGraphicsContext(graphicsContext),
-        _pInputManager(inputManager),
-        _pMasterRenderer(pMasterRenderer)
+        _pInputManager(inputManager)
     {
         s_pApplication = this;
+    }
+
+    void Application::init(MasterRenderer* pMasterRenderer)
+    {
+        _pMasterRenderer = pMasterRenderer;
     }
 
     Application::~Application()

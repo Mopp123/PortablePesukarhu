@@ -99,22 +99,21 @@ namespace pk
         _stride(other._stride)
     {}
 
-
-    void Buffer::update(const void* data, size_t dataSize)
-    {
-        if (_dataElemSize * _dataLength >= dataSize)
-            memcpy(_data, data, dataSize);
-    }
-
     Buffer::~Buffer()
     {
         if (_data)
             free(_data);
     }
 
-    Buffer::Buffer(void* data, size_t elementSize, size_t dataLength, uint32_t bufferUsageFlags) :
+    Buffer::Buffer(
+        void* data,
+        size_t elementSize,
+        size_t dataLength,
+        uint32_t bufferUsageFlags
+    ) :
         _dataElemSize(elementSize),
-        _dataLength(dataLength)
+        _dataLength(dataLength),
+        _bufferUsageFlags(bufferUsageFlags)
     {
         Debug::log("Allocating new buffer<raw> with total size: " + std::to_string(_dataElemSize * _dataLength));
         _data = calloc(_dataLength, _dataElemSize);

@@ -70,9 +70,6 @@ namespace pk
 
         void WebRenderCommand::beginRenderPass()
         {
-            // NOTE: Not sure in which order these should be done..
-
-
 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	    glClearColor(0.0f, 0.0f, 0.0f, 1);
         }
@@ -228,9 +225,24 @@ namespace pk
                         "@WebRenderCommand::bindVertexBuffers No layout exists for inputted buffer",
                         Debug::MessageType::PK_FATAL_ERROR
                     );
+                if (buffer->getBufferUsage() != BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT)
+                    Debug::log(
+                        "@WebRenderCommand::bindVertexBuffers Invalid buffer usage: " + std::to_string(buffer->getBufferUsage()) + " "
+                        "Web rendering context can only have buffers with single type of usage!",
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
             #endif
                 // NOTE: DANGER! ..again
-                glBindBuffer(GL_ARRAY_BUFFER, ((WebBuffer*)buffer)->getID());
+                WebBuffer* pWebBuffer = (WebBuffer*)buffer;
+                glBindBuffer(GL_ARRAY_BUFFER, pWebBuffer->getID());
+
+                // Update gl buf immediately if marked
+                if (pWebBuffer->_shouldUpdate)
+                {
+                    // TODO: Allow specifying GLenum usage(GL_STATIC_DRAW, etc..) (not to be confused with the BufferUsage)
+                    glBufferData(GL_ARRAY_BUFFER, pWebBuffer->getTotalSize(), pWebBuffer->_data, GL_STATIC_DRAW);
+                    pWebBuffer->_shouldUpdate = false;
+                }
 
                 // Currently assuming that each pipeline's vb layout's index
                 // corresponds to the order of inputted buffers vector
@@ -435,8 +447,7 @@ namespace pk
             const IndexType& indexType = ((WebCommandBuffer*)pCmdBuf)->_drawIndexedType;
             // NOTE: Don't remember why not giving the ptr to the indices here..
             //glDrawElements(GL_TRIANGLES, indexCount, index_type_to_glenum(indexType), 0);
-            glDrawElementsInstanced(GL_TRIANGLES, indexCount, index_type_to_glenum(indexType), 0, 2);
-            Debug::log("___TEST___Draw instanced...");
+            glDrawElementsInstanced(GL_TRIANGLES, indexCount, index_type_to_glenum(indexType), 0, instanceCount);
         }
     }
 }

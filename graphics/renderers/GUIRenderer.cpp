@@ -7,17 +7,15 @@
 
 namespace pk
 {
-    struct CommonUBO
-    {
-        mat4 projMat;
-    };
 
     // NOTE: Atm these here only for quick testing!
     static std::string s_vertexSource = R"(
         precision mediump float;
 
-        attribute vec2 position;
+        attribute vec2 vertexPos;
         attribute vec2 uvCoord;
+
+        attribute vec2 screenPos;
 
         struct Common
         {
@@ -30,7 +28,7 @@ namespace pk
 
         void main()
         {
-            gl_Position = common.projMat * vec4(position, 0, 1.0);
+            gl_Position = common.projMat * vec4(vertexPos + screenPos, 0, 1.0);
             var_uvCoord = uvCoord;
         }
     )";
@@ -57,6 +55,7 @@ namespace pk
         _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
         _pFragmentShader = Shader::create(s_fragmentSource, ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT);
 
+        // Vertex buffer layouts
         VertexBufferLayout vbLayout(
             {
                 { 0, ShaderDataType::Float2 },
@@ -64,6 +63,13 @@ namespace pk
             },
             VertexInputRate::VERTEX_INPUT_RATE_VERTEX
         );
+        VertexBufferLayout instancedVbLayout(
+            {
+                { 2, ShaderDataType::Float2 },
+            },
+            VertexInputRate::VERTEX_INPUT_RATE_INSTANCE
+        );
+
 
         // UBO desc set layout
         DescriptorSetLayoutBinding uboDescSetLayoutBinding(
@@ -94,7 +100,7 @@ namespace pk
         );
         DescriptorSetLayout textureDescSetLayout({ textureDescSetLayoutBinding, textureDescSetLayoutBinding2 });
 
-        std::vector<VertexBufferLayout> vbLayouts({vbLayout});
+        std::vector<VertexBufferLayout> vbLayouts({ vbLayout, instancedVbLayout });
         std::vector<DescriptorSetLayout> descSetLayouts({uboDescSetLayout, textureDescSetLayout});
 
         const Window* pWindow = Application::get()->getWindow();
@@ -118,6 +124,7 @@ namespace pk
         _pRenderCommand = RenderCommand::create();
 
         // Atm creating these only for quick testing here!!!
+        // Static vertex buffer
         float yPos = pWindow->getHeight() - 10;
         float xPos = 10;
         float scale = 200;
@@ -143,6 +150,24 @@ namespace pk
             sizeof(unsigned short),
             6,
             BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT
+        );
+
+        // instanced vertex buffer
+        float instancedBuf[14] =
+        {
+            0, -100,
+            (float)(std::rand() % 200), -100,
+            (float)(std::rand() % 200), -100,
+            (float)(std::rand() % 200), -100,
+            (float)(std::rand() % 200), -100,
+            (float)(std::rand() % 200), -100,
+            (float)(std::rand() % 200), -100
+        };
+        _pInstancedVertexBuffer = Buffer::create(
+            instancedBuf,
+            sizeof(float),
+            14,
+            BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT
         );
 
         // Test UBOs
@@ -180,6 +205,8 @@ namespace pk
     {
         delete _pVertexShader;
         delete _pFragmentShader;
+        delete _pVertexBuffer;
+        delete _pInstancedVertexBuffer;
         delete _pTestUBO;
         delete _pUBODescriptorSet;
         delete _pTestTexture;
@@ -189,11 +216,13 @@ namespace pk
         delete _pRenderCommand;
     }
 
-    void GUIRenderer::update()
-    {
-        //glClear(GL_COLOR_BUFFER_BIT);
-        //glClearColor(0, 0, 1, 1);
 
+    void GUIRenderer::submit(const Component* const renderableComponent, const mat4& transformation)
+    {
+    }
+
+    void GUIRenderer::render(const Camera& cam)
+    {
         // Update current local projMatUbo with camera
         Camera* pSceneCamera = Application::get()->getCurrentScene()->activeCamera;
         const mat4 projMat = pSceneCamera->getProjMat2D();
@@ -226,10 +255,26 @@ namespace pk
         );
 
 
-        std::vector<Buffer*> vertexBuffers = { _pVertexBuffer };
+        // test updating instanced buffer
+        s_testX += Timing::get_delta_time();
+        float testPosX = 1.0f + (std::cos(s_testX) * 100.0f);
+        float testPosX2 = 1.0f + (std::sin(s_testX) * 100.0f);
+        float updatedInstancedBuf[14] =
+        {
+            testPosX,  -100,
+            testPosX2, -200,
+            testPosX,  -300,
+            testPosX2, -400,
+            testPosX,  -500,
+            testPosX2, -600,
+            testPosX,  -700
+        };
+        _pInstancedVertexBuffer->update((const void*)updatedInstancedBuf, sizeof(float) * 14);
+
+        std::vector<Buffer*> vertexBuffers = { _pVertexBuffer, _pInstancedVertexBuffer };
         _pRenderCommand->bindVertexBuffers(
             _pCmdBuf,
-            0, 1,
+            0, 2,
             vertexBuffers
         );
 
@@ -241,7 +286,7 @@ namespace pk
             descriptorSets
         );
 
-        _pRenderCommand->drawIndexed(_pCmdBuf, 6, 1, 0, 0, 0);
+        _pRenderCommand->drawIndexed(_pCmdBuf, 6, 7, 0, 0, 0);
 
         _pRenderCommand->endCmdBuffer(_pCmdBuf);
 
@@ -249,5 +294,13 @@ namespace pk
         GLenum err = glGetError();
         if (err != GL_NO_ERROR)
             Debug::log("___TEST___GL ERR: " + std::to_string(err));
+    }
+
+    void GUIRenderer::resize(int w, int h)
+    {
+        Debug::log(
+            "@GUIRenderer::resize Function not implemented!",
+            Debug::MessageType::PK_FATAL_ERROR
+        );
     }
 }

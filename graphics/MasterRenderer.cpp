@@ -19,7 +19,7 @@ namespace pk
         {
             Debug::log(
                 "Attempted to add Renderer to MasterRenderer but renderer of assigned renderable component type already exists",
-                Debug::MessageType::PK_ERROR
+                Debug::MessageType::PK_FATAL_ERROR
             );
         }
         else

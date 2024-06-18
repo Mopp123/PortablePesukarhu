@@ -41,10 +41,19 @@ namespace pk
             std::string name,
             Window* window,
             Context* graphicsContext,
-            InputManager* inputManager,
-            MasterRenderer* pMasterRenderer
+            InputManager* inputManager
         );
         ~Application();
+        // TODO:
+        //  * Create MasterRenderer in Application's constructor
+        //  * Add all MasterRenderer's "sub" renderer's in the constructor too
+        //  using the renderers' "create" functions which creates platform/api
+        //  specific renderers automatically.
+        //
+        // NOTE: !!! Currently not doing this because only GUIRenderer is starting to
+        // take a form where this is possible and still wanting to support old
+        // renderers!!!
+        void init(MasterRenderer* pMasterRenderer);
 
         void run();
 

@@ -171,6 +171,9 @@ namespace pk
 
         void WebFontRenderer::render(const Camera& cam)
         {
+            if (_batches.empty())
+                return;
+
             s_TEST_anim += 0.125f * Timing::get_delta_time();
 
             mat4 projectionMatrix = cam.getProjMat2D();
@@ -231,6 +234,11 @@ namespace pk
                 glDrawElements(GL_TRIANGLES, instanceIndexCount * batch.getInstanceCount(), GL_UNSIGNED_SHORT, 0);
 
 
+                glDisableVertexAttribArray(_vertexAttribLocation_pos);
+                glDisableVertexAttribArray(_vertexAttribLocation_uv);
+                glDisableVertexAttribArray(_vertexAttribLocation_color);
+                glDisableVertexAttribArray(_vertexAttribLocation_thickness);
+
                 glBindBuffer(GL_ARRAY_BUFFER, 0);
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
@@ -238,6 +246,7 @@ namespace pk
                 batch.clear();
             }
             glBindTexture(GL_TEXTURE_2D, 0);
+            glUseProgram(0);
         }
 
         //std::vector<GlyphData> WebFontRenderer::createGlyphs(std::string characters, std::string fontFilePath)

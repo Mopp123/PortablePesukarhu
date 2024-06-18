@@ -1,5 +1,8 @@
 #include "Scene.h"
 
+// NOTE: Only temporarely adding all systems here on Scene's constructor!
+#include "ecs/systems/ui/ConstraintSystem.h"
+
 namespace pk
 {
     Scene::Scene()
@@ -9,7 +12,6 @@ namespace pk
         //  Also you would need to create all default systems at start
         //  and never even destroy them..
         systems.push_back(new ui::ConstraintSystem);
-        systems.push_back(new GUIRenderer);
     }
 
     Scene::~Scene()

@@ -190,6 +190,9 @@ namespace pk
 
         void WebGUIRenderer::render(const Camera& cam)
         {
+            if (_batches.empty())
+                return;
+
             mat4 projectionMatrix = cam.getProjMat2D();
 
             glUseProgram(_shader.getProgramID());
@@ -251,6 +254,13 @@ namespace pk
                 glDrawElements(GL_TRIANGLES, instanceIndexCount * batch.getInstanceCount(), GL_UNSIGNED_SHORT, 0);
 
                 glBindTexture(GL_TEXTURE_2D, 0);
+
+
+                glEnableVertexAttribArray(_vertexAttribLocation_pos);
+
+                glDisableVertexAttribArray(_vertexAttribLocation_uv);
+                glDisableVertexAttribArray(_vertexAttribLocation_color);
+                glDisableVertexAttribArray(_vertexAttribLocation_properties);
 
                 glBindBuffer(GL_ARRAY_BUFFER, 0);
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

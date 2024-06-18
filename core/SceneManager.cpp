@@ -14,15 +14,8 @@ namespace pk
         for (System* system : _pCurrentScene->systems)
             system->update();
 
-        return; // NOTE: atm dont use below renderers to test new rendering systems!
-
-        // NOTE: Deprecated old below!!!
         // Submit all "renderable components" for rendering...
 
-        // TODO:
-        // * Get application's master renderer
-        // * Get master renderer's renderers
-        // * Submit renderable components into those
         Application* pApp = Application::get();
         MasterRenderer* pMasterRenderer = pApp->getMasterRenderer();
         // find gui renderers

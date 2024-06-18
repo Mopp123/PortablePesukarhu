@@ -7,10 +7,6 @@
 #include <unordered_map>
 #include <vector>
 
-// NOTE: Only temporarely adding all systems here on Scene's constructor!
-#include "ecs/systems/ui/ConstraintSystem.h"
-#include "ecs/systems/rendering/GUIRenderer.h"
-
 
 namespace pk
 {

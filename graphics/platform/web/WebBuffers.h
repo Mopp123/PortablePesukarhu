@@ -7,6 +7,8 @@ namespace pk
 {
     namespace web
     {
+        class WebRenderCommand;
+
         class WebVertexBuffer : public VertexBuffer
         {
         private:
@@ -39,14 +41,22 @@ namespace pk
         {
         private:
             friend class Buffer;
+            friend class WebRenderCommand;
 
             uint32_t _id = 0;
             bool _isIndexBuffer = false;
+            // Used to call glBufferSubData on updated internal _data when
+            // the buffer gets bound. This is to use opengl binding and unbinding
+            // calls less frequently
+            bool _shouldUpdate = false;
 
         public:
             WebBuffer(const WebBuffer&) = delete;
             ~WebBuffer();
+            virtual void update(const void* data, size_t dataSize);
+
             inline uint32_t getID() const { return _id; }
+            inline bool shouldUpdate() const { return _shouldUpdate; }
 
         protected:
             WebBuffer(void* data, size_t elementSize, size_t dataLength, uint32_t bufferUsageFlags);

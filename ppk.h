@@ -29,6 +29,9 @@
 #include "graphics/platform/web/WebBuffers.h"
 #include "graphics/platform/web/shaders/WebShader.h"
 
+// TODO: Make all renderers like this..
+#include "graphics/renderers/GUIRenderer.h"
+
 //#include "ecs/systems/ui/Text.h"
 //#include "ecs/systems/ui/GUIImage.h"
 //#include "ecs/systems/ui/combinedFunctional/Button.h"

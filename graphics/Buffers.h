@@ -127,20 +127,28 @@ namespace pk
         void* _data = nullptr;
         size_t _dataElemSize = 0; // size of a single entry in data
         size_t _dataLength = 0; // number of elements in the data
+        uint32_t _bufferUsageFlags = 0;
 
     public:
         Buffer(const Buffer&) = delete;
         virtual ~Buffer();
 
+        // Replaces _data from beginning to dataSize.
         // TODO: allow updating "small portions on specified offsets"
-        void update(const void* data, size_t dataSize);
+        virtual void update(const void* data, size_t dataSize) = 0;
 
         inline const void* getData() const { return _data; }
         inline size_t getDataElemSize() const { return _dataElemSize; }
         inline size_t getDataLength() const { return _dataLength; }
+        inline uint32_t getBufferUsage() const { return _bufferUsageFlags; }
+        inline size_t getTotalSize() const { return _dataElemSize * _dataLength; }
 
-        // NOTE: Might not work.. not tested yet...
-        static Buffer* create(void* data, size_t elementSize, size_t dataLength, uint32_t bufferUsageFlags);
+        static Buffer* create(
+            void* data,
+            size_t elementSize,
+            size_t dataLength,
+            uint32_t bufferUsageFlags
+        );
 
     protected:
         // *NOTE! "elementSize" single element's size in "data buffer"
