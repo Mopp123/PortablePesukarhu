@@ -26,6 +26,7 @@ namespace pk
                 if (activeCam != nullptr)
                 {
                     MasterRenderer* masterRenderer = app->_pMasterRenderer;
+                    // NOTE: atm disabled to test new rendering systems!
                     //masterRenderer->render(*activeCam);
                 }
                 else

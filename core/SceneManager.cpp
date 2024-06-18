@@ -14,7 +14,7 @@ namespace pk
         for (System* system : _pCurrentScene->systems)
             system->update();
 
-        return;
+        return; // NOTE: atm dont use below renderers to test new rendering systems!
 
         // NOTE: Deprecated old below!!!
         // Submit all "renderable components" for rendering...

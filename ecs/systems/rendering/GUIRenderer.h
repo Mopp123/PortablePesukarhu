@@ -29,6 +29,7 @@ namespace pk
 
         Buffer* _pTestUBO = nullptr;
         Texture_new* _pTestTexture = nullptr;
+        Texture_new* _pTestTexture2 = nullptr;
 
         DescriptorSet* _pUBODescriptorSet = nullptr;
         DescriptorSet* _pTextureDescriptorSet = nullptr;

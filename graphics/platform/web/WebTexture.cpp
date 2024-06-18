@@ -1,12 +1,12 @@
 
 #include <emscripten.h>
 #include <GL/glew.h>
-#include <SDL_image.h>
 
 #include "WebTexture.h"
 
 #include "../../../core/Debug.h"
 #include "../../../Common.h"
+#include "utils/Image.h"
 
 #include <stdio.h>
 
@@ -25,7 +25,10 @@ namespace pk
 			case 4: glFormat = GL_RGBA; break;
 
 			default:
-				Debug::log("Invalid color channel count when loading texture", Debug::MessageType::PK_FATAL_ERROR);
+				Debug::log(
+                                    "Invalid color channel count when loading texture: " + std::to_string(channels),
+                                    Debug::MessageType::PK_FATAL_ERROR
+                                );
 				return 0;
 			}
 
@@ -129,22 +132,29 @@ namespace pk
 		WebTexture::WebTexture(const std::string& filename, const TextureSampler& sampler, int tiling) :
 			Texture(sampler, tiling)
 		{
-			SDL_Surface* surface = IMG_Load(filename.c_str());
 
-			if (surface == NULL)
-			{
-				Debug::log(
-                                    "Failed to create SDL surface from: " + filename + " SDL_image error: " + IMG_GetError(),
-                                    Debug::MessageType::PK_FATAL_ERROR
-                                );
-				return;
-			}
-			_width = surface->w;
-			_height = surface->h;
-			_channels = 4;
-			_id = create_GL_texture(surface->pixels, _width, _height, _channels, sampler);
-
-			SDL_FreeSurface(surface);
+                    ImageData* imgData = load_image(filename);
+                    if (imgData)
+                    {
+                        _width = imgData->getWidth();
+                        _height = imgData->getHeight();
+                        _channels = imgData->getChannels();
+                        _id = create_GL_texture(
+                            imgData->getData(),
+                            _width,
+                            _height,
+                            _channels,
+                            sampler
+                        );
+                        delete imgData;
+                    }
+                    else
+                    {
+                        Debug::log(
+                            "@WebTexture::WebTexture Failed to create WebTexture",
+                            Debug::MessageType::PK_FATAL_ERROR
+                        );
+                    }
 		}
 
 

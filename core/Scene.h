@@ -29,150 +29,39 @@ namespace pk
 
         Camera* activeCamera = nullptr;
 
-        Scene()
-        {
-            // NOTE: Only temporarely adding all default systems here!
-            // TODO: Some better way of handling this!!
-            //  Also you would need to create all default systems at start
-            //  and never even destroy them..
-            systems.push_back(new ui::ConstraintSystem);
-            systems.push_back(new GUIRenderer);
-        }
+        Scene();
+        virtual ~Scene();
 
-        virtual ~Scene()
-        {
-            Debug::log("Destroying components...");
-            for (const std::pair<uint32_t, Component*> c : components)
-                delete c.second;
+        uint32_t createEntity(std::vector<uint32_t> children = {});
 
-            components.clear();
-            entities.clear();
+        void addChild(uint32_t entity, uint32_t child);
 
-            for (System* system : systems)
-                delete system;
+        std::vector<uint32_t> getChildren(uint32_t entity);
 
-            systems.clear();
-
-            _entityChildMapping.clear();
-        }
-
-        uint32_t createEntity(std::vector<uint32_t> children = {})
-        {
-            // *Start entity ids from 1 and NOT from 0
-            uint32_t id = entities.size() + 1;
-            entities.push_back(id);
-            _entityChildMapping[id] = children;
-
-            return id;
-        }
-
-        void addChild(uint32_t entity, uint32_t child)
-        {
-            _entityChildMapping[entity].push_back(child);
-        }
-
-        std::vector<uint32_t> getChildren(uint32_t entity)
-        {
-            return _entityChildMapping[entity];
-        }
-
-        void addComponent(uint32_t entity, Component* component)
-        {
-            component->_entity = entity;
-        }
-
-        //void addSystem(System* system)
-        //{
-        //    systems.push_back(system);
-        //}
+        void addComponent(uint32_t entity, Component* component);
 
         // Returns first component of "type" associated with "entity"
         // TODO: Some kind of entity - component mapping to speed this up?
-        Component* getComponent(uint32_t entity, ComponentType type, bool nestedSearch = false)
-        {
-            for (uint32_t componentID : typeComponentMapping[type])
-            {
-                Component* pComponent = components[componentID];
-                if (pComponent->getEntity() == entity)
-                    return pComponent;
-            }
-            if (!nestedSearch)
-                Debug::log("Couldn't find component of type: " + std::to_string(type) + " from entity: " + std::to_string(entity), Debug::MessageType::PK_MESSAGE);
-            return nullptr;
-        }
+        Component* getComponent(uint32_t entity, ComponentType type, bool nestedSearch = false);
 
         // Returns first component of "type" found in "entity"'s child entities
-        Component* getComponentInChildren(uint32_t entity, ComponentType type)
-        {
-            for (const uint32_t& child : _entityChildMapping[entity])
-            {
-                Component* pComponent = getComponent(child, type, true);
-                if (pComponent)
-                    return pComponent;
-            }
-            Debug::log("Couldn't find component of type: " + std::to_string(type) + " from child entities of entity: " + std::to_string(entity), Debug::MessageType::PK_MESSAGE);
-            return nullptr;
-        }
+        Component* getComponentInChildren(uint32_t entity, ComponentType type);
 
         // Return all components of entity
         // TODO: Some kind of entity - component mapping to speed this up?
-        std::vector<Component*> getComponents(uint32_t entity)
-        {
-            std::vector<Component*> foundComponents;
-            for (const std::pair<uint32_t, Component*> component : components)
-            {
-                Component* pComponent = component.second;
-                if (pComponent->getEntity() == entity)
-                    foundComponents.push_back(pComponent);
-            }
-            return foundComponents;
-        }
+        std::vector<Component*> getComponents(uint32_t entity);
 
         // Returns first found component of type "type"
         // TODO: Make this more safe?
-        Component* getComponent(ComponentType type)
-        {
-            auto iter = typeComponentMapping.find(type);
-            if (iter != typeComponentMapping.end())
-            {
-                if (typeComponentMapping[type].size() > 0)
-                    return components[typeComponentMapping[type][0]];
-            }
-            return nullptr;
-        }
+        Component* getComponent(ComponentType type);
 
-        std::vector<Component*> getComponentsInChildren(uint32_t entity)
-        {
-            std::vector<Component*> childComponents;
-            for (uint32_t childEntity : getChildren(entity))
-            {
-                for (Component* c : getComponents(childEntity))
-                    childComponents.push_back(c);
-            }
-            return childComponents;
-        }
+        std::vector<Component*> getComponentsInChildren(uint32_t entity);
 
         // Returns all components of entity and its' children all the way down the hierarchy
-        std::vector<Component*> getAllComponents(uint32_t entity)
-        {
-            std::vector<Component*> ownComponents = getComponents(entity);
-            for (uint32_t e : _entityChildMapping[entity])
-            {
-                std::vector<Component*> childComponents = getAllComponents(e);
-                for (Component* c : childComponents)
-                    ownComponents.push_back(c);
-            }
-            return ownComponents;
-        }
+        std::vector<Component*> getAllComponents(uint32_t entity);
 
         // Returns all components in scene of specific type
-        std::vector<Component*> getComponentsOfTypeInScene(ComponentType type)
-        {
-            std::vector<Component*> foundComponents;
-            for (uint32_t componentID : typeComponentMapping[type])
-                foundComponents.push_back(components[componentID]);
-            return foundComponents;
-        }
+        std::vector<Component*> getComponentsOfTypeInScene(ComponentType type);
 
         virtual void init() = 0;
         virtual void update() = 0;

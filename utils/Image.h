@@ -14,7 +14,6 @@ namespace pk
         int _channels = -1;
 
         bool _hasAlpha = false;
-        bool _isFlipped = false;
 
     public:
         ImageData() {}
@@ -23,8 +22,7 @@ namespace pk
             unsigned char* pixels,
             int width,
             int height,
-            int channels,
-            bool isFlipped = false
+            int channels
         );
 
         ~ImageData();
@@ -40,7 +38,6 @@ namespace pk
         inline int getChannels() const { return _channels; }
 
         inline bool hasAlpha() const { return _hasAlpha; }
-        inline bool isFlipped() const { return _isFlipped; }
     };
 
     ImageData* load_image(const std::string filePath);

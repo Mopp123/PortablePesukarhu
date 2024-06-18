@@ -116,6 +116,7 @@ namespace pk
         VertexBufferLayout(const VertexBufferLayout& other);
 
         inline const std::vector<VertexBufferElement>& getElements() const { return _elements; }
+        inline VertexInputRate getInputRate() const { return _inputRate; }
         inline int32_t getStride() const { return _stride; }
     };
 

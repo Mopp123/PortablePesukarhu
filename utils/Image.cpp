@@ -2,56 +2,44 @@
 #include <cstddef>
 #include <cstring>
 #include "core/Debug.h"
+#include "graphics/Context.h"
 #include "Common.h"
 
-#ifdef PK_PLATFORM_WEB
-    #include <SDL_image.h>
-#endif
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 
 namespace pk
 {
-    // TODO: Some more dynamic kind of loader system!!!
-    #ifdef PK_PLATFORM_WEB
     ImageData* load_image(const std::string filePath)
     {
-        SDL_Surface* surface = IMG_Load(filePath.c_str());
-        if (surface == NULL)
+        int width = 0;
+        int height = 0;
+        int channels = 0;
+        bool flipVertically = Context::get_api_type() == GRAPHICS_API_WEBGL;
+
+        stbi_set_flip_vertically_on_load(flipVertically);
+        unsigned char* stbImageData = stbi_load(filePath.c_str(), &width, &height, &channels, 0);
+
+        if (!stbImageData)
         {
             Debug::log(
-                "Failed to create SDL surface from: " + filePath + " SDL_image error: " + IMG_GetError(),
+                "@load_image "
+                "Failed to load image from location : " + filePath,
                 Debug::MessageType::PK_FATAL_ERROR
             );
+            stbi_image_free(stbImageData);
             return nullptr;
         }
-        // NOTE: Not tested if this is actually correct!
-        int channels = (int)surface->format->BytesPerPixel;
-        ImageData* imgData = new ImageData(
-            (unsigned PK_byte*)surface->pixels,
-            surface->w,
-            surface->h,
-            channels,
-            false
-        );
 
-        SDL_FreeSurface(surface);
-
+        ImageData* imgData = new ImageData(stbImageData, width, height, channels);
+        stbi_image_free(stbImageData);
         return imgData;
     }
-    #else
-    ImageData* load_image(const std::string filePath)
-    {
-        Debug::log(
-            "Failed to load image due to invalid platform definition",
-            Debug::MessageType::PK_FATAL_ERROR
-        );
-        return nullptr;
-    }
-    #endif
 
 
-    ImageData::ImageData(unsigned char* pixels, int width, int height, int channels, bool isFlipped) :
-        _width(width), _height(height), _channels(channels),
-        _isFlipped(isFlipped)
+    ImageData::ImageData(unsigned char* pixels, int width, int height, int channels) :
+        _width(width), _height(height), _channels(channels)
     {
         size_t dataSize = width * height * channels;
         _pData = new unsigned char[dataSize];
@@ -95,12 +83,12 @@ namespace pk
            )
         {
             Debug::log(
-                "Failed to set ImageData's data at specific index!\n"
-                "Img dimensions were: " + std::to_string(_width) + "x" + std::to_string(_height) + "\n"
-                "Accessed coordinates were: " + std::to_string(x) + "," + std::to_string(y) + "\n"
-                "At the moment all modified ImageDatas has to have 4 color components(r,g,b,a channels)",
-                Debug::MessageType::PK_FATAL_ERROR
-            );
+                    "Failed to set ImageData's data at specific index!\n"
+                    "Img dimensions were: " + std::to_string(_width) + "x" + std::to_string(_height) + "\n"
+                    "Accessed coordinates were: " + std::to_string(x) + "," + std::to_string(y) + "\n"
+                    "At the moment all modified ImageDatas has to have 4 color components(r,g,b,a channels)",
+                    Debug::MessageType::PK_FATAL_ERROR
+                    );
             return;
         }
 

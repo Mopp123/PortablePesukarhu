@@ -217,13 +217,13 @@ namespace pk
             const std::vector<VertexBufferLayout>& vbLayouts = pipeline->getVertexBufferLayouts();
 
             // Not sure if this stuff works here well...
-            std::vector<VertexBufferLayout>::const_iterator vbIt = vbLayouts.begin();
+            std::vector<VertexBufferLayout>::const_iterator vbLayoutIt = vbLayouts.begin();
 
             for (Buffer* buffer : buffers)
             {
             #ifdef PK_DEBUG_FULL
                 // Crash is intended here..
-                if (vbIt == vbLayouts.end())
+                if (vbLayoutIt == vbLayouts.end())
                     Debug::log(
                         "@WebRenderCommand::bindVertexBuffers No layout exists for inputted buffer",
                         Debug::MessageType::PK_FATAL_ERROR
@@ -236,15 +236,19 @@ namespace pk
                 // corresponds to the order of inputted buffers vector
                 // TODO: Some safeguards 'n error handling if this goes fucked..
 
-                size_t stride = vbIt->getStride();
+                size_t stride = vbLayoutIt->getStride();
                 size_t toNext = 0;
 
-                for (const VertexBufferElement& elem : vbIt->getElements())
+                for (const VertexBufferElement& elem : vbLayoutIt->getElements())
                 {
                     int32_t location = shaderAttribLocations[elem.getLocation()];
                     ShaderDataType elemShaderDataType = elem.getType();
 
                     glEnableVertexAttribArray(location);
+                    glVertexAttribDivisor(
+                        location,
+                        vbLayoutIt->getInputRate() == VertexInputRate::VERTEX_INPUT_RATE_INSTANCE ? 1 : 0
+                    );
                     glVertexAttribPointer(
                         location,
                         get_shader_data_type_component_count(elemShaderDataType),
@@ -255,7 +259,7 @@ namespace pk
                     );
                     toNext += get_shader_data_type_size(elemShaderDataType);
                 }
-                vbIt++;
+                vbLayoutIt++;
             }
         }
 
@@ -430,7 +434,9 @@ namespace pk
         {
             const IndexType& indexType = ((WebCommandBuffer*)pCmdBuf)->_drawIndexedType;
             // NOTE: Don't remember why not giving the ptr to the indices here..
-            glDrawElements(GL_TRIANGLES, indexCount, index_type_to_glenum(indexType), 0);
+            //glDrawElements(GL_TRIANGLES, indexCount, index_type_to_glenum(indexType), 0);
+            glDrawElementsInstanced(GL_TRIANGLES, indexCount, index_type_to_glenum(indexType), 0, 2);
+            Debug::log("___TEST___Draw instanced...");
         }
     }
 }

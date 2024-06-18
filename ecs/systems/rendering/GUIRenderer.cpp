@@ -10,7 +10,6 @@ namespace pk
     struct CommonUBO
     {
         mat4 projMat;
-        vec3 color;
     };
 
     // NOTE: Atm these here only for quick testing!
@@ -23,18 +22,15 @@ namespace pk
         struct Common
         {
             mat4 projMat;
-            vec3 color;
         };
 
         uniform Common common;
 
-        varying vec3 test;
         varying vec2 var_uvCoord;
 
         void main()
         {
             gl_Position = common.projMat * vec4(position, 0, 1.0);
-            test = common.color;
             var_uvCoord = uvCoord;
         }
     )";
@@ -42,15 +38,16 @@ namespace pk
     static std::string s_fragmentSource = R"(
         precision mediump float;
 
-        varying vec3 test;
         varying vec2 var_uvCoord;
 
         uniform sampler2D texSampler;
+        uniform sampler2D texSampler2;
 
         void main()
         {
             vec4 texColor = texture2D(texSampler, var_uvCoord);
-            gl_FragColor = texColor;
+            vec4 texColor2 = texture2D(texSampler2, var_uvCoord);
+            gl_FragColor = mix(texColor, texColor2, 0.5);
         }
     )";
 
@@ -76,7 +73,6 @@ namespace pk
             ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
             {
                 { 0, ShaderDataType::Mat4 },
-                { 1, ShaderDataType::Float3 }
             }
         );
         DescriptorSetLayout uboDescSetLayout({uboDescSetLayoutBinding});
@@ -87,9 +83,16 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
+            {{ 1 }}
+        );
+        DescriptorSetLayoutBinding textureDescSetLayoutBinding2(
+            1,
+            1,
+            DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
             {{ 2 }}
         );
-        DescriptorSetLayout textureDescSetLayout({textureDescSetLayoutBinding});
+        DescriptorSetLayout textureDescSetLayout({ textureDescSetLayoutBinding, textureDescSetLayoutBinding2 });
 
         std::vector<VertexBufferLayout> vbLayouts({vbLayout});
         std::vector<DescriptorSetLayout> descSetLayouts({uboDescSetLayout, textureDescSetLayout});
@@ -159,13 +162,17 @@ namespace pk
 
         // Test textures
         TextureSampler texSampler;
+
         ImageData* pTexImg = load_image("assets/vulcanic.png");
         _pTestTexture = Texture_new::create(texSampler, pTexImg);
 
+        ImageData* pTexImg2 = load_image("assets/asd.png");
+        _pTestTexture2 = Texture_new::create(texSampler, pTexImg2);
+
         _pTextureDescriptorSet = new DescriptorSet(
             textureDescSetLayout,
-            1,
-            { _pTestTexture }
+            2,
+            { _pTestTexture, _pTestTexture2 }
         );
     }
 
@@ -176,6 +183,7 @@ namespace pk
         delete _pTestUBO;
         delete _pUBODescriptorSet;
         delete _pTestTexture;
+        delete _pTestTexture2;
         delete _pTextureDescriptorSet;
         delete _pCmdBuf;
         delete _pRenderCommand;
@@ -190,11 +198,7 @@ namespace pk
         Camera* pSceneCamera = Application::get()->getCurrentScene()->activeCamera;
         const mat4 projMat = pSceneCamera->getProjMat2D();
 
-        float r = (std::rand() % 255) / 255.0f;
-        float g = (std::rand() % 255) / 255.0f;
-        float b = (std::rand() % 255) / 255.0f;
-        vec3 randomColor(r, g, b);
-        CommonUBO commonUBO = { projMat, randomColor };
+        CommonUBO commonUBO = { projMat };
         _pTestUBO->update(&commonUBO, sizeof(commonUBO));
 
         _pRenderCommand->beginCmdBuffer(_pCmdBuf);
