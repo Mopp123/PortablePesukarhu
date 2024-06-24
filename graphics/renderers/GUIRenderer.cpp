@@ -121,8 +121,6 @@ namespace pk
 
         _pCmdBuf = CommandBuffer::create();
 
-        _pRenderCommand = RenderCommand::create();
-
         // Atm creating these only for quick testing here!!!
         // Static vertex buffer
         float yPos = pWindow->getHeight() - 10;
@@ -213,9 +211,10 @@ namespace pk
         delete _pTestTexture2;
         delete _pTextureDescriptorSet;
         delete _pCmdBuf;
-        delete _pRenderCommand;
     }
 
+    Pipeline* GUIRenderer::createPipeline();
+    void destroyPipeline();
 
     void GUIRenderer::submit(const Component* const renderableComponent, const mat4& transformation)
     {
@@ -223,6 +222,14 @@ namespace pk
 
     void GUIRenderer::render(const Camera& cam)
     {
+        if (!_pPipeline)
+        {
+            Debug::log(
+                "@GUIRenderer::render pipeline is nullptr",
+                Debug::MessageType::PK_ERROR
+            );
+        }
+
         // Update current local projMatUbo with camera
         Camera* pSceneCamera = Application::get()->getCurrentScene()->activeCamera;
         const mat4 projMat = pSceneCamera->getProjMat2D();
@@ -230,24 +237,26 @@ namespace pk
         CommonUBO commonUBO = { projMat };
         _pTestUBO->update(&commonUBO, sizeof(commonUBO));
 
-        _pRenderCommand->beginCmdBuffer(_pCmdBuf);
+        RenderCommand* pRenderCmd = RenderCommand::get();
+
+        pRenderCmd->beginCmdBuffer(_pCmdBuf);
 
         const Window * const pWindow = Application::get()->getWindow();
 
-        _pRenderCommand->setViewport(
+        pRenderCmd->setViewport(
             _pCmdBuf,
             0, 0,
             pWindow->getWidth(), pWindow->getHeight(),
             0.0f, 1.0f
         );
 
-        _pRenderCommand->bindPipeline(
+        pRenderCmd->bindPipeline(
             _pCmdBuf,
             PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
             _pPipeline
         );
 
-        _pRenderCommand->bindIndexBuffer(
+        pRenderCmd->bindIndexBuffer(
             _pCmdBuf,
             _pIndexBuffer,
             0,
@@ -272,23 +281,23 @@ namespace pk
         _pInstancedVertexBuffer->update((const void*)updatedInstancedBuf, sizeof(float) * 14);
 
         std::vector<Buffer*> vertexBuffers = { _pVertexBuffer, _pInstancedVertexBuffer };
-        _pRenderCommand->bindVertexBuffers(
+        pRenderCmd->bindVertexBuffers(
             _pCmdBuf,
             0, 2,
             vertexBuffers
         );
 
         std::vector<DescriptorSet*> descriptorSets = { _pUBODescriptorSet, _pTextureDescriptorSet };
-        _pRenderCommand->bindDescriptorSets(
+        pRenderCmd->bindDescriptorSets(
             _pCmdBuf,
             PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
             0,
             descriptorSets
         );
 
-        _pRenderCommand->drawIndexed(_pCmdBuf, 6, 7, 0, 0, 0);
+        pRenderCmd->drawIndexed(_pCmdBuf, 6, 7, 0, 0, 0);
 
-        _pRenderCommand->endCmdBuffer(_pCmdBuf);
+        pRenderCmd->endCmdBuffer(_pCmdBuf);
 
 
         GLenum err = glGetError();
@@ -296,7 +305,7 @@ namespace pk
             Debug::log("___TEST___GL ERR: " + std::to_string(err));
     }
 
-    void GUIRenderer::resize(int w, int h)
+    void GUIRenderer::handleWindowResize(int w, int h)
     {
         Debug::log(
             "@GUIRenderer::resize Function not implemented!",

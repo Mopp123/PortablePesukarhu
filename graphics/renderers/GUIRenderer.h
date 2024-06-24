@@ -27,8 +27,6 @@ namespace pk
 
         CommandBuffer* _pCmdBuf = nullptr;
 
-        RenderCommand* _pRenderCommand = nullptr;
-
         // NOTE: atm these here only for testing!
         Buffer* _pVertexBuffer = nullptr;
         Buffer* _pInstancedVertexBuffer = nullptr;
@@ -49,6 +47,10 @@ namespace pk
 
         virtual void submit(const Component* const renderableComponent, const mat4& transformation);
         virtual void render(const Camera& cam);
-        virtual void resize(int w, int h);
+        virtual void handleWindowResize(int w, int h);
+
+    protected:
+        virtual Pipeline* createPipeline();
+        virtual void destroyPipeline();
     };
 }

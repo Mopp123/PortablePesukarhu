@@ -11,8 +11,13 @@ namespace pk
 {
     class RenderCommand
     {
+    private:
+        static RenderCommand* s_pInstance;
+
     public:
+        RenderCommand(const RenderCommand& other) = delete;
         virtual ~RenderCommand() {}
+
         // TODO: eventually this should return "primary command buffer" to use for currently used frame
         virtual void beginFrame() = 0;
         virtual void beginRenderPass() = 0;
@@ -84,6 +89,12 @@ namespace pk
             uint32_t firstInstance
         ) = 0;
 
+        static RenderCommand* get();
+
+    protected:
+        RenderCommand() {}
+
+    private:
         static RenderCommand* create();
     };
 }
