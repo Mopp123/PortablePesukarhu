@@ -59,6 +59,18 @@ namespace pk
         _pInputManager(inputManager)
     {
         s_pApplication = this;
+
+        // This is done because swapchain creation requires window
+        // and graphics context to exist.
+        // NOTE: "Offscreen usage" isn't supported atm (cant create Application without window)
+        if (_pWindow)
+            _pWindow->createSwapchain();
+        else
+            Debug::log(
+                "@Application::Application Window not assigned. "
+                "Currently Application creation is not allowed without window",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
     }
 
     void Application::init(MasterRenderer* pMasterRenderer)
@@ -86,7 +98,6 @@ namespace pk
     void Application::resizeWindow(int w, int h)
     {
         _pWindow->resize(w, h);
-        _pMasterRenderer->handleWindowResize(w, h);
     }
 
     void Application::switchScene(Scene* newScene)

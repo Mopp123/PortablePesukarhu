@@ -18,11 +18,8 @@ namespace pk
         RenderCommand(const RenderCommand& other) = delete;
         virtual ~RenderCommand() {}
 
-        // TODO: eventually this should return "primary command buffer" to use for currently used frame
-        virtual void beginFrame() = 0;
         virtual void beginRenderPass() = 0;
         virtual void endRenderPass() = 0;
-        virtual void endFrame() = 0;
 
         // NOTE: atm just quick hack and only opengl specific!!!
         // TODO: figure out could the setViewport "cmd" replace this?

@@ -47,7 +47,7 @@ namespace pk
 
         virtual void submit(const Component* const renderableComponent, const mat4& transformation);
         virtual void render(const Camera& cam);
-        virtual void handleWindowResize(int w, int h);
+        virtual void handleWindowResize();
 
     protected:
         virtual Pipeline* createPipeline();

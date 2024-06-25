@@ -124,7 +124,7 @@ namespace pk
 
             virtual void render(const Camera& cam);
 
-            virtual void handleWindowResize(int w, int h) {}
+            virtual void handleWindowResize() {}
 
         private:
             //std::vector<GlyphData> createGlyphs(std::string characters, std::string fontFilePath);

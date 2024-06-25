@@ -1,12 +1,9 @@
 #pragma once
 
-#include <vector>
 #include <map>
-#include "Context.h"
-#include "CommandBuffer.h"
-#include "RenderCommand.h"
 #include "Renderer.h"
 #include "../ecs/components/Camera.h"
+#include "Swapchain.h"
 
 
 namespace pk
@@ -14,7 +11,7 @@ namespace pk
     class MasterRenderer
     {
     private:
-        RenderCommand* _pRenderCommand = nullptr;
+        Swapchain* _pSwapchain = nullptr;
         std::map<ComponentType, Renderer*> _renderers;
 
     public:
@@ -24,8 +21,9 @@ namespace pk
 
         void render(const Camera& cam);
 
-        void handleWindowResize(int w, int h);
-
         inline Renderer* const getRenderer(ComponentType renderableType) { return _renderers[renderableType]; }
+
+    private:
+        void handleWindowResize();
     };
 }

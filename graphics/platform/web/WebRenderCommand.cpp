@@ -64,10 +64,6 @@ namespace pk
             }
         }
 
-
-        void WebRenderCommand::beginFrame()
-        {}
-
         void WebRenderCommand::beginRenderPass()
         {
 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -75,9 +71,6 @@ namespace pk
         }
 
         void WebRenderCommand::endRenderPass()
-        {}
-
-        void WebRenderCommand::endFrame()
         {}
 
         // NOTE: atm just quick hack and only opengl specific!!!

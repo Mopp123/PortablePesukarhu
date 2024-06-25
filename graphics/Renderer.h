@@ -5,6 +5,7 @@
 #include "shaders/Shader.h"
 #include "../utils/pkmath.h"
 
+#include "Swapchain.h"
 #include "Buffers.h"
 #include "Texture.h"
 #include "Pipeline.h"
@@ -14,7 +15,6 @@
 #include <unordered_map>
 
 // TODO: Swapchain class
-#define MAX_SWAPCHAIN_IMAGES 3
 
 
 namespace pk
@@ -117,7 +117,7 @@ namespace pk
 
         virtual void render(const Camera& cam) = 0; //*why the fuk proj and view matrices not const?
 
-        virtual void handleWindowResize(int w, int h) = 0;
+        virtual void handleWindowResize() = 0;
 
         virtual void beginFrame() {}
         virtual void beginRenderPass(){}

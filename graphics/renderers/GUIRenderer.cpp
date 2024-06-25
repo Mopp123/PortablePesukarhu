@@ -213,8 +213,16 @@ namespace pk
         delete _pCmdBuf;
     }
 
-    Pipeline* GUIRenderer::createPipeline();
-    void destroyPipeline();
+    Pipeline* GUIRenderer::createPipeline()
+    {
+        // TODO: DO!
+        return nullptr;
+    }
+
+    void GUIRenderer::destroyPipeline()
+    {
+        // TODO: DO!
+    }
 
     void GUIRenderer::submit(const Component* const renderableComponent, const mat4& transformation)
     {
@@ -305,7 +313,7 @@ namespace pk
             Debug::log("___TEST___GL ERR: " + std::to_string(err));
     }
 
-    void GUIRenderer::handleWindowResize(int w, int h)
+    void GUIRenderer::handleWindowResize()
     {
         Debug::log(
             "@GUIRenderer::resize Function not implemented!",

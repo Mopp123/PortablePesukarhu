@@ -24,7 +24,7 @@ namespace pk
 				{	164, 228 },//	ä
 				{	165, 229 },//	å
 				{	182, 246 },//	ö
-								    
+
 				{	132, 196 },//	Ä
 				{	133, 197 },//	Å
 				{	150, 214 }, //	Ö
@@ -100,13 +100,14 @@ namespace pk
 
 
 			static void query_window_size(int* outWidth, int* outHeight);
+			static void query_window_surface_size(int* outWidth, int* outHeight);
 
 
 			unsigned int parseSpecialCharCodepoint(unsigned int val) const;
 
 			bool isCharacter(const char* keyname) const;
 
-			inline InputKeyName convert_to_keyname(const std::string& key) 
+			inline InputKeyName convert_to_keyname(const std::string& key)
 			{
 				return _mapping_keyboard_emscToPk.find(key)->second;
 			}

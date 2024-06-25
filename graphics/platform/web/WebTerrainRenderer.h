@@ -52,7 +52,7 @@ namespace pk
 
             virtual void render(const Camera& cam);
 
-            virtual void handleWindowResize(int w, int h) {}
+            virtual void handleWindowResize() {}
 
         private:
             void allocateBatches(int maxBatchCount, int maxBatchLength, int entryLength);
