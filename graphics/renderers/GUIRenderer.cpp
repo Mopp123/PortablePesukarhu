@@ -50,77 +50,16 @@ namespace pk
     )";
 
 
-    GUIRenderer::GUIRenderer()
+    GUIRenderer::GUIRenderer() :
+        _uboDescSetLayout({}),
+        _textureDescSetLayout({})
     {
         _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
         _pFragmentShader = Shader::create(s_fragmentSource, ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT);
 
-        // Vertex buffer layouts
-        VertexBufferLayout vbLayout(
-            {
-                { 0, ShaderDataType::Float2 },
-                { 1, ShaderDataType::Float2 }
-            },
-            VertexInputRate::VERTEX_INPUT_RATE_VERTEX
-        );
-        VertexBufferLayout instancedVbLayout(
-            {
-                { 2, ShaderDataType::Float2 },
-            },
-            VertexInputRate::VERTEX_INPUT_RATE_INSTANCE
-        );
-
-
-        // UBO desc set layout
-        DescriptorSetLayoutBinding uboDescSetLayoutBinding(
-            0,
-            1,
-            DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
-            {
-                { 0, ShaderDataType::Mat4 },
-            }
-        );
-        DescriptorSetLayout uboDescSetLayout({uboDescSetLayoutBinding});
-
-        // Textures desc set layout
-        DescriptorSetLayoutBinding textureDescSetLayoutBinding(
-            0,
-            1,
-            DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 1 }}
-        );
-        DescriptorSetLayoutBinding textureDescSetLayoutBinding2(
-            1,
-            1,
-            DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 2 }}
-        );
-        DescriptorSetLayout textureDescSetLayout({ textureDescSetLayoutBinding, textureDescSetLayoutBinding2 });
-
-        std::vector<VertexBufferLayout> vbLayouts({ vbLayout, instancedVbLayout });
-        std::vector<DescriptorSetLayout> descSetLayouts({uboDescSetLayout, textureDescSetLayout});
+        initPipeline();
 
         const Window* pWindow = Application::get()->getWindow();
-        int windowWidth = pWindow->getWidth();
-        int windowHeight = pWindow->getHeight();
-
-        _pPipeline = Pipeline::create(
-            vbLayouts,
-            descSetLayouts,
-            _pVertexShader, _pFragmentShader,
-            (float)windowWidth, (float)windowHeight,
-            { 0, 0, (uint32_t)windowWidth, (uint32_t)windowHeight },
-            CullMode::CULL_MODE_NONE,
-            FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
-            true,
-            DepthCompareOperation::COMPARE_OP_ALWAYS
-        );
-
-        _pCmdBuf = CommandBuffer::create();
-
         // Atm creating these only for quick testing here!!!
         // Static vertex buffer
         float yPos = pWindow->getHeight() - 10;
@@ -178,7 +117,7 @@ namespace pk
         );
 
         _pUBODescriptorSet = new DescriptorSet(
-            uboDescSetLayout,
+            _uboDescSetLayout,
             1,
             { _pTestUBO }
         );
@@ -193,7 +132,7 @@ namespace pk
         _pTestTexture2 = Texture_new::create(texSampler, pTexImg2);
 
         _pTextureDescriptorSet = new DescriptorSet(
-            textureDescSetLayout,
+            _textureDescSetLayout,
             2,
             { _pTestTexture, _pTestTexture2 }
         );
@@ -210,18 +149,72 @@ namespace pk
         delete _pTestTexture;
         delete _pTestTexture2;
         delete _pTextureDescriptorSet;
-        delete _pCmdBuf;
     }
 
-    Pipeline* GUIRenderer::createPipeline()
+    void GUIRenderer::initPipeline()
     {
-        // TODO: DO!
-        return nullptr;
-    }
+        // Vertex buffer layouts
+        VertexBufferLayout vbLayout(
+            {
+                { 0, ShaderDataType::Float2 },
+                { 1, ShaderDataType::Float2 }
+            },
+            VertexInputRate::VERTEX_INPUT_RATE_VERTEX
+        );
+        VertexBufferLayout instancedVbLayout(
+            {
+                { 2, ShaderDataType::Float2 },
+            },
+            VertexInputRate::VERTEX_INPUT_RATE_INSTANCE
+        );
 
-    void GUIRenderer::destroyPipeline()
-    {
-        // TODO: DO!
+
+        // UBO desc set layout
+        DescriptorSetLayoutBinding uboDescSetLayoutBinding(
+            0,
+            1,
+            DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
+            {
+                { 0, ShaderDataType::Mat4 },
+            }
+        );
+        _uboDescSetLayout = DescriptorSetLayout({uboDescSetLayoutBinding});
+
+        // Textures desc set layout
+        DescriptorSetLayoutBinding textureDescSetLayoutBinding(
+            0,
+            1,
+            DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
+            {{ 1 }}
+        );
+        DescriptorSetLayoutBinding textureDescSetLayoutBinding2(
+            1,
+            1,
+            DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
+            {{ 2 }}
+        );
+        _textureDescSetLayout = DescriptorSetLayout({ textureDescSetLayoutBinding, textureDescSetLayoutBinding2 });
+
+        std::vector<VertexBufferLayout> vbLayouts({ vbLayout, instancedVbLayout });
+        std::vector<DescriptorSetLayout> descSetLayouts({_uboDescSetLayout, _textureDescSetLayout});
+
+        const Window* pWindow = Application::get()->getWindow();
+        const Swapchain* pSwapchain = pWindow->getSwapchain();
+        Extent2D viewportExtent = pSwapchain->getSurfaceExtent();
+        _pPipeline->init(
+            vbLayouts,
+            descSetLayouts,
+            _pVertexShader, _pFragmentShader,
+            (float)viewportExtent.width, (float)viewportExtent.height,
+            { 0, 0, (uint32_t)viewportExtent.width, (uint32_t)viewportExtent.height },
+            CullMode::CULL_MODE_NONE,
+            FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
+            true,
+            DepthCompareOperation::COMPARE_OP_ALWAYS
+        );
     }
 
     void GUIRenderer::submit(const Component* const renderableComponent, const mat4& transformation)
@@ -237,6 +230,7 @@ namespace pk
                 Debug::MessageType::PK_ERROR
             );
         }
+        CommandBuffer* pCurrentCmdBuf = _pCommandBuffers[RenderPassType::RENDER_PASS_DIFFUSE][0];
 
         // Update current local projMatUbo with camera
         Camera* pSceneCamera = Application::get()->getCurrentScene()->activeCamera;
@@ -247,25 +241,25 @@ namespace pk
 
         RenderCommand* pRenderCmd = RenderCommand::get();
 
-        pRenderCmd->beginCmdBuffer(_pCmdBuf);
+        pRenderCmd->beginCmdBuffer(pCurrentCmdBuf);
 
         const Window * const pWindow = Application::get()->getWindow();
 
         pRenderCmd->setViewport(
-            _pCmdBuf,
+            pCurrentCmdBuf,
             0, 0,
             pWindow->getWidth(), pWindow->getHeight(),
             0.0f, 1.0f
         );
 
         pRenderCmd->bindPipeline(
-            _pCmdBuf,
+            pCurrentCmdBuf,
             PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
             _pPipeline
         );
 
         pRenderCmd->bindIndexBuffer(
-            _pCmdBuf,
+            pCurrentCmdBuf,
             _pIndexBuffer,
             0,
             IndexType::INDEX_TYPE_UINT16
@@ -290,34 +284,26 @@ namespace pk
 
         std::vector<Buffer*> vertexBuffers = { _pVertexBuffer, _pInstancedVertexBuffer };
         pRenderCmd->bindVertexBuffers(
-            _pCmdBuf,
+            pCurrentCmdBuf,
             0, 2,
             vertexBuffers
         );
 
         std::vector<DescriptorSet*> descriptorSets = { _pUBODescriptorSet, _pTextureDescriptorSet };
         pRenderCmd->bindDescriptorSets(
-            _pCmdBuf,
+            pCurrentCmdBuf,
             PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
             0,
             descriptorSets
         );
 
-        pRenderCmd->drawIndexed(_pCmdBuf, 6, 7, 0, 0, 0);
+        pRenderCmd->drawIndexed(pCurrentCmdBuf, 6, 7, 0, 0, 0);
 
-        pRenderCmd->endCmdBuffer(_pCmdBuf);
+        pRenderCmd->endCmdBuffer(pCurrentCmdBuf);
 
 
         GLenum err = glGetError();
         if (err != GL_NO_ERROR)
             Debug::log("___TEST___GL ERR: " + std::to_string(err));
-    }
-
-    void GUIRenderer::handleWindowResize()
-    {
-        Debug::log(
-            "@GUIRenderer::resize Function not implemented!",
-            Debug::MessageType::PK_FATAL_ERROR
-        );
     }
 }

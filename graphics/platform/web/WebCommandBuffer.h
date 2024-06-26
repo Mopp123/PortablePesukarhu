@@ -33,6 +33,9 @@ namespace pk
             WebCommandBuffer(const WebCommandBuffer&) = delete;
             ~WebCommandBuffer() {}
 
+            virtual void allocate() {}
+            virtual void free() {}
+
         private:
             WebCommandBuffer() {}
         };

@@ -23,15 +23,14 @@ namespace pk
     private:
         Shader* _pVertexShader = nullptr;
         Shader* _pFragmentShader = nullptr;
-        Pipeline* _pPipeline = nullptr;
-
-        CommandBuffer* _pCmdBuf = nullptr;
 
         // NOTE: atm these here only for testing!
         Buffer* _pVertexBuffer = nullptr;
         Buffer* _pInstancedVertexBuffer = nullptr;
         Buffer* _pIndexBuffer = nullptr;
 
+        DescriptorSetLayout _uboDescSetLayout;
+        DescriptorSetLayout _textureDescSetLayout;
         Buffer* _pTestUBO = nullptr;
         Texture_new* _pTestTexture = nullptr;
         Texture_new* _pTestTexture2 = nullptr;
@@ -47,10 +46,8 @@ namespace pk
 
         virtual void submit(const Component* const renderableComponent, const mat4& transformation);
         virtual void render(const Camera& cam);
-        virtual void handleWindowResize();
 
     protected:
-        virtual Pipeline* createPipeline();
-        virtual void destroyPipeline();
+        virtual void initPipeline();
     };
 }

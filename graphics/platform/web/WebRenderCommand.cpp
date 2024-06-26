@@ -123,7 +123,7 @@ namespace pk
             opengl::OpenglPipeline* glPipeline = (opengl::OpenglPipeline*)pPipeline;
             ((WebCommandBuffer*)pCmdBuf)->_pPipeline = glPipeline;
 
-            glUseProgram(glPipeline->getShaderProgram().getID());
+            glUseProgram(glPipeline->getShaderProgram()->getID());
 
             if (glPipeline->getEnableDepthTest())
                 glEnable(GL_DEPTH_TEST);
@@ -202,8 +202,8 @@ namespace pk
         )
         {
             opengl::OpenglPipeline* pipeline = ((WebCommandBuffer*)pCmdBuf)->_pPipeline;
-            const opengl::OpenglShaderProgram& shaderProgram = pipeline->getShaderProgram();
-            const std::vector<int32_t>& shaderAttribLocations = shaderProgram.getAttribLocations();
+            const opengl::OpenglShaderProgram* pShaderProgram = pipeline->getShaderProgram();
+            const std::vector<int32_t>& shaderAttribLocations = pShaderProgram->getAttribLocations();
             const std::vector<VertexBufferLayout>& vbLayouts = pipeline->getVertexBufferLayouts();
 
             // Not sure if this stuff works here well...
@@ -281,8 +281,8 @@ namespace pk
         )
         {
             opengl::OpenglPipeline* pipeline = ((WebCommandBuffer*)pCmdBuf)->_pPipeline;
-            const opengl::OpenglShaderProgram& shaderProgram = pipeline->getShaderProgram();
-            const std::vector<int32_t>& shaderUniformLocations = shaderProgram.getUniformLocations();
+            const opengl::OpenglShaderProgram* pShaderProgram = pipeline->getShaderProgram();
+            const std::vector<int32_t>& shaderUniformLocations = pShaderProgram->getUniformLocations();
 
             for (const DescriptorSet* descriptorSet : descriptorSets)
             {

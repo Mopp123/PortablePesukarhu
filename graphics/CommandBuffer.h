@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 
 namespace pk
 {
@@ -20,7 +22,10 @@ namespace pk
         CommandBuffer(const CommandBuffer&) = delete;
         virtual ~CommandBuffer() {}
 
-        static CommandBuffer* create();
+        virtual void allocate() {}
+        virtual void free() {}
+
+        static std::vector<CommandBuffer*> create(int count);
 
     private:
         CommandBuffer() {}

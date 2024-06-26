@@ -18,7 +18,7 @@ namespace pk
             float _viewportWidth = 0.0f;
             float _viewportHeight = 0.0f;
 
-            OpenglShaderProgram _shaderProgram;
+            OpenglShaderProgram* _pShaderProgram = nullptr;
 
             CullMode _cullMode;
             FrontFace _frontFace;
@@ -30,10 +30,28 @@ namespace pk
             OpenglPipeline(const OpenglPipeline&) = delete;
             ~OpenglPipeline() {}
 
+            // TODO: Make shader modules' sources exist until opengl shader program created and
+            // vertex attrib + uniform locations have been found!
+            //
+            // NOTE: Default copying should work for those layouts here..
+            virtual void init(
+                const std::vector<VertexBufferLayout>& vertexBufferLayouts,
+                const std::vector<DescriptorSetLayout>& descriptorLayouts,
+                const Shader* pVertexShader, const Shader* pFragmentShader,
+                float viewportWidth, float viewportHeight,
+                const Rect2D viewportScissor,
+                CullMode cullMode,
+                FrontFace frontFace,
+                bool enableDepthTest,
+                DepthCompareOperation depthCmpOp
+            ) override;
+
+            virtual void cleanUp() override;
+
             const std::vector<VertexBufferLayout>& getVertexBufferLayouts() const { return _vertexBufferLayouts; }
             const std::vector<DescriptorSetLayout>& getDescriptorSetLayouts(int index) const { return _descriptorLayouts; }
 
-            inline const OpenglShaderProgram& getShaderProgram() const { return _shaderProgram; }
+            inline const OpenglShaderProgram* getShaderProgram() const { return _pShaderProgram; }
 
             inline CullMode getCullMode() const { return _cullMode; }
             inline FrontFace getFrontFace() const { return _frontFace; }
@@ -42,22 +60,7 @@ namespace pk
             inline DepthCompareOperation getDepthCompareOperation() const { return _depthCmpOp; }
 
         protected:
-            // TODO: Make shader modules' sources exist until opengl shader program created and
-            // vertex attrib + uniform locations have been found!
-            //
-            // NOTE: Default copying should work for those layouts here..
-            OpenglPipeline(
-                const std::vector<VertexBufferLayout>& vertexBufferLayouts,
-                const std::vector<DescriptorSetLayout>& descriptorLayouts,
-                ShaderVersion shaderVersion,
-                const Shader* pVertexShader, const Shader* pFragmentShader,
-                float viewportWidth, float viewportHeight,
-                const Rect2D viewportScissor,
-                CullMode cullMode,
-                FrontFace frontFace,
-                bool enableDepthTest,
-                DepthCompareOperation depthCmpOp
-            );
+            OpenglPipeline() {}
         };
     }
 }

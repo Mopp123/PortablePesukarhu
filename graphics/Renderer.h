@@ -106,18 +106,17 @@ namespace pk
     {
     protected:
         Pipeline* _pPipeline = nullptr;
-        std::unordered_map<RenderPassType, CommandBuffer*[MAX_SWAPCHAIN_IMAGES]> _pCommandBuffers;
+        std::unordered_map<RenderPassType, std::vector<CommandBuffer*>> _pCommandBuffers;
 
     public:
-        Renderer() {}
-        virtual ~Renderer() {}
+        Renderer();
+        virtual ~Renderer();
+        void handleWindowResize();
 
         // submit renderable component for rendering (batch preparing, before rendering)
         virtual void submit(const Component* const renderableComponent, const mat4& transformation) = 0;
 
         virtual void render(const Camera& cam) = 0; //*why the fuk proj and view matrices not const?
-
-        virtual void handleWindowResize() = 0;
 
         virtual void beginFrame() {}
         virtual void beginRenderPass(){}
@@ -125,8 +124,9 @@ namespace pk
         virtual void endFrame() {}
 
     protected:
-        virtual Pipeline* createPipeline() { return nullptr; }
-        virtual void destroyPipeline() {}
+        // Pipeline has its' own init func but what that func takes in dependant on renderer
+        // so thats why we need this implemented for all renderers
+        virtual void initPipeline() { }
     };
 
 }
