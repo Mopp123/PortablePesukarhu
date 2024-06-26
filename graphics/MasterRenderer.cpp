@@ -10,7 +10,8 @@
 
 namespace pk
 {
-    MasterRenderer::MasterRenderer()
+    MasterRenderer::MasterRenderer() :
+        _commonDescriptorSetLayout({})
     {
         const Application* pApp = Application::get();
         if (!pApp)
@@ -38,10 +39,42 @@ namespace pk
                 Debug::MessageType::PK_FATAL_ERROR
             );
         }
+
+        // NOTE: May require recreating all common
+        // uniform buffers and descriptors in case
+        // swapchain's img count changes for some reason!!
+        DescriptorSetLayoutBinding commonDescriptorSetLayoutBinding(
+            0,
+            1,
+            DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
+            {
+                { 0, ShaderDataType::Mat4 },
+            }
+        );
+        _commonDescriptorSetLayout = DescriptorSetLayout({commonDescriptorSetLayoutBinding});
+        CommonUniforms initialCommonUniforms;
+        _pCommonUniformBuffer = Buffer::create(
+            &initialCommonUniforms,
+            sizeof(CommonUniforms),
+            1,
+            BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            true
+        );
+        _pCommonDescriptorSet = new DescriptorSet(
+            _commonDescriptorSetLayout,
+            1,
+            {_pCommonUniformBuffer}
+        );
     }
 
     MasterRenderer::~MasterRenderer()
-    {}
+    {
+        if (_pCommonDescriptorSet)
+            delete _pCommonDescriptorSet;
+        if (_pCommonUniformBuffer)
+            delete _pCommonUniformBuffer;
+    }
 
     void MasterRenderer::addRenderer(ComponentType renderableComponentType, Renderer* renderer)
     {
@@ -78,6 +111,11 @@ namespace pk
             pRenderCommand->beginRenderPass();
 
             // Update common uniform buffers here?...
+            Camera* pSceneCamera = Application::get()->getCurrentScene()->activeCamera;
+            const mat4 projMat = pSceneCamera->getProjMat2D();
+
+            CommonUniforms commonUniforms = { projMat };
+            _pCommonUniformBuffer->update(&commonUniforms, sizeof(CommonUniforms));
 
             // NOTE: Not sure if I like these being raw ptrs here...
             std::vector<CommandBuffer*> secondaryCmdBufs;

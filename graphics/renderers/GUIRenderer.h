@@ -12,12 +12,6 @@
 
 namespace pk
 {
-
-    struct CommonUBO
-    {
-        mat4 projMat;
-    };
-
     class GUIRenderer : public Renderer
     {
     private:
@@ -29,13 +23,10 @@ namespace pk
         Buffer* _pInstancedVertexBuffer = nullptr;
         Buffer* _pIndexBuffer = nullptr;
 
-        DescriptorSetLayout _uboDescSetLayout;
         DescriptorSetLayout _textureDescSetLayout;
-        Buffer* _pTestUBO = nullptr;
         Texture_new* _pTestTexture = nullptr;
         Texture_new* _pTestTexture2 = nullptr;
 
-        DescriptorSet* _pUBODescriptorSet = nullptr;
         DescriptorSet* _pTextureDescriptorSet = nullptr;
 
         float s_testX = 0.0f;

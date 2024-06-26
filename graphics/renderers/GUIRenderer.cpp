@@ -51,7 +51,6 @@ namespace pk
 
 
     GUIRenderer::GUIRenderer() :
-        _uboDescSetLayout({}),
         _textureDescSetLayout({})
     {
         _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
@@ -104,23 +103,10 @@ namespace pk
             instancedBuf,
             sizeof(float),
             14,
-            BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT
+            BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT,
+            true
         );
 
-        // Test UBOs
-        CommonUBO initialCommon;
-        _pTestUBO = Buffer::create(
-            &initialCommon,
-            sizeof(CommonUBO),
-            1,
-            BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT
-        );
-
-        _pUBODescriptorSet = new DescriptorSet(
-            _uboDescSetLayout,
-            1,
-            { _pTestUBO }
-        );
 
         // Test textures
         TextureSampler texSampler;
@@ -144,8 +130,6 @@ namespace pk
         delete _pFragmentShader;
         delete _pVertexBuffer;
         delete _pInstancedVertexBuffer;
-        delete _pTestUBO;
-        delete _pUBODescriptorSet;
         delete _pTestTexture;
         delete _pTestTexture2;
         delete _pTextureDescriptorSet;
@@ -169,17 +153,9 @@ namespace pk
         );
 
 
-        // UBO desc set layout
-        DescriptorSetLayoutBinding uboDescSetLayoutBinding(
-            0,
-            1,
-            DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
-            {
-                { 0, ShaderDataType::Mat4 },
-            }
-        );
-        _uboDescSetLayout = DescriptorSetLayout({uboDescSetLayoutBinding});
+        // TODO: Better way of interacting with master renderer here
+        MasterRenderer* pMasterRenderer = Application::get()->getMasterRenderer();
+        DescriptorSetLayout commonDescriptorSetLayout = pMasterRenderer->getCommonDescriptorSetLayout();
 
         // Textures desc set layout
         DescriptorSetLayoutBinding textureDescSetLayoutBinding(
@@ -199,7 +175,7 @@ namespace pk
         _textureDescSetLayout = DescriptorSetLayout({ textureDescSetLayoutBinding, textureDescSetLayoutBinding2 });
 
         std::vector<VertexBufferLayout> vbLayouts({ vbLayout, instancedVbLayout });
-        std::vector<DescriptorSetLayout> descSetLayouts({_uboDescSetLayout, _textureDescSetLayout});
+        std::vector<DescriptorSetLayout> descSetLayouts({commonDescriptorSetLayout, _textureDescSetLayout});
 
         const Window* pWindow = Application::get()->getWindow();
         const Swapchain* pSwapchain = pWindow->getSwapchain();
@@ -231,18 +207,11 @@ namespace pk
             );
         }
         CommandBuffer* pCurrentCmdBuf = _pCommandBuffers[RenderPassType::RENDER_PASS_DIFFUSE][0];
-
-        // Update current local projMatUbo with camera
-        Camera* pSceneCamera = Application::get()->getCurrentScene()->activeCamera;
-        const mat4 projMat = pSceneCamera->getProjMat2D();
-
-        CommonUBO commonUBO = { projMat };
-        _pTestUBO->update(&commonUBO, sizeof(commonUBO));
-
         RenderCommand* pRenderCmd = RenderCommand::get();
 
         pRenderCmd->beginCmdBuffer(pCurrentCmdBuf);
 
+        // TODO: get viewport extent from swapchain instead of window
         const Window * const pWindow = Application::get()->getWindow();
 
         pRenderCmd->setViewport(
@@ -289,7 +258,10 @@ namespace pk
             vertexBuffers
         );
 
-        std::vector<DescriptorSet*> descriptorSets = { _pUBODescriptorSet, _pTextureDescriptorSet };
+        // TODO: On gui rendering get projection matrix and use it as push constant instead of descriptor set
+        // since "CommonUniforms" will eventually have more stuff, gui rendering wont use!
+        const DescriptorSet* pCommonDescriptorSet = Application::get()->getMasterRenderer()->getCommonDescriptorSet();
+        std::vector<const DescriptorSet*> descriptorSets = { pCommonDescriptorSet, _pTextureDescriptorSet };
         pRenderCmd->bindDescriptorSets(
             pCurrentCmdBuf,
             PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,

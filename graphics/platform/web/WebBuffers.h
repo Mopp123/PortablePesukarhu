@@ -59,7 +59,13 @@ namespace pk
             inline bool shouldUpdate() const { return _shouldUpdate; }
 
         protected:
-            WebBuffer(void* data, size_t elementSize, size_t dataLength, uint32_t bufferUsageFlags);
+            WebBuffer(
+                void* data,
+                size_t elementSize,
+                size_t dataLength,
+                uint32_t bufferUsageFlags,
+                bool saveDataHostSide
+            );
         };
     }
 }

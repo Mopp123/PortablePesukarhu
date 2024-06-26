@@ -87,14 +87,15 @@ namespace pk
 
     public:
         Texture_new(const Texture_new&) = delete;
-        virtual ~Texture_new()
-        {
-            if (_pImgData)
-                delete _pImgData;
-        }
+        virtual ~Texture_new();
 
         // NOTE: Why pImgData is not const here?
-        static Texture_new* create(TextureSampler sampler, ImageData* pImgData, int tiling = 1);
+        static Texture_new* create(
+            TextureSampler sampler,
+            ImageData* pImgData,
+            int tiling = 1,
+            bool saveDataHostSide = false
+        );
 
         // TODO: ?
         // virtual void update(void* data, int slot = 0) = 0;
@@ -103,11 +104,7 @@ namespace pk
         inline int getTiling() const { return _tiling; }
 
     protected:
-        Texture_new(TextureSampler sampler, ImageData* pImgData, int tiling) :
-            _sampler(sampler),
-            _pImgData(pImgData),
-            _tiling(tiling)
-        {}
+        Texture_new(TextureSampler sampler, ImageData* pImgData, int tiling);
     };
 
 

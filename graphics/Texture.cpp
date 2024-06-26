@@ -6,13 +6,31 @@
 
 namespace pk
 {
-    Texture_new* Texture_new::create(TextureSampler sampler, ImageData* pImgData, int tiling)
+
+    Texture_new::Texture_new(TextureSampler sampler, ImageData* pImgData, int tiling) :
+        _sampler(sampler),
+        _pImgData(pImgData),
+        _tiling(tiling)
+    {}
+
+    Texture_new::~Texture_new()
+    {
+        if (_pImgData)
+            delete _pImgData;
+    }
+
+    Texture_new* Texture_new::create(
+        TextureSampler sampler,
+        ImageData* pImgData,
+        int tiling,
+        bool saveDataHostSide
+    )
     {
         const uint32_t api = Context::get_api_type();
         switch(api)
         {
             case GRAPHICS_API_WEBGL:
-                return new opengl::OpenglTexture(sampler, pImgData, tiling);
+                return new opengl::OpenglTexture(sampler, pImgData, tiling, saveDataHostSide);
             default:
                 Debug::log(
                     "Attempted to create Texture but invalid graphics context api(" + std::to_string(api) + ")",

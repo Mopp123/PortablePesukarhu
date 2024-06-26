@@ -99,11 +99,6 @@ namespace pk
         _stride(other._stride)
     {}
 
-    Buffer::~Buffer()
-    {
-        if (_data)
-            free(_data);
-    }
 
     Buffer::Buffer(
         void* data,
@@ -125,13 +120,34 @@ namespace pk
         Debug::log("    Success");
     }
 
-    Buffer* Buffer::create(void* data, size_t elementSize, size_t dataLength, uint32_t bufferUsageFlags)
+    Buffer::~Buffer()
+    {
+        if (_data)
+            free(_data);
+    }
+
+    Buffer* Buffer::create(
+        void* data,
+        size_t elementSize,
+        size_t dataLength,
+        uint32_t bufferUsageFlags,
+        bool saveDataHostSide
+    )
     {
         const uint32_t api = Context::get_api_type();
+        // Atm ubos have to be available on host
+        // (no stagning buffers for uniform buffers supported)
+        bool saveHostSide = bufferUsageFlags & BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT ? true : saveDataHostSide;
         switch(api)
         {
             case GRAPHICS_API_WEBGL:
-                return new web::WebBuffer(data, elementSize, dataLength, bufferUsageFlags);
+                return new web::WebBuffer(
+                    data,
+                    elementSize,
+                    dataLength,
+                    bufferUsageFlags,
+                    saveHostSide
+                );
             default:
                 Debug::log(
                     "Attempted to create Buffer but invalid graphics context api(" + std::to_string(api) + ")",

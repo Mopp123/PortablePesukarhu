@@ -147,7 +147,8 @@ namespace pk
             void* data,
             size_t elementSize,
             size_t dataLength,
-            uint32_t bufferUsageFlags
+            uint32_t bufferUsageFlags,
+            bool saveDataHostSide = false
         );
 
     protected:

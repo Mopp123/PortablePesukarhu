@@ -57,7 +57,7 @@ namespace pk
                 PipelineBindPoint pipelineBindPoint,
                 // PipelineLayout pipelineLayout,
                 uint32_t firstDescriptorSet,
-                const std::vector<DescriptorSet*>& descriptorSets
+                const std::vector<const DescriptorSet*>& descriptorSets
             );
 
             virtual void draw(

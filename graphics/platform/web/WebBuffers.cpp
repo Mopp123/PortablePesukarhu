@@ -60,7 +60,13 @@ namespace pk
 
         // New way of creating buffers!
         // TODO: Adapt everywhere to this!
-        WebBuffer::WebBuffer(void* data, size_t elementSize, size_t dataLength, uint32_t bufferUsageFlags) :
+        WebBuffer::WebBuffer(
+                void* data,
+                size_t elementSize,
+                size_t dataLength,
+                uint32_t bufferUsageFlags,
+                bool saveDataHostSide
+        ) :
             Buffer(data, elementSize, dataLength, bufferUsageFlags)
         {
             uint32_t invalidMask = BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT & BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT;
@@ -90,6 +96,23 @@ namespace pk
                 glBufferData(GL_ELEMENT_ARRAY_BUFFER, _dataElemSize * _dataLength, _data, GL_STATIC_DRAW);
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
             }
+            if (!saveDataHostSide)
+            {
+                #ifdef PK_DEBUG_FULL
+                if (bufferUsageFlags & BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+                    Debug::log(
+                        "Uniform buffer not marked for saving on host side! "
+                        "Using context api as opengl doesn't allow this!",
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
+                Debug::log(
+                    "WebBuffer not marked to be saved on host side. "
+                    "Deleting host side buffer"
+                );
+                #endif
+                free(_data);
+                _data = nullptr;
+            }
             Debug::log("    Success");
         }
 
@@ -106,6 +129,16 @@ namespace pk
         // NOTE: Not sure does updating index buffers work, not tested!!!
         void WebBuffer::update(const void* data, size_t dataSize)
         {
+            #ifdef PK_DEBUG_FULL
+            if (!_data)
+            {
+                Debug::log(
+                    "@WebBuffer::update Buffer data was nullptr",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return;
+            }
+            #endif
             if (_dataLength * _dataElemSize >= dataSize)
             {
                 memcpy(_data, data, dataSize);

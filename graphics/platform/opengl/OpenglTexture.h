@@ -17,7 +17,12 @@ namespace pk
             inline uint32_t getID() const { return _id; }
 
         protected:
-            OpenglTexture(TextureSampler sampler, ImageData* pImgData, int tiling);
+            OpenglTexture(
+                TextureSampler sampler,
+                ImageData* pImgData,
+                int tiling,
+                bool saveDataHostSide
+            );
         };
     }
 }

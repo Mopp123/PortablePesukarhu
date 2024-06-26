@@ -277,7 +277,7 @@ namespace pk
             PipelineBindPoint pipelineBindPoint,
             // PipelineLayout pipelineLayout,
             uint32_t firstDescriptorSet,
-            const std::vector<DescriptorSet*>& descriptorSets
+            const std::vector<const DescriptorSet*>& descriptorSets
         )
         {
             opengl::OpenglPipeline* pipeline = ((WebCommandBuffer*)pCmdBuf)->_pPipeline;
