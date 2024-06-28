@@ -268,10 +268,6 @@ namespace pk
             }
         }
 
-        // NOTE: Descriptor sets has to be given in the same order as
-        // corresponding uniforms are in the actual shader code for this to work!!!
-        // UPDATE TO ABOVE:
-        //  -> this may not be the case after added the UniformInfo's locationIndex
         void WebRenderCommand::bindDescriptorSets(
             CommandBuffer* pCmdBuf,
             PipelineBindPoint pipelineBindPoint,

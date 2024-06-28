@@ -132,6 +132,13 @@ namespace pk
         }
     }
 
+    Renderer* const MasterRenderer::getRenderer(ComponentType renderableType)
+    {
+        if (_renderers.find(renderableType) != _renderers.end())
+            return _renderers[renderableType];
+        return nullptr;
+    }
+
     void MasterRenderer::handleWindowResize()
     {
         const Window* pWindow = Application::get()->getWindow();

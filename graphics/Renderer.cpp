@@ -68,6 +68,7 @@ namespace pk
                 pBuf->allocate();
             }
         }
+        recreateDescriptorSets();
         initPipeline();
     }
 }

@@ -8,6 +8,7 @@
 #include "../graphics/Context.h"
 
 #include "../graphics/MasterRenderer.h"
+#include "ResourceManager.h"
 #include "Timing.h"
 
 #include <vector>
@@ -35,6 +36,8 @@ namespace pk
         InputManager* _pInputManager = nullptr;
 
         MasterRenderer* _pMasterRenderer = nullptr;
+
+        ResourceManager _resourceManager;
 
     public:
         Application(
@@ -69,6 +72,7 @@ namespace pk
         inline const Scene* const getCurrentScene() const { return _sceneManager.getCurrentScene(); }
 
         inline MasterRenderer* getMasterRenderer() { return _pMasterRenderer; }
+        inline ResourceManager& getResourceManager() { return _resourceManager; }
 
         inline bool isRunning() const { return _running; }
 

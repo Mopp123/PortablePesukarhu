@@ -1,6 +1,7 @@
 #include "GUIRenderer.h"
 #include <string>
 #include "core/Application.h"
+#include "ecs/components/renderable/GUIRenderable.h"
 
 #include <GL/glew.h>
 
@@ -277,5 +278,57 @@ namespace pk
         GLenum err = glGetError();
         if (err != GL_NO_ERROR)
             Debug::log("___TEST___GL ERR: " + std::to_string(err));
+    }
+
+    void GUIRenderer::createDescriptorSets(Component* pComponent)
+    {
+        Texture_new* pTexture = ((GUIRenderable*)pComponent)->pTexture_new;
+        if (pTexture)
+        {
+            if (_textureDescriptorSets.find(pTexture) == _textureDescriptorSets.end())
+            {
+                const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
+                for (int i = 0; i < pSwapchain->getImageCount(); ++i)
+                {
+                    DescriptorSet* pDescriptorSet = new DescriptorSet(
+                        _textureDescSetLayout,
+                        1,
+                        { pTexture }
+                    );
+                    _textureDescriptorSets[pTexture].push_back(pDescriptorSet);
+                }
+            }
+        }
+    }
+
+    void GUIRenderer::freeDescriptorSets()
+    {
+        std::unordered_map<Texture_new*, std::vector<DescriptorSet*>>::iterator it;
+        for (it = _textureDescriptorSets.begin(); it != _textureDescriptorSets.end(); ++it)
+        {
+            for (DescriptorSet* pDescriptorSet : (*it).second)
+                delete pDescriptorSet;
+            (*it).second.clear();
+        }
+    }
+
+    void GUIRenderer::recreateDescriptorSets()
+    {
+        std::unordered_map<Texture_new*, std::vector<DescriptorSet*>>::iterator it;
+        for (it = _textureDescriptorSets.begin(); it != _textureDescriptorSets.end(); ++it)
+        {
+            const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
+            Texture_new* pTexture = (*it).first;
+            for (int i = 0; i < pSwapchain->getImageCount(); ++i)
+            {
+                DescriptorSet* pDescriptorSet = new DescriptorSet(
+                    _textureDescSetLayout,
+                    1,
+                    { pTexture }
+                );
+                _textureDescriptorSets[pTexture].push_back(pDescriptorSet);
+            }
+        }
+        Debug::log("___TEST___GUI RENDERER RECREATED DESCRIPTOR SETS!");
     }
 }

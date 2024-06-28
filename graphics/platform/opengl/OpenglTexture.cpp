@@ -15,8 +15,7 @@ namespace pk
         OpenglTexture::OpenglTexture(
             TextureSampler sampler,
             ImageData* pImgData,
-            int tiling,
-            bool saveDataHostSide
+            int tiling
         ) :
             Texture_new(sampler, pImgData, tiling)
         {
@@ -128,18 +127,6 @@ namespace pk
             Debug::log("OpenglTexture texture created successfully");
             // NOTE: Not sure why not previously unbinding the texture here??
             glBindTexture(GL_TEXTURE_2D, 0);
-
-            if (!saveDataHostSide)
-            {
-                #ifdef PK_DEBUG_FULL
-                Debug::log(
-                    "WebBuffer not marked to be saved on host side. "
-                    "Deleting host side buffer"
-                );
-                #endif
-                delete _pImgData;
-                _pImgData = nullptr;
-            }
         }
     }
 }

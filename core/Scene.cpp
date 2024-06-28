@@ -1,4 +1,5 @@
 #include "Scene.h"
+#include "Application.h"
 
 // NOTE: Only temporarely adding all systems here on Scene's constructor!
 #include "ecs/systems/ui/ConstraintSystem.h"
@@ -53,7 +54,19 @@ namespace pk
 
     void Scene::addComponent(uint32_t entity, Component* component)
     {
+        uint32_t componentID = components.size() + 1;
+        ComponentType componentType = component->_type;
+        component->_id = componentID;
+        components[componentID] = component;
+        typeComponentMapping[componentType].push_back(componentID);
+
         component->_entity = entity;
+
+        Renderer* pRenderer = Application::get()->getMasterRenderer()->getRenderer(componentType);
+        if (pRenderer)
+        {
+            pRenderer->createDescriptorSets(component);
+        }
     }
 
     //void addSystem(System* system)

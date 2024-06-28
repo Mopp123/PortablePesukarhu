@@ -123,10 +123,16 @@ namespace pk
         virtual void endRenderPass() {}
         virtual void endFrame() {}
 
+        virtual void createDescriptorSets(Component* pComponent) {}
+
     protected:
         // Pipeline has its' own init func but what that func takes in dependant on renderer
         // so thats why we need this implemented for all renderers
         virtual void initPipeline() { }
+        virtual void freeDescriptorSets() {}
+        // This is to recreate already initially created descriptor sets for example
+        // if swapchain image count changes on window resize.
+        virtual void recreateDescriptorSets() {}
     };
 
 }

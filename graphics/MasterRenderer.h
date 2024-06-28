@@ -33,7 +33,7 @@ namespace pk
 
         void render(const Camera& cam);
 
-        inline Renderer* const getRenderer(ComponentType renderableType) { return _renderers[renderableType]; }
+        Renderer* const getRenderer(ComponentType renderableType);
 
         inline const DescriptorSetLayout getCommonDescriptorSetLayout() const { return _commonDescriptorSetLayout; }
         inline const DescriptorSet* getCommonDescriptorSet() const { return _pCommonDescriptorSet; }

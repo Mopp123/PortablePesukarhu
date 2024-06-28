@@ -9,6 +9,8 @@
 #include "graphics/RenderCommand.h"
 #include "graphics/shaders/Shader.h"
 
+#include <unordered_map>
+
 
 namespace pk
 {
@@ -23,11 +25,15 @@ namespace pk
         Buffer* _pInstancedVertexBuffer = nullptr;
         Buffer* _pIndexBuffer = nullptr;
 
+        TextureSampler _defaultTextureSampler;
+
         DescriptorSetLayout _textureDescSetLayout;
         Texture_new* _pTestTexture = nullptr;
         Texture_new* _pTestTexture2 = nullptr;
 
         DescriptorSet* _pTextureDescriptorSet = nullptr;
+
+        std::unordered_map<Texture_new*, std::vector<DescriptorSet*>> _textureDescriptorSets;
 
         float s_testX = 0.0f;
 
@@ -38,7 +44,11 @@ namespace pk
         virtual void submit(const Component* const renderableComponent, const mat4& transformation);
         virtual void render(const Camera& cam);
 
+        virtual void createDescriptorSets(Component* pComponent);
+
     protected:
         virtual void initPipeline();
+        virtual void freeDescriptorSets();
+        virtual void recreateDescriptorSets();
     };
 }

@@ -79,7 +79,7 @@ namespace pk
     {
     protected:
         TextureSampler _sampler;
-        // Not sure yet should this "own" the image data??
+        // Image data is not owned by Texture!
         ImageData* _pImgData = nullptr;
 
         // Can be used to specify how many "individual sprites" inside a "texture atlas", containing multiple sprites
@@ -90,16 +90,15 @@ namespace pk
         virtual ~Texture_new();
 
         // NOTE: Why pImgData is not const here?
+        // TODO: Be able to call this only through ResourceManager
         static Texture_new* create(
             TextureSampler sampler,
             ImageData* pImgData,
-            int tiling = 1,
-            bool saveDataHostSide = false
+            int tiling = 1
         );
 
         // TODO: ?
         // virtual void update(void* data, int slot = 0) = 0;
-
         inline const TextureSampler& getSampler() const { return _sampler; }
         inline int getTiling() const { return _tiling; }
 

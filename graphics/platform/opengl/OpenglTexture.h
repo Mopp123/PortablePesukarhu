@@ -20,8 +20,7 @@ namespace pk
             OpenglTexture(
                 TextureSampler sampler,
                 ImageData* pImgData,
-                int tiling,
-                bool saveDataHostSide
+                int tiling
             );
         };
     }
