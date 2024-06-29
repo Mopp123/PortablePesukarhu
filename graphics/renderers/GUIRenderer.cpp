@@ -40,13 +40,11 @@ namespace pk
         varying vec2 var_uvCoord;
 
         uniform sampler2D texSampler;
-        uniform sampler2D texSampler2;
 
         void main()
         {
             vec4 texColor = texture2D(texSampler, var_uvCoord);
-            vec4 texColor2 = texture2D(texSampler2, var_uvCoord);
-            gl_FragColor = mix(texColor, texColor2, 0.5);
+            gl_FragColor = texColor;
         }
     )";
 
@@ -56,6 +54,16 @@ namespace pk
     {
         _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
         _pFragmentShader = Shader::create(s_fragmentSource, ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT);
+
+        // Textures desc set layout
+        DescriptorSetLayoutBinding textureDescSetLayoutBinding(
+            0,
+            1,
+            DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
+            {{ 1 }}
+        );
+        _textureDescSetLayout = DescriptorSetLayout({ textureDescSetLayoutBinding });
 
         initPipeline();
 
@@ -107,22 +115,6 @@ namespace pk
             BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT,
             true
         );
-
-
-        // Test textures
-        TextureSampler texSampler;
-
-        ImageData* pTexImg = load_image("assets/vulcanic.png");
-        _pTestTexture = Texture_new::create(texSampler, pTexImg);
-
-        ImageData* pTexImg2 = load_image("assets/asd.png");
-        _pTestTexture2 = Texture_new::create(texSampler, pTexImg2);
-
-        _pTextureDescriptorSet = new DescriptorSet(
-            _textureDescSetLayout,
-            2,
-            { _pTestTexture, _pTestTexture2 }
-        );
     }
 
     GUIRenderer::~GUIRenderer()
@@ -131,9 +123,6 @@ namespace pk
         delete _pFragmentShader;
         delete _pVertexBuffer;
         delete _pInstancedVertexBuffer;
-        delete _pTestTexture;
-        delete _pTestTexture2;
-        delete _pTextureDescriptorSet;
     }
 
     void GUIRenderer::initPipeline()
@@ -158,22 +147,6 @@ namespace pk
         MasterRenderer* pMasterRenderer = Application::get()->getMasterRenderer();
         DescriptorSetLayout commonDescriptorSetLayout = pMasterRenderer->getCommonDescriptorSetLayout();
 
-        // Textures desc set layout
-        DescriptorSetLayoutBinding textureDescSetLayoutBinding(
-            0,
-            1,
-            DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 1 }}
-        );
-        DescriptorSetLayoutBinding textureDescSetLayoutBinding2(
-            1,
-            1,
-            DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 2 }}
-        );
-        _textureDescSetLayout = DescriptorSetLayout({ textureDescSetLayoutBinding, textureDescSetLayoutBinding2 });
 
         std::vector<VertexBufferLayout> vbLayouts({ vbLayout, instancedVbLayout });
         std::vector<DescriptorSetLayout> descSetLayouts({commonDescriptorSetLayout, _textureDescSetLayout});
@@ -259,10 +232,23 @@ namespace pk
             vertexBuffers
         );
 
+        std::vector<const DescriptorSet*> descriptorSets;
         // TODO: On gui rendering get projection matrix and use it as push constant instead of descriptor set
         // since "CommonUniforms" will eventually have more stuff, gui rendering wont use!
         const DescriptorSet* pCommonDescriptorSet = Application::get()->getMasterRenderer()->getCommonDescriptorSet();
-        std::vector<const DescriptorSet*> descriptorSets = { pCommonDescriptorSet, _pTextureDescriptorSet };
+        descriptorSets.push_back(pCommonDescriptorSet);
+
+        // FOR TESTING: only using first texture descriptor set..
+        if (_textureDescriptorSets.size() > 0)
+        {
+            std::unordered_map<Texture_new*, std::vector<DescriptorSet*>>::const_iterator it = _textureDescriptorSets.begin();
+            if ((*it).second.size() > 0)
+            {
+                DescriptorSet* pDescriptorSet = (*it).second[0];
+                descriptorSets.push_back(pDescriptorSet);
+            }
+        }
+        //std::vector<const DescriptorSet*> descriptorSets = { pCommonDescriptorSet, _pTextureDescriptorSet };
         pRenderCmd->bindDescriptorSets(
             pCurrentCmdBuf,
             PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
@@ -314,10 +300,15 @@ namespace pk
 
     void GUIRenderer::recreateDescriptorSets()
     {
+        // NOTE: This does not touch the already created "Texture - keys"
+        // in the _textureDescriptorSets map! It only deletes the actual
+        // descriptor sets and empties the vector they are contained in!
+        freeDescriptorSets();
+        // Create new descriptor sets for each existing key
         std::unordered_map<Texture_new*, std::vector<DescriptorSet*>>::iterator it;
+        const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
         for (it = _textureDescriptorSets.begin(); it != _textureDescriptorSets.end(); ++it)
         {
-            const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
             Texture_new* pTexture = (*it).first;
             for (int i = 0; i < pSwapchain->getImageCount(); ++i)
             {

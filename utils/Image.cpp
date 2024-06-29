@@ -11,7 +11,7 @@
 
 namespace pk
 {
-    ImageData* load_image(const std::string filePath)
+    ImageData* load_image(const std::string filepath)
     {
         int width = 0;
         int height = 0;
@@ -19,20 +19,20 @@ namespace pk
         bool flipVertically = Context::get_api_type() == GRAPHICS_API_WEBGL;
 
         stbi_set_flip_vertically_on_load(flipVertically);
-        unsigned char* stbImageData = stbi_load(filePath.c_str(), &width, &height, &channels, 0);
+        unsigned char* stbImageData = stbi_load(filepath.c_str(), &width, &height, &channels, 0);
 
         if (!stbImageData)
         {
             Debug::log(
                 "@load_image "
-                "Failed to load image from location : " + filePath,
+                "Failed to load image from location : " + filepath,
                 Debug::MessageType::PK_FATAL_ERROR
             );
             stbi_image_free(stbImageData);
             return nullptr;
         }
 
-        ImageData* imgData = new ImageData(stbImageData, width, height, channels);
+        ImageData* imgData = new ImageData(stbImageData, width, height, channels, filepath);
         stbi_image_free(stbImageData);
         return imgData;
     }
@@ -47,6 +47,23 @@ namespace pk
         memcpy(_pData, pixels, dataSize);
 
         _hasAlpha = _channels >= 4;
+    }
+
+    ImageData::ImageData(
+        unsigned char* pixels,
+        int width,
+        int height,
+        int channels,
+        const std::string& filepath
+    ) :
+        ImageData(
+            pixels,
+            width,
+            height,
+            channels
+        )
+    {
+        _filepath = filepath;
     }
 
     ImageData::~ImageData()

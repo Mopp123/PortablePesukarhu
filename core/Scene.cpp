@@ -54,8 +54,9 @@ namespace pk
 
     void Scene::addComponent(uint32_t entity, Component* component)
     {
-        uint32_t componentID = components.size() + 1;
+        uint32_t componentID = component->getID();
         ComponentType componentType = component->_type;
+
         component->_id = componentID;
         components[componentID] = component;
         typeComponentMapping[componentType].push_back(componentID);

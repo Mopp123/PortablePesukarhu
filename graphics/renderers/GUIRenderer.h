@@ -25,13 +25,7 @@ namespace pk
         Buffer* _pInstancedVertexBuffer = nullptr;
         Buffer* _pIndexBuffer = nullptr;
 
-        TextureSampler _defaultTextureSampler;
-
         DescriptorSetLayout _textureDescSetLayout;
-        Texture_new* _pTestTexture = nullptr;
-        Texture_new* _pTestTexture2 = nullptr;
-
-        DescriptorSet* _pTextureDescriptorSet = nullptr;
 
         std::unordered_map<Texture_new*, std::vector<DescriptorSet*>> _textureDescriptorSets;
 

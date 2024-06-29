@@ -15,6 +15,8 @@ namespace pk
 
         bool _hasAlpha = false;
 
+        std::string _filepath;
+
     public:
         ImageData() {}
         // NOTE: Pixels gets copied here, ownership doesnt transfer!
@@ -23,6 +25,14 @@ namespace pk
             int width,
             int height,
             int channels
+        );
+
+        ImageData(
+            unsigned char* pixels,
+            int width,
+            int height,
+            int channels,
+            const std::string& filepath
         );
 
         ~ImageData();
@@ -38,7 +48,9 @@ namespace pk
         inline int getChannels() const { return _channels; }
 
         inline bool hasAlpha() const { return _hasAlpha; }
+
+        inline const std::string& getFilepath() const { return _filepath; }
     };
 
-    ImageData* load_image(const std::string filePath);
+    ImageData* load_image(const std::string filepath);
 }

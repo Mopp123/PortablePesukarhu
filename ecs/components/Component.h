@@ -42,10 +42,8 @@ namespace pk
         bool _isActive = true;
 
     public:
-        Component(ComponentType type) :
-            _type(type)
-        {}
-        virtual ~Component() {}
+        Component(ComponentType type);
+        virtual ~Component();
 
         inline uint32_t getID() const { return _id; }
 
