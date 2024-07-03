@@ -54,6 +54,8 @@ namespace pk
             WebBuffer(const WebBuffer&) = delete;
             ~WebBuffer();
             virtual void update(const void* data, size_t dataSize);
+            virtual void update(const void* data, size_t offset, size_t dataSize);
+            virtual void clearHostSideBuffer();
 
             inline uint32_t getID() const { return _id; }
             inline bool shouldUpdate() const { return _shouldUpdate; }

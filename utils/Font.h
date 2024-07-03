@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/Resource.h"
 #include "graphics/Texture.h"
 #include <unordered_map>
 
@@ -37,32 +38,35 @@ namespace pk
     };
 
 
-    class Font
+    class Font : public Resource
     {
     private:
-        TextureAtlas* _textureAtlas = nullptr;
+        uint32_t _imgDataResourceID = 0;
+        uint32_t _textureResourceID = 0;
+
         unsigned int _pixelSize = 1;
+        int _textureAtlasRowCount = 1;
         int _textureAtlasTileWidth = 1; // Width in pixels of a single tile inside the font's texture atlas.
 
         std::unordered_map<char, FontGlyphData> _glyphMapping;
-
-        vec4 _color;
 
     public:
         // NOTE: Some "pixelSize" values doesn't work on some fonts!
         //  -> If text looks funky try some other pixelSize values.
         // TODO: Figure out way of knowing available sizes for fonts..
-        Font(const std::string& fontFilePath, unsigned int pixelSize, vec4 color = vec4(1,1,1,1));
+        Font(const std::string& filepath, unsigned int pixelSize);
         ~Font();
 
-        inline TextureAtlas* getTextureAtlas() const { return _textureAtlas; }
+        virtual void load();
+        virtual void save() {}
+
+        const Texture_new* getTexture() const;
         inline const unsigned int getPixelSize() const { return _pixelSize; }
         inline std::unordered_map<char, FontGlyphData>& getGlyphMapping() { return _glyphMapping; }
+        inline int getTextureAtlasRowCount() const { return _textureAtlasRowCount; }
         inline int getTilePixelWidth() const { return _textureAtlasTileWidth; }
 
-        inline const vec4& getColor() const { return _color; }
-
     private:
-        void createFont(const std::string& charsToLoad, const std::string& fontFilePath, unsigned int pixelSize);
+        void createFont(const std::string& charsToLoad);
     };
 }

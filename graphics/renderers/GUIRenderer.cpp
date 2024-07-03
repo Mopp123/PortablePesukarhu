@@ -16,7 +16,8 @@ namespace pk
         attribute vec2 vertexPos;
         attribute vec2 uvCoord;
 
-        attribute vec2 screenPos;
+        attribute vec2 pos;
+        attribute vec2 scale;
 
         struct Common
         {
@@ -29,7 +30,7 @@ namespace pk
 
         void main()
         {
-            gl_Position = common.projMat * vec4(vertexPos + screenPos, 0, 1.0);
+            gl_Position = common.projMat * vec4((vertexPos * scale) + pos, 0, 1.0);
             var_uvCoord = uvCoord;
         }
     )";
@@ -50,10 +51,29 @@ namespace pk
 
 
     GUIRenderer::GUIRenderer() :
-        _textureDescSetLayout({})
+        _vertexBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
+        _instanceBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
+        _textureDescSetLayout({}),
+        _batchContainer(2, (sizeof(float) * 4) * 400)
     {
         _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
         _pFragmentShader = Shader::create(s_fragmentSource, ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT);
+
+        // Vertex buffer layouts
+        _vertexBufferLayout = VertexBufferLayout(
+            {
+                { 0, ShaderDataType::Float2 },
+                { 1, ShaderDataType::Float2 }
+            },
+            VertexInputRate::VERTEX_INPUT_RATE_VERTEX
+        );
+        _instanceBufferLayout = VertexBufferLayout(
+            {
+                { 2, ShaderDataType::Float2 }, // pos
+                { 3, ShaderDataType::Float2 }  // scale
+            },
+            VertexInputRate::VERTEX_INPUT_RATE_INSTANCE
+        );
 
         // Textures desc set layout
         DescriptorSetLayoutBinding textureDescSetLayoutBinding(
@@ -74,11 +94,17 @@ namespace pk
         float xPos = 10;
         float scale = 200;
         float vbData[16] = {
-            xPos, yPos, 0, 1,
-            xPos, yPos - scale, 0, 0,
-            xPos + scale, yPos - scale, 1, 0,
-            xPos + scale, yPos, 1, 1
+            0, 0, 0, 1,
+            0, -1, 0, 0,
+            1, -1, 1, 0,
+            1, 0, 1, 1
         };
+        //loat vbData[16] = {
+        //   xPos, yPos, 0, 1,
+        //   xPos, yPos - scale, 0, 0,
+        //   xPos + scale, yPos - scale, 1, 0,
+        //   xPos + scale, yPos, 1, 1
+        //;
         unsigned short indices[6] =
         {
             0, 1, 2,
@@ -97,24 +123,22 @@ namespace pk
             BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT
         );
 
-        // instanced vertex buffer
-        float instancedBuf[14] =
-        {
-            0, -100,
-            (float)(std::rand() % 200), -100,
-            (float)(std::rand() % 200), -100,
-            (float)(std::rand() % 200), -100,
-            (float)(std::rand() % 200), -100,
-            (float)(std::rand() % 200), -100,
-            (float)(std::rand() % 200), -100
-        };
-        _pInstancedVertexBuffer = Buffer::create(
-            instancedBuf,
+        // Allocate "instance buffer"
+        size_t maxInstanceCount = 100;
+        uint32_t instanceBufElemLen = 4;
+        size_t totalInstanceBufLen = instanceBufElemLen * maxInstanceCount;
+        float* pInitialInstanceBufData = new float[totalInstanceBufLen];
+        memset(pInitialInstanceBufData, 0, sizeof(float) * totalInstanceBufLen);
+
+        _pInstanceBuffer = Buffer::create(
+            pInitialInstanceBufData,
             sizeof(float),
-            14,
+            totalInstanceBufLen,
             BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT,
             true
         );
+
+        delete[] pInitialInstanceBufData;
     }
 
     GUIRenderer::~GUIRenderer()
@@ -122,33 +146,17 @@ namespace pk
         delete _pVertexShader;
         delete _pFragmentShader;
         delete _pVertexBuffer;
-        delete _pInstancedVertexBuffer;
+        delete _pIndexBuffer;
+        delete _pInstanceBuffer;
     }
 
     void GUIRenderer::initPipeline()
     {
-        // Vertex buffer layouts
-        VertexBufferLayout vbLayout(
-            {
-                { 0, ShaderDataType::Float2 },
-                { 1, ShaderDataType::Float2 }
-            },
-            VertexInputRate::VERTEX_INPUT_RATE_VERTEX
-        );
-        VertexBufferLayout instancedVbLayout(
-            {
-                { 2, ShaderDataType::Float2 },
-            },
-            VertexInputRate::VERTEX_INPUT_RATE_INSTANCE
-        );
-
-
         // TODO: Better way of interacting with master renderer here
         MasterRenderer* pMasterRenderer = Application::get()->getMasterRenderer();
         DescriptorSetLayout commonDescriptorSetLayout = pMasterRenderer->getCommonDescriptorSetLayout();
 
-
-        std::vector<VertexBufferLayout> vbLayouts({ vbLayout, instancedVbLayout });
+        std::vector<VertexBufferLayout> vbLayouts({ _vertexBufferLayout, _instanceBufferLayout });
         std::vector<DescriptorSetLayout> descSetLayouts({commonDescriptorSetLayout, _textureDescSetLayout});
 
         const Window* pWindow = Application::get()->getWindow();
@@ -169,6 +177,17 @@ namespace pk
 
     void GUIRenderer::submit(const Component* const renderableComponent, const mat4& transformation)
     {
+        vec2 pos(transformation[0 + 3 * 4], transformation[1 + 3 * 4]);
+        vec2 scale(transformation[0 + 0 * 4], transformation[1 + 1 * 4]);
+
+        //float newData[4] = { pos.x, pos.y, scale.x, scale.y };
+        //_pInstanceBuffer->update(newData, sizeof(float) * 4);
+
+        const GUIRenderable * const pGuiRenderable = (const GUIRenderable * const)renderableComponent;
+        PK_id batchIdentifier = pGuiRenderable->pTexture_new->getResourceID();
+
+        float renderableData[4] = { pos.x, pos.y, scale.x, scale.y };
+        _batchContainer.addData(renderableData, sizeof(float) * 4, batchIdentifier);
     }
 
     void GUIRenderer::render(const Camera& cam)
@@ -208,58 +227,51 @@ namespace pk
             IndexType::INDEX_TYPE_UINT16
         );
 
-
-        // test updating instanced buffer
-        s_testX += Timing::get_delta_time();
-        float testPosX = 1.0f + (std::cos(s_testX) * 100.0f);
-        float testPosX2 = 1.0f + (std::sin(s_testX) * 100.0f);
-        float updatedInstancedBuf[14] =
+        //const std::unordered_map<PK_id, Batch*>& batches = _batchContainer.getOccupiedBatches();
+        //std::unordered_map<PK_id, Batch*>::const_iterator batchIt;
+        for (Batch* pBatch : _batchContainer.getBatches())
         {
-            testPosX,  -100,
-            testPosX2, -200,
-            testPosX,  -300,
-            testPosX2, -400,
-            testPosX,  -500,
-            testPosX2, -600,
-            testPosX,  -700
-        };
-        _pInstancedVertexBuffer->update((const void*)updatedInstancedBuf, sizeof(float) * 14);
+            if (!pBatch->isOccupied())
+                continue;
 
-        std::vector<Buffer*> vertexBuffers = { _pVertexBuffer, _pInstancedVertexBuffer };
-        pRenderCmd->bindVertexBuffers(
-            pCurrentCmdBuf,
-            0, 2,
-            vertexBuffers
-        );
+            Buffer* pBatchInstanceBuffer = pBatch->getBuffer();
+            std::vector<Buffer*> vertexBuffers = { _pVertexBuffer, pBatchInstanceBuffer };
+            pRenderCmd->bindVertexBuffers(
+                pCurrentCmdBuf,
+                0, 2,
+                vertexBuffers
+            );
 
-        std::vector<const DescriptorSet*> descriptorSets;
-        // TODO: On gui rendering get projection matrix and use it as push constant instead of descriptor set
-        // since "CommonUniforms" will eventually have more stuff, gui rendering wont use!
-        const DescriptorSet* pCommonDescriptorSet = Application::get()->getMasterRenderer()->getCommonDescriptorSet();
-        descriptorSets.push_back(pCommonDescriptorSet);
+            std::vector<const DescriptorSet*> descriptorSets;
+            // TODO: On gui rendering get projection matrix and use it as push constant instead of descriptor set
+            // since "CommonUniforms" will eventually have more stuff, gui rendering wont use!
+            const DescriptorSet* pCommonDescriptorSet = Application::get()->getMasterRenderer()->getCommonDescriptorSet();
+            descriptorSets.push_back(pCommonDescriptorSet);
 
-        // FOR TESTING: only using first texture descriptor set..
-        if (_textureDescriptorSets.size() > 0)
-        {
-            std::unordered_map<Texture_new*, std::vector<DescriptorSet*>>::const_iterator it = _textureDescriptorSets.begin();
-            if ((*it).second.size() > 0)
+            // FOR TESTING: only using first texture descriptor set..
+            if (_textureDescriptorSets.size() > 0)
             {
-                DescriptorSet* pDescriptorSet = (*it).second[0];
-                descriptorSets.push_back(pDescriptorSet);
+                std::unordered_map<Texture_new*, std::vector<DescriptorSet*>>::const_iterator it = _textureDescriptorSets.begin();
+                if ((*it).second.size() > 0)
+                {
+                    DescriptorSet* pDescriptorSet = (*it).second[0];
+                    descriptorSets.push_back(pDescriptorSet);
+                }
             }
-        }
-        //std::vector<const DescriptorSet*> descriptorSets = { pCommonDescriptorSet, _pTextureDescriptorSet };
-        pRenderCmd->bindDescriptorSets(
-            pCurrentCmdBuf,
-            PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
-            0,
-            descriptorSets
-        );
+            //std::vector<const DescriptorSet*> descriptorSets = { pCommonDescriptorSet, _pTextureDescriptorSet };
+            pRenderCmd->bindDescriptorSets(
+                pCurrentCmdBuf,
+                PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
+                0,
+                descriptorSets
+            );
 
-        pRenderCmd->drawIndexed(pCurrentCmdBuf, 6, 7, 0, 0, 0);
+            pRenderCmd->drawIndexed(pCurrentCmdBuf, 6, pBatch->getInstanceCount(), 0, 0, 0);
+        }
 
         pRenderCmd->endCmdBuffer(pCurrentCmdBuf);
 
+        _batchContainer.clear();
 
         GLenum err = glGetError();
         if (err != GL_NO_ERROR)

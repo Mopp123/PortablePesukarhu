@@ -12,7 +12,9 @@ namespace pk
         void* _pStorage = nullptr;
 
     public:
+        MemoryPool() {}
         MemoryPool(size_t size);
+        MemoryPool(const MemoryPool& other);
         ~MemoryPool();
 
         // Allocates chunk of size "size" in pool and returns ptr to that
@@ -21,6 +23,8 @@ namespace pk
         // Clears storage but doesn't resize the actual storage
         // (sets all data and _occupeidSize to 0)
         void clearStorage();
+        // Calls free for _pStorage and sets it to nullptr
+        void freeStorage();
         void addSpace(size_t newSize);
 
         inline size_t getSize() const { return _occupiedSize; }

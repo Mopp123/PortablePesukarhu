@@ -9,83 +9,110 @@ namespace pk
     {}
 
     ResourceManager::~ResourceManager()
-    {}
-
-    ImageData* ResourceManager::createImageData(const std::string& filepath)
     {
-        ImageData* pImgData = load_image(filepath);
-        uint32_t imgID = ID::generate();
-        _images[imgID] = pImgData;
+        free();
+    }
+
+    void ResourceManager::free()
+    {
+        std::unordered_map<uint32_t, Resource*>::iterator it;
+        for (it = _resources.begin(); it != _resources.end(); ++it)
+            delete it->second;
+        _resources.clear();
+        Debug::log("ResourceManager freed all resources!");
+    }
+
+    ImageData* ResourceManager::loadImage(
+        const std::string& filepath
+    )
+    {
+        ImageData* pImgData = new ImageData(filepath);
+        pImgData->load();
+        _resources[pImgData->getResourceID()] = (Resource*)pImgData;
         return pImgData;
     }
 
-    Texture_new* ResourceManager::createTexture(
-        TextureSampler sampler,
-        uint32_t imageDataID,
-        int tiling
+    ImageData* ResourceManager::createImage(
+        PK_ubyte* pData,
+        int width,
+        int height,
+        int channels
     )
     {
-        ImageData* pImgData = accessImageData(imageDataID);
-        Texture_new* pTexture = nullptr;
-        if (pImgData)
+        ImageData* pImgData = new ImageData(
+            pData,
+            width,
+            height,
+            channels
+        );
+        _resources[pImgData->getResourceID()] = (Resource*)pImgData;
+        return pImgData;
+    }
+
+    Texture_new* ResourceManager::loadTexture(
+        const std::string& filepath,
+        TextureSampler sampler
+    )
+    {
+        Debug::notify_unimplemented("ResourceManager::loadTexture#1");
+    }
+
+    Texture_new* ResourceManager::createTexture(
+        uint32_t imageResourceID,
+        TextureSampler sampler
+    )
+    {
+        if (_resources.find(imageResourceID) == _resources.end())
         {
-            pTexture = Texture_new::create(sampler, pImgData, tiling);
-            uint32_t textureID = ID::generate();
-            _textures[textureID] = pTexture;
-            return pTexture;
+            Debug::log(
+                "@ResourceManager::loadTexture "
+                "Failed to find image resource with id: " + std::to_string(imageResourceID),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
         }
-        Debug::log(
-            "@ResourceManager::createTexture Invalid imageDataID: " + std::to_string(imageDataID),
-            Debug::MessageType::PK_ERROR
-        );
-        return nullptr;
+        Texture_new* pTexture = Texture_new::create(imageResourceID, sampler);
+        _resources[pTexture->getResourceID()] = pTexture;
+        return pTexture;
     }
 
-    const ImageData * const ResourceManager::getImageData(uint32_t id) const
+    Font* ResourceManager::createFont(
+        const std::string& filepath,
+        int pixelSize
+    )
     {
-        std::unordered_map<uint32_t, ImageData*>::const_iterator it = _images.find(id);
-        if (it != _images.end())
-            return (*it).second;
-        Debug::log(
-            "@ResourceManager::getImageData Couldn't find image with id: " + std::to_string(id),
-            Debug::MessageType::PK_ERROR
-        );
-        return nullptr;
+        Font* pFont = new Font(filepath, pixelSize);
+        pFont->load();
+        // Ycm fucks up here for some fucking weird reason..
+        // gives non existing error? compiles just fine tho..
+        _resources[pFont->getResourceID()] = pFont;
+        return pFont;
     }
 
-    const Texture_new * const ResourceManager::getTexture(uint32_t id) const
+    Resource* ResourceManager::getResource(uint32_t id)
     {
-        std::unordered_map<uint32_t, Texture_new*>::const_iterator it = _textures.find(id);
-        if (it != _textures.end())
-            return (*it).second;
-        Debug::log(
-            "@ResourceManager::getTexture Couldn't find texture with id: " + std::to_string(id),
-            Debug::MessageType::PK_ERROR
-        );
-        return nullptr;
+        std::unordered_map<uint32_t, Resource*>::iterator it = _resources.find(id);
+        if (it == _resources.end())
+        {
+            Debug::log(
+                "@ResourceManager::getResource "
+                "Failed to find resource with id: " + std::to_string(id),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
+        return it->second;
     }
 
-    ImageData* ResourceManager::accessImageData(uint32_t id)
+    std::vector<Resource*> ResourceManager::getResourcesOfType(ResourceType type)
     {
-        std::unordered_map<uint32_t, ImageData*>::iterator it = _images.find(id);
-        if (it != _images.end())
-            return (*it).second;
-        Debug::log(
-            "@ResourceManager::accessImageData Couldn't find image with id: " + std::to_string(id),
-            Debug::MessageType::PK_ERROR
-        );
-        return nullptr;
-    }
-
-    Texture_new* ResourceManager::accessTexture(uint32_t id)
-    {
-        std::unordered_map<uint32_t, Texture_new*>::iterator it = _textures.find(id);
-        if (it != _textures.end())
-            return (*it).second;
-        Debug::log(
-            "@ResourceManager::accessTexture Couldn't find texture with id: " + std::to_string(id),
-            Debug::MessageType::PK_ERROR
-        );
-        return nullptr;
+        std::vector<Resource*> foundResources;
+        std::unordered_map<uint32_t, Resource*>::iterator it;
+        for (it = _resources.begin(); it != _resources.end(); ++it)
+        {
+            if (it->second->getType() == type)
+                foundResources.push_back(it->second);
+        }
+        return foundResources;
     }
 }

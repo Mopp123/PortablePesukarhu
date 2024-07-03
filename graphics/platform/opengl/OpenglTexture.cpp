@@ -1,6 +1,8 @@
 #include "GL/glew.h"
 #include "OpenglTexture.h"
 #include "core/Debug.h"
+#include "core/Application.h"
+#include "core/ResourceManager.h"
 
 
 namespace pk
@@ -9,17 +11,28 @@ namespace pk
     {
         OpenglTexture::~OpenglTexture()
         {
-            glDeleteTextures(1, &_id);
+            glDeleteTextures(1, &_glTexID);
         }
 
         OpenglTexture::OpenglTexture(
-            TextureSampler sampler,
-            ImageData* pImgData,
-            int tiling
+            uint32_t imgResourceID,
+            TextureSampler sampler
         ) :
-            Texture_new(sampler, pImgData, tiling)
+            Texture_new(sampler, imgResourceID)
         {
-            if (!_pImgData)
+            Application* pApp = Application::get();
+            if (!pApp)
+            {
+                Debug::log(
+                    "@OpenglTexture::OpenglTexture Application was nullptr",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return;
+            }
+            ResourceManager& resourceManager = Application::get()->getResourceManager();
+            const ImageData* pImgData = (const ImageData*)resourceManager.getResource(_imgResourceID);
+
+            if (!pImgData)
             {
                 Debug::log(
                     "Attempted to create OpenglTexture without providing image data. "
@@ -28,7 +41,7 @@ namespace pk
                 );
                 return;
             }
-            if (!_pImgData->getData())
+            if (!pImgData->getData())
             {
                 Debug::log(
                     "Attempted to create OpenglTexture with invalid image data. "
@@ -39,9 +52,9 @@ namespace pk
             }
 
             GLint glFormat = 0;
-            const int channels = _pImgData->getChannels();
-            const int width = _pImgData->getWidth();
-            const int height = _pImgData->getHeight();
+            const int channels = pImgData->getChannels();
+            const int width = pImgData->getWidth();
+            const int height = pImgData->getHeight();
 
             switch (channels)
             {
@@ -56,8 +69,8 @@ namespace pk
                     break;
             }
 
-            glGenTextures(1, &_id);
-            glBindTexture(GL_TEXTURE_2D, _id);
+            glGenTextures(1, &_glTexID);
+            glBindTexture(GL_TEXTURE_2D, _glTexID);
             glTexImage2D(
                 GL_TEXTURE_2D,
                 0,
@@ -67,7 +80,7 @@ namespace pk
                 0,
                 glFormat,
                 GL_UNSIGNED_BYTE,
-                (const void*)_pImgData->getData()
+                (const void*)pImgData->getData()
             );
 
             // Address mode

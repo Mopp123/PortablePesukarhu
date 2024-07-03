@@ -15,7 +15,7 @@ namespace pk
 	namespace web
 	{
 
-		static GLuint create_GL_texture(void* data, int width, int height, int channels, const TextureSampler& sampler)
+		static GLuint create_GL_texture(const void* data, int width, int height, int channels, const TextureSampler& sampler)
 		{
 			GLint glFormat = 0;
 			switch (channels)
@@ -132,21 +132,21 @@ namespace pk
 		WebTexture::WebTexture(const std::string& filename, const TextureSampler& sampler, int tiling) :
 			Texture(sampler, tiling)
 		{
-
-                    ImageData* imgData = load_image(filename);
-                    if (imgData)
+                    ImageData* pImgData = new ImageData(filename);
+                    pImgData->load();
+                    if (pImgData)
                     {
-                        _width = imgData->getWidth();
-                        _height = imgData->getHeight();
-                        _channels = imgData->getChannels();
+                        _width = pImgData->getWidth();
+                        _height = pImgData->getHeight();
+                        _channels = pImgData->getChannels();
                         _id = create_GL_texture(
-                            imgData->getData(),
+                            pImgData->getData(),
                             _width,
                             _height,
                             _channels,
                             sampler
                         );
-                        delete imgData;
+                        delete pImgData;
                     }
                     else
                     {

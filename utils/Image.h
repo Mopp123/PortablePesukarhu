@@ -1,11 +1,12 @@
 #pragma once
 
+#include "core/Resource.h"
 #include <string>
 
 
 namespace pk
 {
-    class ImageData
+    class ImageData : public Resource
     {
     private:
         unsigned char* _pData = nullptr;
@@ -15,42 +16,30 @@ namespace pk
 
         bool _hasAlpha = false;
 
-        std::string _filepath;
-
     public:
-        ImageData() {}
-        // NOTE: Pixels gets copied here, ownership doesnt transfer!
+        ImageData(const std::string& filepath);
         ImageData(
             unsigned char* pixels,
             int width,
             int height,
             int channels
         );
-
-        ImageData(
-            unsigned char* pixels,
-            int width,
-            int height,
-            int channels,
-            const std::string& filepath
-        );
-
         ~ImageData();
+
+        virtual void load();
+        virtual void save();
+
         void clearData();
 
         float getBrightnessAt(int x, int y);
         void setColorAt(int x, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
         void setColorAt_UNSAFE(int x, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 
-        inline unsigned char* getData() { return _pData; }
+        inline const unsigned char* getData() const { return _pData; }
         inline int getWidth() const { return _width; }
         inline int getHeight() const { return _height; }
         inline int getChannels() const { return _channels; }
 
         inline bool hasAlpha() const { return _hasAlpha; }
-
-        inline const std::string& getFilepath() const { return _filepath; }
     };
-
-    ImageData* load_image(const std::string filepath);
 }

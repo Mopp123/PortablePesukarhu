@@ -9,18 +9,16 @@ namespace pk
         {
         private:
             friend class Texture_new;
-
-            uint32_t _id = 0;
+            uint32_t _glTexID = 0;
 
         public:
             ~OpenglTexture();
-            inline uint32_t getID() const { return _id; }
+            inline uint32_t getGLTexID() const { return _glTexID; }
 
         protected:
             OpenglTexture(
-                TextureSampler sampler,
-                ImageData* pImgData,
-                int tiling
+                uint32_t imgResourceID,
+                TextureSampler sampler
             );
         };
     }

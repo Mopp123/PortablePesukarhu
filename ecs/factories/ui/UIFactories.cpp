@@ -240,7 +240,8 @@ namespace pk
             bool drawBorder,
             Texture* texture,
             vec4 textureCropping,
-            vec3 color
+            vec3 color,
+            Texture_new* pTexture
         )
         {
 	    Application* app = Application::get();
@@ -249,7 +250,7 @@ namespace pk
 	    uint32_t entity = currentScene->createEntity();
 
 	    Transform* transform = new Transform({ 0,0 }, { width, height });
-	    GUIRenderable* renderable = new GUIRenderable(texture, textureCropping);
+	    GUIRenderable* renderable = new GUIRenderable(nullptr, textureCropping, pTexture);
             renderable->drawBorder = drawBorder;
             renderable->color = color;
 

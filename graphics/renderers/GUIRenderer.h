@@ -22,12 +22,23 @@ namespace pk
 
         // NOTE: atm these here only for testing!
         Buffer* _pVertexBuffer = nullptr;
-        Buffer* _pInstancedVertexBuffer = nullptr;
         Buffer* _pIndexBuffer = nullptr;
+        VertexBufferLayout _vertexBufferLayout;
+
+        // All per instance data
+        Buffer* _pInstanceBuffer = nullptr;
+        VertexBufferLayout _instanceBufferLayout;
+        size_t _instanceCount = 0;
+        size_t _instanceBufWritePos = 0;
+        size_t _instanceBufElemLen = 4; // pos + scale = 4 floats
 
         DescriptorSetLayout _textureDescSetLayout;
 
         std::unordered_map<Texture_new*, std::vector<DescriptorSet*>> _textureDescriptorSets;
+
+        // Testing new Batch system..
+        BatchContainer _batchContainer;
+
 
         float s_testX = 0.0f;
 
@@ -44,5 +55,8 @@ namespace pk
         virtual void initPipeline();
         virtual void freeDescriptorSets();
         virtual void recreateDescriptorSets();
+
+    private:
+        void clearInstances();
     };
 }

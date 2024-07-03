@@ -30,24 +30,24 @@ namespace pk
 
         // TERRAIN TILES
         //*atm we want to pass just empty tMatrix, since tile figures out its' vertex positions from the tile component itself
-        mat4 empty;
-        for (const Component* const c_renderableTile : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_TERRAINTILE))
-        {
-            if (c_renderableTile->isActive())
-            {
-                pTerrainRenderer->submit(c_renderableTile, empty);
-            }
-        }
-        // 3D SPRITES
-        for (const Component* const c_renderableSprite : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_SPRITE3D))
-        {
-            if (c_renderableSprite->isActive())
-            {
-                pSpriteRenderer->submit(c_renderableSprite, empty);
-            }
-        }
+        //mat4 empty;
+        //for (const Component* const c_renderableTile : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_TERRAINTILE))
+        //{
+        //    if (c_renderableTile->isActive())
+        //    {
+        //        pTerrainRenderer->submit(c_renderableTile, empty);
+        //    }
+        //}
+        //// 3D SPRITES
+        //for (const Component* const c_renderableSprite : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_SPRITE3D))
+        //{
+        //    if (c_renderableSprite->isActive())
+        //    {
+        //        pSpriteRenderer->submit(c_renderableSprite, empty);
+        //    }
+        //}
 
-        // GUI
+        //// GUI
         for (const Component * const c_renderableGUI : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_GUI))
         {
             Component* rawTransform = _pCurrentScene->getComponent(c_renderableGUI->getEntity(), ComponentType::PK_TRANSFORM);
@@ -87,7 +87,9 @@ namespace pk
         if (_pNextScene != nullptr)
         {
             Debug::log("Attempting to switch scene...");
-            Application::get()->accessInputManager()->destroyEvents();
+            Application* pApp = Application::get();
+            pApp->accessInputManager()->destroyEvents();
+            pApp->getResourceManager().free();
             delete _pCurrentScene;
             _pCurrentScene = _pNextScene;
             _pCurrentScene->init();

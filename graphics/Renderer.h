@@ -10,6 +10,7 @@
 #include "Texture.h"
 #include "Pipeline.h"
 #include "CommandBuffer.h"
+#include "utils/ID.h"
 #include <math.h>
 #include <vector>
 #include <unordered_map>
@@ -28,6 +29,7 @@ namespace pk
         RENDER_PASS_DIFFUSE
     };
 
+    // TODO: REDO / DELETE the whole BatchData shit!
     /*
      *	NOTE!
      *		* Currently all vertex buffers inside BatchData HAS TO BE THE SAME SIZE (currentDataPtr advancing problem...)
@@ -87,20 +89,57 @@ namespace pk
             isFree = false;
         }
 
-        void addNewInstance()
-        {
-            currentDataPtr += instanceDataLen;
-            isFull = currentDataPtr >= maxTotalBatchDataLen;
-        }
-        void insertInstanceData(int bufferIndex, const std::vector<float>& data)
-        {
-            VertexBuffer* vb = vertexBuffers[bufferIndex];
-            /*float* dat = &vb->accessRawData()[0];
-              memcpy(dat + currentDataPtr, &data[0], sizeof(float) * instanceDataLen);
-              */
-            vb->update(data, sizeof(float) * currentDataPtr, sizeof(float) * data.size());
-        }
+        void addNewInstance();
+        void insertInstanceData(int bufferIndex, const std::vector<float>& data);
     };
+
+
+    class Batch
+    {
+    private:
+        Buffer* _pBuffer = nullptr;
+        size_t _writePos = 0;
+        size_t _maxSize = 0;
+        size_t _occupiedSize = 0;
+        bool _occupied = false;
+        PK_id _identifier = 0;
+        uint32_t _instanceCount = 0;
+
+    public:
+        Batch(size_t maxSize);
+        Batch(const Batch&) = delete;
+        ~Batch();
+        void occupy(PK_id identifier);
+        bool addData(const void* pData, size_t dataSize);
+        void clear();
+
+        inline bool isOccupied() const { return _occupied; }
+        inline bool isFull() const { return _occupiedSize == _maxSize; }
+        inline size_t getOccupiedSize() const { return _occupiedSize; }
+        inline Buffer* getBuffer() { return _pBuffer; }
+        inline PK_id getIdentifier() const { return _identifier;}
+        inline uint32_t getInstanceCount() const { return _instanceCount; }
+    };
+
+    class BatchContainer
+    {
+    private:
+        std::vector<Batch*> _batches;
+        std::unordered_map<PK_id, Batch*> _occupiedBatches;
+
+    public:
+        BatchContainer(size_t maxBatches, size_t batchSize);
+        ~BatchContainer();
+        // NOTE: Doesnt work when occupying new batch if batch exists with inputted
+        // batchIdentifier
+        void addData(const void* data, size_t dataSize, PK_id batchIdentifier);
+        void clear();
+
+        const Batch* getBatch(PK_id batchIdentifier) const;
+        inline std::vector<Batch*>& getBatches() { return _batches; }
+        inline const std::unordered_map<PK_id, Batch*>& getOccupiedBatches() const { return _occupiedBatches; }
+    };
+
 
     class Renderer
     {

@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <set>
 
+typedef uint32_t PK_id;
+
 namespace pk
 {
     class ID

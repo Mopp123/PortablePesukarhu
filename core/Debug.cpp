@@ -22,4 +22,12 @@ namespace pk
                 break;
         }
     }
+
+    void Debug::notify_unimplemented(const std::string& location)
+    {
+        log(
+            "@" + location + " Unimplemented!",
+            Debug::MessageType::PK_FATAL_ERROR
+        );
+    }
 }

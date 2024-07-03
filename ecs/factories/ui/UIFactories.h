@@ -46,7 +46,8 @@ namespace pk
             bool drawBorder = false,
             Texture* texture = nullptr,
             vec4 textureCropping = vec4(0, 0, 1, 1),
-            vec3 color = vec3(0, 0, 0)
+            vec3 color = vec3(0, 0, 0),
+            Texture_new* pTexture = nullptr
         );
 
 

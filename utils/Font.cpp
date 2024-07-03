@@ -1,30 +1,32 @@
 #include "Font.h"
 #include "core/Debug.h"
+#include "core/Application.h"
 #include <cmath>
 #include <vector>
 
 
 namespace pk
 {
-    Font::Font(const std::string& fontFilePath, unsigned int pixelSize, vec4 color) :
-        _color(color)
+    Font::Font(const std::string& filepath, unsigned int pixelSize) :
+        Resource(ResourceType::RESOURCE_FONT, filepath),
+        _pixelSize(pixelSize)
     {
-        createFont(
-            "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890.,:;?!&_'+-*^/()[]{}äåöÄÅÖ",
-            fontFilePath,
-            pixelSize
-        );
     }
 
     Font::~Font()
+    {}
+
+    void Font::load()
     {
-        delete _textureAtlas;
+        createFont(
+            "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890.,:;?!&_'+-*^/()[]{}äåöÄÅÖ"
+        );
     }
 
-    void Font::createFont(const std::string& charsToLoad, const std::string& fontFilePath, unsigned int pixelSize)
+    // TODO: Put into constructor -> doesnt need to be own func anymore!
+    void Font::createFont(const std::string& charsToLoad)
     {
-        _pixelSize = pixelSize;
-
+        std::string filepathStr = std::string(_filepath);
         FT_Library freetypeLib;
         if (FT_Init_FreeType(&freetypeLib))
         {
@@ -38,20 +40,20 @@ namespace pk
 
         // Load font file
         FT_Face fontFace;
-        if (FT_New_Face(freetypeLib, fontFilePath.c_str(), 0, &fontFace))
+        if (FT_New_Face(freetypeLib, filepathStr.c_str(), 0, &fontFace))
         {
             Debug::log(
                 "@Font::createFont "
-                "Failed to load font file from location: " + fontFilePath,
+                "Failed to load font file from location: " + filepathStr,
                 Debug::MessageType::PK_FATAL_ERROR
             );
             return;
         }
 
-        if (FT_Set_Pixel_Sizes(fontFace, 0, pixelSize))
+        if (FT_Set_Pixel_Sizes(fontFace, 0, _pixelSize))
         {
             Debug::log(
-                "@Font::createFont Failed to set pixel sizes to: " + std::to_string(pixelSize),
+                "@Font::createFont Failed to set pixel sizes to: " + std::to_string(_pixelSize),
                 Debug::MessageType::PK_FATAL_ERROR
             );
         }
@@ -77,7 +79,7 @@ namespace pk
             {
                 Debug::log(
                     "@Font::createFont "
-                    "Failed to load character '" + std::to_string(c) + "' from a font. Font file path was " + fontFilePath,
+                    "Failed to load character '" + std::to_string(c) + "' from a font. Font file path was " + filepathStr,
                     Debug::MessageType::PK_FATAL_ERROR
                 );
                 continue;
@@ -159,22 +161,43 @@ namespace pk
             delete p.first;
             p.first = nullptr;
         }
-        ImageData* fontImgData = new ImageData(
+
+        // Create resources through ResourceManager
+        Application* pApp = Application::get();
+        if (!pApp)
+        {
+            Debug::log(
+                "@Font::createFont Application was nullptr!",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+        }
+        ResourceManager& resourceManager = pApp->getResourceManager();
+
+        ImageData* pFontImgData = resourceManager.createImage(
             combinedGlyphBitmap,
             combinedGlyphBitmapWidth,
             combinedGlyphBitmapWidth,
             1
         );
-        _textureAtlas = new TextureAtlas(
-            fontImgData,
-            textureAtlasRowCount,
+        _imgDataResourceID = pFontImgData->getResourceID();
+
+        Texture_new* pTexture = resourceManager.createTexture(
+            _imgDataResourceID,
             TextureSampler(
                 TextureSamplerFilterMode::PK_SAMPLER_FILTER_MODE_LINEAR,
                 TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
             )
         );
+        _textureResourceID = pTexture->getResourceID();
+
+        _textureAtlasRowCount = textureAtlasRowCount;
 
         FT_Done_Face(fontFace);
         FT_Done_FreeType(freetypeLib);
+    }
+
+    const Texture_new* Font::getTexture() const
+    {
+        return (Texture_new*)Application::get()->getResourceManager().getResource(_textureResourceID);
     }
 }

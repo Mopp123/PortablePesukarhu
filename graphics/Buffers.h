@@ -134,8 +134,11 @@ namespace pk
         virtual ~Buffer();
 
         // Replaces _data from beginning to dataSize.
-        // TODO: allow updating "small portions on specified offsets"
         virtual void update(const void* data, size_t dataSize) = 0;
+        virtual void update(const void* data, size_t offset, size_t dataSize) = 0;
+        // Wouldn't necessarely need to be pure virtual..
+        // webgl side just works the way atm this is required..
+        virtual void clearHostSideBuffer() = 0;
 
         inline const void* getData() const { return _data; }
         inline size_t getDataElemSize() const { return _dataElemSize; }

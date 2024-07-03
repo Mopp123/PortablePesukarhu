@@ -6,6 +6,7 @@
 #include "../../../utils/Algorithms.h"
 #include "../../../Common.h"
 #include "graphics/platform/opengl/OpenglTexture.h"
+#include "core/Application.h"
 
 #include <string>
 #include <algorithm>
@@ -84,7 +85,12 @@ namespace pk
             _uniformLocation_texSampler = _shader.getUniformLocation("textureSampler");
 
             // NOTE: atm just testing this here!
-            _pFont = new Font("assets/Ubuntu-R.ttf", 20);
+            //_pFont = Application::get()->getResourceManager().createFont(
+            //    "assets/Ubuntu-R.ttf",
+            //    20
+            //);
+
+            //_pFont = new Font("assets/Ubuntu-R.ttf", 20);
 
             //std::vector<GlyphData> glyphs = createGlyphs("qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890.,:;?!&_'+-*^/()[]{}‰Âˆƒ≈÷", "assets/Ubuntu-R.ttf");
             //_fontTexAtlas = createFontTextureAtlas(glyphs);
@@ -117,14 +123,20 @@ namespace pk
 
                 delete batch.indexBuffer;
             }
-
-            //delete _fontTexAtlas;
-            delete _pFont;
         }
 
         // submit renderable component for rendering (batch preparing, before rendering)
         void WebFontRenderer::submit(const Component* const renderableComponent, const mat4& transformation)
         {
+            if (!_pFont)
+            {
+                Debug::log(
+                    "@WebFontRenderer::addToBatch _pFont not assigned!",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return;
+            }
+
             // <#M_DANGER>
             const TextRenderable* const  renderable = (const TextRenderable* const)(renderableComponent);
 
@@ -171,6 +183,16 @@ namespace pk
 
         void WebFontRenderer::render(const Camera& cam)
         {
+            // Just quick hack to make this work before switch to use new render systems..
+            Application* pApp = Application::get();
+            ResourceManager& resManager = pApp->getResourceManager();
+            std::vector<Resource*> fonts = resManager.getResourcesOfType(ResourceType::RESOURCE_FONT);
+            if (fonts.empty())
+                return;
+            _pFont = (Font*)fonts[0];
+            if (!_pFont)
+                return;
+
             if (_batches.empty())
                 return;
 
@@ -184,7 +206,7 @@ namespace pk
             _shader.setUniform(_uniformLocation_projMat, projectionMatrix);
             _shader.setUniform(
                 _uniformLocation_texAtlasRows,
-                _pFont->getTextureAtlas()->getTileCount()
+                _pFont->getTextureAtlasRowCount()
             );
 
             //glDisable(GL_DEPTH_TEST);
@@ -194,8 +216,8 @@ namespace pk
             glCullFace(GL_FRONT);
 
             glActiveTexture(GL_TEXTURE0);
-            opengl::OpenglTexture* pGLTexture = (opengl::OpenglTexture*)_pFont->getTextureAtlas()->getTexture();
-            glBindTexture(GL_TEXTURE_2D, pGLTexture->getID());
+            opengl::OpenglTexture* pGLTexture = (opengl::OpenglTexture*)_pFont->getTexture();
+            glBindTexture(GL_TEXTURE_2D, pGLTexture->getGLTexID());
 
 
             for (BatchData& batch : _batches)
@@ -450,7 +472,7 @@ namespace pk
             //memcpy((&batch.vertexBuffer->accessRawData()[0]) + batch.currentDataPtr, &data[0], sizeof(float) * batch.instanceDataLen);
             vec2 position(transform[0 + 3 * 4], transform[1 + 3 * 4]);
             //const vec3& color = renderable->color;
-            const vec4 color = _pFont->getColor();
+            vec3 color(1,1,1);
 
             const float thickness = renderable->isBold() ? 3.0f : 1.0f;
 

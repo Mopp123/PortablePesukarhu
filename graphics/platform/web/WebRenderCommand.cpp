@@ -399,7 +399,7 @@ namespace pk
                             glActiveTexture(binding_to_gl_texture_slot(binding.getBinding()));
                             glBindTexture(
                                 GL_TEXTURE_2D,
-                                ((opengl::OpenglTexture*)textures[textureBindingIndex])->getID()
+                                ((opengl::OpenglTexture*)textures[textureBindingIndex])->getGLTexID()
                             );
                             ++textureBindingIndex;
                         }

@@ -15,14 +15,24 @@ namespace pk
         memset(_pStorage, 0, _size);
     }
 
+    MemoryPool::MemoryPool(const MemoryPool& other) :
+        _size(other._size),
+        _occupiedSize(other._occupiedSize),
+        _pStorage(other._pStorage)
+    {
+        Debug::log(
+            "Copied MemoryPool! (This is fine if done only by ResourceManager)",
+            Debug::MessageType::PK_WARNING
+        );
+    }
+
     MemoryPool::~MemoryPool()
     {
-        free(_pStorage);
     }
 
     void* MemoryPool::alloc(size_t size)
     {
-        if (_occupiedSize + size >= _size)
+        if (_occupiedSize + size > _size)
         {
             Debug::log(
                 "@MemoryPool::alloc Capacity exceeded!",
@@ -38,6 +48,14 @@ namespace pk
     void MemoryPool::clearStorage()
     {
         memset(_pStorage, 0, _size);
+        _occupiedSize = 0;
+    }
+
+    void MemoryPool::freeStorage()
+    {
+        free(_pStorage);
+        _pStorage = nullptr;
+        _size = 0;
         _occupiedSize = 0;
     }
 

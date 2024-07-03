@@ -133,7 +133,7 @@ namespace pk
             if (!_data)
             {
                 Debug::log(
-                    "@WebBuffer::update Buffer data was nullptr",
+                    "@WebBuffer::update(1) Buffer data was nullptr",
                     Debug::MessageType::PK_FATAL_ERROR
                 );
                 return;
@@ -147,6 +147,36 @@ namespace pk
                 if (!(_bufferUsageFlags & BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT))
                     _shouldUpdate = true;
             }
+        }
+
+        void WebBuffer::update(const void* data, size_t offset, size_t dataSize)
+        {
+            #ifdef PK_DEBUG_FULL
+            if (!_data)
+            {
+                Debug::log(
+                    "@WebBuffer::update(2) Buffer data was nullptr",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+            }
+            #endif
+            if (_dataLength * _dataElemSize >= offset + dataSize)
+            {
+                memcpy(((PK_byte*)_data) + offset, data, dataSize);
+                // Don't need to call any glBufferData or subData for uniform buffers on gl side
+                // UNTIL uniform buffer support..
+                if (!(_bufferUsageFlags & BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT))
+                    _shouldUpdate = true;
+            }
+        }
+
+        void WebBuffer::clearHostSideBuffer()
+        {
+            memset(_data, 0, _dataLength * _dataElemSize);
+            // Don't need to call any glBufferData or subData for uniform buffers on gl side
+            // UNTIL uniform buffer support..
+            if (!(_bufferUsageFlags & BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT))
+                _shouldUpdate = true;
         }
     }
 }

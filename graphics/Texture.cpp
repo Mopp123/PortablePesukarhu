@@ -1,30 +1,25 @@
 #include "Texture.h"
 #include "core/Debug.h"
 #include "Context.h"
+#include "core/Application.h"
 #include "platform/opengl/OpenglTexture.h"
 
 
 namespace pk
 {
-
-    Texture_new::Texture_new(TextureSampler sampler, ImageData* pImgData, int tiling) :
+    Texture_new::Texture_new(TextureSampler sampler, uint32_t imgResourceID) :
+        Resource(ResourceType::RESOURCE_TEXTURE),
         _sampler(sampler),
-        _pImgData(pImgData),
-        _tiling(tiling)
+        _imgResourceID(imgResourceID)
     {}
 
     Texture_new::~Texture_new()
-    {
-        if (_pImgData)
-            delete _pImgData;
-    }
-
+    {}
 
     // TODO: Be able to call this only through ResourceManager
     Texture_new* Texture_new::create(
-        TextureSampler sampler,
-        ImageData* pImgData,
-        int tiling
+        uint32_t imgResourceID,
+        TextureSampler sampler
     )
     {
         const uint32_t api = Context::get_api_type();
@@ -32,7 +27,7 @@ namespace pk
         {
             case GRAPHICS_API_WEBGL:
             {
-                return new opengl::OpenglTexture(sampler, pImgData, tiling);
+                return new opengl::OpenglTexture(imgResourceID, sampler);
             }
             default:
                 Debug::log(
@@ -45,17 +40,31 @@ namespace pk
 
 
     TextureAtlas::TextureAtlas(
-        ImageData* imgdata,
-        int tileCount,
-        TextureSampler textureSampler
+        uint32_t textureResourceID,
+        int rowCount
     ) :
-        _tileCount(tileCount)
-    {
-        _texture = Texture_new::create(textureSampler, imgdata);
-    }
+        _textureResourceID(textureResourceID),
+        _rowCount(rowCount)
+    {}
 
     TextureAtlas::~TextureAtlas()
+    {}
+
+    /*
+    const Texture_new * const TextureAtlas::getTexture() const
     {
-        delete _texture;
-    }
+        // TODO: Better way of accessing application/resource manager
+        // the way u dont always need to make sure Application exists..
+        // -> or make it a singleton or smthn...
+        Application* pApp = Application::get();
+        if (!pApp)
+        {
+            Debug::log(
+                "@TextureAtlas::getTexture Application was nullptr",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
+        return pApp->getResourceManager().getTexture(_textureResourceID);
+    }*/
 }
