@@ -54,7 +54,7 @@ namespace pk
         _vertexBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
         _instanceBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
         _textureDescSetLayout({}),
-        _batchContainer(2, (sizeof(float) * 4) * 400)
+        _batchContainer(1, (sizeof(float) * 4) * 800)
     {
         _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
         _pFragmentShader = Shader::create(s_fragmentSource, ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT);
@@ -175,8 +175,12 @@ namespace pk
         );
     }
 
+    static bool s_TEST_preventSubmit = false;
     void GUIRenderer::submit(const Component* const renderableComponent, const mat4& transformation)
     {
+        if (s_TEST_preventSubmit)
+            return;
+
         vec2 pos(transformation[0 + 3 * 4], transformation[1 + 3 * 4]);
         vec2 scale(transformation[0 + 0 * 4], transformation[1 + 1 * 4]);
 
@@ -188,10 +192,13 @@ namespace pk
 
         float renderableData[4] = { pos.x, pos.y, scale.x, scale.y };
         _batchContainer.addData(renderableData, sizeof(float) * 4, batchIdentifier);
+
+        Debug::log("___TEST___SUBMITTED TO GUI RENDERER! Identifier = " + std::to_string(batchIdentifier));
     }
 
     void GUIRenderer::render(const Camera& cam)
     {
+        s_TEST_preventSubmit = true;
         if (!_pPipeline)
         {
             Debug::log(
@@ -271,7 +278,7 @@ namespace pk
 
         pRenderCmd->endCmdBuffer(pCurrentCmdBuf);
 
-        _batchContainer.clear();
+        //_batchContainer.clear();
 
         GLenum err = glGetError();
         if (err != GL_NO_ERROR)

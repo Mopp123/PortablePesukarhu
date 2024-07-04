@@ -29,5 +29,15 @@ namespace pk
             textureCropping(textureCropping),
             drawBorder(false)
         {}
+
+        GUIRenderable(const GUIRenderable& other) :
+            UIRenderableComponent(other),
+            color(other.color),
+            texture(other.texture),
+            pTexture_new(other.pTexture_new),
+            textureCropping(other.textureCropping),
+            drawBorder(other.drawBorder)
+        {
+        }
     };
 }

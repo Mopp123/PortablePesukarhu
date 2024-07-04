@@ -250,12 +250,16 @@ namespace pk
 	    uint32_t entity = currentScene->createEntity();
 
 	    Transform* transform = new Transform({ 0,0 }, { width, height });
-	    GUIRenderable* renderable = new GUIRenderable(nullptr, textureCropping, pTexture);
-            renderable->drawBorder = drawBorder;
-            renderable->color = color;
+	    //GUIRenderable* renderable = new GUIRenderable(nullptr, textureCropping, pTexture);
+            GUIRenderable* pRenderable = (GUIRenderable*)currentScene->componentPools[ComponentType::PK_RENDERABLE_GUI].alloc(sizeof(GUIRenderable));
+	    *pRenderable = GUIRenderable(nullptr, textureCropping, pTexture);
+
+
+            pRenderable->drawBorder = drawBorder;
+            pRenderable->color = color;
 
 	    currentScene->addComponent(entity, transform);
-	    currentScene->addComponent(entity, renderable);
+	    currentScene->addComponent(entity, pRenderable);
 
             //currentScene->addSystem(new Constraint(transform, horizontalType, horizontalVal));
             //currentScene->addSystem(new Constraint(transform, verticalType, verticalVal));

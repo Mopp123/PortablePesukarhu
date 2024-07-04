@@ -13,7 +13,7 @@ namespace pk
         PK_EMPTY,
         PK_RENDERABLE_GUI,
         PK_RENDERABLE_TEXT,
-        PK_RENDERABLE_GUI_NEW,
+        //PK_RENDERABLE_GUI_NEW, // Dont remember what this was doing here..
         PK_RENDERABLE_SPRITE3D,
         PK_RENDERABLE_TERRAINTILE,
         PK_RENDERABLE_STATIC3D,
@@ -43,6 +43,7 @@ namespace pk
 
     public:
         Component(ComponentType type);
+        Component(const Component& other);
         virtual ~Component();
 
         inline uint32_t getID() const { return _id; }

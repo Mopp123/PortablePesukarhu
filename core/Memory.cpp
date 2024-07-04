@@ -21,7 +21,7 @@ namespace pk
         _pStorage(other._pStorage)
     {
         Debug::log(
-            "Copied MemoryPool! (This is fine if done only by ResourceManager)",
+            "Copied MemoryPool!",
             Debug::MessageType::PK_WARNING
         );
     }

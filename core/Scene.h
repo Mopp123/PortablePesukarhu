@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "Memory.h"
 #include "../ecs/components/Component.h"
 #include "../ecs/components/Camera.h"
 #include "../ecs/systems/System.h"
@@ -21,6 +22,8 @@ namespace pk
         std::vector<System*> systems;
         std::vector<uint32_t> entities;
         std::unordered_map<uint32_t, Component*> components;
+        std::unordered_map<ComponentType, MemoryPool> componentPools;
+
         std::unordered_map<ComponentType, std::vector<uint32_t>> typeComponentMapping;
 
         Camera* activeCamera = nullptr;

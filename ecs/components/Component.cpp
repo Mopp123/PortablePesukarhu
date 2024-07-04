@@ -9,6 +9,12 @@ namespace pk
         _id = ID::generate();
     }
 
+    Component::Component(const Component& other) :
+        _id(other._id),
+        _type(other._type)
+    {
+    }
+
     Component::~Component()
     {
         ID::erase(_id);

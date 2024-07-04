@@ -29,5 +29,7 @@ namespace pk
 
         inline size_t getSize() const { return _occupiedSize; }
         inline size_t getCapacity() const { return _size; }
+
+        inline void* accessStorage() { return _pStorage; }
     };
 }

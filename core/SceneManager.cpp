@@ -1,6 +1,7 @@
 #include "SceneManager.h"
 #include "Debug.h"
 #include "Application.h"
+#include "ecs/components/renderable/GUIRenderable.h"
 #include "../ecs/components/Transform.h"
 
 
@@ -48,18 +49,37 @@ namespace pk
         //}
 
         //// GUI
-        for (const Component * const c_renderableGUI : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_GUI))
+        // BOTTLENECK!
+        // Atm testing accessing renderable through mem pool
+        size_t poolPos = 0;
+        size_t guiRenderableCount = _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_GUI).size();
+        PK_byte* pGuiPoolStorage = (PK_byte*)_pCurrentScene->componentPools[ComponentType::PK_RENDERABLE_GUI].accessStorage();
+        for (size_t i = 0; i < guiRenderableCount; ++i)
         {
-            Component* rawTransform = _pCurrentScene->getComponent(c_renderableGUI->getEntity(), ComponentType::PK_TRANSFORM);
-            if (c_renderableGUI->isActive())
+            GUIRenderable* pRenderable = (GUIRenderable*)(pGuiPoolStorage + poolPos);
+            Component* rawTransform = _pCurrentScene->getComponent(pRenderable->getEntity(), ComponentType::PK_TRANSFORM);
+            if (pRenderable->isActive())
             {
                 if (rawTransform)
                 {
                     Transform* transform = (Transform*)rawTransform;
-                    pGuiRenderer->submit(c_renderableGUI, transform->getTransformationMatrix());
+                    pGuiRenderer->submit(pRenderable, transform->getTransformationMatrix());
                 }
             }
+            poolPos += sizeof(GUIRenderable);
         }
+        //for (const Component * const c_renderableGUI : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_GUI))
+        //{
+        //    Component* rawTransform = _pCurrentScene->getComponent(c_renderableGUI->getEntity(), ComponentType::PK_TRANSFORM);
+        //    if (c_renderableGUI->isActive())
+        //    {
+        //        if (rawTransform)
+        //        {
+        //            Transform* transform = (Transform*)rawTransform;
+        //            pGuiRenderer->submit(c_renderableGUI, transform->getTransformationMatrix());
+        //        }
+        //    }
+        //}
         // TEXT
         for (const Component* const c_renderableText : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_TEXT))
         {

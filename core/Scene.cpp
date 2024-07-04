@@ -1,13 +1,18 @@
 #include "Scene.h"
 #include "Application.h"
 
+#include "ecs/components/renderable/GUIRenderable.h"
+
 // NOTE: Only temporarely adding all systems here on Scene's constructor!
 #include "ecs/systems/ui/ConstraintSystem.h"
+#include <unordered_map>
 
 namespace pk
 {
     Scene::Scene()
     {
+        componentPools[ComponentType::PK_RENDERABLE_GUI] = MemoryPool(sizeof(GUIRenderable) * 1000);
+
         // NOTE: Only temporarely adding all default systems here!
         // TODO: Some better way of handling this!!
         //  Also you would need to create all default systems at start
@@ -19,7 +24,16 @@ namespace pk
     {
         Debug::log("Destroying components...");
         for (const std::pair<uint32_t, Component*> c : components)
-            delete c.second;
+        {
+            // ATM JUST TESTING HERE:
+            // GUIRenderables currently allocated from mem pools
+            if (c.second->getType() != ComponentType::PK_RENDERABLE_GUI)
+                delete c.second;
+        }
+
+        std::unordered_map<ComponentType, MemoryPool>::iterator poolIterator;
+        for (poolIterator = componentPools.begin(); poolIterator != componentPools.end(); ++poolIterator)
+            poolIterator->second.freeStorage();
 
         components.clear();
         entities.clear();
