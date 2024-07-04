@@ -10,23 +10,23 @@ namespace pk
 
     enum ComponentType
     {
-        PK_EMPTY,
-        PK_RENDERABLE_GUI,
-        PK_RENDERABLE_TEXT,
+        PK_EMPTY = 0x0,
+        PK_RENDERABLE_GUI = 0x1,
+        PK_RENDERABLE_TEXT = 0x2,
         //PK_RENDERABLE_GUI_NEW, // Dont remember what this was doing here..
-        PK_RENDERABLE_SPRITE3D,
-        PK_RENDERABLE_TERRAINTILE,
-        PK_RENDERABLE_STATIC3D,
+        PK_RENDERABLE_SPRITE3D = 0x4,
+        PK_RENDERABLE_TERRAINTILE = 0x8,
+        PK_RENDERABLE_STATIC3D = 0x10,
 
-        PK_UIELEM_STATE,
+        PK_UIELEM_STATE = 0x20,
 
-        PK_LIGHT_DIRECTIONAL,
+        PK_LIGHT_DIRECTIONAL = 0x40,
 
-        PK_TRANSFORM,
+        PK_TRANSFORM = 0x80,
 
-        PK_UI_CONSTRAINT,
+        PK_UI_CONSTRAINT = 0x100,
 
-        PK_CAMERA
+        PK_CAMERA = 0x200
     };
 
     class Component

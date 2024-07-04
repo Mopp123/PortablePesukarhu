@@ -1,6 +1,7 @@
 ﻿#pragma once
 
-#include "Memory.h"
+#include "ecs/components/ComponentPool.h"
+#include "ecs/Entity.h"
 #include "../ecs/components/Component.h"
 #include "../ecs/components/Camera.h"
 #include "../ecs/systems/System.h"
@@ -15,14 +16,16 @@ namespace pk
     {
     private:
         // key = parent entity : val = all this entity's children
-        std::unordered_map<uint32_t, std::vector<uint32_t>> _entityChildMapping;
+        std::unordered_map<entityID_t, std::vector<entityID_t>> _entityChildMapping;
 
     public:
         //std::unordered_map<ComponentType, std::vector<Component*>> components;
         std::vector<System*> systems;
-        std::vector<uint32_t> entities;
+        std::vector<Entity> entities;
+        std::vector<entityID_t> freeEntityIDs;
+
         std::unordered_map<uint32_t, Component*> components;
-        std::unordered_map<ComponentType, MemoryPool> componentPools;
+        std::unordered_map<ComponentType, ComponentPool> componentPools;
 
         std::unordered_map<ComponentType, std::vector<uint32_t>> typeComponentMapping;
 
@@ -31,18 +34,19 @@ namespace pk
         Scene();
         virtual ~Scene();
 
-        uint32_t createEntity(std::vector<uint32_t> children = {});
+        entityID_t createEntity();
+        void destroyEntity(entityID_t entityID);
+        void addChild(entityID_t entityID, entityID_t childID);
+        std::vector<entityID_t> getChildren(entityID_t entityID);
+        void addComponent(entityID_t entityID, Component* component);
+        inline bool isValidEntity(entityID_t entityID)
+        {
+            if (entityID < 0 || entityID >= entities.size())
+                return false;
+            return entities[entityID].id != NULL_ENTITY_ID;
+        }
 
-        void addChild(uint32_t entity, uint32_t child);
-
-        std::vector<uint32_t> getChildren(uint32_t entity);
-
-        void addComponent(uint32_t entity, Component* component);
-
-        // Returns first component of "type" associated with "entity"
-        // TODO: Some kind of entity - component mapping to speed this up?
-        Component* getComponent(uint32_t entity, ComponentType type, bool nestedSearch = false);
-
+        Component* getComponent(entityID_t entityID, ComponentType type, bool nestedSearch = false);
         // Returns first component of "type" found in "entity"'s child entities
         Component* getComponentInChildren(uint32_t entity, ComponentType type);
 

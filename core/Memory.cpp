@@ -7,16 +7,16 @@
 
 namespace pk
 {
-     MemoryPool::MemoryPool(size_t size) :
-        _size(size),
+     MemoryPool::MemoryPool(size_t capacity) :
+        _totalSize(capacity),
         _occupiedSize(0)
     {
-        _pStorage = calloc(_size, 1);
-        memset(_pStorage, 0, _size);
+        _pStorage = calloc(_totalSize, 1);
+        memset(_pStorage, 0, _totalSize);
     }
 
     MemoryPool::MemoryPool(const MemoryPool& other) :
-        _size(other._size),
+        _totalSize(other._totalSize),
         _occupiedSize(other._occupiedSize),
         _pStorage(other._pStorage)
     {
@@ -32,7 +32,7 @@ namespace pk
 
     void* MemoryPool::alloc(size_t size)
     {
-        if (_occupiedSize + size > _size)
+        if (_occupiedSize + size > _totalSize)
         {
             Debug::log(
                 "@MemoryPool::alloc Capacity exceeded!",
@@ -47,7 +47,7 @@ namespace pk
 
     void MemoryPool::clearStorage()
     {
-        memset(_pStorage, 0, _size);
+        memset(_pStorage, 0, _totalSize);
         _occupiedSize = 0;
     }
 
@@ -55,13 +55,13 @@ namespace pk
     {
         free(_pStorage);
         _pStorage = nullptr;
-        _size = 0;
+        _totalSize = 0;
         _occupiedSize = 0;
     }
 
     void MemoryPool::addSpace(size_t newSize)
     {
-        if (newSize < _size)
+        if (newSize < _totalSize)
         {
             Debug::log(
                 "@MemoryPool::addSpace newSize was less than current size",
@@ -73,10 +73,10 @@ namespace pk
         void* pNewStorage = calloc(newSize, 1);
         memset(pNewStorage, 0, newSize);
 
-        memcpy(pNewStorage, _pStorage, _size);
+        memcpy(pNewStorage, _pStorage, _totalSize);
 
         free(_pStorage);
         _pStorage = pNewStorage;
-        _size = newSize;
+        _totalSize = newSize;
     }
 }

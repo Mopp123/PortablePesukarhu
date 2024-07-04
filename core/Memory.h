@@ -6,16 +6,16 @@ namespace pk
 {
     class MemoryPool
     {
-    private:
-        size_t _size = 0;
+    protected:
+        size_t _totalSize = 0;
         size_t _occupiedSize = 0;
         void* _pStorage = nullptr;
 
     public:
         MemoryPool() {}
-        MemoryPool(size_t size);
+        MemoryPool(size_t capacity);
         MemoryPool(const MemoryPool& other);
-        ~MemoryPool();
+        virtual ~MemoryPool();
 
         // Allocates chunk of size "size" in pool and returns ptr to that
         void* alloc(size_t size);
@@ -28,7 +28,7 @@ namespace pk
         void addSpace(size_t newSize);
 
         inline size_t getSize() const { return _occupiedSize; }
-        inline size_t getCapacity() const { return _size; }
+        inline size_t getCapacity() const { return _totalSize; }
 
         inline void* accessStorage() { return _pStorage; }
     };

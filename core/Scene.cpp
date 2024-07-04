@@ -11,7 +11,9 @@ namespace pk
 {
     Scene::Scene()
     {
-        componentPools[ComponentType::PK_RENDERABLE_GUI] = MemoryPool(sizeof(GUIRenderable) * 1000);
+        componentPools[ComponentType::PK_RENDERABLE_GUI] = ComponentPool(
+            sizeof(GUIRenderable), 1000
+        );
 
         // NOTE: Only temporarely adding all default systems here!
         // TODO: Some better way of handling this!!
@@ -31,7 +33,7 @@ namespace pk
                 delete c.second;
         }
 
-        std::unordered_map<ComponentType, MemoryPool>::iterator poolIterator;
+        std::unordered_map<ComponentType, ComponentPool>::iterator poolIterator;
         for (poolIterator = componentPools.begin(); poolIterator != componentPools.end(); ++poolIterator)
             poolIterator->second.freeStorage();
 
@@ -46,62 +48,148 @@ namespace pk
         _entityChildMapping.clear();
     }
 
-    uint32_t Scene::createEntity(std::vector<uint32_t> children)
+    entityID_t Scene::createEntity()
     {
-        // *Start entity ids from 1 and NOT from 0
-        uint32_t id = entities.size() + 1;
-        entities.push_back(id);
-        _entityChildMapping[id] = children;
+        Entity entity;
+        if (!freeEntityIDs.empty())
+        {
+            entityID_t freeID = freeEntityIDs.back();
+            freeEntityIDs.pop_back();
 
-        return id;
+            entity.id = freeID;
+            entities[freeID] = entity;
+        }
+        else
+        {
+            entity.id = entities.size();
+            entities.push_back(entity);
+        }
+        return entity.id;
     }
 
-    void Scene::addChild(uint32_t entity, uint32_t child)
+    // NOTE: Incomplete and not tested! Propably doesnt work!!
+    // TODO: Finish and test this
+    void Scene::destroyEntity(entityID_t entityID)
     {
-        _entityChildMapping[entity].push_back(child);
+        if (!isValidEntity(entityID))
+        {
+            Debug::log(
+                "@Scene::destroyEntity "
+                "Invalid entityID",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return;
+        }
+        freeEntityIDs.push_back(entityID);
+        entities[entityID].id = NULL_ENTITY_ID;
+        entities[entityID].componentMask = 0;
+
+        if (_entityChildMapping.find(entityID) != _entityChildMapping.end())
+        {
+            for (entityID_t childID : _entityChildMapping[entityID])
+            {
+                destroyEntity(childID);
+            }
+            _entityChildMapping.erase(entityID);
+        }
+        // TODO: Make components of this entity "null components"
+        Debug::notify_unimplemented(
+            "Scene::destroyEntity "
+            "Component deletion not implemented!!!"
+        );
     }
 
-    std::vector<uint32_t> Scene::getChildren(uint32_t entity)
+    void Scene::addChild(entityID_t entityID, entityID_t childID)
     {
-        return _entityChildMapping[entity];
+        if (!isValidEntity(entityID))
+        {
+            Debug::log(
+                "@Scene::addChild "
+                "Invalid entityID: " + std::to_string(entityID),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return;
+        }
+        if (!isValidEntity(childID))
+        {
+            Debug::log(
+                "@Scene::addChild "
+                "Invalid childID: " + std::to_string(childID),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return;
+        }
+        _entityChildMapping[entityID].push_back(childID);
     }
 
-    void Scene::addComponent(uint32_t entity, Component* component)
+    std::vector<entityID_t> Scene::getChildren(entityID_t entityID)
     {
-        uint32_t componentID = component->getID();
-        ComponentType componentType = component->_type;
+        if (!isValidEntity(entityID))
+        {
+            Debug::log(
+                "@Scene::addChild "
+                "Invalid entityID: " + std::to_string(entityID),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return {};
+        }
+        return _entityChildMapping[entityID];
+    }
 
-        component->_id = componentID;
-        components[componentID] = component;
-        typeComponentMapping[componentType].push_back(componentID);
+    void Scene::addComponent(entityID_t entityID, Component* component)
+    {
+        if (!isValidEntity(entityID))
+        {
+            Debug::log(
+                "@Scene::addComponent "
+                "Attempted to add component to invalid entity. "
+                "Make sure entity hasn't been deleted when calling this.",
+                Debug::PK_FATAL_ERROR
+            );
+            return;
+        }
+        uint64_t componentTypeID = component->getType();
+        Entity& entity = entities[entityID];
+        // For now dont allow same component type multiple times in entity
+        if (entity.componentMask & componentTypeID)
+        {
+            Debug::log(
+                "@Scene::addComponent "
+                "Attempted to add component to but entity already "
+                "has a component of this type. Currently entity can have only a "
+                "single component for each type",
+                Debug::PK_FATAL_ERROR
+            );
+            return;
+        }
+        entity.componentMask |= componentTypeID;
 
-        component->_entity = entity;
-
-        Renderer* pRenderer = Application::get()->getMasterRenderer()->getRenderer(componentType);
+        Renderer* pRenderer = Application::get()->getMasterRenderer()->getRenderer(component->getType());
         if (pRenderer)
-        {
             pRenderer->createDescriptorSets(component);
-        }
     }
 
-    //void addSystem(System* system)
-    //{
-    //    systems.push_back(system);
-    //}
-
-    // Returns first component of "type" associated with "entity"
-    // TODO: Some kind of entity - component mapping to speed this up?
-    Component* Scene::getComponent(uint32_t entity, ComponentType type, bool nestedSearch)
+    Component* Scene::getComponent(entityID_t entityID, ComponentType type, bool nestedSearch)
     {
-        for (uint32_t componentID : typeComponentMapping[type])
+        if (!isValidEntity(entityID))
         {
-            Component* pComponent = components[componentID];
-            if (pComponent->getEntity() == entity)
-                return pComponent;
+            Debug::log(
+                "@Scene::getComponent "
+                "Invalid entityID!",
+                Debug::PK_FATAL_ERROR
+            );
+            return nullptr;
         }
-        if (!nestedSearch)
-            Debug::log("Couldn't find component of type: " + std::to_string(type) + " from entity: " + std::to_string(entity), Debug::MessageType::PK_MESSAGE);
-        return nullptr;
+        if (componentPools.find(type) == componentPools.end())
+        {
+            Debug::log(
+                "@Scene::getComponent "
+                "No component pool exists for component type: " + std::to_string(type),
+                Debug::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
+        return (Component*)componentPools[type].getComponent_DANGER(entityID);
     }
 
     // Returns first component of "type" found in "entity"'s child entities
