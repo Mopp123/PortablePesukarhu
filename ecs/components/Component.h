@@ -34,24 +34,24 @@ namespace pk
     protected:
         friend class Scene;
 
+        // TODO: not required anymore? maybe delete?
         uint32_t _id = 0;
-
-        uint32_t _entity = 0;
-        ComponentType _type;
-
+        ComponentType _type = ComponentType::PK_EMPTY;
         bool _isActive = true;
 
     public:
+        Component();
         Component(ComponentType type);
         Component(const Component& other);
         virtual ~Component();
 
         inline uint32_t getID() const { return _id; }
 
-        inline uint32_t getEntity() const { return _entity; }
         inline ComponentType getType() const { return _type; }
         inline bool isActive() const { return _isActive; }
 
         inline void setActive(bool arg) { _isActive = arg; }
+
+        inline bool isNull() const { return _type == ComponentType::PK_EMPTY; }
     };
 }

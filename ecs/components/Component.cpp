@@ -3,6 +3,9 @@
 
 namespace pk
 {
+    Component::Component()
+    {}
+
     Component::Component(ComponentType type) :
         _type(type)
     {

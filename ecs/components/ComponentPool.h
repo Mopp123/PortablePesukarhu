@@ -8,6 +8,7 @@
 
 namespace pk
 {
+
     // Component memory pool can store only a single type of components
     class ComponentPool : public MemoryPool
     {
@@ -17,14 +18,38 @@ namespace pk
         size_t _componentCount = 0;
 
         std::vector<size_t> _freeOffsets;
+    public:
+        struct iterator
+        {
+            void* ptr;
+            size_t componentSize = 0;
+            size_t position = 0;
+
+            bool operator!=(const iterator& other)
+            {
+                return position != other.position;
+            }
+
+            iterator& operator++()
+            {
+                ptr = ((uint8_t*)ptr) + componentSize;
+                position += componentSize;
+                return *this;
+            }
+        };
 
     public:
         ComponentPool(size_t componentSize, size_t componentCapacity);
         ~ComponentPool();
 
+        iterator begin();
+        iterator end();
+
         void* allocComponent();
         void destroyComponent(entityID_t entityID);
         // Atm doesnt check if invalid index!
         void* getComponent_DANGER(entityID_t entityID);
+
+        void* operator[](size_t index);
     };
 }

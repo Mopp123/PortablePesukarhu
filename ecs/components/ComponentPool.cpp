@@ -1,4 +1,5 @@
 #include "ComponentPool.h"
+#include "Common.h"
 #include "core/Debug.h"
 
 #include "Transform.h"
@@ -22,6 +23,16 @@ namespace pk
 
     ComponentPool::~ComponentPool()
     {
+    }
+
+    ComponentPool::iterator ComponentPool::begin()
+    {
+        return { _pStorage, _componentSize, 0 };
+    }
+
+    ComponentPool::iterator ComponentPool::end()
+    {
+        return { nullptr, _componentSize, _occupiedSize };
     }
 
     void* ComponentPool::allocComponent()
@@ -49,5 +60,10 @@ namespace pk
     void* ComponentPool::getComponent_DANGER(entityID_t entityID)
     {
         return ((uint8_t*)_pStorage) + (_componentSize * entityID);
+    }
+
+    void* ComponentPool::operator[](size_t index)
+    {
+        return (void*)(((PK_byte*)_pStorage) + index * _componentSize);
     }
 }
