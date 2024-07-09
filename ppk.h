@@ -17,7 +17,7 @@
 #include "ecs/components/renderable/TextRenderable.h"
 #include "ecs/components/renderable/UIRenderableComponent.h"
 #include "ecs/components/lighting/Lights.h"
-#include "ecs/components/UIElemState.h"
+#include "ecs/components/ui/UIElemState.h"
 
 #include "graphics/MasterRenderer.h"
 //#include "graphics/platform/web/WebMasterRenderer.h"

@@ -51,6 +51,24 @@ namespace pk
         //// GUI
         // BOTTLENECK!
         // Atm testing accessing renderable through mem pool
+
+        ComponentPool& transformPool = _pCurrentScene->componentPools[ComponentType::PK_TRANSFORM];
+
+        ComponentPool& renderableGUIPool = _pCurrentScene->componentPools[ComponentType::PK_RENDERABLE_GUI];
+        for (const Entity& e : _pCurrentScene->entities)
+        {
+            if (e.componentMask & ComponentType::PK_TRANSFORM &&
+                e.componentMask & ComponentType::PK_RENDERABLE_GUI)
+            {
+                GUIRenderable* pRenderable = (GUIRenderable*)renderableGUIPool[e.id];
+                Transform* pTransform = (Transform*)transformPool[e.id];
+                if (!pRenderable->isActive())
+                    continue;
+
+                pGuiRenderer->submit(pRenderable, pTransform->getTransformationMatrix());
+            }
+        }
+        /*
         size_t poolPos = 0;
         size_t guiRenderableCount = _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_GUI).size();
         PK_byte* pGuiPoolStorage = (PK_byte*)_pCurrentScene->componentPools[ComponentType::PK_RENDERABLE_GUI].accessStorage();
@@ -68,6 +86,8 @@ namespace pk
             }
             poolPos += sizeof(GUIRenderable);
         }
+        */
+
         //for (const Component * const c_renderableGUI : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_GUI))
         //{
         //    Component* rawTransform = _pCurrentScene->getComponent(c_renderableGUI->getEntity(), ComponentType::PK_TRANSFORM);
@@ -81,6 +101,22 @@ namespace pk
         //    }
         //}
         // TEXT
+
+        ComponentPool& renderableTextPool = _pCurrentScene->componentPools[ComponentType::PK_RENDERABLE_TEXT];
+        for (const Entity& e : _pCurrentScene->entities)
+        {
+            if (e.componentMask & ComponentType::PK_TRANSFORM &&
+                e.componentMask & ComponentType::PK_RENDERABLE_TEXT)
+            {
+                TextRenderable* pRenderable = (TextRenderable*)renderableTextPool[e.id];
+                Transform* pTransform = (Transform*)transformPool[e.id];
+                if (!pRenderable->isActive())
+                    continue;
+
+                pFontRenderer->submit(pRenderable, pTransform->getTransformationMatrix());
+            }
+        }
+        /*
         for (const Component* const c_renderableText : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_TEXT))
         {
             if (c_renderableText->isActive())
@@ -93,6 +129,7 @@ namespace pk
                 }
             }
         }
+        */
     }
 
     // triggers scene switching at the end of the frame

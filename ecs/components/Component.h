@@ -24,7 +24,7 @@ namespace pk
 
         PK_TRANSFORM = 0x80,
 
-        PK_UI_CONSTRAINT = 0x100,
+        PK_UI_CONSTRAINT = 0x100, // PROBLEM: currently relying on that entity can have multiple components of this type
 
         PK_CAMERA = 0x200
     };
@@ -44,6 +44,9 @@ namespace pk
         Component(ComponentType type);
         Component(const Component& other);
         virtual ~Component();
+
+        // NOTE: Only temp atm just to be able to compile broken version..
+        inline uint32_t getEntity() const { return 0; }
 
         inline uint32_t getID() const { return _id; }
 

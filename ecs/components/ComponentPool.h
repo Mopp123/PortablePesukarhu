@@ -4,6 +4,7 @@
 #include "ecs/Entity.h"
 #include "Component.h"
 #include <vector>
+#include <unordered_map>
 
 
 namespace pk
@@ -16,8 +17,11 @@ namespace pk
         size_t _componentSize = 0;
         size_t _componentCapacity = 0;
         size_t _componentCount = 0;
+        bool _allowResize = false;
 
         std::vector<size_t> _freeOffsets;
+        // Actual offset of entity's component in storage is determined by this
+        std::unordered_map<entityID_t, size_t> _entityOffsetMapping;
     public:
         struct iterator
         {
@@ -39,17 +43,21 @@ namespace pk
         };
 
     public:
-        ComponentPool(size_t componentSize, size_t componentCapacity);
+        ComponentPool() {}
+        ComponentPool(const ComponentPool& other);
+        ComponentPool(size_t componentSize, size_t componentCapacity, bool allowResize);
         ~ComponentPool();
 
         iterator begin();
         iterator end();
 
-        void* allocComponent();
+
+        // If allowResize and not enough space, this also adds space to the _pStorage
+        void* allocComponent(entityID_t entityID);
         void destroyComponent(entityID_t entityID);
         // Atm doesnt check if invalid index!
         void* getComponent_DANGER(entityID_t entityID);
 
-        void* operator[](size_t index);
+        void* operator[](entityID_t entityID);
     };
 }

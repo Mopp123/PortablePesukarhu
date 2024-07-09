@@ -19,10 +19,15 @@ namespace pk
 
         // Allocates chunk of size "size" in pool and returns ptr to that
         void* alloc(size_t size);
+        void* alloc(size_t offset, size_t size);
 
-        // Clears storage but doesn't resize the actual storage
+
+        // Clears full storage but doesn't resize the actual storage
         // (sets all data and _occupeidSize to 0)
         void clearStorage();
+        // Clears storage of specified area
+        void clearStorage(size_t offset, size_t size);
+
         // Calls free for _pStorage and sets it to nullptr
         void freeStorage();
         void addSpace(size_t newSize);

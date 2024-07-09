@@ -44,16 +44,26 @@ namespace pk
                 const float& transformWidth = tMat[0 + 0 * 4];
                 const float& transformHeight = tMat[1 + 1 * 4];
 
-                float constraintVal = pConstraint->value;
+                HorizontalConstraintType horizontalType = pConstraint->horizontalType;
+                float horizontalVal = pConstraint->horizontalValue;
 
-                switch (pConstraint->constraintType)
+                VerticalConstraintType verticalType = pConstraint->verticalType;
+                float verticalVal = pConstraint->verticalValue;
+
+                switch (horizontalType)
                 {
-                    case ConstraintType::PIXEL_LEFT:		        tMat[0 + 3 * 4] = constraintVal; break;
-                    case ConstraintType::PIXEL_RIGHT:		        tMat[0 + 3 * 4] = windowWidth - constraintVal - transformWidth; break;
-                    case ConstraintType::PIXEL_BOTTOM:		        tMat[1 + 3 * 4] = constraintVal + transformHeight; break;
-                    case ConstraintType::PIXEL_TOP:			tMat[1 + 3 * 4] = windowHeight - constraintVal;	break;
-                    case ConstraintType::PIXEL_CENTER_HORIZONTAL:	tMat[0 + 3 * 4] = windowWidth * 0.5f + constraintVal; break;
-                    case ConstraintType::PIXEL_CENTER_VERTICAL:		tMat[1 + 3 * 4] = windowHeight * 0.5f + constraintVal; break;
+                    case HorizontalConstraintType::PIXEL_LEFT:		        tMat[0 + 3 * 4] = horizontalVal; break;
+                    case HorizontalConstraintType::PIXEL_RIGHT:		        tMat[0 + 3 * 4] = windowWidth - horizontalVal - transformWidth; break;
+                    case HorizontalConstraintType::PIXEL_CENTER_HORIZONTAL:	tMat[0 + 3 * 4] = windowWidth * 0.5f + horizontalVal; break;
+                    default:
+                        break;
+                }
+
+                switch (verticalType)
+                {
+                    case VerticalConstraintType::PIXEL_BOTTOM:		        tMat[1 + 3 * 4] = verticalVal + transformHeight; break;
+                    case VerticalConstraintType::PIXEL_TOP:			tMat[1 + 3 * 4] = windowHeight - verticalVal;	break;
+                    case VerticalConstraintType::PIXEL_CENTER_VERTICAL:		tMat[1 + 3 * 4] = windowHeight * 0.5f + verticalVal; break;
                     default:
                         break;
                 }

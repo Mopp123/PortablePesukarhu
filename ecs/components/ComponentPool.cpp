@@ -15,10 +15,23 @@
 
 namespace pk
 {
-    ComponentPool::ComponentPool(size_t componentSize, size_t componentCapacity) :
+    ComponentPool::ComponentPool(const ComponentPool& other) :
+        _componentSize(other._componentSize),
+        _componentCapacity(other._componentCapacity),
+        _componentCount(other._componentCount),
+        _allowResize(other._allowResize)
+    {
+    }
+
+    ComponentPool::ComponentPool(
+        size_t componentSize,
+        size_t componentCapacity,
+        bool allowResize
+    ) :
         MemoryPool(componentSize * componentCapacity),
         _componentSize(componentSize),
-        _componentCapacity(componentCapacity)
+        _componentCapacity(componentCapacity),
+        _allowResize(allowResize)
     {}
 
     ComponentPool::~ComponentPool()
@@ -35,9 +48,37 @@ namespace pk
         return { nullptr, _componentSize, _occupiedSize };
     }
 
-    void* ComponentPool::allocComponent()
+    void* ComponentPool::allocComponent(entityID_t entityID)
     {
-        void* ptr = alloc(_componentSize);
+        if (_occupiedSize + _componentSize > _totalSize)
+        {
+            if (!_allowResize)
+            {
+                Debug::log(
+                    "@ComponentPool::allocComponent "
+                    "Pool with resizing disabled was already full!",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return nullptr;
+            }
+            else
+            {
+                addSpace(_totalSize + _componentSize);
+                ++_componentCapacity;
+            }
+        }
+        void* ptr = nullptr;
+        size_t allocationOffset = _componentCount;
+        if (_freeOffsets.empty())
+        {
+            ptr = alloc(_componentSize);
+        }
+        else
+        {
+            allocationOffset = _freeOffsets.back();
+            ptr = alloc(allocationOffset, _componentSize);
+            _freeOffsets.pop_back();
+        }
         if (!ptr)
         {
             Debug::log(
@@ -48,6 +89,7 @@ namespace pk
             return nullptr;
         }
         _componentCount++;
+        _entityOffsetMapping[entityID] = allocationOffset;
         return ptr;
     }
 
@@ -59,11 +101,13 @@ namespace pk
     // NOT TESTED, MAY FUK UP!
     void* ComponentPool::getComponent_DANGER(entityID_t entityID)
     {
-        return ((uint8_t*)_pStorage) + (_componentSize * entityID);
+        size_t offset = _entityOffsetMapping[entityID];
+        return ((uint8_t*)_pStorage) + (_componentSize * offset);
     }
 
-    void* ComponentPool::operator[](size_t index)
+    void* ComponentPool::operator[](entityID_t entityID)
     {
-        return (void*)(((PK_byte*)_pStorage) + index * _componentSize);
+        size_t offset = _entityOffsetMapping[entityID];
+        return (void*)(((PK_byte*)_pStorage) + offset * _componentSize);
     }
 }

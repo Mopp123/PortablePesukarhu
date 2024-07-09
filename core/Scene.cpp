@@ -1,8 +1,10 @@
 #include "Scene.h"
 #include "Application.h"
 
-#include "ecs/components/renderable/GUIRenderable.h"
-#include "ecs/components/ui/ConstraintData.h"
+#include "ecs/components/renderable/Sprite3DRenderable.h"
+#include "ecs/components/renderable/TerrainTileRenderable.h"
+#include "ecs/components/renderable/Static3DRenderable.h"
+#include "ecs/components/lighting/Lights.h"
 
 // NOTE: Only temporarely adding all systems here on Scene's constructor!
 #include "ecs/systems/ui/ConstraintSystem.h"
@@ -13,11 +15,37 @@ namespace pk
     Scene::Scene()
     {
         size_t maxEntityCount = 1000;
-        componentPools[ComponentType::PK_RENDERABLE_GUI] = ComponentPool(
-            sizeof(GUIRenderable), maxEntityCount
+
+        componentPools[ComponentType::PK_TRANSFORM] = ComponentPool(
+            sizeof(Transform), maxEntityCount, true
+        );
+        componentPools[ComponentType::PK_CAMERA] = ComponentPool(
+            sizeof(Camera), 1, true
         );
         componentPools[ComponentType::PK_UI_CONSTRAINT] = ComponentPool(
-            sizeof(ConstraintData), maxEntityCount
+            sizeof(ConstraintData), 10, true
+        );
+        componentPools[ComponentType::PK_UIELEM_STATE] = ComponentPool(
+            sizeof(UIElemState), 10, true
+        );
+        componentPools[ComponentType::PK_LIGHT_DIRECTIONAL] = ComponentPool(
+            sizeof(DirectionalLight), 4, true
+        );
+        // Renderable component pools
+        componentPools[ComponentType::PK_RENDERABLE_GUI] = ComponentPool(
+            sizeof(GUIRenderable), 100, true
+        );
+        componentPools[ComponentType::PK_RENDERABLE_TEXT] = ComponentPool(
+            sizeof(TextRenderable), 100, true
+        );
+        componentPools[ComponentType::PK_RENDERABLE_SPRITE3D] = ComponentPool(
+            sizeof(Sprite3DRenderable), 100, true
+        );
+        componentPools[ComponentType::PK_RENDERABLE_STATIC3D] = ComponentPool(
+            sizeof(Static3DRenderable), 100, true
+        );
+        componentPools[ComponentType::PK_RENDERABLE_TERRAINTILE] = ComponentPool(
+            sizeof(TerrainTileRenderable), 100, true
         );
 
         // NOTE: Only temporarely adding all default systems here!
@@ -29,20 +57,20 @@ namespace pk
 
     Scene::~Scene()
     {
-        Debug::log("Destroying components...");
-        for (const std::pair<uint32_t, Component*> c : components)
-        {
-            // ATM JUST TESTING HERE:
-            // GUIRenderables currently allocated from mem pools
-            if (c.second->getType() != ComponentType::PK_RENDERABLE_GUI)
-                delete c.second;
-        }
+        // TODO: delete below
+        //for (const std::pair<uint32_t, Component*> c : components)
+        //{
+        //    // ATM JUST TESTING HERE:
+        //    // GUIRenderables currently allocated from mem pools
+        //    if (c.second->getType() != ComponentType::PK_RENDERABLE_GUI)
+        //        delete c.second;
+        //}
+        //components.clear();
 
         std::unordered_map<ComponentType, ComponentPool>::iterator poolIterator;
         for (poolIterator = componentPools.begin(); poolIterator != componentPools.end(); ++poolIterator)
             poolIterator->second.freeStorage();
 
-        components.clear();
         entities.clear();
 
         for (System* system : systems)
@@ -160,9 +188,8 @@ namespace pk
         {
             Debug::log(
                 "@Scene::addComponent "
-                "Attempted to add component to but entity already "
-                "has a component of this type. Currently entity can have only a "
-                "single component for each type",
+                "Attempted to add component to entity: " + std::to_string(entityID) + " but "
+                "it already has a component of this type: " + std::to_string(componentTypeID),
                 Debug::PK_FATAL_ERROR
             );
             return;
@@ -172,6 +199,78 @@ namespace pk
         Renderer* pRenderer = Application::get()->getMasterRenderer()->getRenderer(component->getType());
         if (pRenderer)
             pRenderer->createDescriptorSets(component);
+    }
+
+    Transform* Scene::createTransform(entityID_t target, vec2 pos, vec2 scale)
+    {
+        Transform* pTransform = (Transform*)componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
+        *pTransform = Transform(pos, scale);
+        addComponent(target, pTransform);
+        return pTransform;
+    }
+
+    Transform* Scene::createTransform(
+        entityID_t target,
+        vec3 pos,
+        vec3 scale,
+        float pitch,
+        float yaw
+    )
+    {
+        Transform* pTransform = (Transform*)componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
+        *pTransform = Transform(pos, scale, pitch, yaw);
+        addComponent(target, pTransform);
+        return pTransform;
+    }
+
+    ConstraintData* Scene::createUIConstraint(
+        entityID_t target,
+        HorizontalConstraintType horizontalType,
+        float horizontalValue,
+        VerticalConstraintType verticalType,
+        float verticalValue
+    )
+    {
+        ConstraintData* pConstraint = (ConstraintData*)componentPools[ComponentType::PK_UI_CONSTRAINT].allocComponent(target);
+        *pConstraint = ConstraintData(horizontalType, horizontalValue, verticalType, verticalValue);
+        addComponent(target, pConstraint);
+        return pConstraint;
+    }
+
+    UIElemState* Scene::createUIElemState(entityID_t target)
+    {
+        UIElemState* pElemState = (UIElemState*)componentPools[ComponentType::PK_UIELEM_STATE].allocComponent(target);
+        *pElemState = UIElemState(); // not sure if fukup here?
+        addComponent(target, pElemState);
+        return pElemState;
+    }
+
+    GUIRenderable* Scene::createGUIRenderable(
+        entityID_t target,
+        Texture_new* pTexture,
+        vec4 textureCropping,
+        vec3 color
+    )
+    {
+        GUIRenderable* pRenderable = (GUIRenderable*)componentPools[ComponentType::PK_RENDERABLE_GUI].allocComponent(target);
+        *pRenderable = GUIRenderable(nullptr, textureCropping, pTexture);
+        pRenderable->drawBorder = false; // Doesnt work atm
+        pRenderable->color = color;
+        addComponent(target, pRenderable);
+        return pRenderable;
+    }
+
+    TextRenderable* Scene::createTextRenderable(
+        entityID_t target,
+        const std::string& txt,
+        vec3 color,
+        bool bold
+    )
+    {
+        TextRenderable* pRenderable = (TextRenderable*)componentPools[ComponentType::PK_RENDERABLE_TEXT].allocComponent(target);
+        *pRenderable = TextRenderable(txt, color, bold);
+        addComponent(target, pRenderable);
+        return pRenderable;
     }
 
     Component* Scene::getComponent(entityID_t entityID, ComponentType type, bool nestedSearch)
@@ -240,7 +339,6 @@ namespace pk
     }
 
     // Returns first found component of type "type"
-    // TODO: Make this more safe?
     //Component* Scene::getComponent(ComponentType type)
     //{
     //    auto iter = typeComponentMapping.find(type);

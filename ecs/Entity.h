@@ -12,5 +12,11 @@ namespace pk
     {
         entityID_t id = -1;
         uint64_t componentMask = 0;
+
+        Entity() {}
+        Entity(const Entity& other) :
+            id(other.id),
+            componentMask(other.componentMask)
+        {}
     };
 }

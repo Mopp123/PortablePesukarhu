@@ -233,9 +233,9 @@ namespace pk
         };
 
 
-        uint32_t create_image(
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+        entityID_t create_image(
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             float width, float height,
             bool drawBorder,
             Texture* texture,
@@ -247,94 +247,51 @@ namespace pk
 	    Application* app = Application::get();
 	    Scene* currentScene = app->accessCurrentScene();
 
-	    uint32_t entity = currentScene->createEntity();
-
-	    Transform* transform = new Transform({ 0,0 }, { width, height });
-	    //GUIRenderable* renderable = new GUIRenderable(nullptr, textureCropping, pTexture);
-            GUIRenderable* pRenderable = (GUIRenderable*)currentScene->componentPools[ComponentType::PK_RENDERABLE_GUI].alloc(sizeof(GUIRenderable));
-	    *pRenderable = GUIRenderable(nullptr, textureCropping, pTexture);
-
-
-            pRenderable->drawBorder = drawBorder;
-            pRenderable->color = color;
-
-	    currentScene->addComponent(entity, transform);
-	    currentScene->addComponent(entity, pRenderable);
-
-            //currentScene->addSystem(new Constraint(transform, horizontalType, horizontalVal));
-            //currentScene->addSystem(new Constraint(transform, verticalType, verticalVal));
-
-            // New constraint component system thing... old above..
-	    currentScene->addComponent(
-                entity,
-                new ConstraintData(
-                    transform->getID(),
-                    horizontalType,
-                    horizontalVal
-                )
+	    entityID_t entityID = currentScene->createEntity();
+            currentScene->createTransform(entityID, { 0,0 }, { width, height });
+            currentScene->createGUIRenderable(entityID, pTexture, textureCropping, color);
+            currentScene->createUIConstraint(
+                entityID,
+                horizontalType,
+                horizontalVal,
+                verticalType,
+                verticalVal
             );
 
-	    currentScene->addComponent(
-                entity,
-                new ConstraintData(
-                    transform->getID(),
-                    verticalType,
-                    verticalVal
-                )
-            );
-
-            return entity;
+            return entityID;
         }
 
 
-        std::pair<uint32_t, TextRenderable*> create_text(
+        std::pair<entityID_t, TextRenderable*> create_text(
             const std::string& str,
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             vec3 color,
             bool bold
         )
         {
             Scene* currentScene = Application::get()->accessCurrentScene();
 
-            uint32_t entity = currentScene->createEntity();
+            entityID_t entityID = currentScene->createEntity();
+            currentScene->createTransform(entityID, { 0,0 }, { 1, 1 });
 
-            Transform* transform = new Transform({ 0,0 }, { 1,1 });
-            TextRenderable* renderable = new TextRenderable(str, color, bold);
-
-            currentScene->addComponent(entity, transform);
-            currentScene->addComponent(entity, renderable);
-
-            //currentScene->addSystem(new Constraint(transform, horizontalType, horizontalVal));
-            //currentScene->addSystem(new Constraint(transform, verticalType, verticalVal));
-	    currentScene->addComponent(
-                entity,
-                new ConstraintData(
-                    transform->getID(),
-                    horizontalType,
-                    horizontalVal
-                )
+            TextRenderable* pRenderable = currentScene->createTextRenderable(entityID, str, color, bold);
+            currentScene->createUIConstraint(
+                entityID,
+                horizontalType,
+                horizontalVal,
+                verticalType,
+                verticalVal
             );
 
-	    currentScene->addComponent(
-                entity,
-                new ConstraintData(
-                    transform->getID(),
-                    verticalType,
-                    verticalVal
-                )
-            );
-
-            //currentScene->addToSystem(PK_SYSTEM_CONSTRAINT, { transform, constraintData });
-
-            return std::make_pair(entity, renderable);
+            return std::make_pair(entityID, pRenderable);
         }
 
 
-        uint32_t create_button(
+        entityID_t create_button(
             std::string txt,
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             float width, float height,
             OnClickEvent* onClick,
             bool selectable,
@@ -349,8 +306,8 @@ namespace pk
             Scene* currentScene = Application::get()->accessCurrentScene();
             InputManager* inputManager = Application::get()->accessInputManager();
 
-            uint32_t buttonEntity = currentScene->createEntity();
-            uint32_t imgEntity = create_image(
+            entityID_t buttonEntity = currentScene->createEntity();
+            entityID_t imgEntity = create_image(
                 horizontalType, horizontalVal,
                 verticalType, verticalVal,
                 width, height,
@@ -361,19 +318,28 @@ namespace pk
             );
 
             // Add txt displacement
-            if (horizontalType == ConstraintType::PIXEL_LEFT ||
-                horizontalType == ConstraintType::PIXEL_CENTER_HORIZONTAL)
+            if (horizontalType == HorizontalConstraintType::PIXEL_LEFT ||
+                horizontalType == HorizontalConstraintType::PIXEL_CENTER_HORIZONTAL)
                 horizontalVal += (float)txtDisplacementX;
-            else if (horizontalType == ConstraintType::PIXEL_RIGHT)
+            else if (horizontalType == HorizontalConstraintType::PIXEL_RIGHT)
                 horizontalVal -= (float)txtDisplacementX;
 
+            if (verticalType == VerticalConstraintType::PIXEL_TOP)
+                verticalVal += (float)txtDisplacementY;
+            else if (verticalType == VerticalConstraintType::PIXEL_BOTTOM ||
+                verticalType == VerticalConstraintType::PIXEL_CENTER_VERTICAL)
+                verticalVal -= (float)txtDisplacementY;
+            // OLD VERSION -> not sure why checking horizontal on else if
+            // may be typo?
+            /*
             if (verticalType == ConstraintType::PIXEL_TOP)
                 verticalVal += (float)txtDisplacementY;
             else if (horizontalType == ConstraintType::PIXEL_BOTTOM ||
                 verticalType == ConstraintType::PIXEL_CENTER_VERTICAL)
                 verticalVal -= (float)txtDisplacementY;
+            */
 
-            uint32_t txtEntity = create_text(
+            entityID_t txtEntity = create_text(
                 txt,
                 horizontalType, horizontalVal,
                 verticalType, verticalVal
@@ -399,13 +365,11 @@ namespace pk
             txtTransform->accessTransformationMatrix()[0 + 0 * 4] = width;
             txtTransform->accessTransformationMatrix()[1 + 1 * 4] = height;
 
-            // Crente new UIElem state if not explicitly specified already
+            // Create new UIElem state if not explicitly specified already
             UIElemState* uiElemState = pUIElemState;
             if (!uiElemState)
-            {
-                uiElemState = new UIElemState;
-                currentScene->addComponent(buttonEntity, uiElemState);
-            }
+                uiElemState = currentScene->createUIElemState(buttonEntity);
+
             uiElemState->selectable = selectable;
 
             vec3 highlightColor(0.5f, 0.5f, 0.5f);
@@ -424,10 +388,10 @@ namespace pk
 
 
         #define PK_INPUTFIELD_DEFAULT_HEIGHT 21
-        std::pair<uint32_t, TextRenderable*> create_input_field(
+        std::pair<entityID_t, TextRenderable*> create_input_field(
             std::string infoTxt,
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             int width,
             InputFieldOnSubmitEvent* onSubmitEvent,
             bool clearOnSubmit
@@ -436,14 +400,13 @@ namespace pk
             Scene* currentScene = Application::get()->accessCurrentScene();
             InputManager* inputManager = Application::get()->accessInputManager();
 
-            uint32_t inputFieldEntity = currentScene->createEntity();
+            entityID_t inputFieldEntity = currentScene->createEntity();
 
-            UIElemState* uiElemState = new UIElemState;
-            uiElemState->selectable = true;
-            currentScene->addComponent(inputFieldEntity, uiElemState);
+            UIElemState* pUIElemState = currentScene->createUIElemState(inputFieldEntity);
+            pUIElemState->selectable = true;
 
             // Create button (*Override the button's UIElemState)
-            uint32_t buttonEntity = create_button(
+            entityID_t buttonEntity = create_button(
                 "",
                 horizontalType, horizontalVal,
                 verticalType, verticalVal,
@@ -454,11 +417,11 @@ namespace pk
                 {0, 0, 1, 1},
                 { 0.05f, 0.05f, 0.05f },
                 0, 0,
-                uiElemState
+                pUIElemState
             );
 
             float infoTxtDisplacement = width;
-            if (horizontalType == ConstraintType::PIXEL_RIGHT)
+            if (horizontalType == HorizontalConstraintType::PIXEL_RIGHT)
                 infoTxtDisplacement = -width;
             // Create info txt
             uint32_t infoTxtEntity = create_text(
@@ -476,8 +439,8 @@ namespace pk
                 ComponentType::PK_RENDERABLE_TEXT
             );
 
-            inputManager->addKeyEvent(new InputFieldKeyEvent(*uiElemState, contentText, onSubmitEvent));
-            inputManager->addCharInputEvent(new InputFieldCharInputEvent(*uiElemState, contentText));
+            inputManager->addKeyEvent(new InputFieldKeyEvent(*pUIElemState, contentText, onSubmitEvent));
+            inputManager->addCharInputEvent(new InputFieldCharInputEvent(*pUIElemState, contentText));
 
             // Adjust the info text's transform a bit, so it doesnt look fucked..
             Transform* infoTextTransform = (Transform*)currentScene->getComponent(

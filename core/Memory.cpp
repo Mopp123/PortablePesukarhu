@@ -35,7 +35,7 @@ namespace pk
         if (_occupiedSize + size > _totalSize)
         {
             Debug::log(
-                "@MemoryPool::alloc Capacity exceeded!",
+                "@MemoryPool::alloc(1) Capacity exceeded!",
                 Debug::MessageType::PK_FATAL_ERROR
             );
             return nullptr;
@@ -45,10 +45,30 @@ namespace pk
         return ptr;
     }
 
+    void* MemoryPool::alloc(size_t offset, size_t size)
+    {
+        if (offset + size > _totalSize)
+        {
+            Debug::log(
+                "@MemoryPool::alloc(2) Capacity exceeded!",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
+        void* ptr = ((PK_byte*)_pStorage) + size;
+        _occupiedSize += size;
+        return ptr;
+    }
+
     void MemoryPool::clearStorage()
     {
         memset(_pStorage, 0, _totalSize);
         _occupiedSize = 0;
+    }
+
+    void MemoryPool::clearStorage(size_t offset, size_t size)
+    {
+        memset(_pStorage, offset, size);
     }
 
     void MemoryPool::freeStorage()
@@ -77,6 +97,9 @@ namespace pk
 
         free(_pStorage);
         _pStorage = pNewStorage;
+        Debug::log(
+            "@MemoryPool::addSpace Increased size from " + std::to_string(_totalSize) + " to " + std::to_string(newSize)
+        );
         _totalSize = newSize;
     }
 }

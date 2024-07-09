@@ -2,9 +2,10 @@
 
 #include <string>
 
+#include "ecs/Entity.h"
 #include "ecs/components/ui/ConstraintData.h"
 #include "../../components/renderable/TextRenderable.h"
-#include "../../components/UIElemState.h"
+#include "ecs/components/ui/UIElemState.h"
 #include "../../../core/input/InputEvent.h"
 
 #include "graphics/Texture.h"
@@ -39,9 +40,9 @@ namespace pk
         };
 
 
-        uint32_t create_image(
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+        entityID_t create_image(
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             float width, float height,
             bool drawBorder = false,
             Texture* texture = nullptr,
@@ -51,19 +52,19 @@ namespace pk
         );
 
 
-        std::pair<uint32_t, TextRenderable*> create_text(
+        std::pair<entityID_t, TextRenderable*> create_text(
             const std::string& str,
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             vec3 color = vec3(1.0f, 1.0f, 1.0f),
             bool bold = false
         );
 
 
-        uint32_t create_button(
+        entityID_t create_button(
             std::string txt,
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             float width, float height,
             OnClickEvent* onClick,
             bool selectable = false,
@@ -76,10 +77,10 @@ namespace pk
         );
 
         // return pair of InputField-entity and TextRenderable ptr of its' content
-        std::pair<uint32_t, TextRenderable*> create_input_field(
+        std::pair<entityID_t, TextRenderable*> create_input_field(
             std::string infoTxt,
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             int width,
             InputFieldOnSubmitEvent* onSubmitEvent,
             bool clearOnSubmit = false

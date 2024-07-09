@@ -2,8 +2,14 @@
 
 #include "ecs/components/ComponentPool.h"
 #include "ecs/Entity.h"
-#include "../ecs/components/Component.h"
-#include "../ecs/components/Camera.h"
+
+#include "ecs/components/Component.h"
+#include "ecs/components/Camera.h"
+#include "ecs/components/ui/ConstraintData.h"
+#include "ecs/components/ui/UIElemState.h"
+#include "ecs/components/renderable/GUIRenderable.h"
+#include "ecs/components/renderable/TextRenderable.h"
+
 #include "../ecs/systems/System.h"
 #include "Debug.h"
 #include <unordered_map>
@@ -40,6 +46,7 @@ namespace pk
         void destroyEntity(entityID_t entityID);
         void addChild(entityID_t entityID, entityID_t childID);
         std::vector<entityID_t> getChildren(entityID_t entityID);
+
         void addComponent(entityID_t entityID, Component* component);
         inline bool isValidEntity(entityID_t entityID)
         {
@@ -47,6 +54,34 @@ namespace pk
                 return false;
             return entities[entityID].id != NULL_ENTITY_ID;
         }
+        Transform* createTransform(entityID_t target, vec2 pos, vec2 scale);
+        Transform* createTransform(
+            entityID_t target,
+            vec3 pos,
+            vec3 scale,
+            float pitch = 0.0f,
+            float yaw = 0.0f
+        );
+        ConstraintData* createUIConstraint(
+            entityID_t target,
+            HorizontalConstraintType horizontalType,
+            float horizontalValue,
+            VerticalConstraintType verticalType,
+            float verticalValue
+        );
+        UIElemState* createUIElemState(entityID_t target);
+        GUIRenderable* createGUIRenderable(
+            entityID_t target,
+            Texture_new* pTexture = nullptr,
+            vec4 textureCropping = vec4(0, 0, 1, 1),
+            vec3 color = { 1, 1, 1 }
+        );
+        TextRenderable* createTextRenderable(
+            entityID_t target,
+            const std::string& txt,
+            vec3 color,
+            bool bold = false
+        );
 
         // TODO: all getComponent things could be optimized?
         Component* getComponent(entityID_t entityID, ComponentType type, bool nestedSearch = false);
@@ -57,7 +92,6 @@ namespace pk
         std::vector<Component*> getComponents(entityID_t entityID);
 
         // Returns first found component of type "type"
-        // TODO: Make this more safe?
         //Component* getComponent(ComponentType type);
 
         //std::vector<Component*> getComponentsInChildren(uint32_t entity);

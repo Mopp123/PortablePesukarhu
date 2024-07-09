@@ -234,22 +234,20 @@ namespace pk
             mat4 viewMat = camTransform->getTransformationMatrix();
             viewMat.inverse(); // omg this quite heavy operation ...
 
+            // Atm "actual dir light" disabled
             // Find scene's "sun(dir light)"
-            DirectionalLight* dirLight = (DirectionalLight*)scene->getComponent(ComponentType::PK_LIGHT_DIRECTIONAL);
+            //DirectionalLight* dirLight = (DirectionalLight*)scene->getComponent(ComponentType::PK_LIGHT_DIRECTIONAL);
+            vec3 lightDirection(0.5f, -1.0f, 0.5f);
+            lightDirection.normalize();
+
 
             glUseProgram(_shader.getProgramID());
 
             // all common uniforms..
             _shader.setUniform(_uniformLocation_projMat, projectionMatrix);
             _shader.setUniform(_uniformLocation_viewMat, viewMat);
-
-            // Light
-            if (dirLight)
-            {
-                // *light color not used atm
-                //_shader.setUniform(_uniformLocation_dirLight_color, dirLight->color);
-                _shader.setUniform(_uniformLocation_dirLight_dir, dirLight->direction);
-            }
+            //_shader.setUniform(_uniformLocation_dirLight_color, dirLight->color);
+            _shader.setUniform(_uniformLocation_dirLight_dir, lightDirection);
 
 
             glEnable(GL_DEPTH_TEST);

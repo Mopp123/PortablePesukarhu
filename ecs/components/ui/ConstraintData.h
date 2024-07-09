@@ -4,30 +4,39 @@
 
 namespace pk
 {
-
-    enum ConstraintType
+    enum HorizontalConstraintType
     {
         PIXEL_LEFT = 1,
         PIXEL_RIGHT = 2,
+        PIXEL_CENTER_HORIZONTAL = 3
+    };
+
+    enum VerticalConstraintType
+    {
         PIXEL_TOP = 3,
         PIXEL_BOTTOM = 4,
-        PIXEL_CENTER_HORIZONTAL = 5,
-        PIXEL_CENTER_VERTICAL = 6
+        PIXEL_CENTER_VERTICAL = 5
     };
 
     class ConstraintData : public Component
     {
     public:
-        // The transform component's id this constraint affects
-        uint32_t transformID = 0;
-        ConstraintType constraintType = PIXEL_LEFT;
-        float value = 0.0f;
+        HorizontalConstraintType horizontalType = PIXEL_LEFT;
+        float horizontalValue = 0.0f;
+        VerticalConstraintType verticalType = PIXEL_TOP;
+        float verticalValue = 0.0f;
 
-        ConstraintData(uint32_t transformID, ConstraintType constraintType, float value) :
+        ConstraintData(
+            HorizontalConstraintType horizontalType,
+            float horizontalVal,
+            VerticalConstraintType verticalType,
+            float verticalVal
+        ) :
             Component(PK_UI_CONSTRAINT),
-            transformID(transformID),
-            constraintType(constraintType),
-            value(value)
+            horizontalType(horizontalType),
+            horizontalValue(horizontalVal),
+            verticalType(verticalType),
+            verticalValue(verticalVal)
         {}
     };
 }
