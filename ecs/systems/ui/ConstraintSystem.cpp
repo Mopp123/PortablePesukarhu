@@ -30,42 +30,42 @@ namespace pk
             ComponentPool& transformPool = pCurrentScene->componentPools[ComponentType::PK_TRANSFORM];
 
             // This way actually better!
-            uint64_t mask = ComponentType::PK_UI_CONSTRAINT | ComponentType::PK_TRANSFORM;
             for (Entity e : pCurrentScene->entities)
             {
-                if (!(e.componentMask & mask))
-                    continue;
-
-                ConstraintData* pConstraint = (ConstraintData*)constraintPool[e.id];
-                Transform* pTransform = (Transform*)transformPool[e.id];
-                // NOTE: we dont care if these components are inactive here..
-                mat4& tMat = pTransform->accessTransformationMatrix();
-
-                const float& transformWidth = tMat[0 + 0 * 4];
-                const float& transformHeight = tMat[1 + 1 * 4];
-
-                HorizontalConstraintType horizontalType = pConstraint->horizontalType;
-                float horizontalVal = pConstraint->horizontalValue;
-
-                VerticalConstraintType verticalType = pConstraint->verticalType;
-                float verticalVal = pConstraint->verticalValue;
-
-                switch (horizontalType)
+                if (e.componentMask & ComponentType::PK_UI_CONSTRAINT &&
+                    e.componentMask & ComponentType::PK_TRANSFORM)
                 {
-                    case HorizontalConstraintType::PIXEL_LEFT:		        tMat[0 + 3 * 4] = horizontalVal; break;
-                    case HorizontalConstraintType::PIXEL_RIGHT:		        tMat[0 + 3 * 4] = windowWidth - horizontalVal - transformWidth; break;
-                    case HorizontalConstraintType::PIXEL_CENTER_HORIZONTAL:	tMat[0 + 3 * 4] = windowWidth * 0.5f + horizontalVal; break;
-                    default:
-                        break;
-                }
+                    ConstraintData* pConstraint = (ConstraintData*)constraintPool[e.id];
+                    Transform* pTransform = (Transform*)transformPool[e.id];
+                    // NOTE: we dont care if these components are inactive here..
+                    mat4& tMat = pTransform->accessTransformationMatrix();
 
-                switch (verticalType)
-                {
-                    case VerticalConstraintType::PIXEL_BOTTOM:		        tMat[1 + 3 * 4] = verticalVal + transformHeight; break;
-                    case VerticalConstraintType::PIXEL_TOP:			tMat[1 + 3 * 4] = windowHeight - verticalVal;	break;
-                    case VerticalConstraintType::PIXEL_CENTER_VERTICAL:		tMat[1 + 3 * 4] = windowHeight * 0.5f + verticalVal; break;
-                    default:
-                        break;
+                    const float& transformWidth = tMat[0 + 0 * 4];
+                    const float& transformHeight = tMat[1 + 1 * 4];
+
+                    HorizontalConstraintType horizontalType = pConstraint->horizontalType;
+                    float horizontalVal = pConstraint->horizontalValue;
+
+                    VerticalConstraintType verticalType = pConstraint->verticalType;
+                    float verticalVal = pConstraint->verticalValue;
+
+                    switch (horizontalType)
+                    {
+                        case HorizontalConstraintType::PIXEL_LEFT:		        tMat[0 + 3 * 4] = horizontalVal; break;
+                        case HorizontalConstraintType::PIXEL_RIGHT:		        tMat[0 + 3 * 4] = windowWidth - horizontalVal - transformWidth; break;
+                        case HorizontalConstraintType::PIXEL_CENTER_HORIZONTAL:	tMat[0 + 3 * 4] = windowWidth * 0.5f + horizontalVal; break;
+                        default:
+                            break;
+                    }
+
+                    switch (verticalType)
+                    {
+                        case VerticalConstraintType::PIXEL_BOTTOM:		        tMat[1 + 3 * 4] = verticalVal + transformHeight; break;
+                        case VerticalConstraintType::PIXEL_TOP:			tMat[1 + 3 * 4] = windowHeight - verticalVal;	break;
+                        case VerticalConstraintType::PIXEL_CENTER_VERTICAL:		tMat[1 + 3 * 4] = windowHeight * 0.5f + verticalVal; break;
+                        default:
+                            break;
+                    }
                 }
             }
             // ..or

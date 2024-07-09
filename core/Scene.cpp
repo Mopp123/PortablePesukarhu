@@ -113,6 +113,15 @@ namespace pk
             );
             return;
         }
+        // Destroy/free all this entity's components
+        uint64_t componentMask = entities[entityID].componentMask;
+        std::unordered_map<ComponentType, ComponentPool>::iterator poolsIt;
+        for (poolsIt = componentPools.begin(); poolsIt != componentPools.end(); ++poolsIt)
+        {
+            if (componentMask & poolsIt->first)
+                poolsIt->second.destroyComponent(entityID);
+        }
+        // Destroy/free entity itself
         freeEntityIDs.push_back(entityID);
         entities[entityID].id = NULL_ENTITY_ID;
         entities[entityID].componentMask = 0;
@@ -125,11 +134,6 @@ namespace pk
             }
             _entityChildMapping.erase(entityID);
         }
-        // TODO: Make components of this entity "null components"
-        Debug::notify_unimplemented(
-            "Scene::destroyEntity "
-            "Component deletion not implemented!!!"
-        );
     }
 
     void Scene::addChild(entityID_t entityID, entityID_t childID)

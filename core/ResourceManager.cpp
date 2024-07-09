@@ -11,15 +11,44 @@ namespace pk
     ResourceManager::~ResourceManager()
     {
         free();
+
+        std::unordered_map<uint32_t, Resource*>::iterator itPersistent;
+        for (itPersistent = _resources.begin(); itPersistent != _resources.end(); ++itPersistent)
+            delete itPersistent->second;
     }
 
     void ResourceManager::free()
     {
         std::unordered_map<uint32_t, Resource*>::iterator it;
         for (it = _resources.begin(); it != _resources.end(); ++it)
-            delete it->second;
+        {
+            if (_persistentResources.find(it->first) == _persistentResources.end())
+                delete it->second;
+        }
         _resources.clear();
+        // Re add all persistent ones... quite fukin dumb, but will do for now..
+        std::unordered_map<uint32_t, Resource*>::iterator itPersistent;
+        for (itPersistent = _persistentResources.begin(); itPersistent != _persistentResources.end(); ++itPersistent)
+            _resources[itPersistent->second->getResourceID()] = itPersistent->second;
         Debug::log("ResourceManager freed all resources!");
+    }
+
+    void ResourceManager::createDefaultResources()
+    {
+        // Texture to be used all stuff which uses color instead of texture.
+        //
+        // Those require some texture which we just multiply by color.
+        // This is done because want to use same shaders for all similar stuff.
+        // (Current rendering systems gets fucked up if some gl attrib or uniform location
+        // is not used and returns -1)
+        PK_ubyte pWhitePixels[2 * 2 * 4];
+        memset(pWhitePixels, 255, 2 * 2 * 4);
+        ImageData* pWhiteImg = createImage(pWhitePixels, 2, 2, 4);
+        TextureSampler whiteTextureSampler;
+        _pWhiteTexture = createTexture(pWhiteImg->getResourceID(), whiteTextureSampler);
+        _persistentResources[pWhiteImg->getResourceID()] = pWhiteImg;
+        _persistentResources[_pWhiteTexture->getResourceID()] = _pWhiteTexture;
+        Debug::log("___TEST___CREATED DEFAULT TEXTURE: " + std::to_string(_pWhiteTexture->getResourceID()));
     }
 
     ImageData* ResourceManager::loadImage(
@@ -55,6 +84,7 @@ namespace pk
     )
     {
         Debug::notify_unimplemented("ResourceManager::loadTexture#1");
+        return nullptr;
     }
 
     Texture_new* ResourceManager::createTexture(

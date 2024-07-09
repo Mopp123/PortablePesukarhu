@@ -21,6 +21,9 @@ namespace pk
 
         std::vector<size_t> _freeOffsets;
         // Actual offset of entity's component in storage is determined by this
+        // NOTE: VERY IMPORTANT! Here when we talk about offsets we mean
+        // component index and not the actual byte offset in _pStorage
+        // unlike in MemoryPool!
         std::unordered_map<entityID_t, size_t> _entityOffsetMapping;
     public:
         struct iterator

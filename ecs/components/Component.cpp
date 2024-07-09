@@ -1,5 +1,5 @@
 #include "Component.h"
-#include "utils/ID.h"
+
 
 namespace pk
 {
@@ -9,7 +9,6 @@ namespace pk
     Component::Component(ComponentType type) :
         _type(type)
     {
-        _id = ID::generate();
     }
 
     Component::Component(const Component& other) :
@@ -20,6 +19,5 @@ namespace pk
 
     Component::~Component()
     {
-        ID::erase(_id);
     }
 }

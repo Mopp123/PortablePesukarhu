@@ -4,6 +4,7 @@
 #include "ecs/components/renderable/GUIRenderable.h"
 
 #include <GL/glew.h>
+#include <unordered_map>
 
 
 namespace pk
@@ -18,6 +19,7 @@ namespace pk
 
         attribute vec2 pos;
         attribute vec2 scale;
+        attribute vec4 color;
 
         struct Common
         {
@@ -27,11 +29,14 @@ namespace pk
         uniform Common common;
 
         varying vec2 var_uvCoord;
+        varying vec4 var_color;
 
         void main()
         {
             gl_Position = common.projMat * vec4((vertexPos * scale) + pos, 0, 1.0);
             var_uvCoord = uvCoord;
+
+            var_color = color;
         }
     )";
 
@@ -39,13 +44,14 @@ namespace pk
         precision mediump float;
 
         varying vec2 var_uvCoord;
+        varying vec4 var_color;
 
         uniform sampler2D texSampler;
 
         void main()
         {
             vec4 texColor = texture2D(texSampler, var_uvCoord);
-            gl_FragColor = texColor;
+            gl_FragColor = texColor * var_color;
         }
     )";
 
@@ -54,7 +60,7 @@ namespace pk
         _vertexBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
         _instanceBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
         _textureDescSetLayout({}),
-        _batchContainer(1, (sizeof(float) * 4) * 800)
+        _batchContainer(10, (sizeof(float) * 8) * 100)
     {
         _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
         _pFragmentShader = Shader::create(s_fragmentSource, ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT);
@@ -70,7 +76,8 @@ namespace pk
         _instanceBufferLayout = VertexBufferLayout(
             {
                 { 2, ShaderDataType::Float2 }, // pos
-                { 3, ShaderDataType::Float2 }  // scale
+                { 3, ShaderDataType::Float2 },  // scale
+                { 4, ShaderDataType::Float4 }  // color
             },
             VertexInputRate::VERTEX_INPUT_RATE_INSTANCE
         );
@@ -125,7 +132,7 @@ namespace pk
 
         // Allocate "instance buffer"
         size_t maxInstanceCount = 100;
-        uint32_t instanceBufElemLen = 4;
+        uint32_t instanceBufElemLen = 2 + 2 + 4;
         size_t totalInstanceBufLen = instanceBufElemLen * maxInstanceCount;
         float* pInitialInstanceBufData = new float[totalInstanceBufLen];
         memset(pInitialInstanceBufData, 0, sizeof(float) * totalInstanceBufLen);
@@ -175,12 +182,8 @@ namespace pk
         );
     }
 
-    static bool s_TEST_preventSubmit = false;
     void GUIRenderer::submit(const Component* const renderableComponent, const mat4& transformation)
     {
-        if (s_TEST_preventSubmit)
-            return;
-
         vec2 pos(transformation[0 + 3 * 4], transformation[1 + 3 * 4]);
         vec2 scale(transformation[0 + 0 * 4], transformation[1 + 1 * 4]);
 
@@ -188,17 +191,22 @@ namespace pk
         //_pInstanceBuffer->update(newData, sizeof(float) * 4);
 
         const GUIRenderable * const pGuiRenderable = (const GUIRenderable * const)renderableComponent;
-        PK_id batchIdentifier = pGuiRenderable->pTexture_new->getResourceID();
+        const vec4 color = vec4(pGuiRenderable->color, 1.0f);
 
-        float renderableData[4] = { pos.x, pos.y, scale.x, scale.y };
-        _batchContainer.addData(renderableData, sizeof(float) * 4, batchIdentifier);
+        PK_id batchIdentifier = Application::get()->getResourceManager().getWhiteTexture()->getResourceID();
+        if (pGuiRenderable->pTexture_new)
+            batchIdentifier = pGuiRenderable->pTexture_new->getResourceID();
 
-        Debug::log("___TEST___SUBMITTED TO GUI RENDERER! Identifier = " + std::to_string(batchIdentifier));
+        float renderableData[8] = {
+            pos.x, pos.y,
+            scale.x, scale.y ,
+            color.x, color.y, color.z, color.w
+        };
+        _batchContainer.addData(renderableData, sizeof(float) * 8, batchIdentifier);
     }
 
     void GUIRenderer::render(const Camera& cam)
     {
-        s_TEST_preventSubmit = true;
         if (!_pPipeline)
         {
             Debug::log(
@@ -206,6 +214,8 @@ namespace pk
                 Debug::MessageType::PK_ERROR
             );
         }
+        ResourceManager& resourceManager = Application::get()->getResourceManager();
+
         CommandBuffer* pCurrentCmdBuf = _pCommandBuffers[RenderPassType::RENDER_PASS_DIFFUSE][0];
         RenderCommand* pRenderCmd = RenderCommand::get();
 
@@ -241,6 +251,19 @@ namespace pk
             if (!pBatch->isOccupied())
                 continue;
 
+            // Figure out which texture using which resource
+            // Quite dumb, but will do for now..
+            Texture_new* pBatchTexture = (Texture_new*)resourceManager.getResource(pBatch->getIdentifier());
+            if (!pBatchTexture)
+            {
+                Debug::log(
+                    "@GUIRenderer::render "
+                    "Failed find batch's texture from resource manager with id: " + std::to_string(pBatch->getIdentifier()),
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                continue;
+            }
+
             Buffer* pBatchInstanceBuffer = pBatch->getBuffer();
             std::vector<Buffer*> vertexBuffers = { _pVertexBuffer, pBatchInstanceBuffer };
             pRenderCmd->bindVertexBuffers(
@@ -258,10 +281,19 @@ namespace pk
             // FOR TESTING: only using first texture descriptor set..
             if (_textureDescriptorSets.size() > 0)
             {
-                std::unordered_map<Texture_new*, std::vector<DescriptorSet*>>::const_iterator it = _textureDescriptorSets.begin();
-                if ((*it).second.size() > 0)
+                std::unordered_map<Texture_new*, std::vector<DescriptorSet*>>::const_iterator it = _textureDescriptorSets.find(pBatchTexture);
+                if (it == _textureDescriptorSets.end())
                 {
-                    DescriptorSet* pDescriptorSet = (*it).second[0];
+                    Debug::log(
+                        "@GUIRenderer::render "
+                        "Failed to find texture descriptor set for batch identifier: " + std::to_string(pBatch->getIdentifier()),
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
+                    continue;
+                }
+                else
+                {
+                    DescriptorSet* pDescriptorSet = (*it).second[0]; // [0] cuz no explicit double or > buffering atm!
                     descriptorSets.push_back(pDescriptorSet);
                 }
             }
@@ -278,7 +310,7 @@ namespace pk
 
         pRenderCmd->endCmdBuffer(pCurrentCmdBuf);
 
-        //_batchContainer.clear();
+        _batchContainer.clear();
 
         GLenum err = glGetError();
         if (err != GL_NO_ERROR)
@@ -287,7 +319,9 @@ namespace pk
 
     void GUIRenderer::createDescriptorSets(Component* pComponent)
     {
-        Texture_new* pTexture = ((GUIRenderable*)pComponent)->pTexture_new;
+        Texture_new* pTexture = Application::get()->getResourceManager().getWhiteTexture();
+        if (((GUIRenderable*)pComponent)->pTexture_new)
+            pTexture = ((GUIRenderable*)pComponent)->pTexture_new;
         if (pTexture)
         {
             if (_textureDescriptorSets.find(pTexture) == _textureDescriptorSets.end())

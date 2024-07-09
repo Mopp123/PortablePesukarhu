@@ -55,7 +55,7 @@ namespace pk
             );
             return nullptr;
         }
-        void* ptr = ((PK_byte*)_pStorage) + size;
+        void* ptr = ((PK_byte*)_pStorage) + offset;
         _occupiedSize += size;
         return ptr;
     }
@@ -68,7 +68,12 @@ namespace pk
 
     void MemoryPool::clearStorage(size_t offset, size_t size)
     {
-        memset(_pStorage, offset, size);
+        // If clearing from current "back" pos
+        //  -> decreace _occupiedSize so next allocation will reside
+        //  at the freed "back"
+        if (offset + size  == _occupiedSize)
+            _occupiedSize -= size;
+        memset(((PK_byte*)_pStorage) + offset, 0, size);
     }
 
     void MemoryPool::freeStorage()

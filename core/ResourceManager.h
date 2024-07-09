@@ -21,6 +21,11 @@ namespace pk
     class ResourceManager
     {
     private:
+        // Resources which lives through whole execution
+        std::unordered_map<uint32_t, Resource*> _persistentResources;
+        Texture_new* _pWhiteTexture = nullptr;
+
+        // Resources loaded per scene
         std::unordered_map<uint32_t, Resource*> _resources;
 
     public:
@@ -28,6 +33,8 @@ namespace pk
         ~ResourceManager();
         ResourceManager(const ResourceManager&) = delete;
         void free();
+
+        void createDefaultResources();
 
         ImageData* loadImage(
             const std::string& filepath
@@ -60,5 +67,7 @@ namespace pk
         // Just for testing atm!!!
         inline std::unordered_map<uint32_t, Resource*>& getResources() { return _resources; }
         std::vector<Resource*> getResourcesOfType(ResourceType type);
+
+        inline Texture_new* getWhiteTexture() { return _pWhiteTexture; }
     };
 }

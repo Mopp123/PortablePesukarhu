@@ -76,7 +76,7 @@ namespace pk
         else
         {
             allocationOffset = _freeOffsets.back();
-            ptr = alloc(allocationOffset, _componentSize);
+            ptr = alloc(_componentSize * allocationOffset, _componentSize);
             _freeOffsets.pop_back();
         }
         if (!ptr)
@@ -95,7 +95,22 @@ namespace pk
 
     void ComponentPool::destroyComponent(entityID_t entityID)
     {
-        Debug::notify_unimplemented("ComponentPool<T>::destroyComponent");
+        if (_entityOffsetMapping.find(entityID) != _entityOffsetMapping.end())
+        {
+            size_t offset = _entityOffsetMapping[entityID];
+            clearStorage(_componentSize * offset, _componentSize);
+            _freeOffsets.push_back(offset);
+            _entityOffsetMapping.erase(entityID);
+            --_componentCount;
+        }
+        else
+        {
+            Debug::log(
+                "@ComponentPool::destroyComponent "
+                "Invalid entityID: " + std::to_string(entityID),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+        }
     }
 
     // NOT TESTED, MAY FUK UP!

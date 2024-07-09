@@ -76,6 +76,7 @@ namespace pk
     void Application::init(MasterRenderer* pMasterRenderer)
     {
         _pMasterRenderer = pMasterRenderer;
+        _resourceManager.createDefaultResources();
     }
 
     Application::~Application()
