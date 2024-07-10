@@ -73,8 +73,10 @@ namespace pk
         GUIRenderable* createGUIRenderable(
             entityID_t target,
             Texture_new* pTexture = nullptr,
-            vec4 textureCropping = vec4(0, 0, 1, 1),
-            vec3 color = { 1, 1, 1 }
+            vec3 color = { 1, 1, 1 },
+            vec4 borderColor = { 1, 1, 1, 1 },
+            float borderThickness = 0.0f,
+            vec4 textureCropping = vec4(0, 0, 1, 1)
         );
         TextRenderable* createTextRenderable(
             entityID_t target,

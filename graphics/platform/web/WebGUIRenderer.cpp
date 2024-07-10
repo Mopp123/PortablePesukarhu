@@ -127,7 +127,7 @@ namespace pk
             const vec2 pos(transformation[0 + 3 * 4], transformation[1 + 3 * 4]);
             const vec2 scale(transformation[0 + 0 * 4], transformation[1 + 1 * 4]);
             const vec3& color = renderable->color;
-            const vec4 properties(scale.x, scale.y, (float)renderable->drawBorder, 0.0f);
+            const vec4 properties(scale.x, scale.y, 0, 0.0f);
             const vec4& texCropping = renderable->textureCropping;
 
             const vec2 uv_v0(texCropping.x, texCropping.y); // top left

@@ -212,7 +212,8 @@ namespace pk
             //glDisable(GL_DEPTH_TEST);
             glDepthFunc(GL_ALWAYS);
 
-            glEnable(GL_CULL_FACE);
+            //glEnable(GL_CULL_FACE);
+            glDisable(GL_CULL_FACE);
             glCullFace(GL_FRONT);
 
             glActiveTexture(GL_TEXTURE0);
@@ -528,23 +529,15 @@ namespace pk
                 const FontGlyphData& glyphData = glyphMapping.at(c);
 
                 float x = (posX + (float)glyphData.bearingX);
-                // NOTE: For some reason on some fonts below needs to be divided by 2 or smthn
-                // to make it look right.. Not sure why..
-                float y = posY + (float)glyphData.bearingY;
+                // - ch because we want origin to be at 0,0 but we also need to add the bearingY so.. gets fucked without this..
+                float y = posY + (float)glyphData.bearingY - ch;
 
                 std::vector<float> vertexData = {
-                    x, y - ch,	    (float)glyphData.texOffsetX,     (float)glyphData.texOffsetY + 1,	color.x,color.y,color.z,1.0f, thickness,
                     x, y,	    (float)glyphData.texOffsetX,     (float)glyphData.texOffsetY,	color.x,color.y,color.z,1.0f, thickness,
-                    x + cw, y,	    (float)glyphData.texOffsetX + 1, (float)glyphData.texOffsetY,	color.x,color.y,color.z,1.0f, thickness,
-                    x + cw, y - ch, (float)glyphData.texOffsetX + 1, (float)glyphData.texOffsetY + 1,	color.x,color.y,color.z,1.0f, thickness
+                    x, y - ch,	    (float)glyphData.texOffsetX,     (float)glyphData.texOffsetY + 1,	color.x,color.y,color.z,1.0f, thickness,
+                    x + cw, y - ch, (float)glyphData.texOffsetX + 1, (float)glyphData.texOffsetY + 1,	color.x,color.y,color.z,1.0f, thickness,
+                    x + cw, y,	    (float)glyphData.texOffsetX + 1, (float)glyphData.texOffsetY,	color.x,color.y,color.z,1.0f, thickness
                 };
-
-                //std::vector<float> vertexData = {
-                //    x, y - ch,	    0,     0 + 1,	color.x,color.y,color.z,1.0f, thickness,
-                //    x, y,	    0,     0,	color.x,color.y,color.z,1.0f, thickness,
-                //    x + cw, y,	    0 + 1, 0,	color.x,color.y,color.z,1.0f, thickness,
-                //    x + cw, y - ch, 0 + 1, 0 + 1,	color.x,color.y,color.z,1.0f, thickness
-                //};
 
                 batch.insertInstanceData(0, vertexData);
 

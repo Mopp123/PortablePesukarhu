@@ -15,7 +15,8 @@ namespace pk
         // TODO: replace "texture" with this after rendering overhaul
         Texture_new* pTexture_new = nullptr;
         vec4 textureCropping;
-        bool drawBorder = false;
+        vec4 borderColor;
+        float borderThickness = 0.0f;
 
         GUIRenderable(
             Texture* texture = nullptr,
@@ -27,7 +28,8 @@ namespace pk
             texture(texture),
             pTexture_new(pTexture_new),
             textureCropping(textureCropping),
-            drawBorder(false)
+            borderColor(vec4(color, 1.0f)),
+            borderThickness(0.0f)
         {}
 
         GUIRenderable(const GUIRenderable& other) :
@@ -36,7 +38,8 @@ namespace pk
             texture(other.texture),
             pTexture_new(other.pTexture_new),
             textureCropping(other.textureCropping),
-            drawBorder(other.drawBorder)
+            borderColor(other.borderColor),
+            borderThickness(other.borderThickness)
         {
         }
     };

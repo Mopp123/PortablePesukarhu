@@ -61,6 +61,7 @@ namespace pk
         virtual void save() {}
 
         const Texture_new* getTexture() const;
+        const FontGlyphData * const getGlyph(char c) const;
         inline const unsigned int getPixelSize() const { return _pixelSize; }
         inline std::unordered_map<char, FontGlyphData>& getGlyphMapping() { return _glyphMapping; }
         inline int getTextureAtlasRowCount() const { return _textureAtlasRowCount; }

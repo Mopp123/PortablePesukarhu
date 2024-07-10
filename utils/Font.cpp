@@ -200,4 +200,14 @@ namespace pk
     {
         return (Texture_new*)Application::get()->getResourceManager().getResource(_textureResourceID);
     }
+
+
+    const FontGlyphData * const Font::getGlyph(char c) const
+    {
+
+        std::unordered_map<char, FontGlyphData>::const_iterator it = _glyphMapping.find(c);
+        if (it != _glyphMapping.end())
+            return &it->second;
+        return nullptr;
+    }
 }

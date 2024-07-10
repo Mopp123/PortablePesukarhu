@@ -20,6 +20,8 @@ namespace pk
         attribute vec2 pos;
         attribute vec2 scale;
         attribute vec4 color;
+        attribute vec4 borderColor;
+        attribute float borderThickness;
 
         struct Common
         {
@@ -30,6 +32,10 @@ namespace pk
 
         varying vec2 var_uvCoord;
         varying vec4 var_color;
+        varying vec2 var_fragPos;
+        varying vec2 var_scale;
+        varying vec4 var_borderColor;
+        varying float var_borderThickness;
 
         void main()
         {
@@ -37,6 +43,11 @@ namespace pk
             var_uvCoord = uvCoord;
 
             var_color = color;
+            vec4 transformedPos = vec4((vertexPos * scale), 0, 1.0);
+            var_fragPos = transformedPos.xy;
+            var_scale = scale;
+            var_borderColor = borderColor;
+            var_borderThickness = borderThickness;
         }
     )";
 
@@ -45,22 +56,35 @@ namespace pk
 
         varying vec2 var_uvCoord;
         varying vec4 var_color;
+        varying vec2 var_fragPos;
+        varying vec2 var_scale;
+        varying vec4 var_borderColor;
+        varying float var_borderThickness;
 
         uniform sampler2D texSampler;
 
         void main()
         {
             vec4 texColor = texture2D(texSampler, var_uvCoord);
-            gl_FragColor = texColor * var_color;
+            if (var_fragPos.x >= var_scale.x - var_borderThickness || var_fragPos.x <= var_borderThickness ||
+                var_fragPos.y <= -var_scale.y + var_borderThickness || var_fragPos.y >= -var_borderThickness)
+            {
+                gl_FragColor = var_borderColor;
+            }
+            else
+            {
+                gl_FragColor = texColor * var_color;
+            }
         }
     )";
 
-
+    static const size_t s_instanceBufferComponents = 2 * 2 + 4 * 2 + 1;
+    static const size_t s_maxInstanceCount = 400; // per batch, not total max count!
     GUIRenderer::GUIRenderer() :
         _vertexBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
         _instanceBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
         _textureDescSetLayout({}),
-        _batchContainer(10, (sizeof(float) * 8) * 100)
+        _batchContainer(10, (sizeof(float) * s_instanceBufferComponents) * s_maxInstanceCount)
     {
         _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
         _pFragmentShader = Shader::create(s_fragmentSource, ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT);
@@ -76,8 +100,10 @@ namespace pk
         _instanceBufferLayout = VertexBufferLayout(
             {
                 { 2, ShaderDataType::Float2 }, // pos
-                { 3, ShaderDataType::Float2 },  // scale
-                { 4, ShaderDataType::Float4 }  // color
+                { 3, ShaderDataType::Float2 }, // scale
+                { 4, ShaderDataType::Float4 }, // color
+                { 5, ShaderDataType::Float4 }, // border color
+                { 6, ShaderDataType::Float }  // border thickness
             },
             VertexInputRate::VERTEX_INPUT_RATE_INSTANCE
         );
@@ -131,9 +157,7 @@ namespace pk
         );
 
         // Allocate "instance buffer"
-        size_t maxInstanceCount = 100;
-        uint32_t instanceBufElemLen = 2 + 2 + 4;
-        size_t totalInstanceBufLen = instanceBufElemLen * maxInstanceCount;
+        size_t totalInstanceBufLen = s_instanceBufferComponents * s_maxInstanceCount;
         float* pInitialInstanceBufData = new float[totalInstanceBufLen];
         memset(pInitialInstanceBufData, 0, sizeof(float) * totalInstanceBufLen);
 
@@ -192,17 +216,20 @@ namespace pk
 
         const GUIRenderable * const pGuiRenderable = (const GUIRenderable * const)renderableComponent;
         const vec4 color = vec4(pGuiRenderable->color, 1.0f);
+        const vec4& borderColor = pGuiRenderable->borderColor;
 
         PK_id batchIdentifier = Application::get()->getResourceManager().getWhiteTexture()->getResourceID();
         if (pGuiRenderable->pTexture_new)
             batchIdentifier = pGuiRenderable->pTexture_new->getResourceID();
 
-        float renderableData[8] = {
+        float renderableData[s_instanceBufferComponents] = {
             pos.x, pos.y,
             scale.x, scale.y ,
-            color.x, color.y, color.z, color.w
+            color.x, color.y, color.z, color.w,
+            borderColor.x, borderColor.y, borderColor.z, borderColor.w,
+            pGuiRenderable->borderThickness
         };
-        _batchContainer.addData(renderableData, sizeof(float) * 8, batchIdentifier);
+        _batchContainer.addData(renderableData, sizeof(float) * s_instanceBufferComponents, batchIdentifier);
     }
 
     void GUIRenderer::render(const Camera& cam)

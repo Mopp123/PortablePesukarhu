@@ -252,14 +252,17 @@ namespace pk
     GUIRenderable* Scene::createGUIRenderable(
         entityID_t target,
         Texture_new* pTexture,
-        vec4 textureCropping,
-        vec3 color
+        vec3 color,
+        vec4 borderColor,
+        float borderThickness,
+        vec4 textureCropping
     )
     {
         GUIRenderable* pRenderable = (GUIRenderable*)componentPools[ComponentType::PK_RENDERABLE_GUI].allocComponent(target);
         *pRenderable = GUIRenderable(nullptr, textureCropping, pTexture);
-        pRenderable->drawBorder = false; // Doesnt work atm
         pRenderable->color = color;
+        pRenderable->borderColor = borderColor;
+        pRenderable->borderThickness = borderThickness;
         addComponent(target, pRenderable);
         return pRenderable;
     }
