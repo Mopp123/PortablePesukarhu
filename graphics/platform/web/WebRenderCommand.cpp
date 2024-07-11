@@ -317,7 +317,7 @@ namespace pk
                                 {
                                     float val = (float)*pCurrentData;
                                     valSize = sizeof(float);
-                                    glUniform1fv(shaderUniformLocations[uboInfo.locationIndex], 1, &val);
+                                    glUniform1f(shaderUniformLocations[uboInfo.locationIndex], val);
                                     break;
                                 }
                                 case ShaderDataType::Float2:

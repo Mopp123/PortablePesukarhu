@@ -60,6 +60,7 @@ namespace pk
         virtual void load();
         virtual void save() {}
 
+        Texture_new* accessTexture();
         const Texture_new* getTexture() const;
         const FontGlyphData * const getGlyph(char c) const;
         inline const unsigned int getPixelSize() const { return _pixelSize; }

@@ -185,7 +185,7 @@ namespace pk
             _imgDataResourceID,
             TextureSampler(
                 TextureSamplerFilterMode::PK_SAMPLER_FILTER_MODE_LINEAR,
-                TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
+                TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_REPEAT
             )
         );
         _textureResourceID = pTexture->getResourceID();
@@ -194,6 +194,11 @@ namespace pk
 
         FT_Done_Face(fontFace);
         FT_Done_FreeType(freetypeLib);
+    }
+
+    Texture_new* Font::accessTexture()
+    {
+        return (Texture_new*)Application::get()->getResourceManager().getResource(_textureResourceID);
     }
 
     const Texture_new* Font::getTexture() const
