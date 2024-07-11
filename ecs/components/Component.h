@@ -33,9 +33,6 @@ namespace pk
     {
     protected:
         friend class Scene;
-
-        // TODO: not required anymore? maybe delete?
-        uint32_t _id = 0;
         ComponentType _type = ComponentType::PK_EMPTY;
         bool _isActive = true;
 
@@ -44,11 +41,6 @@ namespace pk
         Component(ComponentType type);
         Component(const Component& other);
         virtual ~Component();
-
-        // NOTE: Only temp atm just to be able to compile broken version..
-        inline uint32_t getEntity() const { return 0; }
-
-        inline uint32_t getID() const { return _id; }
 
         inline ComponentType getType() const { return _type; }
         inline bool isActive() const { return _isActive; }

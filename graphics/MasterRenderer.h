@@ -32,6 +32,7 @@ namespace pk
         void addRenderer(ComponentType renderableComponentType, Renderer* renderer);
 
         void render(const Camera& cam);
+        void flush();
 
         Renderer* const getRenderer(ComponentType renderableType);
 

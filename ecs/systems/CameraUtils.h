@@ -7,7 +7,8 @@
 
 namespace pk
 {
-    Camera* create_camera(const vec3& position, float pitch = 0.0f, float yaw = 0.0f);
+    // TODO: delete below
+    //Camera* create_camera(const vec3& position, float pitch = 0.0f, float yaw = 0.0f);
 
     class CameraWindowResizeEvent : public WindowResizeEvent
     {

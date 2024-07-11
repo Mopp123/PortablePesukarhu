@@ -211,9 +211,6 @@ namespace pk
         vec2 pos(transformation[0 + 3 * 4], transformation[1 + 3 * 4]);
         vec2 scale(transformation[0 + 0 * 4], transformation[1 + 1 * 4]);
 
-        //float newData[4] = { pos.x, pos.y, scale.x, scale.y };
-        //_pInstanceBuffer->update(newData, sizeof(float) * 4);
-
         const GUIRenderable * const pGuiRenderable = (const GUIRenderable * const)renderableComponent;
         const vec4 color = vec4(pGuiRenderable->color, 1.0f);
         const vec4& borderColor = pGuiRenderable->borderColor;
@@ -337,11 +334,14 @@ namespace pk
 
         pRenderCmd->endCmdBuffer(pCurrentCmdBuf);
 
-        _batchContainer.clear();
-
         GLenum err = glGetError();
         if (err != GL_NO_ERROR)
             Debug::log("___TEST___GL ERR: " + std::to_string(err));
+    }
+
+    void GUIRenderer::flush()
+    {
+        _batchContainer.clear();
     }
 
     void GUIRenderer::createDescriptorSets(Component* pComponent)

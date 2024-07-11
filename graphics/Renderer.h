@@ -162,6 +162,11 @@ namespace pk
         virtual void endRenderPass() {}
         virtual void endFrame() {}
 
+        // Eventually this should do stuff like submitting cmd bufs to queues, etc.
+        // atm only used to clear _batchContainers
+        // (because those containers get filled each frame)
+        virtual void flush() {}
+
         // Every time renderable component gets added to scene, the
         // appropriate renderer calls this to setup descriptor sets
         // for rendering the renderable (NOTE: Doesnt necessarely create

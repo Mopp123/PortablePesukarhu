@@ -280,6 +280,30 @@ namespace pk
         return pRenderable;
     }
 
+    Camera* Scene::createCamera(
+        entityID_t target,
+        const vec3& position,
+        float pitch,
+        float yaw
+    )
+    {
+        const Window* window = Application::get()->getWindow();
+
+        const float windowWidth = (float)window->getWidth();
+        const float windowHeight = (float)window->getHeight();
+
+        const float aspectRatio = windowWidth / windowHeight;
+        mat4 orthographicProjMat = create_proj_mat_ortho(0, windowWidth, windowHeight, 0, 0.0f, 100.0f);
+        mat4 perspectivaProjMat = create_perspective_projection_matrix(aspectRatio, 1.3f, 0.1f, 100.0f);
+
+        Camera* pCamera = (Camera*)componentPools[ComponentType::PK_CAMERA].allocComponent(target);
+        *pCamera = Camera(orthographicProjMat, perspectivaProjMat);
+        addComponent(target, pCamera);
+        createTransform(target, position, { 1,1,1 }, pitch, yaw);
+
+        return pCamera;
+    }
+
     Component* Scene::getComponent(entityID_t entityID, ComponentType type, bool nestedSearch)
     {
         if (!isValidEntity(entityID))
@@ -300,13 +324,44 @@ namespace pk
             );
             return nullptr;
         }
-        if (!(entities[entityID].componentMask & (uint64_t)type))
-            return nullptr;
+        if (entities[entityID].componentMask & (uint64_t)type)
+            return (Component*)componentPools[type].getComponent_DANGER(entityID);
         if (!nestedSearch)
             Debug::log(
                 "Couldn't find component of type: " + std::to_string(type) + " from entity: " + std::to_string(entityID)
             );
-        return (Component*)componentPools[type].getComponent_DANGER(entityID);
+        return nullptr;
+    }
+
+    const Component * const Scene::getComponent(entityID_t entityID, ComponentType type, bool nestedSearch) const
+    {
+        if (!isValidEntity(entityID))
+        {
+            Debug::log(
+                "@Scene::getComponent(2) "
+                "Invalid entityID!",
+                Debug::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
+        std::unordered_map<ComponentType, ComponentPool>::const_iterator itPool = componentPools.find(type);
+        if (itPool == componentPools.end())
+        {
+            Debug::log(
+                "@Scene::getComponent(2) "
+                "No component pool exists for component type: " + std::to_string(type),
+                Debug::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
+        if (entities[entityID].componentMask & (uint64_t)type)
+            return (const Component * const)itPool->second.getComponent_DANGER(entityID);
+        if (!nestedSearch)
+            Debug::log(
+                "@Scene::getComponent(2) "
+                "Couldn't find component of type: " + std::to_string(type) + " from entity: " + std::to_string(entityID)
+            );
+        return nullptr;
     }
 
     // Returns first component of "type" found in "entity"'s child entities

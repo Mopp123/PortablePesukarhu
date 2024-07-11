@@ -4,6 +4,8 @@
 
 namespace pk
 {
+    // TODO: delete below
+    /*
     Camera* create_camera(const vec3& position, float pitch, float yaw)
     {
         Application* app = Application::get();
@@ -16,11 +18,13 @@ namespace pk
         mat4 projMat_ortho = create_proj_mat_ortho(0, windowWidth, windowHeight, 0, 0.0f, 100.0f);
         mat4 projMat_pers = create_perspective_projection_matrix(aspectRatio, 1.3f, 0.1f, 100.0f);
 
-        Scene* currentScene = app->accessCurrentScene();
+        Scene* pCurrentScene = app->accessCurrentScene();
 
-        uint32_t camEntity = currentScene->createEntity();
+        entityID_t camEntity = pCurrentScene->createEntity();
+        Camera* pCamera = (Camera*)pCurrentScene->createC
 
         Camera* camComponent = new Camera(projMat_ortho, projMat_pers);
+
         Transform* camTransform = new Transform(position, { 1,1,1 }, pitch, yaw);
 
         currentScene->addComponent(camEntity, camTransform);
@@ -33,7 +37,7 @@ namespace pk
 
         return camComponent;
     }
-
+    */
 
     void CameraWindowResizeEvent::func(int w, int h)
     {

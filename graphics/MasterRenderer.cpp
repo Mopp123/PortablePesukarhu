@@ -111,8 +111,7 @@ namespace pk
             pRenderCommand->beginRenderPass();
 
             // Update common uniform buffers here?...
-            Camera* pSceneCamera = Application::get()->getCurrentScene()->activeCamera;
-            const mat4 projMat = pSceneCamera->getProjMat2D();
+            const mat4 projMat = cam.getProjMat2D();
 
             CommonUniforms commonUniforms = { projMat };
             _pCommonUniformBuffer->update(&commonUniforms, sizeof(CommonUniforms));
@@ -130,6 +129,12 @@ namespace pk
             pRenderCommand->endRenderPass();
             // TODO: submit primary command buffer to swapchain
         }
+    }
+
+    void MasterRenderer::flush()
+    {
+        for (const auto& renderer : _renderers)
+            renderer.second->flush();
     }
 
     Renderer* const MasterRenderer::getRenderer(ComponentType renderableType)

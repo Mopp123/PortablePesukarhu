@@ -264,12 +264,15 @@ namespace pk
 
                 glBindBuffer(GL_ARRAY_BUFFER, 0);
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-                // JUST TEMPORARELY FREE HERE!!!
-                batch.clear();
             }
             glBindTexture(GL_TEXTURE_2D, 0);
             glUseProgram(0);
+        }
+
+        void WebFontRenderer::flush()
+        {
+            for (BatchData& batch : _batches)
+                batch.clear();
         }
 
         //std::vector<GlyphData> WebFontRenderer::createGlyphs(std::string characters, std::string fontFilePath)
