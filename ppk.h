@@ -17,7 +17,7 @@
 #include "ecs/components/renderable/TextRenderable.h"
 #include "ecs/components/renderable/UIRenderableComponent.h"
 #include "ecs/components/lighting/Lights.h"
-#include "ecs/components/UIElemState.h"
+#include "ecs/components/ui/UIElemState.h"
 
 #include "graphics/MasterRenderer.h"
 //#include "graphics/platform/web/WebMasterRenderer.h"
@@ -29,14 +29,16 @@
 #include "graphics/platform/web/WebBuffers.h"
 #include "graphics/platform/web/shaders/WebShader.h"
 
+// TODO: Make all renderers like this..
+#include "graphics/renderers/GUIRenderer.h"
+
 //#include "ecs/systems/ui/Text.h"
 //#include "ecs/systems/ui/GUIImage.h"
 //#include "ecs/systems/ui/combinedFunctional/Button.h"
 //#include "ecs/systems/ui/combinedFunctional/InputField.h"
 
 #include "ecs/systems/CameraUtils.h"
-#include "ecs/systems/animations/Animations.h"
 
-#include "ecs/systems/ui/Constraints.h"
+#include "ecs/systems/ui/ConstraintSystem.h"
 #include "ecs/factories/ui/UIFactories.h"
 

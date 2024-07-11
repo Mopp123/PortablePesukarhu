@@ -5,106 +5,179 @@
 #include "shaders/Shader.h"
 #include "../utils/pkmath.h"
 
+#include "Swapchain.h"
 #include "Buffers.h"
 #include "Texture.h"
+#include "Pipeline.h"
+#include "CommandBuffer.h"
+#include "utils/ID.h"
 #include <math.h>
 #include <vector>
+#include <unordered_map>
+
+// TODO: Swapchain class
+
 
 namespace pk
 {
-	/*
-	*	NOTE!
-	*		* Currently all vertex buffers inside BatchData HAS TO BE THE SAME SIZE (currentDataPtr advancing problem...)
-	*/
-	struct BatchData
-	{
-		std::vector<VertexBuffer*> vertexBuffers;
-		IndexBuffer* indexBuffer = nullptr;
+    // TODO:
+    //  * Force command buffers to be "inside render pass"
+    //  * RenderPass class
+    enum RenderPassType
+    {
+        // atm used for everything..
+        RENDER_PASS_DIFFUSE
+    };
 
-		// length of a single instance's data (not to be confused with "instanceCount")
-		int instanceDataLen = -1; // ..kind of like "data slot" for each vertex of each instance. For example: one vec2 for each of the quad's 4 vertices -> instanceDataLength=8
-		int maxTotalBatchDataLen = 0; // total number of "float" spots to distribute for each instance
+    // TODO: REDO / DELETE the whole BatchData shit!
+    /*
+     *	NOTE!
+     *		* Currently all vertex buffers inside BatchData HAS TO BE THE SAME SIZE (currentDataPtr advancing problem...)
+     */
+    struct BatchData
+    {
+        std::vector<VertexBuffer*> vertexBuffers;
+        IndexBuffer* indexBuffer = nullptr;
 
-		int ID = -1; // Identifier, how we find suitable batch for a renderable (can be anythin u want) (*NOTE! this is becomming quite obsolete after added 'Texture*' for this)
-		bool isFree = true; // If theres nobody yet in this batch (completely empty -> available for occupying for new batch)(DON'T confuse with fullness:D)
-		bool isFull = false;
-		int currentDataPtr = 0; // When submitting to this batch, we use this to determine, at which position of the batch, we want to insert new data
-		const Texture* texture = nullptr; // Optionally you can specify a texture which to use for this whole batch
+        // length of a single instance's data (not to be confused with "instanceCount")
+        int instanceDataLen = -1; // ..kind of like "data slot" for each vertex of each instance. For example: one vec2 for each of the quad's 4 vertices -> instanceDataLength=8
+        int maxTotalBatchDataLen = 0; // total number of "float" spots to distribute for each instance
 
-		// *Ownerships of the buffers gets always transferred to this BatchData instance
-		// *Ownership of the texture doesn't get transferred!
-		BatchData(int dataEntryLen, int totalDataLen, const std::vector<VertexBuffer*>& vbs, IndexBuffer* ib, const Texture* tex = nullptr) :
-			instanceDataLen(dataEntryLen), maxTotalBatchDataLen(totalDataLen), vertexBuffers(vbs), indexBuffer(ib), texture(tex)
-		{}
-		// *Ownerships gets always transferred to this BatchData
-		BatchData(const BatchData& other) :
-			instanceDataLen(other.instanceDataLen),
-			maxTotalBatchDataLen(other.maxTotalBatchDataLen),
-			vertexBuffers(other.vertexBuffers),
-			indexBuffer(other.indexBuffer),
-			texture(other.texture)
-		{}
+        int ID = -1; // Identifier, how we find suitable batch for a renderable (can be anythin u want) (*NOTE! this is becomming quite obsolete after added 'Texture*' for this)
+        bool isFree = true; // If theres nobody yet in this batch (completely empty -> available for occupying for new batch)(DON'T confuse with fullness:D)
+        bool isFull = false;
+        int currentDataPtr = 0; // When submitting to this batch, we use this to determine, at which position of the batch, we want to insert new data
+        const Texture* texture = nullptr; // Optionally you can specify a texture which to use for this whole batch
 
-		void destroy()
-		{
-			for (VertexBuffer* vb : vertexBuffers)
-				delete vb;
+        // *Ownerships of the buffers gets always transferred to this BatchData instance
+        // *Ownership of the texture doesn't get transferred!
+        BatchData(int dataEntryLen, int totalDataLen, const std::vector<VertexBuffer*>& vbs, IndexBuffer* ib, const Texture* tex = nullptr) :
+            instanceDataLen(dataEntryLen), maxTotalBatchDataLen(totalDataLen), vertexBuffers(vbs), indexBuffer(ib), texture(tex)
+        {}
+        // *Ownerships gets always transferred to this BatchData
+        BatchData(const BatchData& other) :
+            instanceDataLen(other.instanceDataLen),
+            maxTotalBatchDataLen(other.maxTotalBatchDataLen),
+            vertexBuffers(other.vertexBuffers),
+            indexBuffer(other.indexBuffer),
+            texture(other.texture)
+        {}
 
-			delete indexBuffer;
-		}
+        void destroy()
+        {
+            for (VertexBuffer* vb : vertexBuffers)
+                delete vb;
 
-		void clear()
-		{
-			ID = -1;
-			texture = nullptr;
-			isFree = true;
-			isFull = false;
-			currentDataPtr = 0;
-		}
+            delete indexBuffer;
+        }
 
-		inline int getInstanceCount() const { return currentDataPtr / instanceDataLen; }
+        void clear()
+        {
+            ID = -1;
+            texture = nullptr;
+            isFree = true;
+            isFull = false;
+            currentDataPtr = 0;
+        }
 
-		void occupy(int batchId, const Texture* tex = nullptr)
-		{
-			ID = batchId;
-			texture = tex;
-			isFree = false;
-		}
+        inline int getInstanceCount() const { return currentDataPtr / instanceDataLen; }
 
-		void addNewInstance()
-		{
-			currentDataPtr += instanceDataLen;
-			isFull = currentDataPtr >= maxTotalBatchDataLen;
-		}
-		void insertInstanceData(int bufferIndex, const std::vector<float>& data)
-		{
-			VertexBuffer* vb = vertexBuffers[bufferIndex];
-			/*float* dat = &vb->accessRawData()[0];
-			memcpy(dat + currentDataPtr, &data[0], sizeof(float) * instanceDataLen);
-			*/
-			vb->update(data, sizeof(float) * currentDataPtr, sizeof(float) * data.size());
-		}
-	};
+        void occupy(int batchId, const Texture* tex = nullptr)
+        {
+            ID = batchId;
+            texture = tex;
+            isFree = false;
+        }
 
-	class Renderer
-	{
-	public:
+        void addNewInstance();
+        void insertInstanceData(int bufferIndex, const std::vector<float>& data);
+    };
 
-		Renderer() {}
-		virtual ~Renderer() {}
 
-		// submit renderable component for rendering (batch preparing, before rendering)
-		virtual void submit(const Component* const renderableComponent, const mat4& transformation) = 0;
+    class Batch
+    {
+    private:
+        Buffer* _pBuffer = nullptr;
+        size_t _writePos = 0;
+        size_t _maxSize = 0;
+        size_t _occupiedSize = 0;
+        bool _occupied = false;
+        PK_id _identifier = 0;
+        uint32_t _instanceCount = 0;
 
-		virtual void render(const Camera& cam) = 0; //*why the fuk proj and view matrices not const?
+    public:
+        Batch(size_t maxSize);
+        Batch(const Batch&) = delete;
+        ~Batch();
+        void occupy(PK_id identifier);
+        bool addData(const void* pData, size_t dataSize);
+        void clear();
 
-		virtual void resize(int w, int h) = 0;
+        inline bool isOccupied() const { return _occupied; }
+        inline bool isFull() const { return _occupiedSize == _maxSize; }
+        inline size_t getOccupiedSize() const { return _occupiedSize; }
+        inline Buffer* getBuffer() { return _pBuffer; }
+        inline PK_id getIdentifier() const { return _identifier;}
+        inline uint32_t getInstanceCount() const { return _instanceCount; }
+    };
 
-		virtual void beginFrame() {}
-		virtual void beginRenderPass(){}
-		virtual void endRenderPass() {}
-		virtual void endFrame() {}
+    class BatchContainer
+    {
+    private:
+        std::vector<Batch*> _batches;
+        std::unordered_map<PK_id, Batch*> _occupiedBatches;
 
-	};
+    public:
+        BatchContainer(size_t maxBatches, size_t batchSize);
+        ~BatchContainer();
+        // NOTE: Doesnt work when occupying new batch if batch exists with inputted
+        // batchIdentifier
+        void addData(const void* data, size_t dataSize, PK_id batchIdentifier);
+        void clear();
+
+        const Batch* getBatch(PK_id batchIdentifier) const;
+        inline std::vector<Batch*>& getBatches() { return _batches; }
+        inline const std::unordered_map<PK_id, Batch*>& getOccupiedBatches() const { return _occupiedBatches; }
+    };
+
+
+    class Renderer
+    {
+    protected:
+        Pipeline* _pPipeline = nullptr;
+        std::unordered_map<RenderPassType, std::vector<CommandBuffer*>> _pCommandBuffers;
+
+    public:
+        Renderer();
+        virtual ~Renderer();
+        void handleWindowResize();
+
+        // submit renderable component for rendering (batch preparing, before rendering)
+        virtual void submit(const Component* const renderableComponent, const mat4& transformation) = 0;
+
+        virtual void render(const Camera& cam) = 0; //*why the fuk proj and view matrices not const?
+
+        virtual void beginFrame() {}
+        virtual void beginRenderPass(){}
+        virtual void endRenderPass() {}
+        virtual void endFrame() {}
+
+        // Every time renderable component gets added to scene, the
+        // appropriate renderer calls this to setup descriptor sets
+        // for rendering the renderable (NOTE: Doesnt necessarely create
+        // new descriptor sets for every component. This should check
+        // if it is necessary to create some new descriptor sets
+        // depending on the renderable)
+        virtual void createDescriptorSets(Component* pComponent) {}
+
+    protected:
+        // Pipeline has its' own init func but what that func takes in dependant on renderer
+        // so thats why we need this implemented for all renderers
+        virtual void initPipeline() {}
+        virtual void freeDescriptorSets() {}
+        // This is to recreate already initially created descriptor sets for example
+        // if swapchain image count changes on window resize.
+        virtual void recreateDescriptorSets() {}
+    };
 
 }

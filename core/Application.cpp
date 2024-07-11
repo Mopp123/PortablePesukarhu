@@ -27,22 +27,6 @@ namespace pk
                 {
                     MasterRenderer* masterRenderer = app->_pMasterRenderer;
                     masterRenderer->render(*activeCam);
-
-                    // TODO: Delete below!
-                    /* BELOW OLD VERSION!
-
-                    // All "top level" rendering stuff...
-                    Renderer* masterRenderer = app->_pMasterRenderer;
-                    masterRenderer->beginFrame(); // (in Vulkan, acquire swapchain img here.., and maybe begin the primary cmd buf)
-                    masterRenderer->beginRenderPass();
-                    // 'Render all "actual renderers"' (in Vulkan (re)record all secondary cmdbufs here)
-                    for (const std::pair<ComponentType, Renderer*>& r : app->_renderers)
-                    {
-                        r.second->render(*activeCam);
-                    }
-                    masterRenderer->endRenderPass();
-                    masterRenderer->endFrame(); // (submit cmdbuf[currentFrameIndex] to swapchain for execution, AND attempt to present the "top" swapchain image)
-                    */
                 }
                 else
                 {
@@ -67,16 +51,32 @@ namespace pk
         std::string name,
         Window* window,
         Context* graphicsContext,
-        InputManager* inputManager,
-        MasterRenderer* pMasterRenderer
+        InputManager* inputManager
     ) :
         _name(name),
         _pWindow(window),
         _pGraphicsContext(graphicsContext),
-        _pInputManager(inputManager),
-        _pMasterRenderer(pMasterRenderer)
+        _pInputManager(inputManager)
     {
         s_pApplication = this;
+
+        // This is done because swapchain creation requires window
+        // and graphics context to exist.
+        // NOTE: "Offscreen usage" isn't supported atm (cant create Application without window)
+        if (_pWindow)
+            _pWindow->createSwapchain();
+        else
+            Debug::log(
+                "@Application::Application Window not assigned. "
+                "Currently Application creation is not allowed without window",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+    }
+
+    void Application::init(MasterRenderer* pMasterRenderer)
+    {
+        _pMasterRenderer = pMasterRenderer;
+        _resourceManager.createDefaultResources();
     }
 
     Application::~Application()
@@ -99,7 +99,6 @@ namespace pk
     void Application::resizeWindow(int w, int h)
     {
         _pWindow->resize(w, h);
-        _pMasterRenderer->handleWindowResize(w, h);
     }
 
     void Application::switchScene(Scene* newScene)

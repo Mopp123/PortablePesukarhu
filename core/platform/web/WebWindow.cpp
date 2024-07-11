@@ -47,8 +47,11 @@ namespace pk
             //_width = w;
             //_height = h;
             //resize_canvas(_width, _height);
-            WebInputManager::query_window_size(&_width, &_height);
+            WebInputManager::query_window_surface_size(&_width, &_height);
             fit_page();
+
+            if (_pSwapchain)
+                _pSwapchain->triggerResize();
         }
     }
 }

@@ -19,16 +19,16 @@ namespace pk
         TextRenderable(const std::string& txt, bool bold = false) :
             UIRenderableComponent(ComponentType::PK_RENDERABLE_TEXT),
             _txt(txt),
-            color(1, 1, 1),
-            _bold(bold)
+            _bold(bold),
+            color(1, 1, 1)
         {
         }
 
         TextRenderable(const std::string& txt, vec3 color, bool bold = false) :
             UIRenderableComponent(ComponentType::PK_RENDERABLE_TEXT),
             _txt(txt),
-            color(color),
-            _bold(bold)
+            _bold(bold),
+            color(color)
         {
         }
 

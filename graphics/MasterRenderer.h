@@ -1,21 +1,30 @@
 #pragma once
 
-#include <vector>
 #include <map>
-#include "Context.h"
-#include "CommandBuffer.h"
-#include "RenderCommand.h"
 #include "Renderer.h"
 #include "../ecs/components/Camera.h"
+#include "Swapchain.h"
+#include "Buffers.h"
+#include "Descriptors.h"
 
 
 namespace pk
 {
+    // The most basic kind of uniform buffer data that almost all renderers require
+    struct CommonUniforms
+    {
+        mat4 projectionMatrix;
+    };
+
     class MasterRenderer
     {
     private:
-        RenderCommand* _pRenderCommand = nullptr;
+        Swapchain* _pSwapchain = nullptr;
         std::map<ComponentType, Renderer*> _renderers;
+
+        DescriptorSetLayout _commonDescriptorSetLayout;
+        Buffer* _pCommonUniformBuffer = nullptr;
+        DescriptorSet* _pCommonDescriptorSet = nullptr;
 
     public:
         MasterRenderer();
@@ -24,8 +33,12 @@ namespace pk
 
         void render(const Camera& cam);
 
-        void handleWindowResize(int w, int h);
+        Renderer* const getRenderer(ComponentType renderableType);
 
-        inline Renderer* const getRenderer(ComponentType renderableType) { return _renderers[renderableType]; }
+        inline const DescriptorSetLayout getCommonDescriptorSetLayout() const { return _commonDescriptorSetLayout; }
+        inline const DescriptorSet* getCommonDescriptorSet() const { return _pCommonDescriptorSet; }
+
+    private:
+        void handleWindowResize();
     };
 }

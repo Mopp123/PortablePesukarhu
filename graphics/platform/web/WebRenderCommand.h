@@ -12,10 +12,8 @@ namespace pk
         {
         public:
             ~WebRenderCommand() {}
-            virtual void beginFrame();
             virtual void beginRenderPass();
             virtual void endRenderPass();
-            virtual void endFrame();
 
             // NOTE: atm just quick hack and only opengl specific!!!
             virtual void resizeViewport(int width, int height);
@@ -59,7 +57,7 @@ namespace pk
                 PipelineBindPoint pipelineBindPoint,
                 // PipelineLayout pipelineLayout,
                 uint32_t firstDescriptorSet,
-                const std::vector<DescriptorSet*>& descriptorSets
+                const std::vector<const DescriptorSet*>& descriptorSets
             );
 
             virtual void draw(

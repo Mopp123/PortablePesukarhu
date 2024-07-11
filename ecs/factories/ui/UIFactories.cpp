@@ -8,7 +8,6 @@ namespace pk
 {
     namespace ui
     {
-
         class ButtonMouseButtonEvent : public MouseButtonEvent
         {
         private:
@@ -234,105 +233,124 @@ namespace pk
         };
 
 
-        uint32_t create_image(
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+        entityID_t create_image(
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             float width, float height,
-            bool drawBorder,
             Texture* texture,
-            vec4 textureCropping,
-            vec3 color
+            vec3 color,
+            vec4 borderColor,
+            float borderThickness,
+            Texture_new* pTexture,
+            vec4 textureCropping
         )
         {
 	    Application* app = Application::get();
 	    Scene* currentScene = app->accessCurrentScene();
 
-	    uint32_t entity = currentScene->createEntity();
+	    entityID_t entityID = currentScene->createEntity();
+            currentScene->createTransform(entityID, { 0,0 }, { width, height });
+            currentScene->createGUIRenderable(
+                entityID,
+                pTexture,
+                color,
+                borderColor,
+                borderThickness,
+                textureCropping
+            );
+            currentScene->createUIConstraint(
+                entityID,
+                horizontalType,
+                horizontalVal,
+                verticalType,
+                verticalVal
+            );
 
-	    Transform* transform = new Transform({ 0,0 }, { width, height });
-	    GUIRenderable* renderable = new GUIRenderable(texture, textureCropping);
-            renderable->drawBorder = drawBorder;
-            renderable->color = color;
-
-	    currentScene->addComponent(entity, transform);
-	    currentScene->addComponent(entity, renderable);
-
-            currentScene->addSystem(new Constraint(transform, horizontalType, horizontalVal));
-            currentScene->addSystem(new Constraint(transform, verticalType, verticalVal));
-
-            return entity;
+            return entityID;
         }
 
 
-        std::pair<uint32_t, TextRenderable*> create_text(
-            const std::string& str,
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+        std::pair<entityID_t, TextRenderable*> create_text(
+            const std::string& str, const Font& font,
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             vec3 color,
             bool bold
         )
         {
             Scene* currentScene = Application::get()->accessCurrentScene();
 
-            uint32_t entity = currentScene->createEntity();
+            entityID_t entityID = currentScene->createEntity();
+            Transform* pTransform = currentScene->createTransform(entityID, { 0,0 }, { 1, 1 });
 
-            Transform* transform = new Transform({ 0,0 }, { 1,1 });
-            TextRenderable* renderable = new TextRenderable(str, color, bold);
+            TextRenderable* pRenderable = currentScene->createTextRenderable(entityID, str, color, bold);
+            currentScene->createUIConstraint(
+                entityID,
+                horizontalType,
+                horizontalVal,
+                verticalType,
+                verticalVal
+            );
 
-            currentScene->addComponent(entity, transform);
-            currentScene->addComponent(entity, renderable);
 
-            currentScene->addSystem(new Constraint(transform, horizontalType, horizontalVal));
-            currentScene->addSystem(new Constraint(transform, verticalType, verticalVal));
+            float width = 0.0f;
+            for (char c : str)
+            {
+                const FontGlyphData * const glyph = font.getGlyph(c);
+                if (glyph)
+                    width += ((float)(glyph->advance >> 6)) + glyph->bearingX;
+            }
+            // Need to set correct scale to transform for ui constraint system to work properly!
+            pTransform->accessTransformationMatrix()[0 + 0 * 4] = width;
+            pTransform->accessTransformationMatrix()[1 + 1 * 4] = font.getPixelSize();
 
-            return std::make_pair(entity, renderable);
+            return std::make_pair(entityID, pRenderable);
         }
 
 
-        uint32_t create_button(
-            std::string txt,
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+        entityID_t create_button(
+            std::string txt, const Font& font,
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             float width, float height,
             OnClickEvent* onClick,
             bool selectable,
-            Texture* texture,
-            vec4 textureCropping,
             vec3 color,
-            int txtDisplacementX,
-            int txtDisplacementY,
+            vec4 borderColor,
+            float borderThickness,
+            Texture_new* pTexture,
+            vec4 textureCropping,
             UIElemState* pUIElemState
         )
         {
             Scene* currentScene = Application::get()->accessCurrentScene();
             InputManager* inputManager = Application::get()->accessInputManager();
 
-            uint32_t buttonEntity = currentScene->createEntity();
-            uint32_t imgEntity = create_image(
+            entityID_t buttonEntity = currentScene->createEntity();
+            entityID_t imgEntity = create_image(
                 horizontalType, horizontalVal,
                 verticalType, verticalVal,
                 width, height,
-                true,
-                texture,
-                textureCropping,
-                color
+                nullptr,
+                color,
+                borderColor,
+                borderThickness,
+                pTexture,
+                textureCropping
             );
 
             // Add txt displacement
-            if (horizontalType == ConstraintType::PIXEL_LEFT ||
-                horizontalType == ConstraintType::PIXEL_CENTER_HORIZONTAL)
+            const int padding = 4;
+            const int txtDisplacementX = padding;
+
+            if (horizontalType == HorizontalConstraintType::PIXEL_LEFT ||
+                horizontalType == HorizontalConstraintType::PIXEL_CENTER_HORIZONTAL)
                 horizontalVal += (float)txtDisplacementX;
-            else if (horizontalType == ConstraintType::PIXEL_RIGHT)
+            else if (horizontalType == HorizontalConstraintType::PIXEL_RIGHT)
                 horizontalVal -= (float)txtDisplacementX;
 
-            if (verticalType == ConstraintType::PIXEL_TOP)
-                verticalVal += (float)txtDisplacementY;
-            else if (horizontalType == ConstraintType::PIXEL_BOTTOM ||
-                verticalType == ConstraintType::PIXEL_CENTER_VERTICAL)
-                verticalVal -= (float)txtDisplacementY;
-
-            uint32_t txtEntity = create_text(
-                txt,
+            entityID_t txtEntity = create_text(
+                txt, font,
                 horizontalType, horizontalVal,
                 verticalType, verticalVal
             ).first;
@@ -352,18 +370,15 @@ namespace pk
                 txtEntity,
                 ComponentType::PK_TRANSFORM
             );
-
-            // ... not sure why i did this???
+            // alter transform's scale to make work properly with constraint system
             txtTransform->accessTransformationMatrix()[0 + 0 * 4] = width;
             txtTransform->accessTransformationMatrix()[1 + 1 * 4] = height;
 
-            // Crente new UIElem state if not explicitly specified already
+            // Create new UIElem state if not explicitly specified already
             UIElemState* uiElemState = pUIElemState;
             if (!uiElemState)
-            {
-                uiElemState = new UIElemState;
-                currentScene->addComponent(buttonEntity, uiElemState);
-            }
+                uiElemState = currentScene->createUIElemState(buttonEntity);
+
             uiElemState->selectable = selectable;
 
             vec3 highlightColor(0.5f, 0.5f, 0.5f);
@@ -382,10 +397,10 @@ namespace pk
 
 
         #define PK_INPUTFIELD_DEFAULT_HEIGHT 21
-        std::pair<uint32_t, TextRenderable*> create_input_field(
-            std::string infoTxt,
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+        std::pair<entityID_t, TextRenderable*> create_input_field(
+            std::string infoTxt, const Font& font,
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             int width,
             InputFieldOnSubmitEvent* onSubmitEvent,
             bool clearOnSubmit
@@ -394,34 +409,41 @@ namespace pk
             Scene* currentScene = Application::get()->accessCurrentScene();
             InputManager* inputManager = Application::get()->accessInputManager();
 
-            uint32_t inputFieldEntity = currentScene->createEntity();
+            entityID_t inputFieldEntity = currentScene->createEntity();
 
-            UIElemState* uiElemState = new UIElemState;
-            uiElemState->selectable = true;
-            currentScene->addComponent(inputFieldEntity, uiElemState);
+            UIElemState* pUIElemState = currentScene->createUIElemState(inputFieldEntity);
+            pUIElemState->selectable = true;
 
             // Create button (*Override the button's UIElemState)
-            uint32_t buttonEntity = create_button(
-                "",
-                horizontalType, horizontalVal,
-                verticalType, verticalVal,
-                (float)width, PK_INPUTFIELD_DEFAULT_HEIGHT,
-                nullptr,
-                true,
-                nullptr,
-                {0, 0, 1, 1},
-                { 0.05f, 0.05f, 0.05f },
-                0, 0,
-                uiElemState
+            entityID_t buttonEntity = create_button(
+                "", // txt
+                font,
+                horizontalType, horizontalVal, // horiz. constraint
+                verticalType, verticalVal, // vert. constraint
+                (float)width, font.getPixelSize() + 4, // scale
+                nullptr, // onclick
+                true, // selectable
+                { 0.05f, 0.05f, 0.05f }, // color
+                { 0.1f, 0.1f, 0.1f, 1.0f }, // border color
+                2, // border thickness
+                nullptr, // texture
+                {0, 0, 1, 1}, // cropping
+                pUIElemState // ui elem state
             );
 
-            float infoTxtDisplacement = width;
-            if (horizontalType == ConstraintType::PIXEL_RIGHT)
-                infoTxtDisplacement = -width;
+            // figure out text's size
+            float infoTxtDisplacement = 0.0f;
+            for (char c : infoTxt)
+            {
+                const FontGlyphData * const glyph = font.getGlyph(c);
+                if (glyph)
+                    infoTxtDisplacement += ((float)(glyph->advance >> 6)) + glyph->bearingX;
+            }
+
             // Create info txt
             uint32_t infoTxtEntity = create_text(
-                infoTxt,
-                horizontalType, horizontalVal + infoTxtDisplacement, // *Add displacement to info text, so its to the right of the box
+                infoTxt, font,
+                horizontalType, horizontalVal - infoTxtDisplacement, // *Add displacement to info text, so its to the right of the box
                 verticalType, verticalVal
             ).first;
 
@@ -434,16 +456,15 @@ namespace pk
                 ComponentType::PK_RENDERABLE_TEXT
             );
 
-            inputManager->addKeyEvent(new InputFieldKeyEvent(*uiElemState, contentText, onSubmitEvent));
-            inputManager->addCharInputEvent(new InputFieldCharInputEvent(*uiElemState, contentText));
-
-            // Adjust the info text's transform a bit, so it doesnt look fucked..
-            Transform* infoTextTransform = (Transform*)currentScene->getComponent(
-                infoTxtEntity,
+            // TESTING
+            Transform* buttonTransform = (Transform*)currentScene->getComponent(
+                buttonEntity,
                 ComponentType::PK_TRANSFORM
             );
-            infoTextTransform->accessTransformationMatrix()[0 + 0 * 4] = width;
-            infoTextTransform->accessTransformationMatrix()[1 + 1 * 4] = PK_INPUTFIELD_DEFAULT_HEIGHT;
+            buttonTransform->accessTransformationMatrix()[1 + 3 * 4] -= 4;
+
+            inputManager->addKeyEvent(new InputFieldKeyEvent(*pUIElemState, contentText, onSubmitEvent));
+            inputManager->addCharInputEvent(new InputFieldCharInputEvent(*pUIElemState, contentText));
 
             return std::make_pair(inputFieldEntity, contentText);
         }

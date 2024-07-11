@@ -64,23 +64,13 @@ namespace pk
             }
         }
 
-
-        void WebRenderCommand::beginFrame()
-        {}
-
         void WebRenderCommand::beginRenderPass()
         {
-            // NOTE: Not sure in which order these should be done..
-
-
 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	    glClearColor(0.0f, 0.0f, 0.0f, 1);
         }
 
         void WebRenderCommand::endRenderPass()
-        {}
-
-        void WebRenderCommand::endFrame()
         {}
 
         // NOTE: atm just quick hack and only opengl specific!!!
@@ -133,7 +123,7 @@ namespace pk
             opengl::OpenglPipeline* glPipeline = (opengl::OpenglPipeline*)pPipeline;
             ((WebCommandBuffer*)pCmdBuf)->_pPipeline = glPipeline;
 
-            glUseProgram(glPipeline->getShaderProgram().getID());
+            glUseProgram(glPipeline->getShaderProgram()->getID());
 
             if (glPipeline->getEnableDepthTest())
                 glEnable(GL_DEPTH_TEST);
@@ -212,67 +202,83 @@ namespace pk
         )
         {
             opengl::OpenglPipeline* pipeline = ((WebCommandBuffer*)pCmdBuf)->_pPipeline;
-            const opengl::OpenglShaderProgram& shaderProgram = pipeline->getShaderProgram();
-            const std::vector<int32_t>& shaderAttribLocations = shaderProgram.getAttribLocations();
+            const opengl::OpenglShaderProgram* pShaderProgram = pipeline->getShaderProgram();
+            const std::vector<int32_t>& shaderAttribLocations = pShaderProgram->getAttribLocations();
             const std::vector<VertexBufferLayout>& vbLayouts = pipeline->getVertexBufferLayouts();
 
             // Not sure if this stuff works here well...
-            std::vector<VertexBufferLayout>::const_iterator vbIt = vbLayouts.begin();
+            std::vector<VertexBufferLayout>::const_iterator vbLayoutIt = vbLayouts.begin();
 
-            int i = 0;
             for (Buffer* buffer : buffers)
             {
             #ifdef PK_DEBUG_FULL
                 // Crash is intended here..
-                if (vbIt == vbLayouts.end())
+                if (vbLayoutIt == vbLayouts.end())
                     Debug::log(
                         "@WebRenderCommand::bindVertexBuffers No layout exists for inputted buffer",
                         Debug::MessageType::PK_FATAL_ERROR
                     );
+                if (buffer->getBufferUsage() != BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT)
+                    Debug::log(
+                        "@WebRenderCommand::bindVertexBuffers Invalid buffer usage: " + std::to_string(buffer->getBufferUsage()) + " "
+                        "Web rendering context can only have buffers with single type of usage!",
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
             #endif
                 // NOTE: DANGER! ..again
-                glBindBuffer(GL_ARRAY_BUFFER, ((WebBuffer*)buffer)->getID());
+                WebBuffer* pWebBuffer = (WebBuffer*)buffer;
+                glBindBuffer(GL_ARRAY_BUFFER, pWebBuffer->getID());
+
+                // Update gl buf immediately if marked
+                if (pWebBuffer->_shouldUpdate)
+                {
+                    // TODO: Allow specifying GLenum usage(GL_STATIC_DRAW, etc..) (not to be confused with the BufferUsage)
+                    glBufferData(GL_ARRAY_BUFFER, pWebBuffer->getTotalSize(), pWebBuffer->_data, GL_STATIC_DRAW);
+                    pWebBuffer->_shouldUpdate = false;
+                }
 
                 // Currently assuming that each pipeline's vb layout's index
                 // corresponds to the order of inputted buffers vector
                 // TODO: Some safeguards 'n error handling if this goes fucked..
-                int32_t stride = (int32_t)buffer->getDataElemSize() * (int32_t)buffer->getDataLength();
-                for (const VertexBufferElement& elem : vbIt->getElements())
+
+                size_t stride = vbLayoutIt->getStride();
+                size_t toNext = 0;
+
+                for (const VertexBufferElement& elem : vbLayoutIt->getElements())
                 {
-                    int32_t location = shaderAttribLocations[i];
+                    int32_t location = shaderAttribLocations[elem.getLocation()];
                     ShaderDataType elemShaderDataType = elem.getType();
 
                     glEnableVertexAttribArray(location);
-                    // TODO: element's Shader data type to gl type
+                    glVertexAttribDivisor(
+                        location,
+                        vbLayoutIt->getInputRate() == VertexInputRate::VERTEX_INPUT_RATE_INSTANCE ? 1 : 0
+                    );
                     glVertexAttribPointer(
                         location,
                         get_shader_data_type_component_count(elemShaderDataType),
                         opengl::to_gl_data_type(elemShaderDataType),
                         GL_FALSE,
                         stride,
-                        0 // Don't remember why this was 0??
+                        (const void*)toNext
                     );
+                    toNext += get_shader_data_type_size(elemShaderDataType);
                 }
-                ++i;
-                vbIt++;
+                vbLayoutIt++;
             }
         }
 
-        // NOTE: Descriptor sets has to be given in the same order as
-        // corresponding uniforms are in the actual shader code for this to work!!!
-        // UPDATE TO ABOVE:
-        //  -> this may not be the case after added the UniformInfo's locationIndex
         void WebRenderCommand::bindDescriptorSets(
             CommandBuffer* pCmdBuf,
             PipelineBindPoint pipelineBindPoint,
             // PipelineLayout pipelineLayout,
             uint32_t firstDescriptorSet,
-            const std::vector<DescriptorSet*>& descriptorSets
+            const std::vector<const DescriptorSet*>& descriptorSets
         )
         {
             opengl::OpenglPipeline* pipeline = ((WebCommandBuffer*)pCmdBuf)->_pPipeline;
-            const opengl::OpenglShaderProgram& shaderProgram = pipeline->getShaderProgram();
-            const std::vector<int32_t>& shaderUniformLocations = shaderProgram.getUniformLocations();
+            const opengl::OpenglShaderProgram* pShaderProgram = pipeline->getShaderProgram();
+            const std::vector<int32_t>& shaderUniformLocations = pShaderProgram->getUniformLocations();
 
             for (const DescriptorSet* descriptorSet : descriptorSets)
             {
@@ -286,33 +292,32 @@ namespace pk
 
                 for (const DescriptorSetLayoutBinding& binding : layout.getBindings())
                 {
-                    const UniformInfo& uniformInfo = binding.getUniformInfo();
+                    const std::vector<UniformInfo>& uniformInfo = binding.getUniformInfo();
+
                     if (binding.getType() == DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER)
                     {
                         // TODO: some boundary checking..
                         const Buffer* pBuf = buffers[bufferBindingIndex];
                         const PK_byte* pBufData = (const PK_byte*)pBuf->getData();
-                        const std::vector<ShaderDataType>& uboLayout = uniformInfo.structLayout;
-
                         size_t uboOffset = 0;
-                        for (const ShaderDataType& type : uboLayout)
+                        for (const UniformInfo& uboInfo : uniformInfo)
                         {
                             size_t valSize = 0;
                             const PK_byte* pCurrentData = pBufData + uboOffset;
-                            switch (type)
+                            switch (uboInfo.type)
                             {
                                 case ShaderDataType::Int:
                                 {
                                     int val = (int)*pCurrentData;
                                     valSize = sizeof(int);
-                                    glUniform1i(shaderUniformLocations[uniformInfo.locationIndex], val);
+                                    glUniform1i(shaderUniformLocations[uboInfo.locationIndex], val);
                                     break;
                                 }
                                 case ShaderDataType::Float:
                                 {
                                     float val = (float)*pCurrentData;
                                     valSize = sizeof(float);
-                                    glUniform1fv(shaderUniformLocations[uniformInfo.locationIndex], 1, &val);
+                                    glUniform1fv(shaderUniformLocations[uboInfo.locationIndex], 1, &val);
                                     break;
                                 }
                                 case ShaderDataType::Float2:
@@ -322,7 +327,7 @@ namespace pk
                                     memcpy(&vec, pCurrentData, valSize);
 
                                     glUniform2f(
-                                        shaderUniformLocations[uniformInfo.locationIndex],
+                                        shaderUniformLocations[uboInfo.locationIndex],
                                         vec.x,
                                         vec.y
                                     );
@@ -333,9 +338,8 @@ namespace pk
                                     vec3 vec;
                                     valSize = sizeof(vec3);
                                     memcpy(&vec, pCurrentData, valSize);
-
                                     glUniform3f(
-                                        shaderUniformLocations[uniformInfo.locationIndex],
+                                        shaderUniformLocations[uboInfo.locationIndex],
                                         vec.x,
                                         vec.y,
                                         vec.z
@@ -349,11 +353,24 @@ namespace pk
                                     memcpy(&vec, pCurrentData, valSize);
 
                                     glUniform4f(
-                                        shaderUniformLocations[uniformInfo.locationIndex],
+                                        shaderUniformLocations[uboInfo.locationIndex],
                                         vec.x,
                                         vec.y,
                                         vec.z,
                                         vec.w
+                                    );
+                                    break;
+                                }
+                                case ShaderDataType::Mat4:
+                                {
+                                    mat4 matrix;
+                                    valSize = sizeof(mat4);
+                                    memcpy(&matrix, pCurrentData, valSize);
+                                    glUniformMatrix4fv(
+                                        shaderUniformLocations[uboInfo.locationIndex],
+                                        1,
+                                        GL_FALSE,
+                                        (const float*)&matrix
                                     );
                                     break;
                                 }
@@ -375,15 +392,17 @@ namespace pk
                     else if (binding.getType() == DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
                     {
                         // TODO: some boundary checking..
-                        //
-                        glUniform1i(uniformInfo.locationIndex, binding.getBinding());
-                        // well following is quite fucking dumb.. dunno how could do this better
-                        glActiveTexture(binding_to_gl_texture_slot(binding.getBinding()));
-                        glBindTexture(
-                            GL_TEXTURE_2D,
-                            ((opengl::OpenglTexture*)textures[textureBindingIndex])->getID()
-                        );
-                        ++textureBindingIndex;
+                        for (const UniformInfo& layoutInfo : uniformInfo)
+                        {
+                            glUniform1i(shaderUniformLocations[layoutInfo.locationIndex], binding.getBinding());
+                            // well following is quite fucking dumb.. dunno how could do this better
+                            glActiveTexture(binding_to_gl_texture_slot(binding.getBinding()));
+                            glBindTexture(
+                                GL_TEXTURE_2D,
+                                ((opengl::OpenglTexture*)textures[textureBindingIndex])->getGLTexID()
+                            );
+                            ++textureBindingIndex;
+                        }
                     }
                 }
             }
@@ -416,7 +435,8 @@ namespace pk
         {
             const IndexType& indexType = ((WebCommandBuffer*)pCmdBuf)->_drawIndexedType;
             // NOTE: Don't remember why not giving the ptr to the indices here..
-            glDrawElements(GL_TRIANGLES, indexCount, index_type_to_glenum(indexType), 0);
+            //glDrawElements(GL_TRIANGLES, indexCount, index_type_to_glenum(indexType), 0);
+            glDrawElementsInstanced(GL_TRIANGLES, indexCount, index_type_to_glenum(indexType), 0, instanceCount);
         }
     }
 }

@@ -119,6 +119,7 @@ namespace pk
 
         vec4() {}
         vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+        vec4(vec3 v, float w) : x(v.x), y(v.y), z(v.z), w(w) {}
         vec4(const vec4& other) : x(other.x), y(other.y), z(other.z), w(other.w) {}
 
         float length() const

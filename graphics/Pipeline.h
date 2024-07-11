@@ -60,38 +60,31 @@ namespace pk
         Pipeline(const Pipeline&) = delete;
         virtual ~Pipeline() {}
 
-        static Pipeline* create(
-            const std::vector<VertexBufferLayout>& vertexBufferLayouts,
-            const std::vector<DescriptorSetLayout>& descriptorLayouts,
-            ShaderVersion shaderVersion,
-            const Shader* pVertexShader, const Shader* pFragmentShader,
-            float viewportWidth, float viewportHeight,
-            const Rect2D viewportScissor,
-            CullMode cullMode,
-            FrontFace frontFace,
-            bool enableDepthTest,
-            DepthCompareOperation depthCmpOp
-        );
-
-    protected:
+        // Renderers have initPipeline func which calls this.
+        // Reason: how pipeline gets initialized depends on the renderer so
+        // each renderer is required to implement its' own initPipeline()
         // TODO:
         // * RenderPass
         // * deal with push constants..
-        Pipeline(
-            //const RenderPass& renderPass,
+        virtual void init(
             const std::vector<VertexBufferLayout>& vertexBufferLayouts,
             const std::vector<DescriptorSetLayout>& descriptorLayouts,
-            ShaderVersion shaderVersion,
             const Shader* pVertexShader, const Shader* pFragmentShader,
             float viewportWidth, float viewportHeight,
             const Rect2D viewportScissor,
-            //uint32_t pushConstantSize = 0, VkShaderStageFlags pushConstantStageFlags = VK_SHADER_STAGE_VERTEX_BIT
             CullMode cullMode,
             FrontFace frontFace,
             bool enableDepthTest,
             DepthCompareOperation depthCmpOp
         )
         {}
+
+        virtual void cleanUp() {}
+
+        static Pipeline* create();
+
+    protected:
+        Pipeline() {}
 
         // Originally used on vulkan project to recreate pipeline on window resize/other swapchain inadequate event..
         // NOTE: NOT TO BE CONFUSED IN THIS PROJECT'S GENERAL SYSTEM OF "create" FUNCS

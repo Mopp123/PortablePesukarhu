@@ -1,5 +1,6 @@
-
 #include "TerrainTileRenderable.h"
+#include <cstring>
+
 
 namespace pk
 {

@@ -2,10 +2,14 @@
 
 #include <string>
 
-#include "../../systems/ui/Constraints.h"
+#include "utils/Font.h"
+#include "ecs/Entity.h"
+#include "ecs/components/ui/ConstraintData.h"
 #include "../../components/renderable/TextRenderable.h"
-#include "../../components/UIElemState.h"
+#include "ecs/components/ui/UIElemState.h"
 #include "../../../core/input/InputEvent.h"
+
+#include "graphics/Texture.h"
 
 
 namespace pk
@@ -37,46 +41,48 @@ namespace pk
         };
 
 
-        uint32_t create_image(
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+        entityID_t create_image(
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             float width, float height,
-            bool drawBorder = false,
             Texture* texture = nullptr,
-            vec4 textureCropping = vec4(0, 0, 1, 1),
-            vec3 color = vec3(0, 0, 0)
+            vec3 color = { 1, 1, 1 },
+            vec4 borderColor = { 1, 1, 1, 1 },
+            float borderThickness = 0.0f,
+            Texture_new* pTexture = nullptr,
+            vec4 textureCropping = vec4(0, 0, 1, 1)
         );
 
 
-        std::pair<uint32_t, TextRenderable*> create_text(
-            const std::string& str,
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+        std::pair<entityID_t, TextRenderable*> create_text(
+            const std::string& str, const Font& font,
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             vec3 color = vec3(1.0f, 1.0f, 1.0f),
             bool bold = false
         );
 
 
-        uint32_t create_button(
-            std::string txt,
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+        entityID_t create_button(
+            std::string txt, const Font& font,
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             float width, float height,
             OnClickEvent* onClick,
             bool selectable = false,
-            Texture* texture = nullptr,
+            vec3 color = { 0.1f, 0.1f, 0.1f },
+            vec4 borderColor = { 0.6f, 0.6f, 0.6f, 1.0f },
+            float borderThickness = 2,
+            Texture_new* pTexture = nullptr,
             vec4 textureCropping = vec4(0, 0, 1, 1),
-            vec3 color = vec3(0.1f, 0.1f, 0.1f),
-            int txtDisplacementX = 8,
-            int txtDisplacementY = 4,
             UIElemState* pUIElemState = nullptr
         );
 
         // return pair of InputField-entity and TextRenderable ptr of its' content
-        std::pair<uint32_t, TextRenderable*> create_input_field(
-            std::string infoTxt,
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+        std::pair<entityID_t, TextRenderable*> create_input_field(
+            std::string infoTxt, const Font& font,
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             int width,
             InputFieldOnSubmitEvent* onSubmitEvent,
             bool clearOnSubmit = false

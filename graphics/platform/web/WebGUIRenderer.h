@@ -40,7 +40,7 @@ namespace pk
             // submit renderable component for rendering (batch preparing, before rendering)
             virtual void submit(const Component* const renderableComponent, const mat4& transformation);
             virtual void render(const Camera& cam);
-            virtual void resize(int w, int h) {}
+            virtual void handleWindowResize() {}
 
         private:
             void allocateBatches(int maxBatchCount, int maxBatchLength, int entryLength);

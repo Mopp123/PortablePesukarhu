@@ -5,6 +5,19 @@
 
 namespace pk
 {
+
+    RenderCommand* RenderCommand::s_pInstance = nullptr;
+
+    RenderCommand* RenderCommand::get()
+    {
+        if (s_pInstance)
+        {
+            return s_pInstance;
+        }
+        s_pInstance = create();
+        return s_pInstance;
+    }
+
     RenderCommand* RenderCommand::create()
     {
         switch(Context::get_api_type())

@@ -8,6 +8,7 @@ namespace pk
     class UIRenderableComponent : public Component
     {
     protected:
+        // NOTE: WARNING! LAYERS ARE FUCKED ATM!!
         static int s_totLayerValCount;
         static int s_currentSelectedLayer;
 
@@ -15,11 +16,12 @@ namespace pk
 
     public:
         UIRenderableComponent(ComponentType type);
+        UIRenderableComponent(const UIRenderableComponent& other);
         virtual ~UIRenderableComponent();
 
         static int get_current_selected_layer();
         static void set_current_selected_layer(int val);
-        
+
         inline int getLayerVal() const { return _layerVal; }
     };
 }

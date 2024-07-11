@@ -8,6 +8,7 @@
 #include "../graphics/Context.h"
 
 #include "../graphics/MasterRenderer.h"
+#include "ResourceManager.h"
 #include "Timing.h"
 
 #include <vector>
@@ -36,15 +37,26 @@ namespace pk
 
         MasterRenderer* _pMasterRenderer = nullptr;
 
+        ResourceManager _resourceManager;
+
     public:
         Application(
             std::string name,
             Window* window,
             Context* graphicsContext,
-            InputManager* inputManager,
-            MasterRenderer* pMasterRenderer
+            InputManager* inputManager
         );
         ~Application();
+        // TODO:
+        //  * Create MasterRenderer in Application's constructor
+        //  * Add all MasterRenderer's "sub" renderer's in the constructor too
+        //  using the renderers' "create" functions which creates platform/api
+        //  specific renderers automatically.
+        //
+        // NOTE: !!! Currently not doing this because only GUIRenderer is starting to
+        // take a form where this is possible and still wanting to support old
+        // renderers!!!
+        void init(MasterRenderer* pMasterRenderer);
 
         void run();
 
@@ -60,6 +72,7 @@ namespace pk
         inline const Scene* const getCurrentScene() const { return _sceneManager.getCurrentScene(); }
 
         inline MasterRenderer* getMasterRenderer() { return _pMasterRenderer; }
+        inline ResourceManager& getResourceManager() { return _resourceManager; }
 
         inline bool isRunning() const { return _running; }
 

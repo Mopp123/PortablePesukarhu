@@ -25,10 +25,14 @@ namespace pk
         Float,
         Float2,
         Float3,
-        Float4
+        Float4,
+
+        // NOTE: Only used by opengl
+        Mat4
     };
 
     int32_t get_shader_data_type_component_count(ShaderDataType type);
+    size_t get_shader_data_type_size(ShaderDataType type);
 
     enum VertexInputRate
     {
@@ -104,15 +108,16 @@ namespace pk
     protected:
         std::vector<VertexBufferElement> _elements;
         VertexInputRate _inputRate = VertexInputRate::VERTEX_INPUT_RATE_VERTEX;
+        int32_t _stride = 0;
 
     public:
         // NOTE: Not sure if copying elems goes correctly here..
-        VertexBufferLayout(std::vector<VertexBufferElement> elems, VertexInputRate inputRate) :
-            _elements(elems),
-            _inputRate(inputRate)
-        {}
+        VertexBufferLayout(std::vector<VertexBufferElement> elems, VertexInputRate inputRate);
+        VertexBufferLayout(const VertexBufferLayout& other);
 
         inline const std::vector<VertexBufferElement>& getElements() const { return _elements; }
+        inline VertexInputRate getInputRate() const { return _inputRate; }
+        inline int32_t getStride() const { return _stride; }
     };
 
 
@@ -122,17 +127,32 @@ namespace pk
         void* _data = nullptr;
         size_t _dataElemSize = 0; // size of a single entry in data
         size_t _dataLength = 0; // number of elements in the data
+        uint32_t _bufferUsageFlags = 0;
 
     public:
         Buffer(const Buffer&) = delete;
         virtual ~Buffer();
 
+        // Replaces _data from beginning to dataSize.
+        virtual void update(const void* data, size_t dataSize) = 0;
+        virtual void update(const void* data, size_t offset, size_t dataSize) = 0;
+        // Wouldn't necessarely need to be pure virtual..
+        // webgl side just works the way atm this is required..
+        virtual void clearHostSideBuffer() = 0;
+
         inline const void* getData() const { return _data; }
         inline size_t getDataElemSize() const { return _dataElemSize; }
         inline size_t getDataLength() const { return _dataLength; }
+        inline uint32_t getBufferUsage() const { return _bufferUsageFlags; }
+        inline size_t getTotalSize() const { return _dataElemSize * _dataLength; }
 
-        // NOTE: Might not work.. not tested yet...
-        static Buffer* create(void* data, size_t elementSize, size_t dataLength, uint32_t bufferUsageFlags);
+        static Buffer* create(
+            void* data,
+            size_t elementSize,
+            size_t dataLength,
+            uint32_t bufferUsageFlags,
+            bool saveDataHostSide = false
+        );
 
     protected:
         // *NOTE! "elementSize" single element's size in "data buffer"
