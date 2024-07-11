@@ -17,8 +17,8 @@ namespace pk
 
     public:
         Camera(const mat4& projMat2D, const mat4& projMat3D) :
-            _projMat2D(projMat2D), _projMat3D(projMat3D),
-            Component(ComponentType::PK_CAMERA)
+            Component(ComponentType::PK_CAMERA),
+            _projMat2D(projMat2D), _projMat3D(projMat3D)
         {}
 
         inline void setProjMat2D(const mat4& mat) { _projMat2D = mat; }

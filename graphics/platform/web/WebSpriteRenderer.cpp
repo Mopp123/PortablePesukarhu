@@ -188,9 +188,13 @@ namespace pk
 
             // Find scene's active camera's transform
             // This quite disgusting, just atm for testing purposes..
-            const Transform * const camTransform = (Transform*)scene->getComponent(cam.getEntity(), ComponentType::PK_TRANSFORM);
-            mat4 viewMat = camTransform->getTransformationMatrix();
-            viewMat.inverse(); // omg this quite heavy operation ...
+            mat4 viewMat;
+            if (scene->activeCamera != NULL_ENTITY_ID)
+            {
+                const Transform * const camTransform = (Transform*)scene->getComponent(scene->activeCamera, ComponentType::PK_CAMERA);
+                mat4 viewMat = camTransform->getTransformationMatrix();
+                viewMat.inverse(); // omg this quite heavy operation ...
+            }
 
             glUseProgram(_shader.getProgramID());
 

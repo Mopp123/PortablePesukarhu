@@ -120,6 +120,22 @@ namespace pk
         return ((uint8_t*)_pStorage) + (_componentSize * offset);
     }
 
+    const void * const ComponentPool::getComponent_DANGER(entityID_t entityID) const
+    {
+        std::unordered_map<entityID_t, size_t>::const_iterator it = _entityOffsetMapping.find(entityID);
+        if (it == _entityOffsetMapping.end())
+        {
+            Debug::log(
+                "@ComponentPool::getComponent_DANGER "
+                "Failed to find component for entity: " + std::to_string(entityID),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
+        size_t offset = it->second;
+        return ((uint8_t*)_pStorage) + (_componentSize * offset);
+    }
+
     void* ComponentPool::operator[](entityID_t entityID)
     {
         size_t offset = _entityOffsetMapping[entityID];

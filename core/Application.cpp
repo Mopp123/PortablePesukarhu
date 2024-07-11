@@ -18,20 +18,21 @@ namespace pk
             const Scene* currentScene = app->getCurrentScene();
             if (currentScene)
             {
-                const Camera* const activeCam = currentScene->activeCamera;
+                const Camera* activeCam = (const Camera*)currentScene->getComponent(currentScene->activeCamera, ComponentType::PK_CAMERA);
 
                 SceneManager& sceneManager = app->_sceneManager;
                 sceneManager.handleSceneUpdate();
 
+                MasterRenderer* pMasterRenderer = app->_pMasterRenderer;
                 if (activeCam != nullptr)
                 {
-                    MasterRenderer* masterRenderer = app->_pMasterRenderer;
-                    masterRenderer->render(*activeCam);
+                    pMasterRenderer->render(*activeCam);
                 }
                 else
                 {
                     Debug::log("Scene doesn't have active camera", Debug::MessageType::PK_ERROR);
                 }
+                pMasterRenderer->flush();
                 //Debug::log("delta: " + std::to_string(Timing::get_delta_time()));
             }
             // Detect and handle possible scene switching..

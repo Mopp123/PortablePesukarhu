@@ -12,7 +12,6 @@ namespace pk
     }
 
     Component::Component(const Component& other) :
-        _id(other._id),
         _type(other._type)
     {
     }

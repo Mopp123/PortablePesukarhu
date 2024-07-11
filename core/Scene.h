@@ -37,7 +37,7 @@ namespace pk
         // TODO: delete below
         //std::unordered_map<ComponentType, std::vector<uint32_t>> typeComponentMapping;
 
-        Camera* activeCamera = nullptr;
+        entityID_t activeCamera = NULL_ENTITY_ID;
 
         Scene();
         virtual ~Scene();
@@ -48,7 +48,7 @@ namespace pk
         std::vector<entityID_t> getChildren(entityID_t entityID);
 
         void addComponent(entityID_t entityID, Component* component);
-        inline bool isValidEntity(entityID_t entityID)
+        inline bool isValidEntity(entityID_t entityID) const
         {
             if (entityID < 0 || entityID >= entities.size())
                 return false;
@@ -84,9 +84,16 @@ namespace pk
             vec3 color,
             bool bold = false
         );
+        Camera* createCamera(
+            entityID_t target,
+            const vec3& position,
+            float pitch,
+            float yaw
+        );
 
         // TODO: all getComponent things could be optimized?
         Component* getComponent(entityID_t entityID, ComponentType type, bool nestedSearch = false);
+        const Component * const getComponent(entityID_t entityID, ComponentType type, bool nestedSearch = false) const;
         // Returns first component of "type" found in "entity"'s child entities
         Component* getComponentInChildren(entityID_t entityID, ComponentType type);
 
@@ -103,6 +110,8 @@ namespace pk
 
         // Returns all components in scene of specific type
         //std::vector<Component*> getComponentsOfTypeInScene(ComponentType type);
+
+        entityID_t getActiveCamera() const { return activeCamera; }
 
         virtual void init() = 0;
         virtual void update() = 0;

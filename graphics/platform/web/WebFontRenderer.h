@@ -123,6 +123,7 @@ namespace pk
             virtual void submit(const Component* const renderableComponent, const mat4& transformation);
 
             virtual void render(const Camera& cam);
+            virtual void flush();
 
             virtual void handleWindowResize() {}
 

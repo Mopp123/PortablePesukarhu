@@ -60,6 +60,7 @@ namespace pk
         void destroyComponent(entityID_t entityID);
         // Atm doesnt check if invalid index!
         void* getComponent_DANGER(entityID_t entityID);
+        const void * const getComponent_DANGER(entityID_t entityID) const;
 
         void* operator[](entityID_t entityID);
     };
