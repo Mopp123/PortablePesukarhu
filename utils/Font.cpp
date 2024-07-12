@@ -19,7 +19,7 @@ namespace pk
     void Font::load()
     {
         createFont(
-            "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890.,:;?!&_'+-*^/()[]{}äåöÄÅÖ"
+            " qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890.,:;?!&_'+-*^/()[]{}äåöÄÅÖ"
         );
     }
 
@@ -106,20 +106,21 @@ namespace pk
             maxGlyphWidth = std::max(maxGlyphWidth, currentGlyphWidth);
             maxGlyphHeight = std::max(maxGlyphHeight, currentGlyphHeight);
 
-            // If we have space -char -> don't store any bitmap data about it..
-            if (c != ' ')
-            {
-                const int glyphBitmapSize = currentGlyphWidth * currentGlyphHeight;
-                unsigned char* bitmap = new unsigned char[glyphBitmapSize];
+            const int glyphBitmapSize = currentGlyphWidth * currentGlyphHeight;
+            unsigned char* bitmap = new unsigned char[glyphBitmapSize];
+            // If empty space -> make some empty tile, otherwise get the glyph bitmap
+            if (c == ' ')
+                memset(bitmap, 0, glyphBitmapSize);
+            else
                 memcpy(bitmap, ftGlyph->bitmap.buffer, sizeof(unsigned char) * glyphBitmapSize);
-                loadedGlyphs.push_back(std::make_pair(bitmap, gd));
 
-                texOffsetX++;
-                if (texOffsetX >= textureAtlasRowCount)
-                {
-                    texOffsetX = 0;
-                    texOffsetY++;
-                }
+            loadedGlyphs.push_back(std::make_pair(bitmap, gd));
+
+            texOffsetX++;
+            if (texOffsetX >= textureAtlasRowCount)
+            {
+                texOffsetX = 0;
+                texOffsetY++;
             }
             _glyphMapping.insert(std::make_pair(c, gd));
         }
@@ -194,6 +195,11 @@ namespace pk
 
         FT_Done_Face(fontFace);
         FT_Done_FreeType(freetypeLib);
+    }
+
+    Texture_new* Font::accessTexture()
+    {
+        return (Texture_new*)Application::get()->getResourceManager().getResource(_textureResourceID);
     }
 
     const Texture_new* Font::getTexture() const

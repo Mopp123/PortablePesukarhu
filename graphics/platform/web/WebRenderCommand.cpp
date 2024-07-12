@@ -308,16 +308,16 @@ namespace pk
                             {
                                 case ShaderDataType::Int:
                                 {
-                                    int val = (int)*pCurrentData;
+                                    int val = *(int*)pCurrentData;
                                     valSize = sizeof(int);
                                     glUniform1i(shaderUniformLocations[uboInfo.locationIndex], val);
                                     break;
                                 }
                                 case ShaderDataType::Float:
                                 {
-                                    float val = (float)*pCurrentData;
+                                    float val = *(float*)pCurrentData;
                                     valSize = sizeof(float);
-                                    glUniform1fv(shaderUniformLocations[uboInfo.locationIndex], 1, &val);
+                                    glUniform1f(shaderUniformLocations[uboInfo.locationIndex], val);
                                     break;
                                 }
                                 case ShaderDataType::Float2:

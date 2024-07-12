@@ -283,7 +283,12 @@ namespace pk
             entityID_t entityID = currentScene->createEntity();
             Transform* pTransform = currentScene->createTransform(entityID, { 0,0 }, { 1, 1 });
 
-            TextRenderable* pRenderable = currentScene->createTextRenderable(entityID, str, color, bold);
+            TextRenderable* pRenderable = currentScene->createTextRenderable(
+                entityID,
+                str,
+                color,
+                bold
+            );
             currentScene->createUIConstraint(
                 entityID,
                 horizontalType,
@@ -432,13 +437,19 @@ namespace pk
             );
 
             // figure out text's size
-            float infoTxtDisplacement = 0.0f;
+            float infoTxtDisplacement = font.getPixelSize();
+            float pos = 0.0f;
             for (char c : infoTxt)
             {
                 const FontGlyphData * const glyph = font.getGlyph(c);
                 if (glyph)
-                    infoTxtDisplacement += ((float)(glyph->advance >> 6)) + glyph->bearingX;
+                {
+                    infoTxtDisplacement = pos + glyph->bearingX;
+                    pos += ((float)(glyph->advance >> 6));
+                }
             }
+            // Also add a little gap..
+            infoTxtDisplacement += font.getPixelSize();
 
             // Create info txt
             uint32_t infoTxtEntity = create_text(

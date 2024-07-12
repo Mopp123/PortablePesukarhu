@@ -174,6 +174,7 @@ namespace pk
 
     GUIRenderer::~GUIRenderer()
     {
+        freeDescriptorSets();
         delete _pVertexShader;
         delete _pFragmentShader;
         delete _pVertexBuffer;
