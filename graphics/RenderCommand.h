@@ -58,15 +58,23 @@ namespace pk
             const std::vector<Buffer*>& buffers
         ) = 0;
 
-        // TODO: deal with this some day..
-        //virtual void pushConstants(...)
-
+        // TODO: deal with "pipelineLayouts"
         virtual void bindDescriptorSets(
             CommandBuffer* pCmdBuf,
             PipelineBindPoint pipelineBindPoint,
             // PipelineLayout pipelineLayout,
             uint32_t firstDescriptorSet,
             const std::vector<const DescriptorSet*>& descriptorSets
+        ) = 0;
+
+        virtual void pushConstants(
+            CommandBuffer* pCmdBuf,
+            //pipelineLayout,
+            ShaderStageFlagBits shaderStageFlags,
+            uint32_t offset,
+            uint32_t size,
+            const void* pValues,
+            std::vector<UniformInfo> glUniformInfo // Only used on opengl side
         ) = 0;
 
         virtual void draw(

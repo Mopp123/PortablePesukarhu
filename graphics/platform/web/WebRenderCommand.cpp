@@ -408,6 +408,107 @@ namespace pk
             }
         }
 
+        void WebRenderCommand::pushConstants(
+            CommandBuffer* pCmdBuf,
+            //pipelineLayout,
+            ShaderStageFlagBits shaderStageFlags,
+            uint32_t offset,
+            uint32_t size,
+            const void* pValues,
+            std::vector<UniformInfo> glUniformInfo // Only used on opengl side
+        )
+        {
+            opengl::OpenglPipeline* pipeline = ((WebCommandBuffer*)pCmdBuf)->_pPipeline;
+            const opengl::OpenglShaderProgram* pShaderProgram = pipeline->getShaderProgram();
+            const std::vector<int32_t>& shaderUniformLocations = pShaderProgram->getUniformLocations();
+
+            PK_byte* pBuf = (PK_byte*)pValues;
+            size_t bufOffset = 0;
+            for (const UniformInfo& uInfo : glUniformInfo)
+            {
+                if (bufOffset >= size)
+                {
+                    Debug::log(
+                        "@WebRenderCommand::pushConstants "
+                        "Buffer offset out of bounds!",
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
+                    return;
+                }
+                const PK_byte* pCurrentData = pBuf + bufOffset;
+                switch (uInfo.type)
+                {
+                    case ShaderDataType::Int:
+                    {
+                        int val = *(int*)pCurrentData;
+                        glUniform1i(shaderUniformLocations[uInfo.locationIndex], val);
+                        break;
+                    }
+                    case ShaderDataType::Float:
+                    {
+                        float val = *(float*)pCurrentData;
+                        glUniform1f(shaderUniformLocations[uInfo.locationIndex], val);
+                        break;
+                    }
+                    case ShaderDataType::Float2:
+                    {
+                        vec2 vec = *(vec2*)pCurrentData;
+                        glUniform2f(
+                            shaderUniformLocations[uInfo.locationIndex],
+                            vec.x,
+                            vec.y
+                        );
+                        break;
+                    }
+                    case ShaderDataType::Float3:
+                    {
+                        vec3 vec = *(vec3*)pCurrentData;;
+                        glUniform3f(
+                            shaderUniformLocations[uInfo.locationIndex],
+                            vec.x,
+                            vec.y,
+                            vec.z
+                        );
+                        break;
+                    }
+                    case ShaderDataType::Float4:
+                    {
+                        vec4 vec = *(vec4*)pCurrentData;
+                        glUniform4f(
+                            shaderUniformLocations[uInfo.locationIndex],
+                            vec.x,
+                            vec.y,
+                            vec.z,
+                            vec.w
+                        );
+                        break;
+                    }
+                    case ShaderDataType::Mat4:
+                    {
+                        mat4 matrix = *(mat4*)pCurrentData;
+                        glUniformMatrix4fv(
+                            shaderUniformLocations[uInfo.locationIndex],
+                            1,
+                            GL_FALSE,
+                            (const float*)&matrix
+                        );
+                        break;
+                    }
+
+                    default:
+                        Debug::log(
+                            "@WebRenderCommand::pushConstants "
+                            "Unsupported ShaderDataType. "
+                            "Currently implemented types are: "
+                            "Int, Float, Float2, Float3, Float4",
+                            Debug::MessageType::PK_FATAL_ERROR
+                        );
+                        break;
+                }
+                bufOffset += get_shader_data_type_size(uInfo.type);
+            }
+        }
+
         void WebRenderCommand::draw(
             CommandBuffer* pCmdBuf,
             uint32_t vertexCount,

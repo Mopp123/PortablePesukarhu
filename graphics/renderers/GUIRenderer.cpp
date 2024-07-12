@@ -203,7 +203,8 @@ namespace pk
             CullMode::CULL_MODE_NONE,
             FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
             true,
-            DepthCompareOperation::COMPARE_OP_ALWAYS
+            DepthCompareOperation::COMPARE_OP_ALWAYS,
+            sizeof(mat4), ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
         );
     }
 
@@ -239,8 +240,23 @@ namespace pk
                 Debug::MessageType::PK_ERROR
             );
         }
-        ResourceManager& resourceManager = Application::get()->getResourceManager();
 
+        Application* pApp = Application::get();
+
+        const Scene* pCurrentScene = pApp->getCurrentScene();
+        ResourceManager& resourceManager = pApp->getResourceManager();
+
+        entityID_t cameraID = pCurrentScene->activeCamera;
+        Camera* pCamera = (Camera*)pCurrentScene->getComponent(cameraID, ComponentType::PK_CAMERA);
+        if (!pCamera)
+        {
+            Debug::log(
+                "@FontRenderer::render "
+                "Scene's active camera was nullptr!",
+                Debug::MessageType::PK_ERROR
+            );
+            return;
+        }
         CommandBuffer* pCurrentCmdBuf = _pCommandBuffers[RenderPassType::RENDER_PASS_DIFFUSE][0];
         RenderCommand* pRenderCmd = RenderCommand::get();
 
@@ -298,11 +314,6 @@ namespace pk
             );
 
             std::vector<const DescriptorSet*> descriptorSets;
-            // TODO: On gui rendering get projection matrix and use it as push constant instead of descriptor set
-            // since "CommonUniforms" will eventually have more stuff, gui rendering wont use!
-            const DescriptorSet* pCommonDescriptorSet = Application::get()->getMasterRenderer()->getCommonDescriptorSet();
-            descriptorSets.push_back(pCommonDescriptorSet);
-
             // FOR TESTING: only using first texture descriptor set..
             if (_textureDescriptorSets.size() > 0)
             {
@@ -322,7 +333,14 @@ namespace pk
                     descriptorSets.push_back(pDescriptorSet);
                 }
             }
-            //std::vector<const DescriptorSet*> descriptorSets = { pCommonDescriptorSet, _pTextureDescriptorSet };
+            pRenderCmd->pushConstants(
+                pCurrentCmdBuf,
+                ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
+                0,
+                sizeof(mat4),
+                &pCamera->getProjMat2D(),
+                { { 0, ShaderDataType::Mat4 } }
+            );
             pRenderCmd->bindDescriptorSets(
                 pCurrentCmdBuf,
                 PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
