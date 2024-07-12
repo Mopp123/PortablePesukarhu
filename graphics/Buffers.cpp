@@ -75,6 +75,9 @@ namespace pk
             case ShaderDataType::Float4:
                 return sizeof(float) * 4;
 
+            case ShaderDataType::Mat4:
+                return sizeof(float) * 4 * 4;
+
             default:
                 Debug::log(
                     "@get_shader_data_type_size Invalid shaderDataType",

@@ -14,8 +14,9 @@
 
 namespace pk
 {
-    struct FontDetails
+    struct FontPushConstants
     {
+        mat4 projectionMatrix;
         float atlasRows = 0.0f;
     };
 
@@ -34,11 +35,6 @@ namespace pk
 
         DescriptorSetLayout _textureDescSetLayout;
         std::unordered_map<Texture_new*, std::vector<DescriptorSet*>> _textureDescriptorSet;
-
-        // Font details ubo stuff..
-        DescriptorSetLayout _detailsDescriptorSetLayout;
-        std::vector<Buffer*> _pDetailsUniformBuffer;
-        std::unordered_map<Font*, std::vector<DescriptorSet*>> _detailsDescriptorSet;
 
         BatchContainer _batchContainer;
 

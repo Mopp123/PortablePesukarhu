@@ -28,7 +28,6 @@ namespace pk
         VertexBufferLayout _instanceBufferLayout;
 
         DescriptorSetLayout _textureDescSetLayout;
-
         std::unordered_map<Texture_new*, std::vector<DescriptorSet*>> _textureDescriptorSets;
 
         // Testing new Batch system..

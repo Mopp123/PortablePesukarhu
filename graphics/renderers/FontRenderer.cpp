@@ -21,18 +21,12 @@ namespace pk
         attribute vec2 texOffset;
         attribute vec4 color;
 
-        struct Common
+        struct PushConstantData
         {
             mat4 projMat;
-        };
-
-        struct FontDetails
-        {
             float atlasRows;
         };
-
-        uniform Common common;
-        uniform FontDetails fontDetails;
+        uniform PushConstantData pushConstants;
 
         varying vec2 var_uvCoord;
         varying vec4 var_color;
@@ -40,8 +34,8 @@ namespace pk
         void main()
         {
             vec2 vpos = vertexPos;
-            gl_Position = common.projMat * vec4((vpos * scale) + pos, 0, 1.0);
-            var_uvCoord = (vpos * vec2(1.0, -1.0) + texOffset) / fontDetails.atlasRows;
+            gl_Position = pushConstants.projMat * vec4((vpos * scale) + pos, 0, 1.0);
+            var_uvCoord = (vpos * vec2(1.0, -1.0) + texOffset) / pushConstants.atlasRows;
             var_color = color;
         }
     )";
@@ -72,7 +66,6 @@ namespace pk
         _vertexBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
         _instanceBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
         _textureDescSetLayout({}),
-        _detailsDescriptorSetLayout({}),
         _batchContainer(10, (sizeof(float) * s_instanceBufferComponents) * s_maxInstanceCount)
     {
         _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
@@ -95,16 +88,6 @@ namespace pk
             VertexInputRate::VERTEX_INPUT_RATE_INSTANCE
         );
 
-        // Font details desc set layout
-        DescriptorSetLayoutBinding fontDetailsDescSetLayoutBinding(
-            0,
-            1,
-            DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
-            {{ 1, ShaderDataType::Float }}
-        );
-        _detailsDescriptorSetLayout = DescriptorSetLayout({ fontDetailsDescSetLayoutBinding });
-
         // Textures desc set layout
         DescriptorSetLayoutBinding textureDescSetLayoutBinding(
             0,
@@ -117,7 +100,6 @@ namespace pk
 
         initPipeline();
 
-        const Window* pWindow = Application::get()->getWindow();
         // Atm creating these only for quick testing here!!!
         // Static vertex buffer
         float vbData[8] = {
@@ -163,22 +145,6 @@ namespace pk
             true
         );
         delete[] pInitialInstanceBufData;
-
-        // Allocate initial details uniform buffer
-        const size_t swapchainImages = Application::get()->getWindow()->getSwapchain()->getImageCount();
-        FontDetails initialDetails { 10.0f };
-        for (size_t i = 0; i < swapchainImages; ++i)
-        {
-            _pDetailsUniformBuffer.push_back(
-                Buffer::create(
-                    &initialDetails,
-                    sizeof(FontDetails),
-                    1,
-                    BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                    true
-                )
-            );
-        }
     }
 
     FontRenderer::~FontRenderer()
@@ -189,9 +155,6 @@ namespace pk
         delete _pVertexBuffer;
         delete _pIndexBuffer;
         delete _pInstanceBuffer;
-        for (auto& buf : _pDetailsUniformBuffer)
-            delete buf;
-
     }
 
     void FontRenderer::initPipeline()
@@ -204,7 +167,6 @@ namespace pk
         std::vector<DescriptorSetLayout> descSetLayouts(
             {
                 commonDescriptorSetLayout,
-                _detailsDescriptorSetLayout,
                 _textureDescSetLayout
             }
         );
@@ -221,7 +183,8 @@ namespace pk
             CullMode::CULL_MODE_NONE,
             FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
             true,
-            DepthCompareOperation::COMPARE_OP_ALWAYS
+            DepthCompareOperation::COMPARE_OP_ALWAYS,
+            sizeof(FontPushConstants), ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
         );
     }
 
@@ -319,7 +282,20 @@ namespace pk
                 Debug::MessageType::PK_ERROR
             );
         }
-        ResourceManager& resourceManager = Application::get()->getResourceManager();
+        Application* pApp = Application::get();
+        const Scene* pCurrentScene = pApp->getCurrentScene();
+        ResourceManager& resourceManager = pApp->getResourceManager();
+        entityID_t cameraID = pCurrentScene->activeCamera;
+        Camera* pCamera = (Camera*)pCurrentScene->getComponent(cameraID, ComponentType::PK_CAMERA);
+        if (!pCamera)
+        {
+            Debug::log(
+                "@FontRenderer::render "
+                "Scene's active camera was nullptr!",
+                Debug::MessageType::PK_ERROR
+            );
+            return;
+        }
 
         CommandBuffer* pCurrentCmdBuf = _pCommandBuffers[RenderPassType::RENDER_PASS_DIFFUSE][0];
         RenderCommand* pRenderCmd = RenderCommand::get();
@@ -378,35 +354,6 @@ namespace pk
             );
 
             std::vector<const DescriptorSet*> descriptorSets;
-            // TODO: set projection matrix and font texture atlas's row count as push constants!
-            const DescriptorSet* pCommonDescriptorSet = Application::get()->getMasterRenderer()->getCommonDescriptorSet();
-            descriptorSets.push_back(pCommonDescriptorSet);
-
-            // ONLY TEMPORARELY UPDATE FONT DETAILS UBO DATA HERE..
-            FontDetails updatedDetails = { (float)pBatchFont->getTextureAtlasRowCount() };
-            _pDetailsUniformBuffer[0]->update(&updatedDetails, sizeof(FontDetails));
-
-            // Font details descriptor set
-            if (_detailsDescriptorSet.empty())
-            {
-                Debug::log(
-                    "@FontRenderer::render "
-                    "Font details Descriptor Sets were empty!",
-                    Debug::MessageType::PK_FATAL_ERROR
-                );
-                continue;
-            }
-            else if (_detailsDescriptorSet[pBatchFont].empty())
-            {
-                Debug::log(
-                    "@FontRenderer::render "
-                    "Font details Descriptor Sets were empty for batch identifier: " + std::to_string(pBatch->getIdentifier()),
-                    Debug::MessageType::PK_FATAL_ERROR
-                );
-                continue;
-            }
-            descriptorSets.push_back(_detailsDescriptorSet[pBatchFont][0]);
-
             // FOR TESTING: only using texture descriptor set..
             if (_textureDescriptorSet.size() > 0)
             {
@@ -426,6 +373,23 @@ namespace pk
                     descriptorSets.push_back(pDescriptorSet);
                 }
             }
+
+            FontPushConstants updatedPushConstants =
+            {
+                pCamera->getProjMat2D(),
+                (float)pBatchFont->getTextureAtlasRowCount()
+            };
+
+            pRenderCmd->pushConstants(
+                pCurrentCmdBuf,
+                ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
+                0, sizeof(FontPushConstants),
+                &updatedPushConstants,
+                {
+                    { 0, ShaderDataType::Mat4 },
+                    { 1, ShaderDataType::Float },
+                }
+            );
 
             pRenderCmd->bindDescriptorSets(
                 pCurrentCmdBuf,
@@ -461,8 +425,6 @@ namespace pk
 
         // TODO: get font and font's texture from component
         Texture_new* pTexture = _pFont->accessTexture();
-        Font* pFont = _pFont;
-
         const size_t swapchainImages = Application::get()->getWindow()->getSwapchain()->getImageCount();
         if (pTexture)
         {
@@ -479,30 +441,6 @@ namespace pk
                 }
             }
         }
-        if (pFont)
-        {
-            if (_detailsDescriptorSet.find(pFont) == _detailsDescriptorSet.end())
-            {
-                for (int i = 0; i < swapchainImages; ++i)
-                {
-                    if (_pDetailsUniformBuffer.size() < swapchainImages)
-                    {
-                        Debug::log(
-                            "@FontRenderer::createDescriptorSets "
-                            "Not enough allocated buffers to create Font Details Descriptor Sets",
-                            Debug::MessageType::PK_FATAL_ERROR
-                        );
-                        return;
-                    }
-                    DescriptorSet* pDescriptorSet = new DescriptorSet(
-                        _detailsDescriptorSetLayout,
-                        1,
-                        { _pDetailsUniformBuffer[i] }
-                    );
-                    _detailsDescriptorSet[pFont].push_back(pDescriptorSet);
-                }
-            }
-        }
     }
 
     void FontRenderer::freeDescriptorSets()
@@ -513,13 +451,6 @@ namespace pk
             for (DescriptorSet* p : tdsIt->second)
                 delete p;
             tdsIt->second.clear();
-        }
-        std::unordered_map<Font*, std::vector<DescriptorSet*>>::iterator ddsIt;
-        for (ddsIt =_detailsDescriptorSet.begin(); ddsIt != _detailsDescriptorSet.end(); ++ddsIt)
-        {
-            for (DescriptorSet* p : ddsIt->second)
-                delete p;
-            ddsIt->second.clear();
         }
     }
 
@@ -543,29 +474,6 @@ namespace pk
                     { pTexture }
                 );
                 _textureDescriptorSet[pTexture].push_back(pDescriptorSet);
-            }
-        }
-        std::unordered_map<Font*, std::vector<DescriptorSet*>>::iterator ddsIt;
-        for (ddsIt = _detailsDescriptorSet.begin(); ddsIt != _detailsDescriptorSet.end(); ++ddsIt)
-        {
-            Font* pFont = ddsIt->first;
-            for (int i = 0; i < swapchainImages; ++i)
-            {
-                if (_pDetailsUniformBuffer.size() < swapchainImages)
-                {
-                    Debug::log(
-                        "@FontRenderer::recreateDescriptorSets "
-                        "Not enough allocated buffers to create Font Details Descriptor Sets",
-                        Debug::MessageType::PK_FATAL_ERROR
-                    );
-                    break;
-                }
-                DescriptorSet* pDescriptorSet = new DescriptorSet(
-                    _detailsDescriptorSetLayout,
-                    1,
-                    { _pDetailsUniformBuffer[i] }
-                );
-                _detailsDescriptorSet[pFont].push_back(pDescriptorSet);
             }
         }
         Debug::log("___TEST___GUI RENDERER RECREATED DESCRIPTOR SETS!");

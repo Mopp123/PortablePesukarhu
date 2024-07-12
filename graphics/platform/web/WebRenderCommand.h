@@ -60,6 +60,16 @@ namespace pk
                 const std::vector<const DescriptorSet*>& descriptorSets
             );
 
+            virtual void pushConstants(
+                CommandBuffer* pCmdBuf,
+                //pipelineLayout,
+                ShaderStageFlagBits shaderStageFlags,
+                uint32_t offset,
+                uint32_t size,
+                const void* pValues,
+                std::vector<UniformInfo> glUniformInfo // Only used on opengl side
+            );
+
             virtual void draw(
                 CommandBuffer* pCmdBuf,
                 uint32_t vertexCount,

@@ -75,7 +75,9 @@ namespace pk
             CullMode cullMode,
             FrontFace frontFace,
             bool enableDepthTest,
-            DepthCompareOperation depthCmpOp
+            DepthCompareOperation depthCmpOp,
+            uint32_t pushConstantSize,
+	    uint32_t pushConstantStageFlags
         )
         {}
 
