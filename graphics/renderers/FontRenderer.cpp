@@ -41,7 +41,7 @@ namespace pk
         {
             vec2 vpos = vertexPos;
             gl_Position = common.projMat * vec4((vpos * scale) + pos, 0, 1.0);
-            var_uvCoord = vpos * vec2(1.0, -1.0);
+            var_uvCoord = (vpos * vec2(1.0, -1.0) + texOffset) / fontDetails.atlasRows;
             var_color = color;
         }
     )";
@@ -54,12 +54,15 @@ namespace pk
 
         uniform sampler2D texSampler;
 
-
         void main()
         {
-            vec4 texColor = texture2D(texSampler, var_uvCoord);
-            gl_FragColor = texColor;
-            //gl_FragColor = vec4(var_uvCoord.x, var_uvCoord.y, 0.0, 1.0);
+	    vec4 texColor = texture2D(texSampler, var_uvCoord);
+	    vec4 finalColor = var_color * texColor.a * 1.0; // The last * 1.0 is thickness..
+
+	    if(texColor.a <= 0.0)
+	        discard;
+
+	    gl_FragColor = vec4(finalColor.rgb, 1.0);
         }
     )";
 
@@ -163,7 +166,7 @@ namespace pk
 
         // Allocate initial details uniform buffer
         const size_t swapchainImages = Application::get()->getWindow()->getSwapchain()->getImageCount();
-        FontDetails initialDetails { 1.0f };
+        FontDetails initialDetails { 10.0f };
         for (size_t i = 0; i < swapchainImages; ++i)
         {
             _pDetailsUniformBuffer.push_back(
@@ -250,11 +253,11 @@ namespace pk
         }
 
         vec2 position(transform[0 + 3 * 4], transform[1 + 3 * 4]);
-        const vec4 color = vec4(pRenderable->color, 1.0f);
+        const vec3& color = pRenderable->color;
 
         // TODO: Quit supporting dynamic scaling -> makes text look just shit atm..
-        float scaleFactorX = 10.0f; //0.625f; // 0.5f + (std::sin(s_TEST_anim) + 1.0f) * 0.5f;// 1.0f; // Atm scaling is disabled with webgl...
-        float scaleFactorY = 10.0f; //0.625f; // 0.5f + (std::sin(s_TEST_anim) + 1.0f) * 0.5f;// 1.0f;
+        float scaleFactorX = 1.0f; //0.625f; // 0.5f + (std::sin(s_TEST_anim) + 1.0f) * 0.5f;// 1.0f; // Atm scaling is disabled with webgl...
+        float scaleFactorY = 1.0f; //0.625f; // 0.5f + (std::sin(s_TEST_anim) + 1.0f) * 0.5f;// 1.0f;
 
         const float originalX = position.x;
         float posX = originalX;
@@ -266,7 +269,6 @@ namespace pk
         const std::unordered_map<char, FontGlyphData>& glyphMapping = _pFont->getGlyphMapping();
 
         PK_id batchIdentifier = ((Resource*)_pFont)->getResourceID();
-
         for (char c : str)
         {
             // Check, do we want to change line?
@@ -276,11 +278,9 @@ namespace pk
                 posX = originalX;
                 continue;
             }
-            // If this was just an empy space -> add to next posX and continue..
+            // Empty space uses font specific details so no any special cases here..
             else if (c == ' ')
             {
-                posX += charWidth;
-                continue;
             }
             // Make sure not draw nulldtm chars accidentally..
             else if (c == 0)
@@ -295,10 +295,10 @@ namespace pk
             float y = posY + (float)glyphData.bearingY - charHeight;
 
             float renderableData[s_instanceBufferComponents] = {
-                x, y,
-                charWidth, charHeight,
+                (float)(int)x, (float)(int)y,
+                (float)(int)charWidth, (float)(int)charHeight,
                 (float)glyphData.texOffsetX, (float)glyphData.texOffsetY,
-                color.x, color.y, color.z, color.w,
+                color.x, color.y, color.z, 1.0f
             };
             _batchContainer.addData(renderableData, sizeof(float) * s_instanceBufferComponents, batchIdentifier);
 

@@ -32,6 +32,14 @@ namespace pk
         {
         }
 
+        TextRenderable(const TextRenderable& other) :
+            UIRenderableComponent(other._type),
+            _txt(other._txt),
+            _bold(other._bold),
+            color(other.color)
+        {
+        }
+
         inline std::string& accessStr() { return _txt; }
         inline void setColor(const vec3 color) { this->color = color; }
         inline const std::string& getStr() const { return _txt; }
