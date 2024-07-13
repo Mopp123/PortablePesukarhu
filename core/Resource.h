@@ -13,7 +13,10 @@ namespace pk
         RESOURCE_NONE = 0,
         RESOURCE_IMAGE,
         RESOURCE_TEXTURE,
-        RESOURCE_FONT
+        RESOURCE_FONT,
+        RESOURCE_MATERIAL,
+        RESOURCE_MESH,
+        RESOURCE_MODEL
     };
 
 
