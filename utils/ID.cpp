@@ -4,7 +4,6 @@
 #include "core/Debug.h"
 #include <cstring>
 
-
 namespace pk
 {
     std::set<uint32_t> ID::s_usedIDs;

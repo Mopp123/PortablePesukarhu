@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Component.h"
-#include "../../../graphics/Texture.h"
+#include "ecs/components/Component.h"
+#include "utils/ID.h"
 
 
 namespace pk
@@ -9,11 +9,11 @@ namespace pk
     class Static3DRenderable : public Component
     {
     public:
-        Texture* pTexture; // TODO: Material systems things rather than just texture
+        PK_id meshID = 0;
+        PK_id materialID = 0;
 
-        Static3DRenderable(Texture* pTexture) :
-            Component(ComponentType::PK_RENDERABLE_STATIC3D),
-            pTexture(pTexture)
+        Static3DRenderable() :
+            Component(ComponentType::PK_RENDERABLE_STATIC3D)
         {}
     };
 }
