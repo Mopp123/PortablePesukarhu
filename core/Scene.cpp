@@ -287,7 +287,8 @@ namespace pk
         float yaw
     )
     {
-        const Window* window = Application::get()->getWindow();
+        Application* pApp = Application::get();
+        const Window* window = pApp->getWindow();
 
         const float windowWidth = (float)window->getWidth();
         const float windowHeight = (float)window->getHeight();
@@ -301,6 +302,7 @@ namespace pk
         addComponent(target, pCamera);
         createTransform(target, position, { 1,1,1 }, pitch, yaw);
 
+        pApp->accessInputManager()->addWindowResizeEvent(new CameraWindowResizeEvent(*pCamera));
         return pCamera;
     }
 

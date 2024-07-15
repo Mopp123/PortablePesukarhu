@@ -2,13 +2,12 @@
 
 #include "Component.h"
 #include "Transform.h"
-
-#include "../../utils/pkmath.h"
+#include "utils/pkmath.h"
+#include "core/input/InputEvent.h"
 
 
 namespace pk
 {
-
     class Camera : public Component
     {
     private:
@@ -26,6 +25,15 @@ namespace pk
 
         inline const mat4& getProjMat2D() const { return _projMat2D; }
         inline const mat4& getProjMat3D() const { return _projMat3D; }
+    };
 
+
+    class CameraWindowResizeEvent : public WindowResizeEvent
+    {
+    private:
+        Camera& _camRef;
+    public:
+        CameraWindowResizeEvent(Camera& cam) : _camRef(cam) {}
+        virtual void func(int w, int h);
     };
 }
