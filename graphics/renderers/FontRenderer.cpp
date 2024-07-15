@@ -194,6 +194,13 @@ namespace pk
     )
     {
         // TODO: Delete below and add fonts to TextRenderables!
+        Application* pApp = Application::get();
+        ResourceManager& resManager = pApp->getResourceManager();
+        std::vector<Resource*> fonts = resManager.getResourcesOfType(ResourceType::RESOURCE_FONT);
+        if (fonts.empty())
+            return;
+        _pFont = (Font*)fonts[0];
+
         if (!_pFont)
         {
             Debug::log(
@@ -201,6 +208,30 @@ namespace pk
                 Debug::MessageType::PK_FATAL_ERROR
             );
             return;
+        }
+        PK_id batchIdentifier = ((Resource*)_pFont)->getResourceID();
+        Texture_new* pTexture = _pFont->accessTexture();
+
+        // Create descriptor sets if necessary
+        if (_descriptorSets.find(batchIdentifier) == _descriptorSets.end())
+        {
+            const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
+            uint32_t swapchainImages = pSwapchain->getImageCount();
+            std::vector<DescriptorSet*> pDescriptorSets(swapchainImages);
+            for (uint32_t i = 0; i < swapchainImages; ++i)
+            {
+                DescriptorSet* pDescriptorSet = new DescriptorSet(
+                    _textureDescSetLayout,
+                    1,
+                    { pTexture }
+                );
+                pDescriptorSets[i] = pDescriptorSet;
+            }
+            _descriptorSets[batchIdentifier] = { pDescriptorSets };
+            Debug::log(
+                "@FontRenderer::submit "
+                "Descriptor sets created for new batch with id: " + std::to_string(batchIdentifier)
+            );
         }
 
         const TextRenderable * const pRenderable = (const TextRenderable * const)renderableComponent;
@@ -231,7 +262,6 @@ namespace pk
 
         const std::unordered_map<char, FontGlyphData>& glyphMapping = _pFont->getGlyphMapping();
 
-        PK_id batchIdentifier = ((Resource*)_pFont)->getResourceID();
         for (char c : str)
         {
             // Check, do we want to change line?
@@ -353,27 +383,6 @@ namespace pk
                 vertexBuffers
             );
 
-            std::vector<const DescriptorSet*> descriptorSets;
-            // FOR TESTING: only using texture descriptor set..
-            if (_textureDescriptorSet.size() > 0)
-            {
-                std::unordered_map<Texture_new*, std::vector<DescriptorSet*>>::const_iterator it = _textureDescriptorSet.find(pBatchTexture);
-                if (it == _textureDescriptorSet.end())
-                {
-                    Debug::log(
-                        "@FontRenderer::render "
-                        "Failed to find texture descriptor set for batch identifier: " + std::to_string(pBatch->getIdentifier()),
-                        Debug::MessageType::PK_FATAL_ERROR
-                    );
-                    continue;
-                }
-                else
-                {
-                    DescriptorSet* pDescriptorSet = (*it).second[0]; // [0] cuz no explicit double or > buffering atm!
-                    descriptorSets.push_back(pDescriptorSet);
-                }
-            }
-
             FontPushConstants updatedPushConstants =
             {
                 pCamera->getProjMat2D(),
@@ -391,11 +400,28 @@ namespace pk
                 }
             );
 
+            std::unordered_map<PK_id, BatchDescriptorSets>::const_iterator descSetIt =  _descriptorSets.find(pBatch->getIdentifier());
+            if (descSetIt == _descriptorSets.end())
+            {
+                Debug::log(
+                    "@FontRenderer::render "
+                    "Couldn't find descriptor sets for batchID: " + std::to_string(pBatch->getIdentifier()),
+                    Debug::MessageType::PK_ERROR
+                );
+                continue;
+            }
+            // TODO: switch below [0] to [current swapchaing img index] when dealing with actual
+            // swapchain stuff..
+            std::vector<const DescriptorSet*> toBind =
+            {
+                descSetIt->second.pTextureDescriptorSet[0]
+            };
+
             pRenderCmd->bindDescriptorSets(
                 pCurrentCmdBuf,
                 PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
                 0,
-                descriptorSets
+                toBind
             );
 
             pRenderCmd->drawIndexed(pCurrentCmdBuf, 6, pBatch->getInstanceCount(), 0, 0, 0);
@@ -413,69 +439,15 @@ namespace pk
         _batchContainer.clear();
     }
 
-    void FontRenderer::createDescriptorSets(Component* pComponent)
-    {
-        // TODO: Delete below and add fonts to TextRenderables!
-        Application* pApp = Application::get();
-        ResourceManager& resManager = pApp->getResourceManager();
-        std::vector<Resource*> fonts = resManager.getResourcesOfType(ResourceType::RESOURCE_FONT);
-        if (fonts.empty())
-            return;
-        _pFont = (Font*)fonts[0];
-
-        // TODO: get font and font's texture from component
-        Texture_new* pTexture = _pFont->accessTexture();
-        const size_t swapchainImages = Application::get()->getWindow()->getSwapchain()->getImageCount();
-        if (pTexture)
-        {
-            if (_textureDescriptorSet.find(pTexture) == _textureDescriptorSet.end())
-            {
-                for (int i = 0; i < swapchainImages; ++i)
-                {
-                    DescriptorSet* pDescriptorSet = new DescriptorSet(
-                        _textureDescSetLayout,
-                        1,
-                        { pTexture }
-                    );
-                    _textureDescriptorSet[pTexture].push_back(pDescriptorSet);
-                }
-            }
-        }
-    }
-
     void FontRenderer::freeDescriptorSets()
     {
-        std::unordered_map<Texture_new*, std::vector<DescriptorSet*>>::iterator tdsIt;
-        for (tdsIt =_textureDescriptorSet.begin(); tdsIt != _textureDescriptorSet.end(); ++tdsIt)
+        std::unordered_map<PK_id, BatchDescriptorSets>::iterator it;
+        for (it = _descriptorSets.begin(); it != _descriptorSets.end(); ++it)
         {
-            for (DescriptorSet* p : tdsIt->second)
-                delete p;
-            tdsIt->second.clear();
+            for (DescriptorSet* pDescriptorSet : it->second.pTextureDescriptorSet)
+                delete pDescriptorSet;
+            it->second.pTextureDescriptorSet.clear();
         }
-    }
-
-    void FontRenderer::recreateDescriptorSets()
-    {
-        // NOTE: This does not touch the already created "Texture - keys"
-        // in the _textureDescriptorSets map! It only deletes the actual
-        // descriptor sets and empties the vector they are contained in!
-        freeDescriptorSets();
-        // Create new descriptor sets for each existing key
-        const size_t swapchainImages = Application::get()->getWindow()->getSwapchain()->getImageCount();
-        std::unordered_map<Texture_new*, std::vector<DescriptorSet*>>::iterator tdsIt;
-        for (tdsIt = _textureDescriptorSet.begin(); tdsIt != _textureDescriptorSet.end(); ++tdsIt)
-        {
-            Texture_new* pTexture = tdsIt->first;
-            for (int i = 0; i < swapchainImages; ++i)
-            {
-                DescriptorSet* pDescriptorSet = new DescriptorSet(
-                    _textureDescSetLayout,
-                    1,
-                    { pTexture }
-                );
-                _textureDescriptorSet[pTexture].push_back(pDescriptorSet);
-            }
-        }
-        Debug::log("___TEST___GUI RENDERER RECREATED DESCRIPTOR SETS!");
+        _descriptorSets.clear();
     }
 }

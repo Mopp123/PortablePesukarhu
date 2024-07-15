@@ -184,12 +184,8 @@ namespace pk
 
     void GUIRenderer::initPipeline()
     {
-        // TODO: Better way of interacting with master renderer here
-        MasterRenderer* pMasterRenderer = Application::get()->getMasterRenderer();
-        DescriptorSetLayout commonDescriptorSetLayout = pMasterRenderer->getCommonDescriptorSetLayout();
-
         std::vector<VertexBufferLayout> vbLayouts({ _vertexBufferLayout, _instanceBufferLayout });
-        std::vector<DescriptorSetLayout> descSetLayouts({commonDescriptorSetLayout, _textureDescSetLayout});
+        std::vector<DescriptorSetLayout> descSetLayouts({ _textureDescSetLayout });
 
         const Window* pWindow = Application::get()->getWindow();
         const Swapchain* pSwapchain = pWindow->getSwapchain();
@@ -210,16 +206,40 @@ namespace pk
 
     void GUIRenderer::submit(const Component* const renderableComponent, const mat4& transformation)
     {
+        const GUIRenderable * const pGuiRenderable = (const GUIRenderable * const)renderableComponent;
+
+        Texture_new* pTexture = Application::get()->getResourceManager().getWhiteTexture();
+        if (pGuiRenderable->pTexture_new)
+            pTexture = pGuiRenderable->pTexture_new;
+        PK_id batchIdentifier = pTexture->getResourceID();
+
+        // Create descriptor sets if necessary
+        if (_descriptorSets.find(batchIdentifier) == _descriptorSets.end())
+        {
+            const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
+            uint32_t swapchainImages = pSwapchain->getImageCount();
+            std::vector<DescriptorSet*> pDescriptorSets(swapchainImages);
+            for (uint32_t i = 0; i < swapchainImages; ++i)
+            {
+                DescriptorSet* pDescriptorSet = new DescriptorSet(
+                    _textureDescSetLayout,
+                    1,
+                    { pTexture }
+                );
+                pDescriptorSets[i] = pDescriptorSet;
+            }
+            _descriptorSets[batchIdentifier] = { pDescriptorSets };
+            Debug::log(
+                "@GUIRenderer::submit "
+                "Descriptor sets created for new batch with id: " + std::to_string(batchIdentifier)
+            );
+        }
+
         vec2 pos(transformation[0 + 3 * 4], transformation[1 + 3 * 4]);
         vec2 scale(transformation[0 + 0 * 4], transformation[1 + 1 * 4]);
 
-        const GUIRenderable * const pGuiRenderable = (const GUIRenderable * const)renderableComponent;
         const vec4 color = vec4(pGuiRenderable->color, 1.0f);
         const vec4& borderColor = pGuiRenderable->borderColor;
-
-        PK_id batchIdentifier = Application::get()->getResourceManager().getWhiteTexture()->getResourceID();
-        if (pGuiRenderable->pTexture_new)
-            batchIdentifier = pGuiRenderable->pTexture_new->getResourceID();
 
         float renderableData[s_instanceBufferComponents] = {
             pos.x, pos.y,
@@ -268,7 +288,7 @@ namespace pk
         pRenderCmd->setViewport(
             pCurrentCmdBuf,
             0, 0,
-            pWindow->getWidth(), pWindow->getHeight(),
+            pWindow->getSurfaceWidth(), pWindow->getSurfaceHeight(),
             0.0f, 1.0f
         );
 
@@ -313,26 +333,6 @@ namespace pk
                 vertexBuffers
             );
 
-            std::vector<const DescriptorSet*> descriptorSets;
-            // FOR TESTING: only using first texture descriptor set..
-            if (_textureDescriptorSets.size() > 0)
-            {
-                std::unordered_map<Texture_new*, std::vector<DescriptorSet*>>::const_iterator it = _textureDescriptorSets.find(pBatchTexture);
-                if (it == _textureDescriptorSets.end())
-                {
-                    Debug::log(
-                        "@GUIRenderer::render "
-                        "Failed to find texture descriptor set for batch identifier: " + std::to_string(pBatch->getIdentifier()),
-                        Debug::MessageType::PK_FATAL_ERROR
-                    );
-                    continue;
-                }
-                else
-                {
-                    DescriptorSet* pDescriptorSet = (*it).second[0]; // [0] cuz no explicit double or > buffering atm!
-                    descriptorSets.push_back(pDescriptorSet);
-                }
-            }
             pRenderCmd->pushConstants(
                 pCurrentCmdBuf,
                 ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
@@ -341,11 +341,29 @@ namespace pk
                 &pCamera->getProjMat2D(),
                 { { 0, ShaderDataType::Mat4 } }
             );
+
+            std::unordered_map<PK_id, BatchDescriptorSets>::const_iterator descSetIt =  _descriptorSets.find(pBatch->getIdentifier());
+            if (descSetIt == _descriptorSets.end())
+            {
+                Debug::log(
+                    "@GUIRenderer::render "
+                    "Couldn't find descriptor sets for batchID: " + std::to_string(pBatch->getIdentifier()),
+                    Debug::MessageType::PK_ERROR
+                );
+                continue;
+            }
+            // TODO: switch below [0] to [current swapchaing img index] when dealing with actual
+            // swapchain stuff..
+            std::vector<const DescriptorSet*> toBind =
+            {
+                descSetIt->second.pTextureDescriptorSet[0]
+            };
+
             pRenderCmd->bindDescriptorSets(
                 pCurrentCmdBuf,
                 PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
                 0,
-                descriptorSets
+                toBind
             );
 
             pRenderCmd->drawIndexed(pCurrentCmdBuf, 6, pBatch->getInstanceCount(), 0, 0, 0);
@@ -363,62 +381,15 @@ namespace pk
         _batchContainer.clear();
     }
 
-    void GUIRenderer::createDescriptorSets(Component* pComponent)
-    {
-        Texture_new* pTexture = Application::get()->getResourceManager().getWhiteTexture();
-        if (((GUIRenderable*)pComponent)->pTexture_new)
-            pTexture = ((GUIRenderable*)pComponent)->pTexture_new;
-        if (pTexture)
-        {
-            if (_textureDescriptorSets.find(pTexture) == _textureDescriptorSets.end())
-            {
-                const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
-                for (int i = 0; i < pSwapchain->getImageCount(); ++i)
-                {
-                    DescriptorSet* pDescriptorSet = new DescriptorSet(
-                        _textureDescSetLayout,
-                        1,
-                        { pTexture }
-                    );
-                    _textureDescriptorSets[pTexture].push_back(pDescriptorSet);
-                }
-            }
-        }
-    }
-
     void GUIRenderer::freeDescriptorSets()
     {
-        std::unordered_map<Texture_new*, std::vector<DescriptorSet*>>::iterator it;
-        for (it = _textureDescriptorSets.begin(); it != _textureDescriptorSets.end(); ++it)
+        std::unordered_map<PK_id, BatchDescriptorSets>::iterator it;
+        for (it = _descriptorSets.begin(); it != _descriptorSets.end(); ++it)
         {
-            for (DescriptorSet* pDescriptorSet : (*it).second)
+            for (DescriptorSet* pDescriptorSet : it->second.pTextureDescriptorSet)
                 delete pDescriptorSet;
-            (*it).second.clear();
+            it->second.pTextureDescriptorSet.clear();
         }
-    }
-
-    void GUIRenderer::recreateDescriptorSets()
-    {
-        // NOTE: This does not touch the already created "Texture - keys"
-        // in the _textureDescriptorSets map! It only deletes the actual
-        // descriptor sets and empties the vector they are contained in!
-        freeDescriptorSets();
-        // Create new descriptor sets for each existing key
-        std::unordered_map<Texture_new*, std::vector<DescriptorSet*>>::iterator it;
-        const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
-        for (it = _textureDescriptorSets.begin(); it != _textureDescriptorSets.end(); ++it)
-        {
-            Texture_new* pTexture = (*it).first;
-            for (int i = 0; i < pSwapchain->getImageCount(); ++i)
-            {
-                DescriptorSet* pDescriptorSet = new DescriptorSet(
-                    _textureDescSetLayout,
-                    1,
-                    { pTexture }
-                );
-                _textureDescriptorSets[pTexture].push_back(pDescriptorSet);
-            }
-        }
-        Debug::log("___TEST___GUI RENDERER RECREATED DESCRIPTOR SETS!");
+        _descriptorSets.clear();
     }
 }

@@ -167,12 +167,9 @@ namespace pk
         // (because those containers get filled each frame)
         virtual void flush() {}
 
-        // Every time renderable component gets added to scene, the
-        // appropriate renderer calls this to setup descriptor sets
-        // for rendering the renderable (NOTE: Doesnt necessarely create
-        // new descriptor sets for every component. This should check
-        // if it is necessary to create some new descriptor sets
-        // depending on the renderable)
+        // Responsible for creating descriptor sets depending on the needs of the component.
+        // On submit(...) should be checked does component have appropriate descriptor sets
+        // already created. If no -> call this
         virtual void createDescriptorSets(Component* pComponent) {}
 
     protected:
@@ -180,9 +177,6 @@ namespace pk
         // so thats why we need this implemented for all renderers
         virtual void initPipeline() {}
         virtual void freeDescriptorSets() {}
-        // This is to recreate already initially created descriptor sets for example
-        // if swapchain image count changes on window resize.
-        virtual void recreateDescriptorSets() {}
     };
 
 }

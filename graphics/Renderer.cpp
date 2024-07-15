@@ -236,7 +236,7 @@ namespace pk
                 pBuf->allocate();
             }
         }
-        recreateDescriptorSets();
+        freeDescriptorSets();
         initPipeline();
     }
 }
