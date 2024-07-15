@@ -132,7 +132,8 @@ namespace pk
         ~BatchContainer();
         // NOTE: Doesnt work when occupying new batch if batch exists with inputted
         // batchIdentifier
-        void addData(const void* data, size_t dataSize, PK_id batchIdentifier);
+        // Returns true if added successfully
+        bool addData(const void* data, size_t dataSize, PK_id batchIdentifier);
         void clear();
 
         const Batch* getBatch(PK_id batchIdentifier) const;

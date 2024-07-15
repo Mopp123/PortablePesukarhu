@@ -286,6 +286,7 @@ namespace pk
             TextRenderable* pRenderable = currentScene->createTextRenderable(
                 entityID,
                 str,
+                ((const Resource&)font).getResourceID(),
                 color,
                 bold
             );
