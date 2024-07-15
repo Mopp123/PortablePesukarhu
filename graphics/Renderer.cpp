@@ -92,7 +92,7 @@ namespace pk
             delete pBatch;
     }
 
-    void BatchContainer::addData(const void* data, size_t dataSize, PK_id batchIdentifier)
+    bool BatchContainer::addData(const void* data, size_t dataSize, PK_id batchIdentifier)
     {
         for (Batch* pBatch : _batches)
         {
@@ -102,13 +102,13 @@ namespace pk
             if (pBatch->isOccupied() && pBatch->getIdentifier() == batchIdentifier)
             {
                 pBatch->addData(data, dataSize);
-                return;
+                return true;
             }
             else if (!pBatch->isOccupied())
             {
                 pBatch->occupy(batchIdentifier);
                 pBatch->addData(data, dataSize);
-                return;
+                return true;
             }
         }
         Debug::log(
@@ -116,6 +116,7 @@ namespace pk
             "All batches were full!",
             Debug::MessageType::PK_ERROR
         );
+        return false;
 
         /*
         Batch* pFoundBatch = nullptr;

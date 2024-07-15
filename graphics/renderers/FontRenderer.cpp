@@ -61,12 +61,12 @@ namespace pk
     )";
 
     static const size_t s_instanceBufferComponents = 2 * 3 + 4;
-    static const size_t s_maxInstanceCount = 400; // per batch, not total max count!
+    static const size_t s_maxInstanceCount = 1000; // per batch, not total max count!
     FontRenderer::FontRenderer() :
         _vertexBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
         _instanceBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
         _textureDescSetLayout({}),
-        _batchContainer(10, (sizeof(float) * s_instanceBufferComponents) * s_maxInstanceCount)
+        _batchContainer(5, (sizeof(float) * s_instanceBufferComponents) * s_maxInstanceCount)
     {
         _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
         _pFragmentShader = Shader::create(s_fragmentSource, ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT);
@@ -193,48 +193,21 @@ namespace pk
         const mat4& transform
     )
     {
-        // TODO: Delete below and add fonts to TextRenderables!
-        Application* pApp = Application::get();
-        ResourceManager& resManager = pApp->getResourceManager();
-        std::vector<Resource*> fonts = resManager.getResourcesOfType(ResourceType::RESOURCE_FONT);
-        if (fonts.empty())
-            return;
-        _pFont = (Font*)fonts[0];
-
-        if (!_pFont)
+        const TextRenderable * const pRenderable = (const TextRenderable * const)renderableComponent;
+        if (pRenderable->fontID == 0)
         {
             Debug::log(
-                "@FontRenderer::addToBatch _pFont not assigned!",
+                "@FontRenderer::submit "
+                "Submitted renderable's fontID was null",
                 Debug::MessageType::PK_FATAL_ERROR
             );
             return;
         }
-        PK_id batchIdentifier = ((Resource*)_pFont)->getResourceID();
-        Texture_new* pTexture = _pFont->accessTexture();
+        Application* pApp = Application::get();
+        ResourceManager& resManager = pApp->getResourceManager();
+        PK_id batchIdentifier = pRenderable->fontID;
+        Font* pFont = (Font*)resManager.getResource(batchIdentifier);
 
-        // Create descriptor sets if necessary
-        if (_descriptorSets.find(batchIdentifier) == _descriptorSets.end())
-        {
-            const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
-            uint32_t swapchainImages = pSwapchain->getImageCount();
-            std::vector<DescriptorSet*> pDescriptorSets(swapchainImages);
-            for (uint32_t i = 0; i < swapchainImages; ++i)
-            {
-                DescriptorSet* pDescriptorSet = new DescriptorSet(
-                    _textureDescSetLayout,
-                    1,
-                    { pTexture }
-                );
-                pDescriptorSets[i] = pDescriptorSet;
-            }
-            _descriptorSets[batchIdentifier] = { pDescriptorSets };
-            Debug::log(
-                "@FontRenderer::submit "
-                "Descriptor sets created for new batch with id: " + std::to_string(batchIdentifier)
-            );
-        }
-
-        const TextRenderable * const pRenderable = (const TextRenderable * const)renderableComponent;
         const std::string& str = pRenderable->getStr();
         if (str.size() >= s_maxInstanceCount)
         {
@@ -257,10 +230,10 @@ namespace pk
         float posX = originalX;
         float posY = position.y;
 
-        float charWidth = _pFont->getTilePixelWidth() * scaleFactorX;
-        float charHeight = _pFont->getTilePixelWidth() * scaleFactorY;
+        float charWidth = pFont->getTilePixelWidth() * scaleFactorX;
+        float charHeight = pFont->getTilePixelWidth() * scaleFactorY;
 
-        const std::unordered_map<char, FontGlyphData>& glyphMapping = _pFont->getGlyphMapping();
+        const std::unordered_map<char, FontGlyphData>& glyphMapping = pFont->getGlyphMapping();
 
         for (char c : str)
         {
@@ -293,7 +266,50 @@ namespace pk
                 (float)glyphData.texOffsetX, (float)glyphData.texOffsetY,
                 color.x, color.y, color.z, 1.0f
             };
-            _batchContainer.addData(renderableData, sizeof(float) * s_instanceBufferComponents, batchIdentifier);
+
+            // Create descriptor sets if necessary BUT ONLY if added to batch successfully
+            if (_batchContainer.addData(renderableData, sizeof(float) * s_instanceBufferComponents, batchIdentifier))
+            {
+                if (_descriptorSets.find(batchIdentifier) == _descriptorSets.end())
+                {
+                    if (!pFont)
+                    {
+                        Debug::log(
+                            "@FontRenderer::submit "
+                            "Failed to find font resource with id: " + std::to_string(batchIdentifier),
+                            Debug::MessageType::PK_FATAL_ERROR
+                        );
+                        return;
+                    }
+                    Texture_new* pTexture = pFont->accessTexture();
+                    if (!pTexture)
+                    {
+                        Debug::log(
+                            "@FontRenderer::submit "
+                            "Font's texture was nullptr",
+                            Debug::MessageType::PK_FATAL_ERROR
+                        );
+                        return;
+                    }
+                    const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
+                    uint32_t swapchainImages = pSwapchain->getImageCount();
+                    std::vector<DescriptorSet*> pDescriptorSets(swapchainImages);
+                    for (uint32_t i = 0; i < swapchainImages; ++i)
+                    {
+                        DescriptorSet* pDescriptorSet = new DescriptorSet(
+                            _textureDescSetLayout,
+                            1,
+                            { pTexture }
+                        );
+                        pDescriptorSets[i] = pDescriptorSet;
+                    }
+                    _descriptorSets[batchIdentifier] = { pDescriptorSets };
+                    Debug::log(
+                        "@FontRenderer::submit "
+                        "Descriptor sets created for new batch with id: " + std::to_string(batchIdentifier)
+                    );
+                }
+            }
 
             // NOTE: Don't quite understand this.. For some reason on some fonts >> 7 works better...
             posX += ((float)(glyphData.advance >> 6)) * scaleFactorX; // now advance cursors for next glyph (note that advance is number of 1/64 pixels). bitshift by 6 to get value in pixels (2^6 = 64) | OLD COMMENT: 2^5 = 32 (pixel size of the font..)
@@ -302,9 +318,6 @@ namespace pk
 
     void FontRenderer::render(const Camera& cam)
     {
-        if (!_pFont)
-            return;
-
         if (!_pPipeline)
         {
             Debug::log(

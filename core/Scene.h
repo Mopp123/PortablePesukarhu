@@ -81,6 +81,7 @@ namespace pk
         TextRenderable* createTextRenderable(
             entityID_t target,
             const std::string& txt,
+            PK_id fontID,
             vec3 color,
             bool bold = false
         );

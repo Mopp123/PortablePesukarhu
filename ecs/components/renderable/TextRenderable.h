@@ -2,6 +2,7 @@
 
 #include "UIRenderableComponent.h"
 #include "../../../utils/pkmath.h"
+#include "utils/ID.h"
 #include <string>
 
 
@@ -15,20 +16,23 @@ namespace pk
 
     public:
         vec3 color;
+        PK_id fontID = 0;
 
-        TextRenderable(const std::string& txt, bool bold = false) :
+        TextRenderable(const std::string& txt, PK_id font, bool bold = false) :
             UIRenderableComponent(ComponentType::PK_RENDERABLE_TEXT),
             _txt(txt),
             _bold(bold),
-            color(1, 1, 1)
+            color(1, 1, 1),
+            fontID(font)
         {
         }
 
-        TextRenderable(const std::string& txt, vec3 color, bool bold = false) :
+        TextRenderable(const std::string& txt, PK_id font, vec3 color, bool bold = false) :
             UIRenderableComponent(ComponentType::PK_RENDERABLE_TEXT),
             _txt(txt),
             _bold(bold),
-            color(color)
+            color(color),
+            fontID(font)
         {
         }
 
@@ -36,7 +40,8 @@ namespace pk
             UIRenderableComponent(other._type),
             _txt(other._txt),
             _bold(other._bold),
-            color(other.color)
+            color(other.color),
+            fontID(other.fontID)
         {
         }
 
@@ -44,5 +49,6 @@ namespace pk
         inline void setColor(const vec3 color) { this->color = color; }
         inline const std::string& getStr() const { return _txt; }
         inline bool isBold() const { return _bold; }
+        inline PK_id getFontID() const { return fontID; }
     };
 }

@@ -148,7 +148,7 @@ namespace pk
     {
         const Window* pWindow = Application::get()->getWindow();
         // TESTING
-       // glViewport(0, 0, pWindow->getSurfaceWidth(), pWindow->getSurfaceHeight());
+        glViewport(0, 0, pWindow->getSurfaceWidth(), pWindow->getSurfaceHeight());
 
         //_pRenderCommand->resizeViewport(w, h);
         if (!pWindow->isMinimized())

@@ -44,10 +44,6 @@ namespace pk
 
         BatchContainer _batchContainer;
 
-        // Atm just testing here!
-        // TODO: Put font id to TextRenderables and allow using different fonts
-        Font* _pFont = nullptr;
-
     public:
         FontRenderer();
         ~FontRenderer();
