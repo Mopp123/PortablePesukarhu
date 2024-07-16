@@ -14,6 +14,7 @@ namespace pk
     struct CommonUniforms
     {
         mat4 projectionMatrix;
+        mat4 viewMatrix;
     };
 
     class MasterRenderer

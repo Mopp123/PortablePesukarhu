@@ -9,6 +9,7 @@
 #include "ecs/components/ui/UIElemState.h"
 #include "ecs/components/renderable/GUIRenderable.h"
 #include "ecs/components/renderable/TextRenderable.h"
+#include "ecs/components/renderable/Static3DRenderable.h"
 
 #include "../ecs/systems/System.h"
 #include "Debug.h"
@@ -84,6 +85,10 @@ namespace pk
             PK_id fontID,
             vec3 color,
             bool bold = false
+        );
+        Static3DRenderable* createStatic3DRenderable(
+            entityID_t target,
+            PK_id meshID
         );
         Camera* createCamera(
             entityID_t target,

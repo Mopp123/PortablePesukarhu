@@ -25,6 +25,7 @@ namespace pk
         // find 3d renderers
         Renderer* pTerrainRenderer = pMasterRenderer->getRenderer(ComponentType::PK_RENDERABLE_TERRAINTILE);
         Renderer* pSpriteRenderer = pMasterRenderer->getRenderer(ComponentType::PK_RENDERABLE_SPRITE3D);
+        Renderer* pStaticRenderer = pMasterRenderer->getRenderer(ComponentType::PK_RENDERABLE_STATIC3D);
 
 
         // submitting renderables
@@ -68,40 +69,7 @@ namespace pk
                 pGuiRenderer->submit(pRenderable, pTransform->getTransformationMatrix());
             }
         }
-        /*
-        size_t poolPos = 0;
-        size_t guiRenderableCount = _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_GUI).size();
-        PK_byte* pGuiPoolStorage = (PK_byte*)_pCurrentScene->componentPools[ComponentType::PK_RENDERABLE_GUI].accessStorage();
-        for (size_t i = 0; i < guiRenderableCount; ++i)
-        {
-            GUIRenderable* pRenderable = (GUIRenderable*)(pGuiPoolStorage + poolPos);
-            Component* rawTransform = _pCurrentScene->getComponent(pRenderable->getEntity(), ComponentType::PK_TRANSFORM);
-            if (pRenderable->isActive())
-            {
-                if (rawTransform)
-                {
-                    Transform* transform = (Transform*)rawTransform;
-                    pGuiRenderer->submit(pRenderable, transform->getTransformationMatrix());
-                }
-            }
-            poolPos += sizeof(GUIRenderable);
-        }
-        */
-
-        //for (const Component * const c_renderableGUI : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_GUI))
-        //{
-        //    Component* rawTransform = _pCurrentScene->getComponent(c_renderableGUI->getEntity(), ComponentType::PK_TRANSFORM);
-        //    if (c_renderableGUI->isActive())
-        //    {
-        //        if (rawTransform)
-        //        {
-        //            Transform* transform = (Transform*)rawTransform;
-        //            pGuiRenderer->submit(c_renderableGUI, transform->getTransformationMatrix());
-        //        }
-        //    }
-        //}
         // TEXT
-
         ComponentPool& renderableTextPool = _pCurrentScene->componentPools[ComponentType::PK_RENDERABLE_TEXT];
         for (const Entity& e : _pCurrentScene->entities)
         {
@@ -116,20 +84,21 @@ namespace pk
                 pFontRenderer->submit(pRenderable, pTransform->getTransformationMatrix());
             }
         }
-        /*
-        for (const Component* const c_renderableText : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_TEXT))
+        // Static 3D
+        ComponentPool& staticRenderablePool  = _pCurrentScene->componentPools[ComponentType::PK_RENDERABLE_STATIC3D];
+        for (const Entity& e : _pCurrentScene->entities)
         {
-            if (c_renderableText->isActive())
+            if (e.componentMask & ComponentType::PK_TRANSFORM &&
+                e.componentMask & ComponentType::PK_RENDERABLE_STATIC3D)
             {
-                Component* rawTransform = _pCurrentScene->getComponent(c_renderableText->getEntity(), ComponentType::PK_TRANSFORM);
-                if(rawTransform)
-                {
-                    Transform* transform = (Transform*)rawTransform;
-                    pFontRenderer->submit(c_renderableText, transform->getTransformationMatrix());
-                }
+                Static3DRenderable* pRenderable = (Static3DRenderable*)staticRenderablePool[e.id];
+                Transform* pTransform = (Transform*)transformPool[e.id];
+                if (!pRenderable->isActive())
+                    continue;
+
+                pStaticRenderer->submit(pRenderable, pTransform->getTransformationMatrix());
             }
         }
-        */
     }
 
     // triggers scene switching at the end of the frame

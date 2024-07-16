@@ -26,5 +26,6 @@ namespace pk
         virtual void save() {}
 
         const Texture_new * const getTexture(int index) const;
+        Texture_new* accessTexture(int index);
     };
 }

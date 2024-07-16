@@ -120,24 +120,14 @@ namespace pk
 
         initPipeline();
 
-        const Window* pWindow = Application::get()->getWindow();
         // Atm creating these only for quick testing here!!!
         // Static vertex buffer
-        float yPos = pWindow->getHeight() - 10;
-        float xPos = 10;
-        float scale = 200;
         float vbData[16] = {
             0, 0, 0, 1,
             0, -1, 0, 0,
             1, -1, 1, 0,
             1, 0, 1, 1
         };
-        //loat vbData[16] = {
-        //   xPos, yPos, 0, 1,
-        //   xPos, yPos - scale, 0, 0,
-        //   xPos + scale, yPos - scale, 1, 0,
-        //   xPos + scale, yPos, 1, 1
-        //;
         unsigned short indices[6] =
         {
             0, 1, 2,
@@ -273,7 +263,7 @@ namespace pk
         if (!pCamera)
         {
             Debug::log(
-                "@FontRenderer::render "
+                "@GUIRenderer::render "
                 "Scene's active camera was nullptr!",
                 Debug::MessageType::PK_ERROR
             );

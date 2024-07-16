@@ -40,16 +40,23 @@ namespace pk
             );
         }
 
-        // NOTE: May require recreating all common
-        // uniform buffers and descriptors in case
+        // NOTE: Requires recreating all common
+        // uniform buffers and descriptor sets in case
         // swapchain's img count changes for some reason!!
+        //
+        // ...WHICH IS NOT DONE HERE ATM!!!!
+        // TODO: DO THAT!!!
+        // ALSO!
+        // currently we are having just a single common ubo buffer
+        // TODO: need to have one for each swapchain image!!!
         DescriptorSetLayoutBinding commonDescriptorSetLayoutBinding(
             0,
-            1,
+            2,
             DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
             {
                 { 0, ShaderDataType::Mat4 },
+                { 1, ShaderDataType::Mat4 }
             }
         );
         _commonDescriptorSetLayout = DescriptorSetLayout({commonDescriptorSetLayoutBinding});
@@ -112,8 +119,9 @@ namespace pk
 
             // Update common uniform buffers here?...
             const mat4 projMat = cam.getProjMat2D();
+            const mat4 viewMat = cam.getProjMat3D();
 
-            CommonUniforms commonUniforms = { projMat };
+            CommonUniforms commonUniforms = { projMat, viewMat };
             _pCommonUniformBuffer->update(&commonUniforms, sizeof(CommonUniforms));
 
             // NOTE: Not sure if I like these being raw ptrs here...

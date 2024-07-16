@@ -3,7 +3,6 @@
 
 #include "ecs/components/renderable/Sprite3DRenderable.h"
 #include "ecs/components/renderable/TerrainTileRenderable.h"
-#include "ecs/components/renderable/Static3DRenderable.h"
 #include "ecs/components/lighting/Lights.h"
 
 // NOTE: Only temporarely adding all systems here on Scene's constructor!
@@ -277,6 +276,17 @@ namespace pk
     {
         TextRenderable* pRenderable = (TextRenderable*)componentPools[ComponentType::PK_RENDERABLE_TEXT].allocComponent(target);
         *pRenderable = TextRenderable(txt, fontID, color, bold);
+        addComponent(target, pRenderable);
+        return pRenderable;
+    }
+
+    Static3DRenderable* Scene::createStatic3DRenderable(
+        entityID_t target,
+        PK_id meshID
+    )
+    {
+        Static3DRenderable* pRenderable = (Static3DRenderable*)componentPools[ComponentType::PK_RENDERABLE_STATIC3D].allocComponent(target);
+        *pRenderable = Static3DRenderable(meshID);
         addComponent(target, pRenderable);
         return pRenderable;
     }

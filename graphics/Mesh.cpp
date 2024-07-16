@@ -13,4 +13,12 @@ namespace pk
         _pMaterial(pMaterial)
     {
     }
+
+    Mesh::~Mesh()
+    {
+        if (_pVertexBuffer)
+            delete _pVertexBuffer;
+        if (_pIndexBuffer)
+            delete _pIndexBuffer;
+    }
 }

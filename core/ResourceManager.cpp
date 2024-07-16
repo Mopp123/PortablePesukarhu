@@ -106,6 +106,61 @@ namespace pk
         return pTexture;
     }
 
+    Material* ResourceManager::createMaterial(
+        const std::vector<uint32_t>& textureResourceIDs
+    )
+    {
+        std::vector<Texture_new*> textures(textureResourceIDs.size());
+        for (int i = 0; i < textureResourceIDs.size(); ++i)
+        {
+            Texture_new* pTexture = (Texture_new*)getResource(textureResourceIDs[i]);
+            if (pTexture)
+                textures[i] = pTexture;
+        }
+
+        Material* pMaterial = new Material(textures);
+        _resources[pMaterial->getResourceID()] = pMaterial;
+        return pMaterial;
+    }
+
+    Mesh* ResourceManager::createMesh(
+        Buffer* pVertexBuffer,
+        Buffer* pIndexBuffer,
+        uint32_t materialResourceID
+    )
+    {
+        Material* pMaterial = (Material*)getResource(materialResourceID);
+        Mesh* pMesh = new Mesh(pVertexBuffer, pIndexBuffer, pMaterial);
+        _resources[pMesh->getResourceID()] = pMesh;
+        return pMesh;
+    }
+
+    Model* ResourceManager::loadModel(
+        const std::string& filepath
+    )
+    {
+        Debug::notify_unimplemented(
+            "ResourceManager::loadModel"
+        );
+        return nullptr;
+    }
+
+    Model* ResourceManager::createModel(
+        const std::vector<uint32_t>& meshResourceIDs
+    )
+    {
+        std::vector<Mesh*> pMeshes(meshResourceIDs.size());
+        for (int i = 0; i < meshResourceIDs.size(); ++i)
+        {
+            Mesh* pMesh = (Mesh*)getResource(meshResourceIDs[i]);
+            if (pMesh)
+                pMeshes[i] = pMesh;
+        }
+        Model* pModel = new Model(pMeshes);
+        _resources[pModel->getResourceID()] = pModel;
+        return pModel;
+    }
+
     Font* ResourceManager::createFont(
         const std::string& filepath,
         int pixelSize

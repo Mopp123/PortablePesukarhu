@@ -3,9 +3,13 @@
 #include "Resource.h"
 #include "utils/Image.h"
 #include "graphics/Texture.h"
+#include "graphics/Material.h"
+#include "graphics/Mesh.h"
+#include "graphics/Model.h"
 #include "utils/Font.h"
 #include "Common.h"
 #include "core/Debug.h"
+#include <vector>
 #include <unordered_map>
 
 
@@ -55,6 +59,25 @@ namespace pk
         Texture_new* createTexture(
             uint32_t imageResourceID,
             TextureSampler sampler
+        );
+
+        Material* createMaterial(
+            const std::vector<uint32_t>& textureResourceIDs
+        );
+
+        // NOTE: Buffers' ownership gets transferred to the created mesh!
+        Mesh* createMesh(
+            Buffer* pVertexBuffer,
+            Buffer* pIndexBuffer,
+            uint32_t materialResourceID
+        );
+
+        Model* loadModel(
+            const std::string& filepath
+        );
+
+        Model* createModel(
+            const std::vector<uint32_t>& meshResourceIDs
         );
 
         Font* createFont(
