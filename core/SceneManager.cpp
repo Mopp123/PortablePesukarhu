@@ -30,6 +30,23 @@ namespace pk
 
         // submitting renderables
 
+        ComponentPool& transformPool = _pCurrentScene->componentPools[ComponentType::PK_TRANSFORM];
+        // Static 3D
+        ComponentPool& staticRenderablePool  = _pCurrentScene->componentPools[ComponentType::PK_RENDERABLE_STATIC3D];
+        for (const Entity& e : _pCurrentScene->entities)
+        {
+            if (e.componentMask & ComponentType::PK_TRANSFORM &&
+                e.componentMask & ComponentType::PK_RENDERABLE_STATIC3D)
+            {
+                Static3DRenderable* pRenderable = (Static3DRenderable*)staticRenderablePool[e.id];
+                Transform* pTransform = (Transform*)transformPool[e.id];
+                if (!pRenderable->isActive())
+                    continue;
+
+                pStaticRenderer->submit(pRenderable, pTransform->getTransformationMatrix());
+            }
+        }
+
         // TERRAIN TILES
         //*atm we want to pass just empty tMatrix, since tile figures out its' vertex positions from the tile component itself
         //mat4 empty;
@@ -49,12 +66,7 @@ namespace pk
         //    }
         //}
 
-        //// GUI
-        // BOTTLENECK!
-        // Atm testing accessing renderable through mem pool
-
-        ComponentPool& transformPool = _pCurrentScene->componentPools[ComponentType::PK_TRANSFORM];
-
+        // GUI
         ComponentPool& renderableGUIPool = _pCurrentScene->componentPools[ComponentType::PK_RENDERABLE_GUI];
         for (const Entity& e : _pCurrentScene->entities)
         {
@@ -82,21 +94,6 @@ namespace pk
                     continue;
 
                 pFontRenderer->submit(pRenderable, pTransform->getTransformationMatrix());
-            }
-        }
-        // Static 3D
-        ComponentPool& staticRenderablePool  = _pCurrentScene->componentPools[ComponentType::PK_RENDERABLE_STATIC3D];
-        for (const Entity& e : _pCurrentScene->entities)
-        {
-            if (e.componentMask & ComponentType::PK_TRANSFORM &&
-                e.componentMask & ComponentType::PK_RENDERABLE_STATIC3D)
-            {
-                Static3DRenderable* pRenderable = (Static3DRenderable*)staticRenderablePool[e.id];
-                Transform* pTransform = (Transform*)transformPool[e.id];
-                if (!pRenderable->isActive())
-                    continue;
-
-                pStaticRenderer->submit(pRenderable, pTransform->getTransformationMatrix());
             }
         }
     }

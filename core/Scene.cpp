@@ -311,7 +311,7 @@ namespace pk
         Camera* pCamera = (Camera*)componentPools[ComponentType::PK_CAMERA].allocComponent(target);
         *pCamera = Camera(orthographicProjMat, perspectivaProjMat);
         addComponent(target, pCamera);
-        createTransform(target, position, { 1,1,1 }, pitch, yaw);
+        createTransform(target, position, { 1, 1, 1 }, pitch, yaw);
 
         pApp->accessInputManager()->addWindowResizeEvent(new CameraWindowResizeEvent(*pCamera));
         return pCamera;

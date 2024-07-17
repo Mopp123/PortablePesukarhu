@@ -32,7 +32,7 @@ namespace pk
         ~MasterRenderer();
         void addRenderer(ComponentType renderableComponentType, Renderer* renderer);
 
-        void render(const Camera& cam);
+        void render(const Camera& cameraComponent, const mat4& viewMatrix);
         void flush();
 
         Renderer* const getRenderer(ComponentType renderableType);

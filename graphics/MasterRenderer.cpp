@@ -98,7 +98,7 @@ namespace pk
         }
     }
 
-    void MasterRenderer::render(const Camera& cam)
+    void MasterRenderer::render(const Camera& cameraComponent, const mat4& viewMatrix)
     {
         RenderCommand* pRenderCommand = RenderCommand::get();
         // TODO: catch possible std::runtime_error?
@@ -118,10 +118,10 @@ namespace pk
             pRenderCommand->beginRenderPass();
 
             // Update common uniform buffers here?...
-            const mat4 projMat = cam.getProjMat2D();
-            const mat4 viewMat = cam.getProjMat3D();
-
-            CommonUniforms commonUniforms = { projMat, viewMat };
+            CommonUniforms commonUniforms = {
+                 cameraComponent.getProjMat3D(),
+                 viewMatrix
+            };
             _pCommonUniformBuffer->update(&commonUniforms, sizeof(CommonUniforms));
 
             // NOTE: Not sure if I like these being raw ptrs here...
@@ -129,7 +129,7 @@ namespace pk
             for (const auto& renderer : _renderers)
             {
                 // TODO: Switch below line to commented out style
-                renderer.second->render(cam);
+                renderer.second->render(cameraComponent);
                 // if (CommandBuffer* secondaryBuf = renderer.recordCmdBuf())
                 //     secondaryCmdBufs.push_back(secondaryBuf);
             }

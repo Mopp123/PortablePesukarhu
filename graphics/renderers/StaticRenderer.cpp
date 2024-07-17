@@ -33,7 +33,7 @@ namespace pk
 
         void main()
         {
-            gl_Position = common.projMat * common.viewMat * vec4(vertexPos, 1.0);
+            gl_Position = common.projMat * common.viewMat * renderable.transformationMat * vec4(vertexPos, 1.0);
             var_uvCoord = uvCoord;
         }
     )";
@@ -48,7 +48,7 @@ namespace pk
         void main()
         {
             vec4 texColor = texture2D(texSampler, var_uvCoord);
-            gl_FragColor = texColor + vec4(1, 1, 1, 1);
+            gl_FragColor = texColor;
         }
     )";
 
@@ -107,12 +107,12 @@ namespace pk
 
         // Atm creating these only for quick testing here!!!
         // Static vertex buffer
-        float scale = 100;
+        float scale = 10;
         float vbData[20] = {
-            -1 * scale,  1 * scale, -5.0f,   0, 1,
-            -1 * scale, -1 * scale, -5.0f,  0, 0,
-             1 * scale, -1 * scale, -5.0f,   1, 0,
-             1 * scale,  1 * scale, -5.0f,    1, 1
+            -1 * scale,  1 * scale, -1.0f,   0, 1,
+            -1 * scale, -1 * scale, -1.0f,   0, 0,
+             1 * scale, -1 * scale, -1.0f,   1, 0,
+             1 * scale,  1 * scale, -1.0f,   1, 1
         };
         unsigned short indices[6] =
         {
@@ -163,7 +163,7 @@ namespace pk
             _pVertexShader, _pFragmentShader,
             (float)viewportExtent.width, (float)viewportExtent.height,
             { 0, 0, (uint32_t)viewportExtent.width, (uint32_t)viewportExtent.height },
-            CullMode::CULL_MODE_NONE,
+            CullMode::CULL_MODE_BACK,
             FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
             true,
             DepthCompareOperation::COMPARE_OP_LESS,

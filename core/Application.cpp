@@ -18,15 +18,18 @@ namespace pk
             const Scene* currentScene = app->getCurrentScene();
             if (currentScene)
             {
-                const Camera* activeCam = (const Camera*)currentScene->getComponent(currentScene->activeCamera, ComponentType::PK_CAMERA);
+                const Camera* pCamera = (const Camera*)currentScene->getComponent(currentScene->activeCamera, ComponentType::PK_CAMERA);
+                const Transform* pCameraTransform = (const Transform*)currentScene->getComponent(currentScene->activeCamera, ComponentType::PK_TRANSFORM);
 
                 SceneManager& sceneManager = app->_sceneManager;
                 sceneManager.handleSceneUpdate();
 
                 MasterRenderer* pMasterRenderer = app->_pMasterRenderer;
-                if (activeCam != nullptr)
+                if (pCamera && pCameraTransform)
                 {
-                    pMasterRenderer->render(*activeCam);
+                    mat4 viewMatrix = pCameraTransform->getTransformationMatrix();
+                    viewMatrix.inverse();
+                    pMasterRenderer->render(*pCamera, viewMatrix);
                 }
                 else
                 {
