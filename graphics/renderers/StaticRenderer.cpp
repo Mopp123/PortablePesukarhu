@@ -176,9 +176,6 @@ namespace pk
         const mat4& transformation
     )
     {
-        Debug::log("___TEST___submitting 3d renderable!");
-        // ONLY TESTING ATM!!
-
         Application* pApp = Application::get();
         ResourceManager& resManager = pApp->getResourceManager();
         size_t swapchainImages = pApp->getWindow()->getSwapchain()->getImageCount();

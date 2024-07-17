@@ -5,7 +5,8 @@
 #include "graphics/Context.h"
 #include "Common.h"
 
-#define STB_IMAGE_IMPLEMENTATION
+// Currently STB_IMAGE_IMPLEMENTATION is defined in ModelLoading.cpp since tinygltf requires stb_image
+//#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 
