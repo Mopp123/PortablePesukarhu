@@ -1,5 +1,6 @@
 #include "ModelLoading.h"
 #include "core/Debug.h"
+#include "graphics/Buffers.h"
 #include "graphics/platform/opengl/OpenglContext.h"
 
 #define TINYGLTF_IMPLEMENTATION
@@ -43,9 +44,80 @@ namespace pk
     // TODO: get actual GLEnum values ftom specification to here!
     // Cannot use GLEnums cuz if not using opengl api, these are not defined!
     // -> those can be found from glew.h
-    static ShaderDataType gltf_accessor_component_type_to_engine(int gltfAccessorComponentType)
+    static ShaderDataType gltf_accessor_component_type_to_engine(
+        int gltfAccessorComponentType,
+        int gltfComponentCount
+    )
     {
+        // From opengl spec:
+        // float = 0x1406
+        // int = 0x1404
+        const int gltfInt = 0x1404;
+        const uint64_t gltfFloat = 0x1406;
 
+        // Fucking disgusting below XD TODO: fixit!
+        // This will be fucking disgusting million lines..
+        //  -> without some static mapping glenums to my own mapping/ datatype
+        //
+        //  TODO: What we'll need to do here is to construct ShaderDataType
+        //  from "componentType" and "component count"
+        //  into, for example: "Float3", etc
+        //
+        //  Possible solutions:
+        //      first parse type, then component count..
+
+        // int types
+        if (gltfAccessorComponentType == gltfFloat)
+        {
+            switch (gltfComponentCount)
+            {
+                case (1) :
+                    return ShaderDataType::Float;
+                case (2) :
+                    return ShaderDataType::Float2;
+                case (3) :
+                    return ShaderDataType::Float3;
+                case (4) :
+                    return ShaderDataType::Float4;
+                default:
+                    Debug::log(
+                        "@gltf_accessor_component_type_to_engine(float) "
+                        "invalid accessor component type: " + std::to_string(gltfAccessorComponentType),
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
+                    return ShaderDataType::None;
+
+            }
+        }
+        // float types
+        else if (gltfAccessorComponentType == gltfInt)
+        {
+            switch (gltfComponentCount)
+            {
+                case (1) :
+                    return ShaderDataType::Int;
+                case (2) :
+                    return ShaderDataType::Int2;
+                case (3) :
+                    return ShaderDataType::Int3;
+                case (4) :
+                    return ShaderDataType::Int4;
+                default:
+                    Debug::log(
+                        "@gltf_accessor_component_type_to_engine(int) "
+                        "invalid accessor component type: " + std::to_string(gltfAccessorComponentType),
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
+                    return ShaderDataType::None;
+            }
+            Debug::log(
+                "@gltf_accessor_component_type_to_engine "
+                "Unexpected input",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return ShaderDataType::None;
+        }
+        return ShaderDataType::None;
     }
 
     // NOTE: Possible issues:
@@ -114,6 +186,8 @@ namespace pk
             */
         }
 
+        std::vector<VertexBufferElement> layoutElements;
+
         // Create vertex buffer layout
         for (size_t i = 0; i < gltfMesh.primitives.size(); ++i)
         {
@@ -129,11 +203,9 @@ namespace pk
                 int byteStride = accessor.ByteStride(gltfModel.bufferViews[accessor.bufferView]);
                 glBindBuffer(GL_ARRAY_BUFFER, vbos[accessor.bufferView]);
 
-                int size = 1;
+                int componentCount = 1;
                 if (accessor.type != TINYGLTF_TYPE_SCALAR)
-                {
-                    size = accessor.type;
-                }
+                    componentCount = accessor.type;
 
                 // NOTE: using this expects shader having vertex attribs in same order
                 // as here starting from pos 0
@@ -156,9 +228,15 @@ namespace pk
                         );
                     }
                     ShaderDataType componentType = gltf_accessor_component_type_to_engine(accessor.componentType);
+                    // TODO: figure out below!
+                    VertexBufferElement elem(attribLocation, datatype);
+                    layoutElements.pushBack(elem)
 
                     glEnableVertexAttribArray(vaa);
-                    glVertexAttribPointer(vaa, size, accessor.componentType,
+                    glVertexAttribPointer(
+                            vaa,
+                            componentCount,
+                            accessor.componentType, // component type, GL_INT, GL_FLOAT
                             accessor.normalized ? GL_TRUE : GL_FALSE,
                             byteStride, BUFFER_OFFSET(accessor.byteOffset));
                 }

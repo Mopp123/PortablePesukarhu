@@ -13,6 +13,12 @@
 
 namespace pk
 {
+    enum ShaderDataTypePrimitive
+    {
+
+    };
+
+    // TODO: more specific names or enum class to "unfuck" possible issues
     enum ShaderDataType
     {
         None = 0,
