@@ -69,11 +69,13 @@ namespace pk
         Mesh* createMesh(
             Buffer* pVertexBuffer,
             Buffer* pIndexBuffer,
+            const VertexBufferLayout& layout,
             uint32_t materialResourceID
         );
 
         Model* loadModel(
-            const std::string& filepath
+            const std::string& filepath,
+            uint32_t materialResourceID
         );
 
         Model* createModel(

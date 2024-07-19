@@ -14,6 +14,7 @@ namespace pk
         precision mediump float;
 
         attribute vec3 vertexPos;
+        attribute vec3 normal;
         attribute vec2 uvCoord;
 
         struct Common3D
@@ -29,11 +30,13 @@ namespace pk
         uniform Common3D common;
         uniform Renderable renderable;
 
+        varying vec3 var_normal;
         varying vec2 var_uvCoord;
 
         void main()
         {
             gl_Position = common.projMat * common.viewMat * renderable.transformationMat * vec4(vertexPos, 1.0);
+            var_normal = normal;
             var_uvCoord = uvCoord;
         }
     )";
@@ -41,6 +44,7 @@ namespace pk
     static std::string s_fragmentSource = R"(
         precision mediump float;
 
+        varying vec3 var_normal;
         varying vec2 var_uvCoord;
 
         uniform sampler2D texSampler;
@@ -48,7 +52,7 @@ namespace pk
         void main()
         {
             vec4 texColor = texture2D(texSampler, var_uvCoord);
-            gl_FragColor = texColor;
+            gl_FragColor = texColor * vec4(var_normal, 1.0) * 2.0;
         }
     )";
 
@@ -64,7 +68,8 @@ namespace pk
         _vertexBufferLayout = VertexBufferLayout(
             {
                 { 0, ShaderDataType::Float3 },
-                { 1, ShaderDataType::Float2 }
+                { 1, ShaderDataType::Float3 },
+                { 2, ShaderDataType::Float2 }
             },
             VertexInputRate::VERTEX_INPUT_RATE_VERTEX
         );
@@ -108,11 +113,11 @@ namespace pk
         // Atm creating these only for quick testing here!!!
         // Static vertex buffer
         float scale = 10;
-        float vbData[20] = {
-            -1 * scale,  1 * scale, -1.0f,   0, 1,
-            -1 * scale, -1 * scale, -1.0f,   0, 0,
-             1 * scale, -1 * scale, -1.0f,   1, 0,
-             1 * scale,  1 * scale, -1.0f,   1, 1
+        float vbData[32] = {
+            -1 * scale,  1 * scale, -1.0f,  0.0f, 0.0f, 1.0f,  0, 1,
+            -1 * scale, -1 * scale, -1.0f,  0.0f, 0.0f, 1.0f,  0, 0,
+             1 * scale, -1 * scale, -1.0f,  0.0f, 0.0f, 1.0f,  1, 0,
+             1 * scale,  1 * scale, -1.0f,  0.0f, 0.0f, 1.0f,  1, 1
         };
         unsigned short indices[6] =
         {
@@ -122,7 +127,7 @@ namespace pk
         _pVertexBuffer = Buffer::create(
             vbData,
             sizeof(float),
-            20,
+            32,
             BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT
         );
         _pIndexBuffer = Buffer::create(
@@ -163,7 +168,7 @@ namespace pk
             _pVertexShader, _pFragmentShader,
             (float)viewportExtent.width, (float)viewportExtent.height,
             { 0, 0, (uint32_t)viewportExtent.width, (uint32_t)viewportExtent.height },
-            CullMode::CULL_MODE_BACK,
+            CullMode::CULL_MODE_NONE,
             FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
             true,
             DepthCompareOperation::COMPARE_OP_LESS,
@@ -187,6 +192,7 @@ namespace pk
 
         if (pMesh && pMaterial)
         {
+            _pTestMesh = pMesh;
             // create descriptor sets if necessary
             // FUCKING DISGUSTING! DO SOMETHING ABOUT THIS!!!
             if (_pUBODescriptorSet.empty())
@@ -269,14 +275,29 @@ namespace pk
             _pPipeline
         );
 
+        const Buffer* pIndexBuffer = _pIndexBuffer;
+        Buffer* pVertexBuffer = _pVertexBuffer;
+        // TESTING
+        if (_pTestMesh)
+        {
+            pIndexBuffer = _pTestMesh->getIndexBuffer();
+            pVertexBuffer = _pTestMesh->accessVertexBuffer();
+        }
+        size_t indexBufLen = pIndexBuffer->getDataLength();
+        IndexType indexType = IndexType::INDEX_TYPE_NONE;
+        if (pIndexBuffer->getDataElemSize() == 2)
+            indexType = IndexType::INDEX_TYPE_UINT16;
+        if (pIndexBuffer->getDataElemSize() == 4)
+            indexType = IndexType::INDEX_TYPE_UINT32;
+
         pRenderCmd->bindIndexBuffer(
             pCurrentCmdBuf,
-            _pIndexBuffer,
+            pIndexBuffer,
             0,
-            IndexType::INDEX_TYPE_UINT16
+            indexType
         );
 
-        std::vector<Buffer*> vertexBuffers = { _pVertexBuffer };
+        std::vector<Buffer*> vertexBuffers = { pVertexBuffer };
         pRenderCmd->bindVertexBuffers(
             pCurrentCmdBuf,
             0, 1,
@@ -301,7 +322,7 @@ namespace pk
             toBind
         );
 
-        pRenderCmd->drawIndexed(pCurrentCmdBuf, 6, 1, 0, 0, 0);
+        pRenderCmd->drawIndexed(pCurrentCmdBuf, indexBufLen, 1, 0, 0, 0);
 
 
         pRenderCmd->endCmdBuffer(pCurrentCmdBuf);

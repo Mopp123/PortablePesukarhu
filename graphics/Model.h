@@ -22,5 +22,7 @@ namespace pk
         virtual void save() {}
 
         const Mesh * const getMesh(int index) const;
+        Mesh* accessMesh(int index) { return _pMeshes[index]; }
+        std::vector<Mesh*>& accessMeshes() { return _pMeshes; }
     };
 }

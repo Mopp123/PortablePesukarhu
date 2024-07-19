@@ -100,6 +100,9 @@ namespace pk
         ShaderDataType _type = ShaderDataType::Float;
 
     public:
+        VertexBufferElement() = default;
+        VertexBufferElement(const VertexBufferElement&) = default;
+
         VertexBufferElement(uint32_t location, ShaderDataType dataType) :
             _location(location),
             _type(dataType)

@@ -4,6 +4,7 @@
 #include "graphics/Pipeline.h"
 #include "graphics/Buffers.h"
 #include "graphics/Texture.h"
+#include "graphics/Mesh.h"
 #include "graphics/Descriptors.h"
 #include "graphics/CommandBuffer.h"
 #include "graphics/RenderCommand.h"
@@ -32,6 +33,8 @@ namespace pk
 
         std::vector<DescriptorSet*> _pUBODescriptorSet;
         std::vector<DescriptorSet*> _pTextureDescriptorSet;
+
+        Mesh* _pTestMesh = nullptr;
 
     public:
         StaticRenderer();

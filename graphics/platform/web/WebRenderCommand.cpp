@@ -182,11 +182,21 @@ namespace pk
 
         void WebRenderCommand::bindIndexBuffer(
             CommandBuffer* pCmdBuf,
-            Buffer* pBuffer,
+            const Buffer* pBuffer,
             size_t offset,
             IndexType indexType
         )
         {
+            if (indexType != IndexType::INDEX_TYPE_UINT16 && indexType != IndexType::INDEX_TYPE_UINT32)
+            {
+                Debug::log(
+                    "@WebRenderCommand::bindIndexBuffer "
+                    "invalid indexType: " + std::to_string(indexType) + " "
+                    "indexType is required to be either INDEX_TYPE_UINT16 or INDEX_TYPE_UINT32",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return;
+            }
             // quite dumb, but we need to be able to pass this to "drawIndexed" func somehow..
             ((WebCommandBuffer*)pCmdBuf)->_drawIndexedType = indexType;
 

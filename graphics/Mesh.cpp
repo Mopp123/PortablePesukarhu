@@ -5,12 +5,14 @@ namespace pk
     Mesh::Mesh(
         Buffer* pVertexBuffer,
         Buffer* pIndexBuffer,
-        Material* pMaterial
+        Material* pMaterial,
+        VertexBufferLayout vertexBufferLayout
     ) :
         Resource(ResourceType::RESOURCE_MESH),
         _pVertexBuffer(pVertexBuffer),
         _pIndexBuffer(pIndexBuffer),
-        _pMaterial(pMaterial)
+        _pMaterial(pMaterial),
+        _vertexBufferLayout(vertexBufferLayout)
     {
     }
 

@@ -1,6 +1,7 @@
 #include "ResourceManager.h"
 #include "core/Debug.h"
 #include "utils/ID.h"
+#include "utils/ModelLoading.h"
 
 
 namespace pk
@@ -126,23 +127,38 @@ namespace pk
     Mesh* ResourceManager::createMesh(
         Buffer* pVertexBuffer,
         Buffer* pIndexBuffer,
+        const VertexBufferLayout& layout,
         uint32_t materialResourceID
     )
     {
         Material* pMaterial = (Material*)getResource(materialResourceID);
-        Mesh* pMesh = new Mesh(pVertexBuffer, pIndexBuffer, pMaterial);
+        Mesh* pMesh = new Mesh(
+            pVertexBuffer,
+            pIndexBuffer,
+            pMaterial,
+            layout
+        );
         _resources[pMesh->getResourceID()] = pMesh;
         return pMesh;
     }
 
+    // TODO: Validate resource ids when adding new resource to _resources!
     Model* ResourceManager::loadModel(
-        const std::string& filepath
+        const std::string& filepath,
+        uint32_t materialResourceID
     )
     {
-        Debug::notify_unimplemented(
-            "ResourceManager::loadModel"
-        );
-        return nullptr;
+        Model* pModel = load_model_glb(filepath);
+        for (Mesh* pMesh : pModel->accessMeshes())
+        {
+            // atm just testing with single mesh/material!
+            Material* pMaterial = (Material*)getResource(materialResourceID);
+            pMesh->setMaterial(pMaterial);
+            _resources[pMesh->getResourceID()] = pMesh;
+        }
+
+        _resources[pModel->getResourceID()] = pModel;
+        return pModel;
     }
 
     Model* ResourceManager::createModel(
