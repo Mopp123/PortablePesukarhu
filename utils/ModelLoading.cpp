@@ -16,6 +16,17 @@
 #include "tiny_gltf.h"
 
 
+#define GLTF_POINTS 0x0
+#define GLTF_LINES 0x0001
+#define GLTF_LINE_LOOP 0x0002
+#define GLTF_LINE_STRIP 0x0003
+#define GLTF_TRIANGLES 0x0004
+#define GLTF_TRIANGLE_STRIP 0x0005
+#define GLTF_TRIANGLE_FAN 0x0006
+#define GLTF_QUADS 0x0007
+#define GLTF_QUAD_STRIP 0x0008
+
+
 namespace pk
 {
     struct GLTFBufferData
@@ -51,12 +62,13 @@ namespace pk
         }
     };
 
+
     static BufferUsageFlagBits gltf_buf_view_target_to_engine(int gltfTarget)
     {
         // values taken from: https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_bufferview_target
         // should be safe to use..
-        //34962  = ARRAY_BUFFER
-        //34963  = ELEMENT_ARRAY_BUFFER
+        // 34962 = ARRAY_BUFFER
+        // 34963 = ELEMENT_ARRAY_BUFFER
         switch (gltfTarget)
         {
             // ARRAY_BUFFER
@@ -77,9 +89,37 @@ namespace pk
         }
     }
 
+
+    static std::string gltf_primitive_mode_to_string(int mode)
+    {
+        switch (mode)
+        {
+            case GLTF_POINTS :
+                return "GLTF_POINTS";
+            case GLTF_LINES :
+                return "GLTF_LINES";
+            case GLTF_LINE_LOOP :
+                return "GLTF_LINE_LOOP";
+            case GLTF_LINE_STRIP :
+                return "GLTF_LINE_STRIP";
+            case GLTF_TRIANGLES :
+                return "GLTF_TRIANGLES";
+            case GLTF_TRIANGLE_STRIP :
+                return "GLTF_TRIANGLE_STRIP";
+            case GLTF_TRIANGLE_FAN :
+                return "GLTF_TRIANGLE_FAN";
+            case GLTF_QUADS :
+                return "GLTF_QUADS";
+            case GLTF_QUAD_STRIP :
+                return "GLTF_QUAD_STRIP";
+            default:
+                return "none";
+        }
+    }
+
+
     // TODO: get actual GLEnum values ftom specification to here!
-    // Cannot use GLEnums cuz if not using opengl api, these are not defined!
-    // -> those can be found from glew.h
+    // Cannot use GLenums cuz if not using opengl api, these are not defined!
     static ShaderDataType gltf_accessor_component_type_to_engine(
         int gltfAccessorComponentType,
         int gltfComponentCount
@@ -144,13 +184,7 @@ namespace pk
         return ShaderDataType::None;
     }
 
-    // NOTE: Possible issues:
-    //  * Not sure if all vertex data is contiguous with the way this currently works:
-    //  https://stackoverflow.com/questions/69303430/are-the-position-normals-texcoords-and-other-such-attributes-of-a-gltf-3d-mode
-    //
-    // Currently expected to push all stuff into a single buffer!
-    // gltfModel refers to the "top node" <- Not 100% sure tho..
-    // gltfMesh refers to single mesh in model
+
     static Mesh* load_mesh_gltf(
         tinygltf::Model& gltfModel,
         tinygltf::Mesh& gltfMesh,
@@ -163,15 +197,31 @@ namespace pk
         size_t indexBufferIndex = 0;
         size_t indexBufferLength = 0;
 
-        // second = index in gltfBuffers
-        std::vector<std::pair<VertexBufferElement, int>> layoutElements;
+        // sortedVertexBufferAttributes is used to create single vertex buffer containing
+        // vertex positions, normals and uv coords in that order starting from location = 0.
+        // This is also for creating VertexBufferLayout in correct order.
+        //
+        // key: attrib location
+        // value:
+        //  first: pretty obvious...
+        //  second: index in gltfBuffers
+        std::unordered_map<int, std::pair<VertexBufferElement, int>> sortedVertexBufferAttributes;
         for (size_t i = 0; i < gltfMesh.primitives.size(); ++i)
         {
             tinygltf::Primitive primitive = gltfMesh.primitives[i];
-            tinygltf::Accessor indexAccessor = gltfModel.accessors[primitive.indices];
 
+            tinygltf::Accessor indexAccessor = gltfModel.accessors[primitive.indices];
             indexBufferIndex =  indexAccessor.bufferView;
             indexBufferLength = indexAccessor.count;
+            if (indexBufferLength <= 0)
+            {
+                Debug::log(
+                    "@load_mesh_gltf "
+                    "Index buffer length was 0",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return nullptr;
+            }
 
             for (auto &attrib : primitive.attributes)
             {
@@ -187,11 +237,6 @@ namespace pk
                 if (attrib.first.compare("POSITION") == 0) attribLocation = 0;
                 if (attrib.first.compare("NORMAL") == 0) attribLocation = 1;
                 if (attrib.first.compare("TEXCOORD_0") == 0) attribLocation = 2;
-
-
-                if (attrib.first.compare("POSITION") == 0) Debug::log("___TEST___ATTRIB = POS");
-                if (attrib.first.compare("NORMAL") == 0) Debug::log("___TEST___ATTRIB = NORMAL");
-                if (attrib.first.compare("TEXCOORD_0") == 0) Debug::log("___TEST___ATTRIB = UV");
 
                 if (attribLocation > -1)
                 {
@@ -213,16 +258,10 @@ namespace pk
                     );
 
                     VertexBufferElement elem(attribLocation, shaderDataType);
-                    // DANGER HERE!
-                    int buffersIndex = accessor.bufferView; // not actually sure if correct?
-                    layoutElements.push_back(std::make_pair(elem, buffersIndex));
+                    int buffersIndex = accessor.bufferView;
+                    sortedVertexBufferAttributes[attribLocation] = std::make_pair(elem, buffersIndex);
 
                     const GLTFBufferData& gltfBuffer = gltfBuffers[buffersIndex];
-                    //size_t elemSize = get_shader_data_type_size(shaderDataType);
-                    //combinedVertexBufferSize += elemSize * gltfBuffer.length;
-                    //Debug::log("___TEST___ADDED NEW ATTRIB size = " + std::to_string(elemSize) + " gltfBuffer.length = " + std::to_string(gltfBuffer.length));
-
-                    // at this point gltfBuffers' length is the total size in bytes..
                     combinedVertexBufferSize += gltfBuffer.size;
                 }
                 else
@@ -239,78 +278,41 @@ namespace pk
 
         // TODO: Attempt to find the index buffer
         const GLTFBufferData& gltfIndexBuffer = gltfBuffers[indexBufferIndex];
+        if (gltfIndexBuffer.usage != BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT)
+        {
+            Debug::log(
+                "@load_mesh_gltf "
+                "gltfMesh using index buffer at: " + std::to_string(indexBufferIndex) + " "
+                "but this buffer had not been flagged with BUFFER_USAGE_INDEX_BUFFER_BIT",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
 
-        // TODO:
-        // Create one fat vertex buffer from gltfBuffers using the found vb layout
-        //
-        // Fucking dumb shit here, but have to do cuz the way engine's meshes work atm..
-        // 4 = pos, normal, uv, index buffer
         PK_byte* pCombinedRawBuffer = new PK_byte[combinedVertexBufferSize];
-        const size_t attribCount = layoutElements.size();
+        const size_t attribCount = sortedVertexBufferAttributes.size();
         size_t srcOffsets[attribCount];
         memset(srcOffsets, 0, sizeof(size_t) * attribCount);
-        size_t dstOffset = sizeof(float) * (3 + 2);
-        std::vector<VertexBufferElement> vbLayoutElements(layoutElements.size());
+        size_t dstOffset = 0;
+        std::vector<VertexBufferElement> vbLayoutElements(sortedVertexBufferAttributes.size());
 
-
-        int firstIndex = 0;
-        for (const std::pair<VertexBufferElement, int>& a : layoutElements)
-        {
-            if (a.first.getLocation() == 0)
-                break;
-            firstIndex++;
-        }
-        Debug::log("___TEST___FIRST INDEX = " + std::to_string(firstIndex));
-        size_t currentAttribIndex = firstIndex;
-        // THIS IS FUCKED ATM!!
-        // * part of the reason is that first layout element is location=1 normal instead of location=0 position!
-        // TODO: Make it actually do what u intended!
+        size_t currentAttribIndex = 0;
         while (dstOffset < combinedVertexBufferSize)
         {
-            const std::pair<VertexBufferElement, int>& currentAttrib = layoutElements[currentAttribIndex];
-            const size_t attribComponents = get_shader_data_type_component_count(currentAttrib.first.getType());
+            const std::pair<VertexBufferElement, int>& currentAttrib = sortedVertexBufferAttributes[currentAttribIndex];
             const size_t currentAttribElemSize = get_shader_data_type_size(currentAttrib.first.getType());
-            for (size_t i = 0; i < attribComponents; ++i)
-            {
-                const GLTFBufferData& srcBuffer = gltfBuffers[currentAttrib.second];
-                PK_byte* srcData = srcBuffer.pData + srcOffsets[currentAttribIndex];
-                memcpy(pCombinedRawBuffer + dstOffset, srcData, currentAttribElemSize);
 
-                srcOffsets[currentAttribIndex] += currentAttribElemSize;
-                dstOffset += currentAttribElemSize;
-                // DANGER!!!!
-                vbLayoutElements[currentAttrib.first.getLocation()] = currentAttrib.first; // DANGER!!!
-            }
+            const GLTFBufferData& srcBuffer = gltfBuffers[currentAttrib.second];
+            PK_byte* srcData = srcBuffer.pData + srcOffsets[currentAttribIndex];
+            memcpy(pCombinedRawBuffer + dstOffset, srcData, currentAttribElemSize);
+
+            srcOffsets[currentAttribIndex] += currentAttribElemSize;
+            dstOffset += currentAttribElemSize;
+            // DANGER!!!!
+            vbLayoutElements[currentAttrib.first.getLocation()] = currentAttrib.first; // DANGER!!!
+
             currentAttribIndex += 1;
             currentAttribIndex = currentAttribIndex % attribCount;
-
-            /*
-            for (size_t i = 0; i < attribCount; ++i)
-            {
-                const std::pair<VertexBufferElement, int>& attrib = layoutElements[i];
-                const GLTFBufferData& gltfBuffer = gltfBuffers[attrib.second];
-                size_t elemSize = get_shader_data_type_size(attrib.first.getType());
-                if (srcOffsets[i] + elemSize > gltfBuffer.size)
-                {
-                    Debug::log(
-                        "@load_mesh_gltf "
-                        "Error while creating combined vertex buffer(1)\n"
-                        "\tbuf size = " + std::to_string(gltfBuffer.size) + "\n"
-                        "\telem size = " + std::to_string(elemSize) + "\n"
-                        "\tcurrent src offset = " + std::to_string(srcOffsets[i]) + "\n"
-                        "\tdst offset = " + std::to_string(dstOffset),
-                        Debug::MessageType::PK_FATAL_ERROR
-                    );
-                    return nullptr;
-                }
-
-                PK_byte* srcData = gltfBuffer.pData + srcOffsets[i];
-                memcpy(pCombinedRawBuffer + dstOffset, srcData, elemSize);
-                srcOffsets[i] += elemSize;
-                dstOffset += elemSize;
-                vbLayoutElements[i] = attrib.first;
-            }
-            */
         }
 
         size_t indexBufElemSize = gltfIndexBuffer.size / indexBufferLength;
@@ -330,12 +332,11 @@ namespace pk
             true
         );
 
-        Debug::log("___TEST___creating model with vb layout:");
+        Debug::log(
+            "@load_mesh_gltf Creating mesh with vertex buffer layout:"
+        );
         for (const VertexBufferElement& e : vbLayoutElements)
-        {
             Debug::log("\tlocation = " + std::to_string(e.getLocation()) + " type = " + std::to_string(e.getType()));
-        }
-
 
         pMesh = new Mesh(
             pVertexBuffer,
@@ -390,6 +391,8 @@ namespace pk
         for (size_t i = 0; i < gltfModel.bufferViews.size(); ++i)
         {
             const tinygltf::BufferView &bufferView = gltfModel.bufferViews[i];
+            // TODO: Take buffer views with target = 0 into account when loading
+            // Materials and/or skinned models!
             if (bufferView.target == 0)
             {
                 Debug::log(
@@ -397,15 +400,7 @@ namespace pk
                     "bufferView target was 0",
                     Debug::MessageType::PK_WARNING
                 );
-                continue;  // Unsupported bufferView.
-                /*
-                   From spec2.0 readme:
-                    https://github.com/KhronosGroup/glTF/tree/master/specification/2.0
-                    ... drawArrays function should be used with a count equal to
-                    the count            property of any of the accessors referenced by the
-                    attributes            property            (they are all equal for a given
-                    primitive).
-                */
+                continue;
             }
 
             const tinygltf::Buffer &gltfBuffer = gltfModel.buffers[bufferView.buffer];
@@ -419,19 +414,42 @@ namespace pk
             );
         }
         // TODO:
-        //  1. Make sure node has mesh!
-        //  2. Support multiple meshes
-        const tinygltf::Scene &gltfScene = gltfModel.scenes[gltfModel.defaultScene];
-        tinygltf::Node& node = gltfModel.nodes[gltfScene.nodes[0]];
-        tinygltf::Mesh& gltfMesh = gltfModel.meshes[node.mesh];
-        Mesh* pMesh = load_mesh_gltf(
-            gltfModel,
-            gltfMesh,
-            gltfBuffers,
-            true
-        );
-        Model* pModel = new Model({ pMesh });
+        //  * Support multiple meshes
+        const tinygltf::Scene& gltfScene = gltfModel.scenes[gltfModel.defaultScene];
+        const std::vector<tinygltf::Node>& modelNodes = gltfModel.nodes;
 
+        Debug::log(
+            "@load_model_glb "
+            "Processing glTF Model with total scene count = " + std::to_string(gltfModel.scenes.size()) + " "
+            "total node count = " + std::to_string(modelNodes.size())
+        );
+
+        // NOTE: Atm not supporting multiple scenes!
+        if (gltfModel.scenes.size() != 1)
+        {
+            Debug::log(
+                "@load_model_glb Multiple scenes not supported!",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
+
+        std::vector<Mesh*> meshes;
+        for (size_t i = 0; i < gltfModel.meshes.size(); ++i)
+        {
+            Debug::log("Processing mesh at index: " + std::to_string(i));
+            tinygltf::Mesh& gltfMesh = gltfModel.meshes[i];
+            Mesh* pMesh = load_mesh_gltf(
+                gltfModel,
+                gltfMesh,
+                gltfBuffers,
+                true
+            );
+            if (pMesh)
+                meshes.push_back(pMesh);
+        }
+
+        Model* pModel = new Model(meshes);
         return pModel;
     }
 }

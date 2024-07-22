@@ -52,7 +52,9 @@ namespace pk
         void main()
         {
             vec4 texColor = texture2D(texSampler, var_uvCoord);
-            gl_FragColor = texColor * vec4(var_normal, 1.0) * 2.0;
+            vec4 n = vec4(var_normal, 1.0);
+            n = n * n;
+            gl_FragColor = texColor * n * 2.0;
         }
     )";
 
@@ -188,7 +190,9 @@ namespace pk
         const Static3DRenderable * const pStaticRenderable = (const Static3DRenderable * const)renderableComponent;
         Mesh* pMesh = (Mesh*)resManager.getResource(pStaticRenderable->meshID);
         Material* pMaterial = pMesh->accessMaterial();
-        Texture_new* pTestTexture = pMaterial->accessTexture(0);
+        // Atm just testing using white texture for debugging normals!
+        Texture_new* pTestTexture = resManager.getWhiteTexture();
+        //Texture_new* pTestTexture = pMaterial->accessTexture(0);
 
         if (pMesh && pMaterial)
         {
