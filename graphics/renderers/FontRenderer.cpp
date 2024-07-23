@@ -63,22 +63,13 @@ namespace pk
     static const size_t s_instanceBufferComponents = 2 * 3 + 4;
     static const size_t s_maxInstanceCount = 1000; // per batch, not total max count!
     FontRenderer::FontRenderer() :
-        _vertexBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
-        _instanceBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
-        _textureDescSetLayout({}),
-        _batchContainer(5, (sizeof(float) * s_instanceBufferComponents) * s_maxInstanceCount)
-    {
-        _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
-        _pFragmentShader = Shader::create(s_fragmentSource, ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT);
-
-        // Vertex buffer layouts
-        _vertexBufferLayout = VertexBufferLayout(
+        _vertexBufferLayout(
             {
                 { 0, ShaderDataType::Float2 }
             },
             VertexInputRate::VERTEX_INPUT_RATE_VERTEX
-        );
-        _instanceBufferLayout = VertexBufferLayout(
+        ),
+        _instanceBufferLayout(
             {
                 { 1, ShaderDataType::Float2 }, // pos
                 { 2, ShaderDataType::Float2 }, // scale
@@ -86,7 +77,12 @@ namespace pk
                 { 4, ShaderDataType::Float4 } // color
             },
             VertexInputRate::VERTEX_INPUT_RATE_INSTANCE
-        );
+        ),
+        _textureDescSetLayout({}),
+        _batchContainer(5, (sizeof(float) * s_instanceBufferComponents) * s_maxInstanceCount)
+    {
+        _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
+        _pFragmentShader = Shader::create(s_fragmentSource, ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT);
 
         // Textures desc set layout
         DescriptorSetLayoutBinding textureDescSetLayoutBinding(
@@ -131,20 +127,6 @@ namespace pk
             6,
             BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT
         );
-
-        // Allocate "instance buffer"
-        size_t totalInstanceBufLen = s_instanceBufferComponents * s_maxInstanceCount;
-        float* pInitialInstanceBufData = new float[totalInstanceBufLen];
-        memset(pInitialInstanceBufData, 0, sizeof(float) * totalInstanceBufLen);
-
-        _pInstanceBuffer = Buffer::create(
-            pInitialInstanceBufData,
-            sizeof(float),
-            totalInstanceBufLen,
-            BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT,
-            true
-        );
-        delete[] pInitialInstanceBufData;
     }
 
     FontRenderer::~FontRenderer()
@@ -154,7 +136,6 @@ namespace pk
         delete _pFragmentShader;
         delete _pVertexBuffer;
         delete _pIndexBuffer;
-        delete _pInstanceBuffer;
     }
 
     void FontRenderer::initPipeline()
@@ -207,6 +188,25 @@ namespace pk
         ResourceManager& resManager = pApp->getResourceManager();
         PK_id batchIdentifier = pRenderable->fontID;
         Font* pFont = (Font*)resManager.getResource(batchIdentifier);
+        if (!pFont)
+        {
+            Debug::log(
+                "@FontRenderer::submit "
+                "Failed to find font resource with id: " + std::to_string(batchIdentifier),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return;
+        }
+        Texture_new* pTexture = pFont->accessTexture();
+        if (!pTexture)
+        {
+            Debug::log(
+                "@FontRenderer::submit "
+                "Font's texture was nullptr",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return;
+        }
 
         const std::string& str = pRenderable->getStr();
         if (str.size() >= s_maxInstanceCount)
@@ -270,6 +270,19 @@ namespace pk
             // Create descriptor sets if necessary BUT ONLY if added to batch successfully
             if (_batchContainer.addData(renderableData, sizeof(float) * s_instanceBufferComponents, batchIdentifier))
             {
+                if (!_batchContainer.hasDescriptorSets(batchIdentifier))
+                {
+                    _batchContainer.createDescriptorSets(
+                        batchIdentifier,
+                        &_textureDescSetLayout,
+                        pTexture
+                    );
+                }
+            }
+
+            /*
+            if (_batchContainer.addData(renderableData, sizeof(float) * s_instanceBufferComponents, batchIdentifier))
+            {
                 if (_descriptorSets.find(batchIdentifier) == _descriptorSets.end())
                 {
                     if (!pFont)
@@ -309,7 +322,7 @@ namespace pk
                         "Descriptor sets created for new batch with id: " + std::to_string(batchIdentifier)
                     );
                 }
-            }
+            }*/
 
             // NOTE: Don't quite understand this.. For some reason on some fonts >> 7 works better...
             posX += ((float)(glyphData.advance >> 6)) * scaleFactorX; // now advance cursors for next glyph (note that advance is number of 1/64 pixels). bitshift by 6 to get value in pixels (2^6 = 64) | OLD COMMENT: 2^5 = 32 (pixel size of the font..)
@@ -413,6 +426,7 @@ namespace pk
                 }
             );
 
+            /*
             std::unordered_map<PK_id, BatchDescriptorSets>::const_iterator descSetIt =  _descriptorSets.find(pBatch->getIdentifier());
             if (descSetIt == _descriptorSets.end())
             {
@@ -423,11 +437,12 @@ namespace pk
                 );
                 continue;
             }
+            */
             // TODO: switch below [0] to [current swapchaing img index] when dealing with actual
             // swapchain stuff..
             std::vector<const DescriptorSet*> toBind =
             {
-                descSetIt->second.pTextureDescriptorSet[0]
+                _batchContainer.getTextureDescriptorSet(pBatch->getIdentifier(), 0)
             };
 
             pRenderCmd->bindDescriptorSets(
@@ -454,13 +469,6 @@ namespace pk
 
     void FontRenderer::freeDescriptorSets()
     {
-        std::unordered_map<PK_id, BatchDescriptorSets>::iterator it;
-        for (it = _descriptorSets.begin(); it != _descriptorSets.end(); ++it)
-        {
-            for (DescriptorSet* pDescriptorSet : it->second.pTextureDescriptorSet)
-                delete pDescriptorSet;
-            it->second.pTextureDescriptorSet.clear();
-        }
-        _descriptorSets.clear();
+        _batchContainer.freeDescriptorSets();
     }
 }

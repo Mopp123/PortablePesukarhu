@@ -54,9 +54,9 @@ namespace pk
         int width = 0;
         int height = 0;
         int channels = 0;
+        // When loading gltf models we dont need to flip...
         bool flipVertically = Context::get_api_type() == GRAPHICS_API_WEBGL;
-
-        stbi_set_flip_vertically_on_load(flipVertically);
+        stbi_set_flip_vertically_on_load(false);
         // TODO: Test if below works, may fuck up due to MAX_FILEPATH_SIZE?
         unsigned char* stbImageData = stbi_load(_filepath, &width, &height, &channels, 0);
 

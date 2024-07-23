@@ -17,25 +17,23 @@ namespace pk
         attribute vec3 normal;
         attribute vec2 uvCoord;
 
+        // Instanced stuff
+        attribute mat4 transformationMatrix;
+
         struct Common3D
         {
             mat4 projMat;
             mat4 viewMat;
         };
-        struct Renderable
-        {
-            mat4 transformationMat;
-        };
 
         uniform Common3D common;
-        uniform Renderable renderable;
 
         varying vec3 var_normal;
         varying vec2 var_uvCoord;
 
         void main()
         {
-            gl_Position = common.projMat * common.viewMat * renderable.transformationMat * vec4(vertexPos, 1.0);
+            gl_Position = common.projMat * common.viewMat * transformationMatrix * vec4(vertexPos, 1.0);
             var_normal = normal;
             var_uvCoord = uvCoord;
         }
@@ -54,51 +52,34 @@ namespace pk
             vec4 texColor = texture2D(texSampler, var_uvCoord);
             vec4 n = vec4(var_normal, 1.0);
             n = n * n;
-            gl_FragColor = texColor * n * 2.0;
+            gl_FragColor = texColor * n;
         }
     )";
 
-    StaticRenderer::StaticRenderer() :
-        _vertexBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
-        _UBODescSetLayout({}),
-        _textureDescSetLayout({})
-    {
-        _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
-        _pFragmentShader = Shader::create(s_fragmentSource, ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT);
 
-        // Vertex buffer layouts
-        _vertexBufferLayout = VertexBufferLayout(
+    static const size_t s_instanceBufferComponents = 16;
+    static const size_t s_maxBatchInstances = 10000;
+    static const size_t s_maxBatches = 10;
+    StaticRenderer::StaticRenderer() :
+        _vertexBufferLayout(
             {
                 { 0, ShaderDataType::Float3 },
                 { 1, ShaderDataType::Float3 },
                 { 2, ShaderDataType::Float2 }
             },
             VertexInputRate::VERTEX_INPUT_RATE_VERTEX
-        );
-
-        // ubo(atm just transformation matrix) desc set layout
-        DescriptorSetLayoutBinding uboDescSetLayoutBinding(
-            0,
-            1,
-            DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
-            {{ 2, ShaderDataType::Mat4 }}
-        );
-        _UBODescSetLayout = DescriptorSetLayout({ uboDescSetLayoutBinding });
-        // Also atm create single(x maxSwapchainImages) ubo for testing the transform desc set here..
-        _pTransformUBO.resize(MAX_SWAPCHAIN_IMAGES);
-        float initialUBOBuf[16];
-        memset(initialUBOBuf, 0, 16);
-        for (int i = 0; i < MAX_SWAPCHAIN_IMAGES; ++i)
-        {
-            _pTransformUBO[i] = Buffer::create(
-                initialUBOBuf,
-                sizeof(mat4),
-                1,
-                BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                true
-            );
-        }
+        ),
+        _instanceBufferLayout(
+            {
+                { 3, ShaderDataType::Mat4 }
+            },
+            VertexInputRate::VERTEX_INPUT_RATE_INSTANCE
+        ),
+        _textureDescSetLayout({}),
+        _batchContainer(s_maxBatches, sizeof(float) * s_instanceBufferComponents * s_maxBatchInstances)
+    {
+        _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
+        _pFragmentShader = Shader::create(s_fragmentSource, ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT);
 
         // Textures desc set layout
         DescriptorSetLayoutBinding textureDescSetLayoutBinding(
@@ -106,7 +87,7 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 3 }}
+            {{ 2 }}
         );
         _textureDescSetLayout = DescriptorSetLayout({ textureDescSetLayoutBinding });
 
@@ -126,6 +107,7 @@ namespace pk
             0, 1, 2,
             2, 3, 0
         };
+        /*
         _pVertexBuffer = Buffer::create(
             vbData,
             sizeof(float),
@@ -138,6 +120,7 @@ namespace pk
             6,
             BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT
         );
+        */
     }
 
     StaticRenderer::~StaticRenderer()
@@ -145,18 +128,17 @@ namespace pk
         freeDescriptorSets();
         delete _pVertexShader;
         delete _pFragmentShader;
-        delete _pVertexBuffer;
-        delete _pIndexBuffer;
+        //delete _pVertexBuffer;
+        //delete _pIndexBuffer;
     }
 
     void StaticRenderer::initPipeline()
     {
         const MasterRenderer* pMasterRenderer = Application::get()->getMasterRenderer();
-        std::vector<VertexBufferLayout> vbLayouts({ _vertexBufferLayout });
+        std::vector<VertexBufferLayout> vbLayouts({ _vertexBufferLayout, _instanceBufferLayout });
         std::vector<DescriptorSetLayout> descSetLayouts(
             {
                 pMasterRenderer->getCommonDescriptorSetLayout(),
-                _UBODescSetLayout,
                 _textureDescSetLayout
             }
         );
@@ -170,7 +152,7 @@ namespace pk
             _pVertexShader, _pFragmentShader,
             (float)viewportExtent.width, (float)viewportExtent.height,
             { 0, 0, (uint32_t)viewportExtent.width, (uint32_t)viewportExtent.height },
-            CullMode::CULL_MODE_NONE,
+            CullMode::CULL_MODE_BACK,
             FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
             true,
             DepthCompareOperation::COMPARE_OP_LESS,
@@ -188,12 +170,41 @@ namespace pk
         size_t swapchainImages = pApp->getWindow()->getSwapchain()->getImageCount();
 
         const Static3DRenderable * const pStaticRenderable = (const Static3DRenderable * const)renderableComponent;
+        PK_id batchIdentifier = pStaticRenderable->meshID;
         Mesh* pMesh = (Mesh*)resManager.getResource(pStaticRenderable->meshID);
+        if (!pMesh)
+        {
+            Debug::log(
+                "@StaticRenderer::submit "
+                "Renderable had invalid mesh",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return;
+        }
         Material* pMaterial = pMesh->accessMaterial();
         // Atm just testing using white texture for debugging normals!
-        Texture_new* pTestTexture = resManager.getWhiteTexture();
-        //Texture_new* pTestTexture = pMaterial->accessTexture(0);
+        //Texture_new* pTestTexture = resManager.getWhiteTexture();
+        Texture_new* pTestTexture = pMaterial->accessTexture(0);
 
+        if (_batchContainer.addData(
+                transformation.getRawArray(),
+                sizeof(float) * s_instanceBufferComponents,
+                batchIdentifier
+                )
+            )
+        {
+            if (!_batchContainer.hasDescriptorSets(batchIdentifier))
+            {
+                _batchContainer.createDescriptorSets(
+                    batchIdentifier,
+                    &_textureDescSetLayout,
+                    pTestTexture
+                );
+                _batchMeshMapping[batchIdentifier] = pMesh;
+            }
+        }
+
+        /*
         if (pMesh && pMaterial)
         {
             _pTestMesh = pMesh;
@@ -232,6 +243,7 @@ namespace pk
         }
         // update ubo
         _pTransformUBO[0]->update(transformation.getRawArray(), sizeof(mat4));
+        */
     }
 
     void StaticRenderer::render(const Camera& cam)
@@ -279,55 +291,76 @@ namespace pk
             _pPipeline
         );
 
-        const Buffer* pIndexBuffer = _pIndexBuffer;
-        Buffer* pVertexBuffer = _pVertexBuffer;
-        // TESTING
-        if (_pTestMesh)
+        //std::unordered_map<PK_id, Batch*>::iterator bIt;
+        //std::unordered_map<PK_id, Batch*>& occupiedBatches = _batchContainer.accessOccupiedBatches();
+        //for (bIt = occupiedBatches.begin(); bIt != occupiedBatches.end(); ++bIt)
+        for (Batch* pBatch : _batchContainer.getBatches())
         {
-            pIndexBuffer = _pTestMesh->getIndexBuffer();
-            pVertexBuffer = _pTestMesh->accessVertexBuffer();
+            if (!pBatch->isOccupied())
+                continue;
+
+            if (_batchMeshMapping.find(pBatch->getIdentifier()) == _batchMeshMapping.end())
+            {
+                Debug::log(
+                    "@StaticRenderer::render "
+                    "Failed to find batch's mesh from batchMeshMapping with "
+                    "batch identifier: " + std::to_string(pBatch->getIdentifier()),
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                continue;
+            }
+            Mesh* pMesh = _batchMeshMapping[pBatch->getIdentifier()];
+            const Buffer* pIndexBuffer = pMesh->getIndexBuffer();
+            Buffer* pVertexBuffer = pMesh->accessVertexBuffer();
+
+            size_t indexBufLen = pIndexBuffer->getDataLength();
+            IndexType indexType = IndexType::INDEX_TYPE_NONE;
+            if (pIndexBuffer->getDataElemSize() == 2)
+                indexType = IndexType::INDEX_TYPE_UINT16;
+            if (pIndexBuffer->getDataElemSize() == 4)
+                indexType = IndexType::INDEX_TYPE_UINT32;
+
+            pRenderCmd->bindIndexBuffer(
+                pCurrentCmdBuf,
+                pIndexBuffer,
+                0,
+                indexType
+            );
+
+            Buffer* pBatchInstanceBuffer = pBatch->getBuffer();
+            std::vector<Buffer*> vertexBuffers = { pVertexBuffer, pBatchInstanceBuffer };
+            pRenderCmd->bindVertexBuffers(
+                pCurrentCmdBuf,
+                0, 2,
+                vertexBuffers
+            );
+
+            // Get "common descriptor set" from master renderer
+            MasterRenderer* pMasterRenderer = pApp->getMasterRenderer();
+            const DescriptorSet* pCommonDescriptorSet = pMasterRenderer->getCommonDescriptorSet();
+
+            std::vector<const DescriptorSet*> toBind =
+            {
+                pCommonDescriptorSet,
+                _batchContainer.getTextureDescriptorSet(pBatch->getIdentifier(), 0)
+            };
+
+            pRenderCmd->bindDescriptorSets(
+                pCurrentCmdBuf,
+                PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
+                0,
+                toBind
+            );
+
+            pRenderCmd->drawIndexed(
+                pCurrentCmdBuf,
+                indexBufLen,
+                pBatch->getInstanceCount(),
+                0,
+                0,
+                0
+            );
         }
-        size_t indexBufLen = pIndexBuffer->getDataLength();
-        IndexType indexType = IndexType::INDEX_TYPE_NONE;
-        if (pIndexBuffer->getDataElemSize() == 2)
-            indexType = IndexType::INDEX_TYPE_UINT16;
-        if (pIndexBuffer->getDataElemSize() == 4)
-            indexType = IndexType::INDEX_TYPE_UINT32;
-
-        pRenderCmd->bindIndexBuffer(
-            pCurrentCmdBuf,
-            pIndexBuffer,
-            0,
-            indexType
-        );
-
-        std::vector<Buffer*> vertexBuffers = { pVertexBuffer };
-        pRenderCmd->bindVertexBuffers(
-            pCurrentCmdBuf,
-            0, 1,
-            vertexBuffers
-        );
-
-        // Get "common descriptor set" from master renderer
-        MasterRenderer* pMasterRenderer = pApp->getMasterRenderer();
-        const DescriptorSet* pCommonDescriptorSet = pMasterRenderer->getCommonDescriptorSet();
-
-        std::vector<const DescriptorSet*> toBind =
-        {
-            pCommonDescriptorSet,
-            _pUBODescriptorSet[0],
-            _pTextureDescriptorSet[0]
-        };
-
-        pRenderCmd->bindDescriptorSets(
-            pCurrentCmdBuf,
-            PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
-            0,
-            toBind
-        );
-
-        pRenderCmd->drawIndexed(pCurrentCmdBuf, indexBufLen, 1, 0, 0, 0);
-
 
         pRenderCmd->endCmdBuffer(pCurrentCmdBuf);
 
@@ -338,15 +371,11 @@ namespace pk
 
     void StaticRenderer::flush()
     {
+        _batchContainer.clear();
     }
 
     void StaticRenderer::freeDescriptorSets()
     {
-        for (DescriptorSet* pDescSet : _pUBODescriptorSet)
-            delete pDescSet;
-        _pUBODescriptorSet.clear();
-        for (DescriptorSet* pDescSet : _pTextureDescriptorSet)
-            delete pDescSet;
-        _pTextureDescriptorSet.clear();
+        _batchContainer.freeDescriptorSets();
     }
 }

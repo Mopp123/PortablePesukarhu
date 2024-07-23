@@ -21,20 +21,18 @@ namespace pk
         Shader* _pVertexShader = nullptr;
         Shader* _pFragmentShader = nullptr;
 
-        Buffer* _pVertexBuffer = nullptr;
-        Buffer* _pIndexBuffer = nullptr;
+        //Buffer* _pVertexBuffer = nullptr;
+        //Buffer* _pIndexBuffer = nullptr;
+
         VertexBufferLayout _vertexBufferLayout;
+        VertexBufferLayout _instanceBufferLayout;
 
-        // TODO: Figure out how to handle renderable specific shit like this..
-        std::vector<Buffer*> _pTransformUBO;
-
-        DescriptorSetLayout _UBODescSetLayout;
         DescriptorSetLayout _textureDescSetLayout;
 
-        std::vector<DescriptorSet*> _pUBODescriptorSet;
-        std::vector<DescriptorSet*> _pTextureDescriptorSet;
+        //Mesh* _pTestMesh = nullptr;
 
-        Mesh* _pTestMesh = nullptr;
+        std::unordered_map<PK_id, Mesh*> _batchMeshMapping;
+        BatchContainer _batchContainer;
 
     public:
         StaticRenderer();
