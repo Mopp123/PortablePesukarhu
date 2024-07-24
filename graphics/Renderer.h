@@ -195,12 +195,12 @@ namespace pk
         // On submit(...) should be checked does component have appropriate descriptor sets
         // already created. If no -> call this
         virtual void createDescriptorSets(Component* pComponent) {}
+        virtual void freeDescriptorSets() {}
 
     protected:
         // Pipeline has its' own init func but what that func takes in dependant on renderer
         // so thats why we need this implemented for all renderers
         virtual void initPipeline() {}
-        virtual void freeDescriptorSets() {}
     };
 
 }

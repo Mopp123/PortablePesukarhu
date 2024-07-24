@@ -37,6 +37,9 @@ namespace pk
 
         Renderer* const getRenderer(ComponentType renderableType);
 
+        // Frees all renderers' descriptor sets
+        void freeDescriptorSets();
+
         inline const DescriptorSetLayout getCommonDescriptorSetLayout() const { return _commonDescriptorSetLayout; }
         inline const DescriptorSet* getCommonDescriptorSet() const { return _pCommonDescriptorSet; }
 

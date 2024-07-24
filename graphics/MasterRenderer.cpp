@@ -152,6 +152,12 @@ namespace pk
         return nullptr;
     }
 
+    void MasterRenderer::freeDescriptorSets()
+    {
+        for (const auto& renderer : _renderers)
+            renderer.second->freeDescriptorSets();
+    }
+
     void MasterRenderer::handleWindowResize()
     {
         const Window* pWindow = Application::get()->getWindow();

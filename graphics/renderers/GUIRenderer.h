@@ -48,8 +48,9 @@ namespace pk
 
         virtual void flush();
 
+        virtual void freeDescriptorSets();
+
     protected:
         virtual void initPipeline();
-        virtual void freeDescriptorSets();
     };
 }

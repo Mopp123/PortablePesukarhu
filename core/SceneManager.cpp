@@ -111,6 +111,7 @@ namespace pk
         {
             Debug::log("Attempting to switch scene...");
             Application* pApp = Application::get();
+            pApp->getMasterRenderer()->freeDescriptorSets();
             pApp->accessInputManager()->destroyEvents();
             pApp->getResourceManager().free();
             delete _pCurrentScene;

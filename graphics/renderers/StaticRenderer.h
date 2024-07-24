@@ -21,17 +21,12 @@ namespace pk
         Shader* _pVertexShader = nullptr;
         Shader* _pFragmentShader = nullptr;
 
-        //Buffer* _pVertexBuffer = nullptr;
-        //Buffer* _pIndexBuffer = nullptr;
-
         VertexBufferLayout _vertexBufferLayout;
         VertexBufferLayout _instanceBufferLayout;
 
         DescriptorSetLayout _textureDescSetLayout;
 
-        //Mesh* _pTestMesh = nullptr;
-
-        std::unordered_map<PK_id, Mesh*> _batchMeshMapping;
+        std::unordered_map<PK_id, Mesh*> _batchMeshCache;
         BatchContainer _batchContainer;
 
     public:
@@ -43,8 +38,9 @@ namespace pk
 
         virtual void flush();
 
+        virtual void freeDescriptorSets();
+
     protected:
         virtual void initPipeline();
-        virtual void freeDescriptorSets();
     };
 }

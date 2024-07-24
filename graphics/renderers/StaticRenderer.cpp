@@ -92,35 +92,6 @@ namespace pk
         _textureDescSetLayout = DescriptorSetLayout({ textureDescSetLayoutBinding });
 
         initPipeline();
-
-        // Atm creating these only for quick testing here!!!
-        // Static vertex buffer
-        float scale = 10;
-        float vbData[32] = {
-            -1 * scale,  1 * scale, -1.0f,  0.0f, 0.0f, 1.0f,  0, 1,
-            -1 * scale, -1 * scale, -1.0f,  0.0f, 0.0f, 1.0f,  0, 0,
-             1 * scale, -1 * scale, -1.0f,  0.0f, 0.0f, 1.0f,  1, 0,
-             1 * scale,  1 * scale, -1.0f,  0.0f, 0.0f, 1.0f,  1, 1
-        };
-        unsigned short indices[6] =
-        {
-            0, 1, 2,
-            2, 3, 0
-        };
-        /*
-        _pVertexBuffer = Buffer::create(
-            vbData,
-            sizeof(float),
-            32,
-            BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT
-        );
-        _pIndexBuffer = Buffer::create(
-            indices,
-            sizeof(unsigned short),
-            6,
-            BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT
-        );
-        */
     }
 
     StaticRenderer::~StaticRenderer()
@@ -128,8 +99,6 @@ namespace pk
         freeDescriptorSets();
         delete _pVertexShader;
         delete _pFragmentShader;
-        //delete _pVertexBuffer;
-        //delete _pIndexBuffer;
     }
 
     void StaticRenderer::initPipeline()
@@ -200,7 +169,7 @@ namespace pk
                     &_textureDescSetLayout,
                     pTestTexture
                 );
-                _batchMeshMapping[batchIdentifier] = pMesh;
+                _batchMeshCache[batchIdentifier] = pMesh;
             }
         }
 
@@ -299,17 +268,17 @@ namespace pk
             if (!pBatch->isOccupied())
                 continue;
 
-            if (_batchMeshMapping.find(pBatch->getIdentifier()) == _batchMeshMapping.end())
+            if (_batchMeshCache.find(pBatch->getIdentifier()) == _batchMeshCache.end())
             {
                 Debug::log(
                     "@StaticRenderer::render "
-                    "Failed to find batch's mesh from batchMeshMapping with "
+                    "Failed to find batch's mesh from _batchMeshCache with "
                     "batch identifier: " + std::to_string(pBatch->getIdentifier()),
                     Debug::MessageType::PK_FATAL_ERROR
                 );
                 continue;
             }
-            Mesh* pMesh = _batchMeshMapping[pBatch->getIdentifier()];
+            Mesh* pMesh = _batchMeshCache[pBatch->getIdentifier()];
             const Buffer* pIndexBuffer = pMesh->getIndexBuffer();
             Buffer* pVertexBuffer = pMesh->accessVertexBuffer();
 
@@ -377,5 +346,6 @@ namespace pk
     void StaticRenderer::freeDescriptorSets()
     {
         _batchContainer.freeDescriptorSets();
+        _batchMeshCache.clear();
     }
 }
