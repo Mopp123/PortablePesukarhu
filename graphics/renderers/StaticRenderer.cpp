@@ -25,7 +25,6 @@ namespace pk
             mat4 projMat;
             mat4 viewMat;
         };
-
         uniform Common3D common;
 
         varying vec3 var_normal;
@@ -33,8 +32,11 @@ namespace pk
 
         void main()
         {
-            gl_Position = common.projMat * common.viewMat * transformationMatrix * vec4(vertexPos, 1.0);
-            var_normal = normal;
+            vec4 worldPos = transformationMatrix * vec4(vertexPos, 1.0);
+            gl_Position = common.projMat * common.viewMat * worldPos;
+
+            vec4 rotatedNormal = transformationMatrix * vec4(normal, 0.0);
+            var_normal = rotatedNormal.xyz;
             var_uvCoord = uvCoord;
         }
     )";
@@ -45,14 +47,28 @@ namespace pk
         varying vec3 var_normal;
         varying vec2 var_uvCoord;
 
+        struct DirectionalLight
+        {
+            vec4 direction;
+            vec4 color;
+        };
+        uniform DirectionalLight directionalLight;
+
         uniform sampler2D texSampler;
+
+        const vec4 ambientColor = vec4(0.25, 0.25, 0.25, 1.0);
 
         void main()
         {
+
+            vec3 normal = normalize(var_normal);
+            vec3 toLight = normalize(directionalLight.direction.xyz * -1.0);
+
+            float diffFactor = max(dot(normal, toLight), 0.0);
+            vec4 diffuseColor = diffFactor * directionalLight.color;
+
             vec4 texColor = texture2D(texSampler, var_uvCoord);
-            vec4 n = vec4(var_normal, 1.0);
-            n = n * n;
-            gl_FragColor = texColor * n;
+            gl_FragColor = (ambientColor + diffuseColor) * texColor;
         }
     )";
 
@@ -87,7 +103,7 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 2 }}
+            {{ 4 }}
         );
         _textureDescSetLayout = DescriptorSetLayout({ textureDescSetLayoutBinding });
 
@@ -108,6 +124,7 @@ namespace pk
         std::vector<DescriptorSetLayout> descSetLayouts(
             {
                 pMasterRenderer->getCommonDescriptorSetLayout(),
+                pMasterRenderer->getDirectionalLightDescriptorSetLayout(),
                 _textureDescSetLayout
             }
         );
@@ -136,7 +153,6 @@ namespace pk
     {
         Application* pApp = Application::get();
         ResourceManager& resManager = pApp->getResourceManager();
-        size_t swapchainImages = pApp->getWindow()->getSwapchain()->getImageCount();
 
         const Static3DRenderable * const pStaticRenderable = (const Static3DRenderable * const)renderableComponent;
         PK_id batchIdentifier = pStaticRenderable->meshID;
@@ -172,47 +188,6 @@ namespace pk
                 _batchMeshCache[batchIdentifier] = pMesh;
             }
         }
-
-        /*
-        if (pMesh && pMaterial)
-        {
-            _pTestMesh = pMesh;
-            // create descriptor sets if necessary
-            // FUCKING DISGUSTING! DO SOMETHING ABOUT THIS!!!
-            if (_pUBODescriptorSet.empty())
-            {
-                std::vector<DescriptorSet*> pDescriptorSets(swapchainImages);
-                for (uint32_t i = 0; i < swapchainImages; ++i)
-                {
-                    DescriptorSet* pDescriptorSet = new DescriptorSet(
-                        _UBODescSetLayout,
-                        1,
-                        { _pTransformUBO }
-                    );
-                    pDescriptorSets[i] = pDescriptorSet;
-                }
-                _pUBODescriptorSet = pDescriptorSets;
-                Debug::log("___TEST___created ubo desc set for 3d renderable");
-            }
-            if (_pTextureDescriptorSet.empty())
-            {
-                std::vector<DescriptorSet*> pDescriptorSets(swapchainImages);
-                for (uint32_t i = 0; i < swapchainImages; ++i)
-                {
-                    DescriptorSet* pDescriptorSet = new DescriptorSet(
-                        _textureDescSetLayout,
-                        1,
-                        { pTestTexture }
-                    );
-                    pDescriptorSets[i] = pDescriptorSet;
-                }
-                _pTextureDescriptorSet = pDescriptorSets;
-                Debug::log("___TEST___created tex desc set for 3d renderable");
-            }
-        }
-        // update ubo
-        _pTransformUBO[0]->update(transformation.getRawArray(), sizeof(mat4));
-        */
     }
 
     void StaticRenderer::render(const Camera& cam)
@@ -306,11 +281,10 @@ namespace pk
 
             // Get "common descriptor set" from master renderer
             MasterRenderer* pMasterRenderer = pApp->getMasterRenderer();
-            const DescriptorSet* pCommonDescriptorSet = pMasterRenderer->getCommonDescriptorSet();
-
             std::vector<const DescriptorSet*> toBind =
             {
-                pCommonDescriptorSet,
+                pMasterRenderer->getCommonDescriptorSet(),
+                pMasterRenderer->getDirectionalLightDescriptorSet(),
                 _batchContainer.getTextureDescriptorSet(pBatch->getIdentifier(), 0)
             };
 

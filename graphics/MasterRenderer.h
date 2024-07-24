@@ -17,6 +17,14 @@ namespace pk
         mat4 viewMatrix;
     };
 
+
+    struct DirectionalLightProperties
+    {
+        vec4 direction;
+        vec4 color;
+    };
+
+
     class MasterRenderer
     {
     private:
@@ -26,6 +34,10 @@ namespace pk
         DescriptorSetLayout _commonDescriptorSetLayout;
         Buffer* _pCommonUniformBuffer = nullptr;
         DescriptorSet* _pCommonDescriptorSet = nullptr;
+
+        DescriptorSetLayout _directionalLightDescriptorSetLayout;
+        Buffer* _pDirectionalLightUniformBuffer = nullptr;
+        DescriptorSet* _pDirectionalLightDescriptorSet = nullptr;
 
     public:
         MasterRenderer();
@@ -43,6 +55,8 @@ namespace pk
         inline const DescriptorSetLayout getCommonDescriptorSetLayout() const { return _commonDescriptorSetLayout; }
         inline const DescriptorSet* getCommonDescriptorSet() const { return _pCommonDescriptorSet; }
 
+        inline const DescriptorSetLayout getDirectionalLightDescriptorSetLayout() const { return _directionalLightDescriptorSetLayout; }
+        inline const DescriptorSet* getDirectionalLightDescriptorSet() const { return _pDirectionalLightDescriptorSet; }
     private:
         void handleWindowResize();
     };
