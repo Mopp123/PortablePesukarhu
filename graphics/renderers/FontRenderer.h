@@ -30,17 +30,9 @@ namespace pk
         Buffer* _pIndexBuffer = nullptr;
         VertexBufferLayout _vertexBufferLayout;
 
-        Buffer* _pInstanceBuffer = nullptr;
         VertexBufferLayout _instanceBufferLayout;
 
         DescriptorSetLayout _textureDescSetLayout;
-
-        struct BatchDescriptorSets
-        {
-            std::vector<DescriptorSet*> pTextureDescriptorSet;
-        };
-
-        std::unordered_map<PK_id, BatchDescriptorSets> _descriptorSets;
 
         BatchContainer _batchContainer;
 
@@ -53,8 +45,9 @@ namespace pk
 
         virtual void flush();
 
+        virtual void freeDescriptorSets();
+
     protected:
         virtual void initPipeline();
-        virtual void freeDescriptorSets();
     };
 }

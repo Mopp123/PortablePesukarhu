@@ -13,6 +13,12 @@
 
 namespace pk
 {
+    enum ShaderDataTypePrimitive
+    {
+
+    };
+
+    // TODO: more specific names or enum class to "unfuck" possible issues
     enum ShaderDataType
     {
         None = 0,
@@ -51,6 +57,7 @@ namespace pk
 
     enum BufferUsageFlagBits
     {
+        BUFFER_USAGE_NONE = 0x0,
         BUFFER_USAGE_VERTEX_BUFFER_BIT = 0x1,
         BUFFER_USAGE_INDEX_BUFFER_BIT = 0x2,
         BUFFER_USAGE_UNIFORM_BUFFER_BIT = 0x4
@@ -93,6 +100,9 @@ namespace pk
         ShaderDataType _type = ShaderDataType::Float;
 
     public:
+        VertexBufferElement() = default;
+        VertexBufferElement(const VertexBufferElement&) = default;
+
         VertexBufferElement(uint32_t location, ShaderDataType dataType) :
             _location(location),
             _type(dataType)

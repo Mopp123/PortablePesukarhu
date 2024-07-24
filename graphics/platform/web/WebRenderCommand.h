@@ -40,7 +40,7 @@ namespace pk
 
             virtual void bindIndexBuffer(
                 CommandBuffer* pCmdBuf,
-                Buffer* pBuffer,
+                const Buffer* pBuffer,
                 size_t offset,
                 IndexType indexType
             );

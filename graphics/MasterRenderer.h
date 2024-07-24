@@ -14,6 +14,7 @@ namespace pk
     struct CommonUniforms
     {
         mat4 projectionMatrix;
+        mat4 viewMatrix;
     };
 
     class MasterRenderer
@@ -31,10 +32,13 @@ namespace pk
         ~MasterRenderer();
         void addRenderer(ComponentType renderableComponentType, Renderer* renderer);
 
-        void render(const Camera& cam);
+        void render(const Camera& cameraComponent, const mat4& viewMatrix);
         void flush();
 
         Renderer* const getRenderer(ComponentType renderableType);
+
+        // Frees all renderers' descriptor sets
+        void freeDescriptorSets();
 
         inline const DescriptorSetLayout getCommonDescriptorSetLayout() const { return _commonDescriptorSetLayout; }
         inline const DescriptorSet* getCommonDescriptorSet() const { return _pCommonDescriptorSet; }

@@ -40,16 +40,23 @@ namespace pk
             );
         }
 
-        // NOTE: May require recreating all common
-        // uniform buffers and descriptors in case
+        // NOTE: Requires recreating all common
+        // uniform buffers and descriptor sets in case
         // swapchain's img count changes for some reason!!
+        //
+        // ...WHICH IS NOT DONE HERE ATM!!!!
+        // TODO: DO THAT!!!
+        // ALSO!
+        // currently we are having just a single common ubo buffer
+        // TODO: need to have one for each swapchain image!!!
         DescriptorSetLayoutBinding commonDescriptorSetLayoutBinding(
             0,
-            1,
+            2,
             DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
             {
                 { 0, ShaderDataType::Mat4 },
+                { 1, ShaderDataType::Mat4 }
             }
         );
         _commonDescriptorSetLayout = DescriptorSetLayout({commonDescriptorSetLayoutBinding});
@@ -91,7 +98,7 @@ namespace pk
         }
     }
 
-    void MasterRenderer::render(const Camera& cam)
+    void MasterRenderer::render(const Camera& cameraComponent, const mat4& viewMatrix)
     {
         RenderCommand* pRenderCommand = RenderCommand::get();
         // TODO: catch possible std::runtime_error?
@@ -111,9 +118,10 @@ namespace pk
             pRenderCommand->beginRenderPass();
 
             // Update common uniform buffers here?...
-            const mat4 projMat = cam.getProjMat2D();
-
-            CommonUniforms commonUniforms = { projMat };
+            CommonUniforms commonUniforms = {
+                 cameraComponent.getProjMat3D(),
+                 viewMatrix
+            };
             _pCommonUniformBuffer->update(&commonUniforms, sizeof(CommonUniforms));
 
             // NOTE: Not sure if I like these being raw ptrs here...
@@ -121,7 +129,7 @@ namespace pk
             for (const auto& renderer : _renderers)
             {
                 // TODO: Switch below line to commented out style
-                renderer.second->render(cam);
+                renderer.second->render(cameraComponent);
                 // if (CommandBuffer* secondaryBuf = renderer.recordCmdBuf())
                 //     secondaryCmdBufs.push_back(secondaryBuf);
             }
@@ -142,6 +150,12 @@ namespace pk
         if (_renderers.find(renderableType) != _renderers.end())
             return _renderers[renderableType];
         return nullptr;
+    }
+
+    void MasterRenderer::freeDescriptorSets()
+    {
+        for (const auto& renderer : _renderers)
+            renderer.second->freeDescriptorSets();
     }
 
     void MasterRenderer::handleWindowResize()

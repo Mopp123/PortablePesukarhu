@@ -3,7 +3,6 @@
 
 #include "ecs/components/renderable/Sprite3DRenderable.h"
 #include "ecs/components/renderable/TerrainTileRenderable.h"
-#include "ecs/components/renderable/Static3DRenderable.h"
 #include "ecs/components/lighting/Lights.h"
 
 // NOTE: Only temporarely adding all systems here on Scene's constructor!
@@ -281,6 +280,17 @@ namespace pk
         return pRenderable;
     }
 
+    Static3DRenderable* Scene::createStatic3DRenderable(
+        entityID_t target,
+        PK_id meshID
+    )
+    {
+        Static3DRenderable* pRenderable = (Static3DRenderable*)componentPools[ComponentType::PK_RENDERABLE_STATIC3D].allocComponent(target);
+        *pRenderable = Static3DRenderable(meshID);
+        addComponent(target, pRenderable);
+        return pRenderable;
+    }
+
     Camera* Scene::createCamera(
         entityID_t target,
         const vec3& position,
@@ -296,12 +306,12 @@ namespace pk
 
         const float aspectRatio = windowWidth / windowHeight;
         mat4 orthographicProjMat = create_proj_mat_ortho(0, windowWidth, windowHeight, 0, 0.0f, 100.0f);
-        mat4 perspectivaProjMat = create_perspective_projection_matrix(aspectRatio, 1.3f, 0.1f, 100.0f);
+        mat4 perspectivaProjMat = create_perspective_projection_matrix(aspectRatio, 1.3f, 0.1f, 1000.0f);
 
         Camera* pCamera = (Camera*)componentPools[ComponentType::PK_CAMERA].allocComponent(target);
         *pCamera = Camera(orthographicProjMat, perspectivaProjMat);
         addComponent(target, pCamera);
-        createTransform(target, position, { 1,1,1 }, pitch, yaw);
+        createTransform(target, position, { 1, 1, 1 }, pitch, yaw);
 
         pApp->accessInputManager()->addWindowResizeEvent(new CameraWindowResizeEvent(*pCamera));
         return pCamera;

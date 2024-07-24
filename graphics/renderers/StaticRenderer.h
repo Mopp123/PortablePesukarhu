@@ -4,6 +4,7 @@
 #include "graphics/Pipeline.h"
 #include "graphics/Buffers.h"
 #include "graphics/Texture.h"
+#include "graphics/Mesh.h"
 #include "graphics/Descriptors.h"
 #include "graphics/CommandBuffer.h"
 #include "graphics/RenderCommand.h"
@@ -14,34 +15,23 @@
 
 namespace pk
 {
-    class GUIRenderer : public Renderer
+    class StaticRenderer : public Renderer
     {
     private:
         Shader* _pVertexShader = nullptr;
         Shader* _pFragmentShader = nullptr;
 
-        Buffer* _pVertexBuffer = nullptr;
-        Buffer* _pIndexBuffer = nullptr;
         VertexBufferLayout _vertexBufferLayout;
-
         VertexBufferLayout _instanceBufferLayout;
 
         DescriptorSetLayout _textureDescSetLayout;
 
-        /*
-        struct BatchDescriptorSets
-        {
-            std::vector<DescriptorSet*> pTextureDescriptorSet;
-        };
-
-        std::unordered_map<PK_id, BatchDescriptorSets> _descriptorSets;
-        */
-        // Testing new Batch system..
+        std::unordered_map<PK_id, Mesh*> _batchMeshCache;
         BatchContainer _batchContainer;
 
     public:
-        GUIRenderer();
-        ~GUIRenderer();
+        StaticRenderer();
+        ~StaticRenderer();
 
         virtual void submit(const Component* const renderableComponent, const mat4& transformation);
         virtual void render(const Camera& cam);

@@ -127,6 +127,15 @@ namespace pk
         std::vector<Batch*> _batches;
         std::unordered_map<PK_id, Batch*> _occupiedBatches;
 
+        struct BatchDescriptorSets
+        {
+            std::vector<DescriptorSet*> _textureDescriptorSet;
+            std::vector<DescriptorSet*> _uboDescriptorSet;
+        };
+
+        // used kind of like descriptor set cache or smthn..
+        std::unordered_map<PK_id, BatchDescriptorSets> _batchDescriptorSets;
+
     public:
         BatchContainer(size_t maxBatches, size_t batchSize);
         ~BatchContainer();
@@ -134,11 +143,25 @@ namespace pk
         // batchIdentifier
         // Returns true if added successfully
         bool addData(const void* data, size_t dataSize, PK_id batchIdentifier);
+        void createDescriptorSets(
+            PK_id batchIdentifier,
+            const DescriptorSetLayout * const pTextureDescriptorSetLayout = nullptr,
+            Texture_new* pTexture = nullptr,
+            const DescriptorSetLayout * const pUboDescriptorSetLayout = nullptr,
+            const std::vector<Buffer*>& ubo = {}
+        );
+        void freeDescriptorSets();
         void clear();
 
         const Batch* getBatch(PK_id batchIdentifier) const;
+        inline Batch* accessBatch_DANGER(PK_id batchIdentifier) { return _occupiedBatches[batchIdentifier]; }
         inline std::vector<Batch*>& getBatches() { return _batches; }
         inline const std::unordered_map<PK_id, Batch*>& getOccupiedBatches() const { return _occupiedBatches; }
+        inline std::unordered_map<PK_id, Batch*>& accessOccupiedBatches() { return _occupiedBatches; }
+
+        bool hasDescriptorSets(PK_id batchIdentifier) const;
+        const DescriptorSet* getTextureDescriptorSet(PK_id batchIdentifier, uint32_t index) const;
+        const DescriptorSet* getUboDescriptorSet(PK_id batchIdentifier, uint32_t index) const;
     };
 
 
@@ -172,12 +195,12 @@ namespace pk
         // On submit(...) should be checked does component have appropriate descriptor sets
         // already created. If no -> call this
         virtual void createDescriptorSets(Component* pComponent) {}
+        virtual void freeDescriptorSets() {}
 
     protected:
         // Pipeline has its' own init func but what that func takes in dependant on renderer
         // so thats why we need this implemented for all renderers
         virtual void initPipeline() {}
-        virtual void freeDescriptorSets() {}
     };
 
 }

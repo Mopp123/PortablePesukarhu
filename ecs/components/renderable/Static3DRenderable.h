@@ -10,10 +10,10 @@ namespace pk
     {
     public:
         PK_id meshID = 0;
-        PK_id materialID = 0;
 
-        Static3DRenderable() :
-            Component(ComponentType::PK_RENDERABLE_STATIC3D)
+        Static3DRenderable(PK_id meshID) :
+            Component(ComponentType::PK_RENDERABLE_STATIC3D),
+            meshID(meshID)
         {}
     };
 }

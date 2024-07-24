@@ -120,24 +120,14 @@ namespace pk
 
         initPipeline();
 
-        const Window* pWindow = Application::get()->getWindow();
         // Atm creating these only for quick testing here!!!
         // Static vertex buffer
-        float yPos = pWindow->getHeight() - 10;
-        float xPos = 10;
-        float scale = 200;
         float vbData[16] = {
             0, 0, 0, 1,
             0, -1, 0, 0,
             1, -1, 1, 0,
             1, 0, 1, 1
         };
-        //loat vbData[16] = {
-        //   xPos, yPos, 0, 1,
-        //   xPos, yPos - scale, 0, 0,
-        //   xPos + scale, yPos - scale, 1, 0,
-        //   xPos + scale, yPos, 1, 1
-        //;
         unsigned short indices[6] =
         {
             0, 1, 2,
@@ -155,21 +145,6 @@ namespace pk
             6,
             BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT
         );
-
-        // Allocate "instance buffer"
-        size_t totalInstanceBufLen = s_instanceBufferComponents * s_maxInstanceCount;
-        float* pInitialInstanceBufData = new float[totalInstanceBufLen];
-        memset(pInitialInstanceBufData, 0, sizeof(float) * totalInstanceBufLen);
-
-        _pInstanceBuffer = Buffer::create(
-            pInitialInstanceBufData,
-            sizeof(float),
-            totalInstanceBufLen,
-            BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT,
-            true
-        );
-
-        delete[] pInitialInstanceBufData;
     }
 
     GUIRenderer::~GUIRenderer()
@@ -179,7 +154,6 @@ namespace pk
         delete _pFragmentShader;
         delete _pVertexBuffer;
         delete _pIndexBuffer;
-        delete _pInstanceBuffer;
     }
 
     void GUIRenderer::initPipeline()
@@ -227,7 +201,22 @@ namespace pk
             pGuiRenderable->borderThickness
         };
 
+        // Testing..
+        if (_batchContainer.addData(renderableData, sizeof(float) * s_instanceBufferComponents, batchIdentifier))
+        {
+            // TODO: optimize below?
+            if (!_batchContainer.hasDescriptorSets(batchIdentifier))
+            {
+                _batchContainer.createDescriptorSets(
+                    batchIdentifier,
+                    &_textureDescSetLayout,
+                    pTexture
+                );
+            }
+        }
+
         // Create descriptor sets if necessary BUT ONLY if added to batch successfully
+        /*
         if (_batchContainer.addData(renderableData, sizeof(float) * s_instanceBufferComponents, batchIdentifier))
         {
             if (_descriptorSets.find(batchIdentifier) == _descriptorSets.end())
@@ -251,6 +240,7 @@ namespace pk
                 );
             }
         }
+        */
     }
 
     void GUIRenderer::render(const Camera& cam)
@@ -273,7 +263,7 @@ namespace pk
         if (!pCamera)
         {
             Debug::log(
-                "@FontRenderer::render "
+                "@GUIRenderer::render "
                 "Scene's active camera was nullptr!",
                 Debug::MessageType::PK_ERROR
             );
@@ -344,6 +334,7 @@ namespace pk
                 { { 0, ShaderDataType::Mat4 } }
             );
 
+            /*
             std::unordered_map<PK_id, BatchDescriptorSets>::const_iterator descSetIt =  _descriptorSets.find(pBatch->getIdentifier());
             if (descSetIt == _descriptorSets.end())
             {
@@ -354,11 +345,17 @@ namespace pk
                 );
                 continue;
             }
-            // TODO: switch below [0] to [current swapchaing img index] when dealing with actual
-            // swapchain stuff..
             std::vector<const DescriptorSet*> toBind =
             {
                 descSetIt->second.pTextureDescriptorSet[0]
+            };
+            */
+
+            // TODO:
+            // switch below (0) to current swapchaing img index when dealing with actual swapchain stuff..
+            std::vector<const DescriptorSet*> toBind =
+            {
+                _batchContainer.getTextureDescriptorSet(pBatch->getIdentifier(), 0)
             };
 
             pRenderCmd->bindDescriptorSets(
@@ -385,6 +382,7 @@ namespace pk
 
     void GUIRenderer::freeDescriptorSets()
     {
+        /*
         std::unordered_map<PK_id, BatchDescriptorSets>::iterator it;
         for (it = _descriptorSets.begin(); it != _descriptorSets.end(); ++it)
         {
@@ -393,5 +391,7 @@ namespace pk
             it->second.pTextureDescriptorSet.clear();
         }
         _descriptorSets.clear();
+        */
+        _batchContainer.freeDescriptorSets();
     }
 }

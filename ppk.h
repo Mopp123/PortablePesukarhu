@@ -4,6 +4,7 @@
 #include "core/platform/web/WebWindow.h"
 #include "graphics/Context.h"
 //#include "graphics/platform/web/WebContext.h"
+#include "core/input/InputEvent.h"
 #include "core/input/InputManager.h"
 #include "core/input/platform/web/WebInputManager.h"
 #include "core/Application.h"

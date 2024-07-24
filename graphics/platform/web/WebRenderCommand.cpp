@@ -182,11 +182,21 @@ namespace pk
 
         void WebRenderCommand::bindIndexBuffer(
             CommandBuffer* pCmdBuf,
-            Buffer* pBuffer,
+            const Buffer* pBuffer,
             size_t offset,
             IndexType indexType
         )
         {
+            if (indexType != IndexType::INDEX_TYPE_UINT16 && indexType != IndexType::INDEX_TYPE_UINT32)
+            {
+                Debug::log(
+                    "@WebRenderCommand::bindIndexBuffer "
+                    "invalid indexType: " + std::to_string(indexType) + " "
+                    "indexType is required to be either INDEX_TYPE_UINT16 or INDEX_TYPE_UINT32",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return;
+            }
             // quite dumb, but we need to be able to pass this to "drawIndexed" func somehow..
             ((WebCommandBuffer*)pCmdBuf)->_drawIndexedType = indexType;
 
@@ -249,20 +259,44 @@ namespace pk
                     int32_t location = shaderAttribLocations[elem.getLocation()];
                     ShaderDataType elemShaderDataType = elem.getType();
 
-                    glEnableVertexAttribArray(location);
-                    glVertexAttribDivisor(
-                        location,
-                        vbLayoutIt->getInputRate() == VertexInputRate::VERTEX_INPUT_RATE_INSTANCE ? 1 : 0
-                    );
-                    glVertexAttribPointer(
-                        location,
-                        get_shader_data_type_component_count(elemShaderDataType),
-                        opengl::to_gl_data_type(elemShaderDataType),
-                        GL_FALSE,
-                        stride,
-                        (const void*)toNext
-                    );
-                    toNext += get_shader_data_type_size(elemShaderDataType);
+                    if (elemShaderDataType != ShaderDataType::Mat4)
+                    {
+                        glEnableVertexAttribArray(location);
+                        glVertexAttribDivisor(
+                            location,
+                            vbLayoutIt->getInputRate() == VertexInputRate::VERTEX_INPUT_RATE_INSTANCE ? 1 : 0
+                        );
+                        glVertexAttribPointer(
+                            location,
+                            get_shader_data_type_component_count(elemShaderDataType),
+                            opengl::to_gl_data_type(elemShaderDataType),
+                            GL_FALSE,
+                            stride,
+                            (const void*)toNext
+                        );
+                        toNext += get_shader_data_type_size(elemShaderDataType);
+                    }
+                    // Special case on matrices since on opengl those are set as 4 vec4s
+                    else
+                    {
+                        for (int i = 0; i < 4; ++i)
+                        {
+                            glEnableVertexAttribArray(location + i);
+                            glVertexAttribDivisor(
+                                location + i,
+                                vbLayoutIt->getInputRate() == VertexInputRate::VERTEX_INPUT_RATE_INSTANCE ? 1 : 0
+                            );
+                            glVertexAttribPointer(
+                                location + i,
+                                4,
+                                opengl::to_gl_data_type(ShaderDataType::Float4),
+                                GL_FALSE,
+                                stride,
+                                (const void*)toNext
+                            );
+                            toNext += get_shader_data_type_size(ShaderDataType::Float4);
+                        }
+                    }
                 }
                 vbLayoutIt++;
             }

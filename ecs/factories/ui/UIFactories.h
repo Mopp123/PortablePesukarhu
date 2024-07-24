@@ -74,8 +74,7 @@ namespace pk
             vec4 borderColor = { 0.6f, 0.6f, 0.6f, 1.0f },
             float borderThickness = 2,
             Texture_new* pTexture = nullptr,
-            vec4 textureCropping = vec4(0, 0, 1, 1),
-            UIElemState* pUIElemState = nullptr
+            vec4 textureCropping = vec4(0, 0, 1, 1)
         );
 
         // return pair of InputField-entity and TextRenderable ptr of its' content
