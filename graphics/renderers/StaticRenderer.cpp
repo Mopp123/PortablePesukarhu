@@ -8,71 +8,6 @@
 
 namespace pk
 {
-
-    // NOTE: Atm these here only for quick testing!
-    static std::string s_vertexSource = R"(
-        precision mediump float;
-
-        attribute vec3 vertexPos;
-        attribute vec3 normal;
-        attribute vec2 uvCoord;
-
-        // Instanced stuff
-        attribute mat4 transformationMatrix;
-
-        struct Common3D
-        {
-            mat4 projMat;
-            mat4 viewMat;
-        };
-        uniform Common3D common;
-
-        varying vec3 var_normal;
-        varying vec2 var_uvCoord;
-
-        void main()
-        {
-            vec4 worldPos = transformationMatrix * vec4(vertexPos, 1.0);
-            gl_Position = common.projMat * common.viewMat * worldPos;
-
-            vec4 rotatedNormal = transformationMatrix * vec4(normal, 0.0);
-            var_normal = rotatedNormal.xyz;
-            var_uvCoord = uvCoord;
-        }
-    )";
-
-    static std::string s_fragmentSource = R"(
-        precision mediump float;
-
-        varying vec3 var_normal;
-        varying vec2 var_uvCoord;
-
-        struct DirectionalLight
-        {
-            vec4 direction;
-            vec4 color;
-        };
-        uniform DirectionalLight directionalLight;
-
-        uniform sampler2D texSampler;
-
-        const vec4 ambientColor = vec4(0.25, 0.25, 0.25, 1.0);
-
-        void main()
-        {
-
-            vec3 normal = normalize(var_normal);
-            vec3 toLight = normalize(directionalLight.direction.xyz * -1.0);
-
-            float diffFactor = max(dot(normal, toLight), 0.0);
-            vec4 diffuseColor = diffFactor * directionalLight.color;
-
-            vec4 texColor = texture2D(texSampler, var_uvCoord);
-            gl_FragColor = (ambientColor + diffuseColor) * texColor;
-        }
-    )";
-
-
     static const size_t s_instanceBufferComponents = 16;
     static const size_t s_maxBatchInstances = 10000;
     static const size_t s_maxBatches = 10;
@@ -94,8 +29,15 @@ namespace pk
         _textureDescSetLayout({}),
         _batchContainer(s_maxBatches, sizeof(float) * s_instanceBufferComponents * s_maxBatchInstances)
     {
-        _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
-        _pFragmentShader = Shader::create(s_fragmentSource, ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT);
+
+        _pVertexShader = Shader::create_from_file(
+            "assets/shaders/StaticShader.vert",
+            ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
+        );
+        _pFragmentShader = Shader::create_from_file(
+            "assets/shaders/StaticShader.frag",
+            ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT
+        );
 
         // Textures desc set layout
         DescriptorSetLayoutBinding textureDescSetLayoutBinding(
@@ -103,7 +45,7 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 4 }}
+            {{ 5 }}
         );
         _textureDescSetLayout = DescriptorSetLayout({ textureDescSetLayoutBinding });
 
@@ -124,6 +66,7 @@ namespace pk
         std::vector<DescriptorSetLayout> descSetLayouts(
             {
                 pMasterRenderer->getCommonDescriptorSetLayout(),
+                pMasterRenderer->getEnvironmentDescriptorSetLayout(),
                 pMasterRenderer->getDirectionalLightDescriptorSetLayout(),
                 _textureDescSetLayout
             }
@@ -284,6 +227,7 @@ namespace pk
             std::vector<const DescriptorSet*> toBind =
             {
                 pMasterRenderer->getCommonDescriptorSet(),
+                pMasterRenderer->getEnvironmentDescriptorSet(),
                 pMasterRenderer->getDirectionalLightDescriptorSet(),
                 _batchContainer.getTextureDescriptorSet(pBatch->getIdentifier(), 0)
             };

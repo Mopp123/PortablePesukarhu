@@ -11,6 +11,7 @@
 #include "ecs/components/renderable/TextRenderable.h"
 #include "ecs/components/renderable/Static3DRenderable.h"
 #include "ecs/components/lighting/Lights.h"
+#include "graphics/Environment.h"
 
 #include "../ecs/systems/System.h"
 #include "Debug.h"
@@ -41,6 +42,7 @@ namespace pk
 
         entityID_t activeCamera = NULL_ENTITY_ID;
         entityID_t directionalLight = NULL_ENTITY_ID;
+        struct EnvironmentProperties environmentProperties;
 
         Scene();
         virtual ~Scene();

@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 
 #include "MasterRenderer.h"
+#include "Environment.h"
 #include "../core/Debug.h"
 #include "RenderCommand.h"
 #include "CommandBuffer.h"
@@ -12,6 +13,7 @@ namespace pk
 {
     MasterRenderer::MasterRenderer() :
         _commonDescriptorSetLayout({}),
+        _environmentDescriptorSetLayout({}),
         _directionalLightDescriptorSetLayout({})
     {
         const Application* pApp = Application::get();
@@ -74,15 +76,41 @@ namespace pk
             1,
             { _pCommonUniformBuffer }
         );
-        // Common directional light
+
+        // Environment properties
+        DescriptorSetLayoutBinding environmentDescriptorSetLayoutBinding(
+            0,
+            1,
+            DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
+            {
+                { 2, ShaderDataType::Float4 }
+            }
+        );
+        _environmentDescriptorSetLayout = DescriptorSetLayout({environmentDescriptorSetLayoutBinding});
+        EnvironmentProperties initialEnvProperties;
+        _pEnvironmentUniformBuffer = Buffer::create(
+            &initialEnvProperties,
+            sizeof(EnvironmentProperties),
+            1,
+            BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            true
+        );
+        _pEnvironmentDescriptorSet = new DescriptorSet(
+            _environmentDescriptorSetLayout,
+            1,
+            { _pEnvironmentUniformBuffer }
+        );
+
+        // Directional light properties
         DescriptorSetLayoutBinding dirLightDescriptorSetLayoutBinding(
             0,
             2,
             DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
             {
-                { 2, ShaderDataType::Float4 },
-                { 3, ShaderDataType::Float4 }
+                { 3, ShaderDataType::Float4 },
+                { 4, ShaderDataType::Float4 }
             }
         );
         _directionalLightDescriptorSetLayout = DescriptorSetLayout({dirLightDescriptorSetLayoutBinding});
@@ -111,6 +139,10 @@ namespace pk
             delete _pDirectionalLightDescriptorSet;
         if (_pDirectionalLightUniformBuffer)
             delete _pDirectionalLightUniformBuffer;
+        if (_pEnvironmentDescriptorSet)
+            delete _pEnvironmentDescriptorSet;
+        if (_pEnvironmentUniformBuffer)
+            delete _pEnvironmentUniformBuffer;
     }
 
     void MasterRenderer::addRenderer(ComponentType renderableComponentType, Renderer* renderer)
@@ -155,6 +187,12 @@ namespace pk
                  viewMatrix
             };
             _pCommonUniformBuffer->update(&commonUniforms, sizeof(CommonUniforms));
+
+            // Update scene's environment properties
+            _pEnvironmentUniformBuffer->update(
+                &pScene->environmentProperties,
+                sizeof(EnvironmentProperties)
+            );
 
             // Update directional light ubo if scene has one..
             if (pScene->directionalLight != NULL_ENTITY_ID)

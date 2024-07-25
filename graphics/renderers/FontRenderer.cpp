@@ -9,57 +9,6 @@
 
 namespace pk
 {
-
-    // NOTE: Atm these here only for quick testing!
-    static std::string s_vertexSource = R"(
-        precision mediump float;
-
-        attribute vec2 vertexPos;
-
-        attribute vec2 pos;
-        attribute vec2 scale;
-        attribute vec2 texOffset;
-        attribute vec4 color;
-
-        struct PushConstantData
-        {
-            mat4 projMat;
-            float atlasRows;
-        };
-        uniform PushConstantData pushConstants;
-
-        varying vec2 var_uvCoord;
-        varying vec4 var_color;
-
-        void main()
-        {
-            vec2 vpos = vertexPos;
-            gl_Position = pushConstants.projMat * vec4((vpos * scale) + pos, 0, 1.0);
-            var_uvCoord = (vpos * vec2(1.0, -1.0) + texOffset) / pushConstants.atlasRows;
-            var_color = color;
-        }
-    )";
-
-    static std::string s_fragmentSource = R"(
-        precision mediump float;
-
-        varying vec2 var_uvCoord;
-        varying vec4 var_color;
-
-        uniform sampler2D texSampler;
-
-        void main()
-        {
-	    vec4 texColor = texture2D(texSampler, var_uvCoord);
-	    vec4 finalColor = var_color * texColor.a * 1.0; // The last * 1.0 is thickness..
-
-	    if(texColor.a <= 0.0)
-	        discard;
-
-	    gl_FragColor = vec4(finalColor.rgb, 1.0);
-        }
-    )";
-
     static const size_t s_instanceBufferComponents = 2 * 3 + 4;
     static const size_t s_maxInstanceCount = 1000; // per batch, not total max count!
     FontRenderer::FontRenderer() :
@@ -81,8 +30,14 @@ namespace pk
         _textureDescSetLayout({}),
         _batchContainer(5, (sizeof(float) * s_instanceBufferComponents) * s_maxInstanceCount)
     {
-        _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
-        _pFragmentShader = Shader::create(s_fragmentSource, ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT);
+        _pVertexShader = Shader::create_from_file(
+            "assets/shaders/FontShader.vert",
+            ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
+        );
+        _pFragmentShader = Shader::create_from_file(
+            "assets/shaders/FontShader.frag",
+            ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT
+        );
 
         // Textures desc set layout
         DescriptorSetLayoutBinding textureDescSetLayoutBinding(

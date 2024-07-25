@@ -17,7 +17,6 @@ namespace pk
         mat4 viewMatrix;
     };
 
-
     struct DirectionalLightProperties
     {
         vec4 direction;
@@ -34,6 +33,10 @@ namespace pk
         DescriptorSetLayout _commonDescriptorSetLayout;
         Buffer* _pCommonUniformBuffer = nullptr;
         DescriptorSet* _pCommonDescriptorSet = nullptr;
+
+        DescriptorSetLayout _environmentDescriptorSetLayout;
+        Buffer* _pEnvironmentUniformBuffer = nullptr;
+        DescriptorSet* _pEnvironmentDescriptorSet = nullptr;
 
         DescriptorSetLayout _directionalLightDescriptorSetLayout;
         Buffer* _pDirectionalLightUniformBuffer = nullptr;
@@ -54,6 +57,9 @@ namespace pk
 
         inline const DescriptorSetLayout getCommonDescriptorSetLayout() const { return _commonDescriptorSetLayout; }
         inline const DescriptorSet* getCommonDescriptorSet() const { return _pCommonDescriptorSet; }
+
+        inline const DescriptorSetLayout getEnvironmentDescriptorSetLayout() const { return _environmentDescriptorSetLayout; }
+        inline const DescriptorSet* getEnvironmentDescriptorSet() const { return _pEnvironmentDescriptorSet; }
 
         inline const DescriptorSetLayout getDirectionalLightDescriptorSetLayout() const { return _directionalLightDescriptorSetLayout; }
         inline const DescriptorSet* getDirectionalLightDescriptorSet() const { return _pDirectionalLightDescriptorSet; }
