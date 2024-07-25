@@ -1,11 +1,10 @@
 #pragma once
 
-#include "ecs/components/Component.h"
-#include <vector>
-
 
 namespace pk
 {
+    class Scene;
+
     class System
     {
     public:
@@ -13,6 +12,6 @@ namespace pk
         System(const System& other) = delete;
         virtual ~System() {}
 
-        virtual void update() = 0;
+        virtual void update(Scene* pScene) = 0;
     };
 }

@@ -1,8 +1,9 @@
 #include "ConstraintSystem.h"
-#include "../../../utils/pkmath.h"
-#include "../../../core/Application.h"
-#include "../../../core/Window.h"
-#include "../../components/Transform.h"
+#include "utils/pkmath.h"
+#include "core/Application.h"
+#include "core/Scene.h"
+#include "core/Window.h"
+#include "ecs/components/Transform.h"
 #include "ecs/components/ui/ConstraintData.h"
 #include <utility>
 
@@ -18,19 +19,17 @@ namespace pk
         {}
 
         // Not tested, propably fucks up?
-        void ConstraintSystem::update()
+        void ConstraintSystem::update(Scene* pScene)
         {
             const Window* const win = Application::get()->getWindow();
             const float windowWidth = win->getWidth();
             const float windowHeight = win->getHeight();
 
-            Scene* pCurrentScene = Application::get()->accessCurrentScene();
-
-            ComponentPool& constraintPool = pCurrentScene->componentPools[ComponentType::PK_UI_CONSTRAINT];
-            ComponentPool& transformPool = pCurrentScene->componentPools[ComponentType::PK_TRANSFORM];
+            ComponentPool& constraintPool = pScene->componentPools[ComponentType::PK_UI_CONSTRAINT];
+            ComponentPool& transformPool = pScene->componentPools[ComponentType::PK_TRANSFORM];
 
             // This way actually better!
-            for (Entity e : pCurrentScene->entities)
+            for (Entity e : pScene->entities)
             {
                 if (e.componentMask & ComponentType::PK_UI_CONSTRAINT &&
                     e.componentMask & ComponentType::PK_TRANSFORM)
@@ -38,7 +37,7 @@ namespace pk
                     ConstraintData* pConstraint = (ConstraintData*)constraintPool[e.id];
                     Transform* pTransform = (Transform*)transformPool[e.id];
                     // NOTE: we dont care if these components are inactive here..
-                    mat4& tMat = pTransform->accessTransformationMatrix();
+                    mat4& tMat = pTransform->hasParent() ? pTransform->accessLocalTransformationMatrix() : pTransform->accessTransformationMatrix();
 
                     const float& transformWidth = tMat[0 + 0 * 4];
                     const float& transformHeight = tMat[1 + 1 * 4];

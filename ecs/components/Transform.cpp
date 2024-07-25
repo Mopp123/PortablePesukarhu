@@ -9,6 +9,7 @@ namespace pk
         Component(ComponentType::PK_TRANSFORM)
     {
         _transformationMatrix.setIdentity();
+        _localTransformationMatrix.setIdentity();
 
         setPos(pos);
         setScale(scale);
@@ -18,6 +19,7 @@ namespace pk
         Component(ComponentType::PK_TRANSFORM)
     {
         _transformationMatrix.setIdentity();
+        _localTransformationMatrix.setIdentity();
         setPos(pos);
         setScale(scale);
     }
@@ -54,29 +56,67 @@ namespace pk
         translationMatrix[2 + 3 * 4] = pos.z;
 
         _transformationMatrix = translationMatrix * scaleMatrix * yawMatrix * pitchMatrix;
+        // Not sure if to do below..?
+        _localTransformationMatrix = _transformationMatrix;
     }
 
     void Transform::setPos(vec2 pos)
     {
-        _transformationMatrix[0 + 3 * 4] = pos.x;
-        _transformationMatrix[1 + 3 * 4] = pos.y;
+        mat4& mat = _hasParent ? _localTransformationMatrix : _transformationMatrix;
+        mat[0 + 3 * 4] = pos.x;
+        mat[1 + 3 * 4] = pos.y;
     }
 
     void Transform::setPos(vec3 pos)
     {
-        _transformationMatrix[0 + 3 * 4] = pos.x;
-        _transformationMatrix[1 + 3 * 4] = pos.y;
-        _transformationMatrix[2 + 3 * 4] = pos.z;
+        mat4& mat = _hasParent ? _localTransformationMatrix : _transformationMatrix;
+        mat[0 + 3 * 4] = pos.x;
+        mat[1 + 3 * 4] = pos.y;
+        mat[2 + 3 * 4] = pos.z;
+    }
+
+    void Transform::setRotation(float pitch, float yaw, float roll)
+    {
+        mat4 rotationMatrix = create_rotation_matrix(pitch, yaw, roll);
+        //_transformationMatrix = _transformationMatrix * rotationMatrix;
+
+        mat4& mat = _hasParent ? _localTransformationMatrix : _transformationMatrix;
+
+	mat[1 + 1 * 4] = rotationMatrix[1 + 1 * 4];
+	mat[1 + 2 * 4] = rotationMatrix[1 + 2 * 4];
+	mat[2 + 1 * 4] = rotationMatrix[2 + 1 * 4];
+	mat[2 + 2 * 4] = rotationMatrix[2 + 2 * 4];
+
+	mat[0 + 0 * 4] = rotationMatrix[0 + 0 * 4];
+	mat[0 + 2 * 4] = rotationMatrix[0 + 2 * 4];
+	mat[2 + 0 * 4] = rotationMatrix[2 + 0 * 4];
+	mat[2 + 2 * 4] = rotationMatrix[2 + 2 * 4];
+
+	mat[0 + 0 * 4] = rotationMatrix[0 + 0 * 4];
+	mat[0 + 1 * 4] = rotationMatrix[0 + 1 * 4];
+	mat[1 + 0 * 4] = rotationMatrix[1 + 0 * 4];
+	mat[1 + 1 * 4] = rotationMatrix[1 + 1 * 4];
+    }
+
+    void Transform::rotate(float pAmount, float yAmount, float rAmount)
+    {
+        mat4& mat = _hasParent ? _localTransformationMatrix : _transformationMatrix;
+        mat = mat * create_rotation_matrix(pAmount, yAmount, rAmount);
     }
 
     void Transform::setScale(vec2 scale)
     {
-        _transformationMatrix[0 + 0 * 4] = scale.x;
-        _transformationMatrix[1 + 1 * 4] = scale.y;
+
+        mat4& mat = _hasParent ? _localTransformationMatrix : _transformationMatrix;
+        mat[0 + 0 * 4] = scale.x;
+        mat[1 + 1 * 4] = scale.y;
     }
 
     void Transform::setScale(vec3 scale)
     {
+        Debug::notify_unimplemented("Transform::setScale(2)");
+        return;
+
         _transformationMatrix[0 + 0 * 4] = scale.x;
         _transformationMatrix[1 + 1 * 4] = scale.y;
         _transformationMatrix[2 + 1 * 4] = scale.z;
