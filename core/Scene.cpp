@@ -7,6 +7,7 @@
 
 // NOTE: Only temporarely adding all systems here on Scene's constructor!
 #include "ecs/systems/ui/ConstraintSystem.h"
+#include "ecs/systems/TransformSystem.h"
 #include <unordered_map>
 
 namespace pk
@@ -56,20 +57,11 @@ namespace pk
         //  Also you would need to create all default systems at start
         //  and never even destroy them..
         systems.push_back(new ui::ConstraintSystem);
+        systems.push_back(new TransformSystem);
     }
 
     Scene::~Scene()
     {
-        // TODO: delete below
-        //for (const std::pair<uint32_t, Component*> c : components)
-        //{
-        //    // ATM JUST TESTING HERE:
-        //    // GUIRenderables currently allocated from mem pools
-        //    if (c.second->getType() != ComponentType::PK_RENDERABLE_GUI)
-        //        delete c.second;
-        //}
-        //components.clear();
-
         std::unordered_map<ComponentType, ComponentPool>::iterator poolIterator;
         for (poolIterator = componentPools.begin(); poolIterator != componentPools.end(); ++poolIterator)
             poolIterator->second.freeStorage();
@@ -81,7 +73,7 @@ namespace pk
 
         systems.clear();
 
-        _entityChildMapping.clear();
+        entityChildMapping.clear();
     }
 
     entityID_t Scene::createEntity()
@@ -126,16 +118,15 @@ namespace pk
         }
         // Destroy/free entity itself
         freeEntityIDs.push_back(entityID);
-        entities[entityID].id = NULL_ENTITY_ID;
-        entities[entityID].componentMask = 0;
+        entities[entityID].clear();
 
-        if (_entityChildMapping.find(entityID) != _entityChildMapping.end())
+        if (entityChildMapping.find(entityID) != entityChildMapping.end())
         {
-            for (entityID_t childID : _entityChildMapping[entityID])
+            for (entityID_t childID : entityChildMapping[entityID])
             {
                 destroyEntity(childID);
             }
-            _entityChildMapping.erase(entityID);
+            entityChildMapping.erase(entityID);
         }
     }
 
@@ -159,7 +150,8 @@ namespace pk
             );
             return;
         }
-        _entityChildMapping[entityID].push_back(childID);
+        entities[childID].parentID = entityID;
+        entityChildMapping[entityID].push_back(childID);
     }
 
     std::vector<entityID_t> Scene::getChildren(entityID_t entityID)
@@ -173,7 +165,7 @@ namespace pk
             );
             return {};
         }
-        return _entityChildMapping[entityID];
+        return entityChildMapping[entityID];
     }
 
     void Scene::addComponent(entityID_t entityID, Component* component)
@@ -396,7 +388,7 @@ namespace pk
     // Returns first component of "type" found in "entity"'s child entities
     Component* Scene::getComponentInChildren(entityID_t entityID, ComponentType type)
     {
-        for (const entityID_t& child : _entityChildMapping[entityID])
+        for (const entityID_t& child : entityChildMapping[entityID])
         {
             Component* pComponent = getComponent(child, type, true);
             if (pComponent)

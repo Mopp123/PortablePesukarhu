@@ -6,11 +6,17 @@
 
 namespace pk
 {
+    class TransformSystem;;
 
     class Transform : public Component
     {
     private:
+        friend class TransformSystem;
+
         mat4 _transformationMatrix;
+        mat4 _localTransformationMatrix;
+
+        bool _hasParent = false;
 
     public:
         Transform(vec2 pos, vec2 scale);
@@ -19,6 +25,10 @@ namespace pk
 
         void setPos(vec2 pos);
         void setPos(vec3 pos);
+
+        void setRotation(float pitch, float yaw, float roll);
+        void rotate(float pAmount, float yAmount, float rAmount);
+
         void setScale(vec2 scale);
         void setScale(vec3 scale);
 
@@ -29,5 +39,8 @@ namespace pk
         inline vec2 getPos() const { return { _transformationMatrix[0 + 3 * 4], _transformationMatrix[1 + 3 * 4] }; }
         inline const mat4& getTransformationMatrix() const { return _transformationMatrix; }
         inline mat4& accessTransformationMatrix() { return _transformationMatrix; }
+        inline mat4& accessLocalTransformationMatrix() { return _localTransformationMatrix; }
+
+        inline bool hasParent() const { return _hasParent; }
     };
 }

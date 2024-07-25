@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../System.h"
+#include "ecs/systems/System.h"
 
 
 namespace pk
@@ -13,7 +13,7 @@ namespace pk
             ConstraintSystem();
             ~ConstraintSystem();
 
-            void update();
+            void update(Scene* pScene);
         };
     }
 }

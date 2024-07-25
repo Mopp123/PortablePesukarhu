@@ -24,13 +24,12 @@ namespace pk
     class Scene
     {
     private:
-        // key = parent entity : val = all this entity's children
-        std::unordered_map<entityID_t, std::vector<entityID_t>> _entityChildMapping;
 
     public:
         //std::unordered_map<ComponentType, std::vector<Component*>> components;
         std::vector<System*> systems;
         std::vector<Entity> entities;
+        std::unordered_map<entityID_t, std::vector<entityID_t>> entityChildMapping;
         std::vector<entityID_t> freeEntityIDs;
         std::unordered_map<ComponentType, ComponentPool> componentPools;
 

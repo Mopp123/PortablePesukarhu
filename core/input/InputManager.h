@@ -1,6 +1,7 @@
 #pragma once
 
 #include "InputEvent.h"
+#include <unordered_map>
 #include <vector>
 #include <utility>
 
@@ -21,6 +22,11 @@ namespace pk
         int _mouseY = 0;
 
     public:
+        // Mainly for testing purposes!
+        // To check immediate keydown instead of having to always have some inputEvent
+        std::unordered_map<InputKeyName, bool> keyDown;
+
+    public:
         InputManager();
         virtual ~InputManager();
 
@@ -39,6 +45,8 @@ namespace pk
         void processScrollEvents(double dx, double dy);
         void processCharInputEvents(unsigned int codepoint);
         void processWindowResizeEvents(int w, int h);
+
+        bool isKeyDown(InputKeyName key) const;
 
         inline void setMousePos(int x, int y) { _mouseX = x; _mouseY = y; }
         inline int getMouseX() const { return _mouseX; }

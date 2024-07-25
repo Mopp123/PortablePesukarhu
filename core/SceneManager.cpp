@@ -13,7 +13,7 @@ namespace pk
 
         // Update all systems of the scene
         for (System* system : _pCurrentScene->systems)
-            system->update();
+            system->update(_pCurrentScene);
 
         // Submit all "renderable components" for rendering...
 

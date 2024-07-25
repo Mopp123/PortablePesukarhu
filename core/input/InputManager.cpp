@@ -134,4 +134,12 @@ namespace pk
             (caller->*eventFunc)(w, h);
         }
     }
+
+    bool InputManager::isKeyDown(InputKeyName key) const
+    {
+        std::unordered_map<InputKeyName, bool>::const_iterator it = keyDown.find(key);
+        if (it != keyDown.end())
+            return it->second;
+        return false;
+    }
 }

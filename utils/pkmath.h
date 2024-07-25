@@ -395,6 +395,34 @@ namespace pk
     }
 
 
+    inline mat4 create_rotation_matrix(float pitch, float yaw, float roll)
+    {
+        mat4 pitchMatrix;
+        mat4 yawMatrix;
+        mat4 rollMatrix;
+        pitchMatrix.setIdentity();
+        yawMatrix.setIdentity();
+        rollMatrix.setIdentity();
+
+	pitchMatrix[1 + 1 * 4] = cos(pitch);
+	pitchMatrix[1 + 2 * 4] = -sin(pitch);
+	pitchMatrix[2 + 1 * 4] = sin(pitch);
+	pitchMatrix[2 + 2 * 4] = cos(pitch);
+
+	yawMatrix[0 + 0 * 4] = cos(yaw);
+	yawMatrix[0 + 2 * 4] = sin(yaw);
+	yawMatrix[2 + 0 * 4] = -sin(yaw);
+	yawMatrix[2 + 2 * 4] = cos(yaw);
+
+	rollMatrix[0 + 0 * 4] = cos(roll);
+	rollMatrix[0 + 1 * 4] = -sin(roll);
+	rollMatrix[1 + 0 * 4] = sin(roll);
+	rollMatrix[1 + 1 * 4] = cos(roll);
+
+        return pitchMatrix * yawMatrix * rollMatrix;
+    }
+
+
     // MISC-----
 
     // Returns next closest power of 2 value from v
