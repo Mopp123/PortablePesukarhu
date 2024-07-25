@@ -14,6 +14,7 @@ namespace pk
     Scene::Scene()
     {
         size_t maxEntityCount = 1000;
+        size_t maxDirectionalLights = 1;
 
         componentPools[ComponentType::PK_TRANSFORM] = ComponentPool(
             sizeof(Transform), maxEntityCount, true
@@ -45,6 +46,9 @@ namespace pk
         );
         componentPools[ComponentType::PK_RENDERABLE_TERRAINTILE] = ComponentPool(
             sizeof(TerrainTileRenderable), 100, true
+        );
+        componentPools[ComponentType::PK_LIGHT_DIRECTIONAL] = ComponentPool(
+            sizeof(DirectionalLight), maxDirectionalLights, true
         );
 
         // NOTE: Only temporarely adding all default systems here!
@@ -315,6 +319,18 @@ namespace pk
 
         pApp->accessInputManager()->addWindowResizeEvent(new CameraWindowResizeEvent(*pCamera));
         return pCamera;
+    }
+
+    DirectionalLight* Scene::createDirectionalLight(
+        entityID_t target,
+        const vec3& color,
+        const vec3& direction
+    )
+    {
+        DirectionalLight* pDirectionalLight = (DirectionalLight*)componentPools[ComponentType::PK_LIGHT_DIRECTIONAL].allocComponent(target);
+        *pDirectionalLight = DirectionalLight(color, direction);
+        addComponent(target, pDirectionalLight);
+        return pDirectionalLight;
     }
 
     Component* Scene::getComponent(entityID_t entityID, ComponentType type, bool nestedSearch)

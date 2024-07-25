@@ -9,75 +9,6 @@
 
 namespace pk
 {
-
-    // NOTE: Atm these here only for quick testing!
-    static std::string s_vertexSource = R"(
-        precision mediump float;
-
-        attribute vec2 vertexPos;
-        attribute vec2 uvCoord;
-
-        attribute vec2 pos;
-        attribute vec2 scale;
-        attribute vec4 color;
-        attribute vec4 borderColor;
-        attribute float borderThickness;
-
-        struct Common
-        {
-            mat4 projMat;
-        };
-
-        uniform Common common;
-
-        varying vec2 var_uvCoord;
-        varying vec4 var_color;
-        varying vec2 var_fragPos;
-        varying vec2 var_scale;
-        varying vec4 var_borderColor;
-        varying float var_borderThickness;
-
-        void main()
-        {
-            gl_Position = common.projMat * vec4((vertexPos * scale) + pos, 0, 1.0);
-            var_uvCoord = uvCoord;
-
-            var_color = color;
-            vec4 transformedPos = vec4((vertexPos * scale), 0, 1.0);
-            var_fragPos = transformedPos.xy;
-            var_scale = scale;
-            var_borderColor = borderColor;
-            var_borderThickness = borderThickness;
-        }
-    )";
-
-    static std::string s_fragmentSource = R"(
-        precision mediump float;
-
-        varying vec2 var_uvCoord;
-        varying vec4 var_color;
-        varying vec2 var_fragPos;
-        varying vec2 var_scale;
-        varying vec4 var_borderColor;
-        varying float var_borderThickness;
-
-        uniform sampler2D texSampler;
-
-        void main()
-        {
-            vec4 texColor = texture2D(texSampler, var_uvCoord);
-            if (var_fragPos.x >= var_scale.x - var_borderThickness || var_fragPos.x <= var_borderThickness ||
-                var_fragPos.y <= -var_scale.y + var_borderThickness || var_fragPos.y >= -var_borderThickness)
-            {
-                gl_FragColor = var_borderColor;
-            }
-            else
-            {
-                gl_FragColor = texColor * var_color;
-            }
-        }
-    )";
-
     static const size_t s_instanceBufferComponents = 2 * 2 + 4 * 2 + 1;
     static const size_t s_maxInstanceCount = 400; // per batch, not total max count!
     GUIRenderer::GUIRenderer() :
@@ -86,8 +17,14 @@ namespace pk
         _textureDescSetLayout({}),
         _batchContainer(10, (sizeof(float) * s_instanceBufferComponents) * s_maxInstanceCount)
     {
-        _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
-        _pFragmentShader = Shader::create(s_fragmentSource, ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT);
+        _pVertexShader = Shader::create_from_file(
+            "assets/shaders/GUIShader.vert",
+            ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
+        );
+        _pFragmentShader = Shader::create_from_file(
+            "assets/shaders/GUIShader.frag",
+            ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT
+        );
 
         // Vertex buffer layouts
         _vertexBufferLayout = VertexBufferLayout(

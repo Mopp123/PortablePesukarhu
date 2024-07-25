@@ -8,55 +8,6 @@
 
 namespace pk
 {
-
-    // NOTE: Atm these here only for quick testing!
-    static std::string s_vertexSource = R"(
-        precision mediump float;
-
-        attribute vec3 vertexPos;
-        attribute vec3 normal;
-        attribute vec2 uvCoord;
-
-        // Instanced stuff
-        attribute mat4 transformationMatrix;
-
-        struct Common3D
-        {
-            mat4 projMat;
-            mat4 viewMat;
-        };
-
-        uniform Common3D common;
-
-        varying vec3 var_normal;
-        varying vec2 var_uvCoord;
-
-        void main()
-        {
-            gl_Position = common.projMat * common.viewMat * transformationMatrix * vec4(vertexPos, 1.0);
-            var_normal = normal;
-            var_uvCoord = uvCoord;
-        }
-    )";
-
-    static std::string s_fragmentSource = R"(
-        precision mediump float;
-
-        varying vec3 var_normal;
-        varying vec2 var_uvCoord;
-
-        uniform sampler2D texSampler;
-
-        void main()
-        {
-            vec4 texColor = texture2D(texSampler, var_uvCoord);
-            vec4 n = vec4(var_normal, 1.0);
-            n = n * n;
-            gl_FragColor = texColor * n;
-        }
-    )";
-
-
     static const size_t s_instanceBufferComponents = 16;
     static const size_t s_maxBatchInstances = 10000;
     static const size_t s_maxBatches = 10;
@@ -78,8 +29,15 @@ namespace pk
         _textureDescSetLayout({}),
         _batchContainer(s_maxBatches, sizeof(float) * s_instanceBufferComponents * s_maxBatchInstances)
     {
-        _pVertexShader = Shader::create(s_vertexSource, ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT);
-        _pFragmentShader = Shader::create(s_fragmentSource, ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT);
+
+        _pVertexShader = Shader::create_from_file(
+            "assets/shaders/StaticShader.vert",
+            ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
+        );
+        _pFragmentShader = Shader::create_from_file(
+            "assets/shaders/StaticShader.frag",
+            ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT
+        );
 
         // Textures desc set layout
         DescriptorSetLayoutBinding textureDescSetLayoutBinding(
@@ -87,7 +45,7 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 2 }}
+            {{ 5 }}
         );
         _textureDescSetLayout = DescriptorSetLayout({ textureDescSetLayoutBinding });
 
@@ -108,6 +66,8 @@ namespace pk
         std::vector<DescriptorSetLayout> descSetLayouts(
             {
                 pMasterRenderer->getCommonDescriptorSetLayout(),
+                pMasterRenderer->getEnvironmentDescriptorSetLayout(),
+                pMasterRenderer->getDirectionalLightDescriptorSetLayout(),
                 _textureDescSetLayout
             }
         );
@@ -136,7 +96,6 @@ namespace pk
     {
         Application* pApp = Application::get();
         ResourceManager& resManager = pApp->getResourceManager();
-        size_t swapchainImages = pApp->getWindow()->getSwapchain()->getImageCount();
 
         const Static3DRenderable * const pStaticRenderable = (const Static3DRenderable * const)renderableComponent;
         PK_id batchIdentifier = pStaticRenderable->meshID;
@@ -172,47 +131,6 @@ namespace pk
                 _batchMeshCache[batchIdentifier] = pMesh;
             }
         }
-
-        /*
-        if (pMesh && pMaterial)
-        {
-            _pTestMesh = pMesh;
-            // create descriptor sets if necessary
-            // FUCKING DISGUSTING! DO SOMETHING ABOUT THIS!!!
-            if (_pUBODescriptorSet.empty())
-            {
-                std::vector<DescriptorSet*> pDescriptorSets(swapchainImages);
-                for (uint32_t i = 0; i < swapchainImages; ++i)
-                {
-                    DescriptorSet* pDescriptorSet = new DescriptorSet(
-                        _UBODescSetLayout,
-                        1,
-                        { _pTransformUBO }
-                    );
-                    pDescriptorSets[i] = pDescriptorSet;
-                }
-                _pUBODescriptorSet = pDescriptorSets;
-                Debug::log("___TEST___created ubo desc set for 3d renderable");
-            }
-            if (_pTextureDescriptorSet.empty())
-            {
-                std::vector<DescriptorSet*> pDescriptorSets(swapchainImages);
-                for (uint32_t i = 0; i < swapchainImages; ++i)
-                {
-                    DescriptorSet* pDescriptorSet = new DescriptorSet(
-                        _textureDescSetLayout,
-                        1,
-                        { pTestTexture }
-                    );
-                    pDescriptorSets[i] = pDescriptorSet;
-                }
-                _pTextureDescriptorSet = pDescriptorSets;
-                Debug::log("___TEST___created tex desc set for 3d renderable");
-            }
-        }
-        // update ubo
-        _pTransformUBO[0]->update(transformation.getRawArray(), sizeof(mat4));
-        */
     }
 
     void StaticRenderer::render(const Camera& cam)
@@ -306,11 +224,11 @@ namespace pk
 
             // Get "common descriptor set" from master renderer
             MasterRenderer* pMasterRenderer = pApp->getMasterRenderer();
-            const DescriptorSet* pCommonDescriptorSet = pMasterRenderer->getCommonDescriptorSet();
-
             std::vector<const DescriptorSet*> toBind =
             {
-                pCommonDescriptorSet,
+                pMasterRenderer->getCommonDescriptorSet(),
+                pMasterRenderer->getEnvironmentDescriptorSet(),
+                pMasterRenderer->getDirectionalLightDescriptorSet(),
                 _batchContainer.getTextureDescriptorSet(pBatch->getIdentifier(), 0)
             };
 

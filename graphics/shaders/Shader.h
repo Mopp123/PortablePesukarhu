@@ -33,7 +33,8 @@ namespace pk
         Shader() {}
         virtual ~Shader() {}
 
-        static Shader* create(const std::string& shaderSource, ShaderStageFlagBits stage);
+        static Shader* create_from_source(const std::string& shaderSource, ShaderStageFlagBits stage);
+        static Shader* create_from_file(const std::string& filepath, ShaderStageFlagBits stage);
 
     protected:
         Shader(const std::string& shaderSource, ShaderStageFlagBits stage) :

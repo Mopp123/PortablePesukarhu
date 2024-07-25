@@ -2,11 +2,12 @@
 #include "graphics/Context.h"
 #include "graphics/platform/opengl/shaders/OpenglShader.h"
 #include "core/Debug.h"
+#include "utils/FileUtils.h"
 
 
 namespace pk
 {
-    Shader* Shader::create(const std::string& shaderSource, ShaderStageFlagBits stage)
+    Shader* Shader::create_from_source(const std::string& shaderSource, ShaderStageFlagBits stage)
     {
         const uint32_t api = Context::get_api_type();
         switch(api)
@@ -20,5 +21,20 @@ namespace pk
                 );
                 return nullptr;
         }
+    }
+
+    Shader* Shader::create_from_file(const std::string& filepath, ShaderStageFlagBits stage)
+    {
+        const std::string source = load_text_file(filepath);
+        if (source.empty())
+        {
+            Debug::log(
+                "@Shader::create(2) "
+                "Failed to get shader source from file: " + filepath,
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
+        return create_from_source(source, stage);
     }
 }

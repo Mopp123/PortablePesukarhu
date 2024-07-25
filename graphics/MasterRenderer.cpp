@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 
 #include "MasterRenderer.h"
+#include "Environment.h"
 #include "../core/Debug.h"
 #include "RenderCommand.h"
 #include "CommandBuffer.h"
@@ -11,7 +12,9 @@
 namespace pk
 {
     MasterRenderer::MasterRenderer() :
-        _commonDescriptorSetLayout({})
+        _commonDescriptorSetLayout({}),
+        _environmentDescriptorSetLayout({}),
+        _directionalLightDescriptorSetLayout({})
     {
         const Application* pApp = Application::get();
         if (!pApp)
@@ -71,7 +74,58 @@ namespace pk
         _pCommonDescriptorSet = new DescriptorSet(
             _commonDescriptorSetLayout,
             1,
-            {_pCommonUniformBuffer}
+            { _pCommonUniformBuffer }
+        );
+
+        // Environment properties
+        DescriptorSetLayoutBinding environmentDescriptorSetLayoutBinding(
+            0,
+            1,
+            DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
+            {
+                { 2, ShaderDataType::Float4 }
+            }
+        );
+        _environmentDescriptorSetLayout = DescriptorSetLayout({environmentDescriptorSetLayoutBinding});
+        EnvironmentProperties initialEnvProperties;
+        _pEnvironmentUniformBuffer = Buffer::create(
+            &initialEnvProperties,
+            sizeof(EnvironmentProperties),
+            1,
+            BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            true
+        );
+        _pEnvironmentDescriptorSet = new DescriptorSet(
+            _environmentDescriptorSetLayout,
+            1,
+            { _pEnvironmentUniformBuffer }
+        );
+
+        // Directional light properties
+        DescriptorSetLayoutBinding dirLightDescriptorSetLayoutBinding(
+            0,
+            2,
+            DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
+            {
+                { 3, ShaderDataType::Float4 },
+                { 4, ShaderDataType::Float4 }
+            }
+        );
+        _directionalLightDescriptorSetLayout = DescriptorSetLayout({dirLightDescriptorSetLayoutBinding});
+        DirectionalLightProperties initialDirLightProperties;
+        _pDirectionalLightUniformBuffer = Buffer::create(
+            &initialDirLightProperties,
+            sizeof(DirectionalLightProperties),
+            1,
+            BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            true
+        );
+        _pDirectionalLightDescriptorSet = new DescriptorSet(
+            _directionalLightDescriptorSetLayout,
+            1,
+            { _pDirectionalLightUniformBuffer }
         );
     }
 
@@ -81,6 +135,14 @@ namespace pk
             delete _pCommonDescriptorSet;
         if (_pCommonUniformBuffer)
             delete _pCommonUniformBuffer;
+        if (_pDirectionalLightDescriptorSet)
+            delete _pDirectionalLightDescriptorSet;
+        if (_pDirectionalLightUniformBuffer)
+            delete _pDirectionalLightUniformBuffer;
+        if (_pEnvironmentDescriptorSet)
+            delete _pEnvironmentDescriptorSet;
+        if (_pEnvironmentUniformBuffer)
+            delete _pEnvironmentUniformBuffer;
     }
 
     void MasterRenderer::addRenderer(ComponentType renderableComponentType, Renderer* renderer)
@@ -101,6 +163,8 @@ namespace pk
     void MasterRenderer::render(const Camera& cameraComponent, const mat4& viewMatrix)
     {
         RenderCommand* pRenderCommand = RenderCommand::get();
+        const Scene* pScene = (const Scene*)Application::get()->getCurrentScene();
+
         // TODO: catch possible std::runtime_error?
         // TODO: "Vulkanize" below better
 
@@ -123,6 +187,29 @@ namespace pk
                  viewMatrix
             };
             _pCommonUniformBuffer->update(&commonUniforms, sizeof(CommonUniforms));
+
+            // Update scene's environment properties
+            _pEnvironmentUniformBuffer->update(
+                &pScene->environmentProperties,
+                sizeof(EnvironmentProperties)
+            );
+
+            // Update directional light ubo if scene has one..
+            if (pScene->directionalLight != NULL_ENTITY_ID)
+            {
+                const DirectionalLight* pDirectionalLight = (const DirectionalLight*)pScene->getComponent(
+                    pScene->directionalLight,
+                    ComponentType::PK_LIGHT_DIRECTIONAL
+                );
+                DirectionalLightProperties directionalLight = {
+                    vec4(pDirectionalLight->direction, 0.0f),
+                    vec4(pDirectionalLight->color, 1.0f)
+                };
+                _pDirectionalLightUniformBuffer->update(
+                    &directionalLight,
+                    sizeof(DirectionalLightProperties)
+                );
+            }
 
             // NOTE: Not sure if I like these being raw ptrs here...
             std::vector<CommandBuffer*> secondaryCmdBufs;
