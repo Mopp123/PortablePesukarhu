@@ -28,6 +28,7 @@ namespace pk
         // Resources which lives through whole execution
         std::unordered_map<uint32_t, Resource*> _persistentResources;
         Texture_new* _pWhiteTexture = nullptr;
+        Texture_new* _pBlackTexture = nullptr;
 
         // Resources loaded per scene
         std::unordered_map<uint32_t, Resource*> _resources;
@@ -62,7 +63,10 @@ namespace pk
         );
 
         Material* createMaterial(
-            const std::vector<uint32_t>& textureResourceIDs
+            const std::vector<uint32_t>& diffuseTextureIDs,
+            uint32_t specularTextureID = 0,
+            float specularStrength = 0.0f,
+            float shininess = 1.0f
         );
 
         // NOTE: Buffers' ownership gets transferred to the created mesh!
@@ -94,5 +98,6 @@ namespace pk
         std::vector<Resource*> getResourcesOfType(ResourceType type);
 
         inline Texture_new* getWhiteTexture() { return _pWhiteTexture; }
+        inline Texture_new* getBlackTexture() { return _pBlackTexture; }
     };
 }

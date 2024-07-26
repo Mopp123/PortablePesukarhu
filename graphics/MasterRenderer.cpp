@@ -59,7 +59,8 @@ namespace pk
             ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
             {
                 { 0, ShaderDataType::Mat4 },
-                { 1, ShaderDataType::Mat4 }
+                { 1, ShaderDataType::Mat4 },
+                { 2, ShaderDataType::Float4 }
             }
         );
         _commonDescriptorSetLayout = DescriptorSetLayout({commonDescriptorSetLayoutBinding});
@@ -84,7 +85,7 @@ namespace pk
             DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
             {
-                { 2, ShaderDataType::Float4 }
+                { 3, ShaderDataType::Float4 }
             }
         );
         _environmentDescriptorSetLayout = DescriptorSetLayout({environmentDescriptorSetLayoutBinding});
@@ -109,8 +110,8 @@ namespace pk
             DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
             {
-                { 3, ShaderDataType::Float4 },
-                { 4, ShaderDataType::Float4 }
+                { 4, ShaderDataType::Float4 },
+                { 5, ShaderDataType::Float4 }
             }
         );
         _directionalLightDescriptorSetLayout = DescriptorSetLayout({dirLightDescriptorSetLayoutBinding});
@@ -160,7 +161,11 @@ namespace pk
         }
     }
 
-    void MasterRenderer::render(const Camera& cameraComponent, const mat4& viewMatrix)
+    void MasterRenderer::render(
+        const mat4& persProjMatrix,
+        const mat4& viewMatrix,
+        const vec3& cameraPos
+    )
     {
         RenderCommand* pRenderCommand = RenderCommand::get();
         const Scene* pScene = (const Scene*)Application::get()->getCurrentScene();
@@ -182,9 +187,11 @@ namespace pk
             pRenderCommand->beginRenderPass();
 
             // Update common uniform buffers here?...
+            vec4 camPos(cameraPos, 1.0f);
             CommonUniforms commonUniforms = {
-                 cameraComponent.getProjMat3D(),
-                 viewMatrix
+                 persProjMatrix,
+                 viewMatrix,
+                 camPos
             };
             _pCommonUniformBuffer->update(&commonUniforms, sizeof(CommonUniforms));
 
@@ -216,7 +223,7 @@ namespace pk
             for (const auto& renderer : _renderers)
             {
                 // TODO: Switch below line to commented out style
-                renderer.second->render(cameraComponent);
+                renderer.second->render();
                 // if (CommandBuffer* secondaryBuf = renderer.recordCmdBuf())
                 //     secondaryCmdBufs.push_back(secondaryBuf);
             }

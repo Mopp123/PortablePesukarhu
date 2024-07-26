@@ -194,10 +194,6 @@ namespace pk
             return;
         }
         entity.componentMask |= componentTypeID;
-
-        Renderer* pRenderer = Application::get()->getMasterRenderer()->getRenderer(component->getType());
-        if (pRenderer)
-            pRenderer->createDescriptorSets(component);
     }
 
     Transform* Scene::createTransform(entityID_t target, vec2 pos, vec2 scale)

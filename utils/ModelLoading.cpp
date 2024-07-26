@@ -321,7 +321,7 @@ namespace pk
             indexBufElemSize,
             indexBufferLength,
             gltfIndexBuffer.usage,
-            true
+            false
         );
 
         Buffer* pVertexBuffer = Buffer::create(
@@ -329,7 +329,7 @@ namespace pk
             1,
             combinedVertexBufferSize,
             BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT,
-            true
+            false
         );
 
         Debug::log(

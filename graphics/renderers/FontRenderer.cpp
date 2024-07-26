@@ -230,7 +230,7 @@ namespace pk
                     _batchContainer.createDescriptorSets(
                         batchIdentifier,
                         &_textureDescSetLayout,
-                        pTexture
+                        { pTexture }
                     );
                 }
             }
@@ -284,7 +284,7 @@ namespace pk
         }
     }
 
-    void FontRenderer::render(const Camera& cam)
+    void FontRenderer::render()
     {
         if (!_pPipeline)
         {
@@ -397,7 +397,7 @@ namespace pk
             // swapchain stuff..
             std::vector<const DescriptorSet*> toBind =
             {
-                _batchContainer.getTextureDescriptorSet(pBatch->getIdentifier(), 0)
+                _batchContainer.getDescriptorSet(pBatch->getIdentifier(), 0)
             };
 
             pRenderCmd->bindDescriptorSets(

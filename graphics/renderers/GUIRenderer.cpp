@@ -147,7 +147,7 @@ namespace pk
                 _batchContainer.createDescriptorSets(
                     batchIdentifier,
                     &_textureDescSetLayout,
-                    pTexture
+                    { pTexture }
                 );
             }
         }
@@ -180,7 +180,7 @@ namespace pk
         */
     }
 
-    void GUIRenderer::render(const Camera& cam)
+    void GUIRenderer::render()
     {
         if (!_pPipeline)
         {
@@ -292,7 +292,7 @@ namespace pk
             // switch below (0) to current swapchaing img index when dealing with actual swapchain stuff..
             std::vector<const DescriptorSet*> toBind =
             {
-                _batchContainer.getTextureDescriptorSet(pBatch->getIdentifier(), 0)
+                _batchContainer.getDescriptorSet(pBatch->getIdentifier(), 0)
             };
 
             pRenderCmd->bindDescriptorSets(

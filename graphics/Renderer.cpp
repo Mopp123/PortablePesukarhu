@@ -110,7 +110,7 @@ namespace pk
                 pBatch->occupy(batchIdentifier);
                 pBatch->addData(data, dataSize);
                 if (_batchDescriptorSets.find(batchIdentifier) == _batchDescriptorSets.end())
-                    _batchDescriptorSets[batchIdentifier] = { {}, {} };
+                    _batchDescriptorSets[batchIdentifier] = { {} };
                 return true;
             }
         }
@@ -124,9 +124,8 @@ namespace pk
 
     void BatchContainer::createDescriptorSets(
         PK_id batchIdentifier,
-        const DescriptorSetLayout * const pTextureDescriptorSetLayout,
-        Texture_new* pTexture,
-        const DescriptorSetLayout * const pUboDescriptorSetLayout,
+        const DescriptorSetLayout * const pDescriptorSetLayout,
+        const std::vector<Texture_new*>& textures,
         const std::vector<Buffer*>& ubo
     )
     {
@@ -138,57 +137,38 @@ namespace pk
 
             const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
             uint32_t swapchainImages = pSwapchain->getImageCount();
-            std::vector<DescriptorSet*>& textureDescriptorSet = sets._textureDescriptorSet;
-            std::vector<DescriptorSet*>& uboDescriptorSet = sets._uboDescriptorSet;
+            std::vector<DescriptorSet*>& descriptorSet = sets._descriptorSet;
 
-            if (textureDescriptorSet.size() > 0)
-                Debug::log("___TEST___ERROR ATTEMPTED TO CREATE DUPLICATE");
-
-            if (pTextureDescriptorSetLayout && pTexture)
-                textureDescriptorSet.resize(swapchainImages);
-            if (pUboDescriptorSetLayout && !ubo.empty())
+            if (descriptorSet.size() > 0)
             {
-                if (ubo.size() == swapchainImages)
-                {
-                    uboDescriptorSet.resize(swapchainImages);
-                }
-                else
-                {
-                    Debug::log(
-                        "@BatchContainer::createDescriptorSets "
-                        "Mismatch between swapchain image count and provided uniform buffers! "
-                        "Swapchain images: " + std::to_string(swapchainImages) + " "
-                        "provided uniform buffers: " + std::to_string(ubo.size()) + " "
-                        "Required to provide uniform buffer for each swapchain image!",
-                        Debug::MessageType::PK_FATAL_ERROR
-                    );
-                }
+                Debug::log(
+                    "@BatchContainer::createDescriptorSets "
+                    "Attempted to create duplicate descriptor sets for batch: " + std::to_string(batchIdentifier),
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return;
             }
+
+            descriptorSet.resize(swapchainImages);
+
             for (uint32_t i = 0; i < swapchainImages; ++i)
             {
-                if (!textureDescriptorSet.empty())
-                {
-                    DescriptorSet* pDescriptorSet = new DescriptorSet(
-                        *pTextureDescriptorSetLayout,
-                        1,
-                        { pTexture }
-                    );
-                    textureDescriptorSet[i] = pDescriptorSet;
-                }
-                if (!uboDescriptorSet.empty())
-                {
-                    DescriptorSet* pDescriptorSet = new DescriptorSet(
-                        *pUboDescriptorSetLayout,
-                        1,
-                        { ubo[i] }
-                    );
-                    uboDescriptorSet[i] = pDescriptorSet;
-                }
+                std::vector<Buffer*> b;
+                if (!ubo.empty())
+                    b.push_back(ubo[i]);
+                DescriptorSet* pDescriptorSet = new DescriptorSet(
+                    *pDescriptorSetLayout,
+                    1,
+                    textures,
+                    b
+                );
+                descriptorSet[i] = pDescriptorSet;
             }
+
             Debug::log(
                 "@Batch::createDescriptorSets "
-                "Created " + std::to_string(textureDescriptorSet.size()) + " texture "
-                "and " + std::to_string(uboDescriptorSet.size()) + " ubo descriptor sets successfully"
+                "Created " + std::to_string(descriptorSet.size()) + " "
+                "descriptor sets successfully"
             );
         }
         else
@@ -206,12 +186,9 @@ namespace pk
         std::unordered_map<PK_id, BatchDescriptorSets>::iterator it;
         for (it = _batchDescriptorSets.begin(); it != _batchDescriptorSets.end(); ++it)
         {
-            for (DescriptorSet* d : it->second._textureDescriptorSet)
+            for (DescriptorSet* d : it->second._descriptorSet)
                 delete d;
-            for (DescriptorSet* d : it->second._uboDescriptorSet)
-                delete d;
-            it->second._textureDescriptorSet.clear();
-            it->second._uboDescriptorSet.clear();
+            it->second._descriptorSet.clear();
         }
         Debug::log("@BatchContainer::freeDescriptorSets Descriptor sets freed");
     }
@@ -240,16 +217,16 @@ namespace pk
     {
         std::unordered_map<PK_id, BatchDescriptorSets>::const_iterator it = _batchDescriptorSets.find(batchIdentifier);
         if (it != _batchDescriptorSets.end())
-            return !it->second._textureDescriptorSet.empty() || !it->second._uboDescriptorSet.empty();
+            return !it->second._descriptorSet.empty();
         return false;
     }
 
-    const DescriptorSet* BatchContainer::getTextureDescriptorSet(PK_id batchIdentifier, uint32_t index) const
+    const DescriptorSet* BatchContainer::getDescriptorSet(PK_id batchIdentifier, uint32_t index) const
     {
         std::unordered_map<PK_id, BatchDescriptorSets>::const_iterator it = _batchDescriptorSets.find(batchIdentifier);
         if (it != _batchDescriptorSets.end())
         {
-            const std::vector<DescriptorSet*>& sets = it->second._textureDescriptorSet;
+            const std::vector<DescriptorSet*>& sets = it->second._descriptorSet;
             if (index < sets.size())
             {
                 return sets[index];
@@ -257,7 +234,7 @@ namespace pk
             else
             {
                 Debug::log(
-                    "@BatchContainer::getTextureDescriptorSet "
+                    "@BatchContainer::getDescriptorSet "
                     "Index: " + std::to_string(index) + " out of bounds! "
                     "descriptor sets length: " + std::to_string(sets.size()),
                     Debug::MessageType::PK_FATAL_ERROR
@@ -266,34 +243,11 @@ namespace pk
             }
         }
         Debug::log(
-            "@BatchContainer::getTextureDescriptorSet "
+            "@BatchContainer::getDescriptorSet "
             "No descriptor sets found for identifier: " + std::to_string(batchIdentifier),
             Debug::MessageType::PK_FATAL_ERROR
         );
         return nullptr;
-    }
-
-    const DescriptorSet* BatchContainer::getUboDescriptorSet(PK_id batchIdentifier, uint32_t index) const
-    {
-        std::unordered_map<PK_id, BatchDescriptorSets>::const_iterator it = _batchDescriptorSets.find(batchIdentifier);
-        if (it != _batchDescriptorSets.end())
-        {
-            const std::vector<DescriptorSet*>& sets = it->second._uboDescriptorSet;
-            if (index < sets.size())
-            {
-                return sets[index];
-            }
-            else
-            {
-                Debug::log(
-                    "@BatchContainer::getUboDescriptorSet "
-                    "Index: " + std::to_string(index) + " out of bounds! "
-                    "descriptor sets length: " + std::to_string(sets.size()),
-                    Debug::MessageType::PK_FATAL_ERROR
-                );
-                return nullptr;
-            }
-        }
     }
 
 

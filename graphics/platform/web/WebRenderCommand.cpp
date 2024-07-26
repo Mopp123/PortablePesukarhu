@@ -314,9 +314,23 @@ namespace pk
             const opengl::OpenglShaderProgram* pShaderProgram = pipeline->getShaderProgram();
             const std::vector<int32_t>& shaderUniformLocations = pShaderProgram->getUniformLocations();
 
+            int descriptorSetIndex = 0;
             for (const DescriptorSet* descriptorSet : descriptorSets)
             {
                 const DescriptorSetLayout& layout = descriptorSet->getLayout();
+                // Validate that this descriptor set is layout compliant
+                if (!descriptorSet->isValid(layout))
+                {
+                    Debug::log(
+                        "@WebRenderCommand::bindDescriptorSets "
+                        "Descriptor set at index: " + std::to_string(descriptorSetIndex) + " "
+                        "not layout compliant",
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
+                    continue;
+                }
+                ++descriptorSetIndex;
+
                 const std::vector<Buffer*>& buffers = descriptorSet->getBuffers();
                 const std::vector<Texture_new*>& textures = descriptorSet->getTextures();
                 // Not to be confused with binding number.

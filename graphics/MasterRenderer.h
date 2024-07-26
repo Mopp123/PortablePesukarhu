@@ -15,6 +15,7 @@ namespace pk
     {
         mat4 projectionMatrix;
         mat4 viewMatrix;
+        vec4 camPos;
     };
 
     struct DirectionalLightProperties
@@ -47,7 +48,11 @@ namespace pk
         ~MasterRenderer();
         void addRenderer(ComponentType renderableComponentType, Renderer* renderer);
 
-        void render(const Camera& cameraComponent, const mat4& viewMatrix);
+        void render(
+            const mat4& persProjMatrix,
+            const mat4& viewMatrix,
+            const vec3& cameraPos
+        );
         void flush();
 
         Renderer* const getRenderer(ComponentType renderableType);
