@@ -24,9 +24,12 @@ namespace pk
         VertexBufferLayout _vertexBufferLayout;
         VertexBufferLayout _instanceBufferLayout;
 
-        DescriptorSetLayout _textureDescSetLayout;
+        // TODO: May need recreating if swapchain img count changes!
+        std::vector<Buffer*> _materialPropsUniformBuffers;
+        DescriptorSetLayout _materialDescSetLayout;
 
         std::unordered_map<PK_id, Mesh*> _batchMeshCache;
+        std::unordered_map<PK_id, vec4> _batchMaterialProperties;
         BatchContainer _batchContainer;
 
     public:
@@ -34,7 +37,7 @@ namespace pk
         ~StaticRenderer();
 
         virtual void submit(const Component* const renderableComponent, const mat4& transformation);
-        virtual void render(const Camera& cam);
+        virtual void render();
 
         virtual void flush();
 

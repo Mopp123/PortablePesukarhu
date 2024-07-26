@@ -129,8 +129,7 @@ namespace pk
 
         struct BatchDescriptorSets
         {
-            std::vector<DescriptorSet*> _textureDescriptorSet;
-            std::vector<DescriptorSet*> _uboDescriptorSet;
+            std::vector<DescriptorSet*> _descriptorSet;
         };
 
         // used kind of like descriptor set cache or smthn..
@@ -142,12 +141,13 @@ namespace pk
         // NOTE: Doesnt work when occupying new batch if batch exists with inputted
         // batchIdentifier
         // Returns true if added successfully
+        //
+        // NOTE: ubos needs to be given for each swapchain image, but not textures!
         bool addData(const void* data, size_t dataSize, PK_id batchIdentifier);
         void createDescriptorSets(
             PK_id batchIdentifier,
-            const DescriptorSetLayout * const pTextureDescriptorSetLayout = nullptr,
-            Texture_new* pTexture = nullptr,
-            const DescriptorSetLayout * const pUboDescriptorSetLayout = nullptr,
+            const DescriptorSetLayout * const pDescriptorSetLayout = nullptr,
+            const std::vector<Texture_new*>& textures = {},
             const std::vector<Buffer*>& ubo = {}
         );
         void freeDescriptorSets();
@@ -160,8 +160,7 @@ namespace pk
         inline std::unordered_map<PK_id, Batch*>& accessOccupiedBatches() { return _occupiedBatches; }
 
         bool hasDescriptorSets(PK_id batchIdentifier) const;
-        const DescriptorSet* getTextureDescriptorSet(PK_id batchIdentifier, uint32_t index) const;
-        const DescriptorSet* getUboDescriptorSet(PK_id batchIdentifier, uint32_t index) const;
+        const DescriptorSet* getDescriptorSet(PK_id batchIdentifier, uint32_t index) const;
     };
 
 
@@ -179,7 +178,7 @@ namespace pk
         // submit renderable component for rendering (batch preparing, before rendering)
         virtual void submit(const Component* const renderableComponent, const mat4& transformation) = 0;
 
-        virtual void render(const Camera& cam) = 0; //*why the fuk proj and view matrices not const?
+        virtual void render() = 0;
 
         virtual void beginFrame() {}
         virtual void beginRenderPass(){}
@@ -191,10 +190,6 @@ namespace pk
         // (because those containers get filled each frame)
         virtual void flush() {}
 
-        // Responsible for creating descriptor sets depending on the needs of the component.
-        // On submit(...) should be checked does component have appropriate descriptor sets
-        // already created. If no -> call this
-        virtual void createDescriptorSets(Component* pComponent) {}
         virtual void freeDescriptorSets() {}
 
     protected:

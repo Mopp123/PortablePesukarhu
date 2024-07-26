@@ -4,38 +4,46 @@
 
 namespace pk
 {
-    Material::Material(std::vector<Texture_new*> pTextures) :
-        Resource(ResourceType::RESOURCE_MATERIAL)
+    Material::Material(
+        std::vector<Texture_new*> pDiffuseTextures,
+        Texture_new* pSpecularTexture,
+        float specularStrength,
+        float specularShininess
+    ) :
+        Resource(ResourceType::RESOURCE_MATERIAL),
+        _pSpecularTexture(pSpecularTexture),
+        _specularStrength(specularStrength),
+        _specularShininess(specularShininess)
     {
-        if (pTextures.size() > MATERIAL_MAX_TEXTURES)
+        if (pDiffuseTextures.size() > MATERIAL_MAX_DIFFUSE_TEXTURES)
         {
             Debug::log(
                 "@Material::Material "
-                "Provided too many textures(" + std::to_string(pTextures.size()) + ") "
-                "Max material texture count is " + std::to_string(MATERIAL_MAX_TEXTURES),
+                "Provided too many diffuse textures(" + std::to_string(pDiffuseTextures.size()) + ") "
+                "Max material diffuse texture count is " + std::to_string(MATERIAL_MAX_DIFFUSE_TEXTURES),
                 Debug::MessageType::PK_FATAL_ERROR
             );
             return;
         }
-        memcpy(_pTextures, pTextures.data(), sizeof(Texture_new*) * pTextures.size());
+        memcpy(_pDiffuseTextures, pDiffuseTextures.data(), sizeof(Texture_new*) * pDiffuseTextures.size());
     }
 
-    const Texture_new * const Material::getTexture(int index) const
+    const Texture_new * const Material::getDiffuseTexture(int index) const
     {
-        if (index >= MATERIAL_MAX_TEXTURES)
+        if (index >= MATERIAL_MAX_DIFFUSE_TEXTURES)
         {
             Debug::log(
-                 "@Material::getTexture "
-                 "index out of bounds! Max material texture index is: " + std::to_string(MATERIAL_MAX_TEXTURES),
+                 "@Material::getDiffuseTexture "
+                 "index out of bounds! Max material diffuse texture index is: " + std::to_string(MATERIAL_MAX_DIFFUSE_TEXTURES),
                  Debug::MessageType::PK_FATAL_ERROR
             );
             return nullptr;
         }
-        Texture_new* pTexture = _pTextures[index];
+        Texture_new* pTexture = _pDiffuseTextures[index];
         if (!pTexture)
         {
             Debug::log(
-                 "@Material::getTexture "
+                 "@Material::getDiffuseTexture "
                  "No texture assigned to index: " + std::to_string(index),
                  Debug::MessageType::PK_WARNING
             );
@@ -43,22 +51,22 @@ namespace pk
         return pTexture;
     }
 
-    Texture_new* Material::accessTexture(int index)
+    Texture_new* Material::accessDiffuseTexture(int index)
     {
-        if (index >= MATERIAL_MAX_TEXTURES)
+        if (index >= MATERIAL_MAX_DIFFUSE_TEXTURES)
         {
             Debug::log(
-                 "@Material::accessTexture "
-                 "index out of bounds! Max material texture index is: " + std::to_string(MATERIAL_MAX_TEXTURES),
+                 "@Material::accessDiffuseTexture "
+                 "index out of bounds! Max material diffuse texture index is: " + std::to_string(MATERIAL_MAX_DIFFUSE_TEXTURES),
                  Debug::MessageType::PK_FATAL_ERROR
             );
             return nullptr;
         }
-        Texture_new* pTexture = _pTextures[index];
+        Texture_new* pTexture = _pDiffuseTextures[index];
         if (!pTexture)
         {
             Debug::log(
-                 "@Material::accessTexture "
+                 "@Material::accessDiffuseTexture "
                  "No texture assigned to index: " + std::to_string(index),
                  Debug::MessageType::PK_WARNING
             );

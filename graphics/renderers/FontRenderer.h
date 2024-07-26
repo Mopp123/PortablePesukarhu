@@ -41,7 +41,7 @@ namespace pk
         ~FontRenderer();
 
         virtual void submit(const Component* const renderableComponent, const mat4& transform);
-        virtual void render(const Camera& cam);
+        virtual void render();
 
         virtual void flush();
 

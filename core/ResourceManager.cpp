@@ -42,14 +42,27 @@ namespace pk
         // This is done because want to use same shaders for all similar stuff.
         // (Current rendering systems gets fucked up if some gl attrib or uniform location
         // is not used and returns -1)
+
+
+        TextureSampler defaultTextureSampler;
+
+        // White texture
+        // NOTE: Don't remember why I put 4 channels here instead of 1...
+        // ..there might not even be reason for that....
         PK_ubyte pWhitePixels[2 * 2 * 4];
         memset(pWhitePixels, 255, 2 * 2 * 4);
         ImageData* pWhiteImg = createImage(pWhitePixels, 2, 2, 4);
-        TextureSampler whiteTextureSampler;
-        _pWhiteTexture = createTexture(pWhiteImg->getResourceID(), whiteTextureSampler);
+        _pWhiteTexture = createTexture(pWhiteImg->getResourceID(), defaultTextureSampler);
         _persistentResources[pWhiteImg->getResourceID()] = pWhiteImg;
         _persistentResources[_pWhiteTexture->getResourceID()] = _pWhiteTexture;
-        Debug::log("___TEST___CREATED DEFAULT TEXTURE: " + std::to_string(_pWhiteTexture->getResourceID()));
+
+        // Black texture
+        PK_ubyte pBlackPixels[2 * 2 * 3];
+        memset(pBlackPixels, 0, 2 * 2 * 3);
+        ImageData* pBlackImg = createImage(pBlackPixels, 2, 2, 3);
+        _pBlackTexture = createTexture(pBlackImg->getResourceID(), defaultTextureSampler);
+        _persistentResources[pBlackImg->getResourceID()] = pBlackImg;
+        _persistentResources[_pBlackTexture->getResourceID()] = _pBlackTexture;
     }
 
     ImageData* ResourceManager::loadImage(
@@ -108,18 +121,49 @@ namespace pk
     }
 
     Material* ResourceManager::createMaterial(
-        const std::vector<uint32_t>& textureResourceIDs
+        const std::vector<uint32_t>& diffuseTextureIDs,
+        uint32_t specularTextureID,
+        float specularStrength,
+        float shininess
     )
     {
-        std::vector<Texture_new*> textures(textureResourceIDs.size());
-        for (int i = 0; i < textureResourceIDs.size(); ++i)
+        std::vector<Texture_new*> textures(diffuseTextureIDs.size());
+        for (int i = 0; i < diffuseTextureIDs.size(); ++i)
         {
-            Texture_new* pTexture = (Texture_new*)getResource(textureResourceIDs[i]);
+            Texture_new* pTexture = (Texture_new*)getResource(diffuseTextureIDs[i]);
             if (pTexture)
                 textures[i] = pTexture;
         }
-
-        Material* pMaterial = new Material(textures);
+        // Use black texture as default specular texture if not defined and shininess == 0
+        // Use white texture as default specular texture if not defined and shininess > 0
+        // *By default all materials require specular texture
+        Texture_new* pSpecularTexture = nullptr;
+        if (specularTextureID)
+        {
+            pSpecularTexture = (Texture_new*)getResource(specularTextureID);
+            if (!pSpecularTexture)
+            {
+                Debug::log(
+                    "@ResourceManager::createMaterial "
+                    "Failed to find specular texture with id: " + std::to_string(specularTextureID),
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                pSpecularTexture = _pBlackTexture;
+            }
+        }
+        else
+        {
+            if (shininess <= 0.0f)
+                pSpecularTexture = _pBlackTexture;
+            else
+                pSpecularTexture = _pWhiteTexture;
+        }
+        Material* pMaterial = new Material(
+            textures,
+            pSpecularTexture,
+            specularStrength,
+            shininess
+        );
         _resources[pMaterial->getResourceID()] = pMaterial;
         return pMaterial;
     }

@@ -27,9 +27,11 @@ namespace pk
                 MasterRenderer* pMasterRenderer = app->_pMasterRenderer;
                 if (pCamera && pCameraTransform)
                 {
-                    mat4 viewMatrix = pCameraTransform->getTransformationMatrix();
+                    const mat4& camTMat = pCameraTransform->getTransformationMatrix();
+                    vec3 camPos(camTMat[0 + 3 * 4], camTMat[1 + 3 * 4], camTMat[2 + 3 * 4]);
+                    mat4 viewMatrix = camTMat;
                     viewMatrix.inverse();
-                    pMasterRenderer->render(*pCamera, viewMatrix);
+                    pMasterRenderer->render(pCamera->getProjMat3D(), viewMatrix, camPos);
                 }
                 else
                 {
