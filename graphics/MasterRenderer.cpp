@@ -128,6 +128,22 @@ namespace pk
             1,
             { _pDirectionalLightUniformBuffer }
         );
+
+        _renderers[ComponentType::PK_RENDERABLE_GUI] = new GUIRenderer;
+        _renderers[ComponentType::PK_RENDERABLE_TEXT] = new FontRenderer;
+        _renderers[ComponentType::PK_RENDERABLE_STATIC3D] = new StaticRenderer;
+    }
+
+    void MasterRenderer::init()
+    {
+        for (auto& renderer : _renderers)
+        {
+            Debug::log(
+                "@MasterRenderer::init "
+                "Initializing pipeline for renderer of component type: " + component_type_to_string(renderer.first)
+            );
+            renderer.second->initPipeline();
+        }
     }
 
     MasterRenderer::~MasterRenderer()
@@ -144,21 +160,6 @@ namespace pk
             delete _pEnvironmentDescriptorSet;
         if (_pEnvironmentUniformBuffer)
             delete _pEnvironmentUniformBuffer;
-    }
-
-    void MasterRenderer::addRenderer(ComponentType renderableComponentType, Renderer* renderer)
-    {
-        if (_renderers.find(renderableComponentType) != _renderers.end())
-        {
-            Debug::log(
-                "Attempted to add Renderer to MasterRenderer but renderer of assigned renderable component type already exists",
-                Debug::MessageType::PK_FATAL_ERROR
-            );
-        }
-        else
-        {
-            _renderers[renderableComponentType] = renderer;
-        }
     }
 
     void MasterRenderer::render(

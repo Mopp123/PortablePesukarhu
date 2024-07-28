@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 
 namespace pk
@@ -13,7 +14,6 @@ namespace pk
         PK_EMPTY = 0x0,
         PK_RENDERABLE_GUI = 0x1,
         PK_RENDERABLE_TEXT = 0x2,
-        //PK_RENDERABLE_GUI_NEW, // Dont remember what this was doing here..
         PK_RENDERABLE_SPRITE3D = 0x4,
         PK_RENDERABLE_TERRAINTILE = 0x8,
         PK_RENDERABLE_STATIC3D = 0x10,
@@ -24,10 +24,14 @@ namespace pk
 
         PK_TRANSFORM = 0x80,
 
-        PK_UI_CONSTRAINT = 0x100, // PROBLEM: currently relying on that entity can have multiple components of this type
+        PK_UI_CONSTRAINT = 0x100,
 
         PK_CAMERA = 0x200
     };
+
+
+    std::string component_type_to_string(ComponentType);
+
 
     class Component
     {

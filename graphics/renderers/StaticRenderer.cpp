@@ -29,7 +29,6 @@ namespace pk
         _materialDescSetLayout({}),
         _batchContainer(s_maxBatches, sizeof(float) * s_instanceBufferComponents * s_maxBatchInstances)
     {
-
         _pVertexShader = Shader::create_from_file(
             "assets/shaders/StaticShader.vert",
             ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
@@ -79,17 +78,17 @@ namespace pk
         vec4 initialMaterialProps(1.0f, 32.0f, 0.0f, 0.0f);
         for (int i = 0; i < swapchainImages; ++i)
         {
-            _materialPropsUniformBuffers.push_back(Buffer::create(
-                    &initialMaterialProps,
-                    sizeof(vec4),
-                    1,
-                    BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                    true
-                )
+            Buffer* pMatUbo = Buffer::create(
+                &initialMaterialProps,
+                sizeof(vec4),
+                1,
+                BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                true
             );
+            const Buffer* pConstCopy = (const Buffer*)pMatUbo;
+            _materialPropsUniformBuffers.push_back(pMatUbo);
+            _constMaterialPropsUniformBuffers.push_back(pConstCopy);
         }
-
-        initPipeline();
     }
 
     StaticRenderer::~StaticRenderer()
@@ -101,13 +100,13 @@ namespace pk
 
     void StaticRenderer::initPipeline()
     {
-        const MasterRenderer* pMasterRenderer = Application::get()->getMasterRenderer();
+        const MasterRenderer& masterRenderer = Application::get()->getMasterRenderer();
         std::vector<VertexBufferLayout> vbLayouts({ _vertexBufferLayout, _instanceBufferLayout });
         std::vector<DescriptorSetLayout> descSetLayouts(
             {
-                pMasterRenderer->getCommonDescriptorSetLayout(),
-                pMasterRenderer->getEnvironmentDescriptorSetLayout(),
-                pMasterRenderer->getDirectionalLightDescriptorSetLayout(),
+                masterRenderer.getCommonDescriptorSetLayout(),
+                masterRenderer.getEnvironmentDescriptorSetLayout(),
+                masterRenderer.getDirectionalLightDescriptorSetLayout(),
                 _materialDescSetLayout
             }
         );
@@ -134,12 +133,12 @@ namespace pk
         const mat4& transformation
     )
     {
-        Application* pApp = Application::get();
-        ResourceManager& resManager = pApp->getResourceManager();
+        const Application* pApp = Application::get();
+        const ResourceManager& resManager = pApp->getResourceManager();
 
         const Static3DRenderable * const pStaticRenderable = (const Static3DRenderable * const)renderableComponent;
         PK_id batchIdentifier = pStaticRenderable->meshID;
-        Mesh* pMesh = (Mesh*)resManager.getResource(pStaticRenderable->meshID);
+        const Mesh* pMesh = (const Mesh*)resManager.getResource(pStaticRenderable->meshID);
         if (!pMesh)
         {
             Debug::log(
@@ -149,9 +148,9 @@ namespace pk
             );
             return;
         }
-        Material* pMaterial = pMesh->accessMaterial();
-        Texture_new* pDiffuseTexture = pMaterial->accessDiffuseTexture(0);
-        Texture_new* pSpecularTexture = pMaterial->accessSpecularTexture();
+        const Material* pMaterial = pMesh->getMaterial();
+        const Texture_new* pDiffuseTexture = pMaterial->getDiffuseTexture(0);
+        const Texture_new* pSpecularTexture = pMaterial->getSpecularTexture();
 
         _batchMaterialProperties[batchIdentifier] = {
             pMaterial->getSpecularStrength(),
@@ -176,9 +175,9 @@ namespace pk
                         pDiffuseTexture,
                         pSpecularTexture
                     },
-                    _materialPropsUniformBuffers
+                    _constMaterialPropsUniformBuffers
                 );
-                _batchMeshCache[batchIdentifier] = pMesh;
+                //_batchMeshCache[batchIdentifier] = const_cast<Mesh*>(pMesh);
             }
         }
     }
@@ -231,11 +230,25 @@ namespace pk
         //std::unordered_map<PK_id, Batch*>::iterator bIt;
         //std::unordered_map<PK_id, Batch*>& occupiedBatches = _batchContainer.accessOccupiedBatches();
         //for (bIt = occupiedBatches.begin(); bIt != occupiedBatches.end(); ++bIt)
+
+        ResourceManager& resManager = pApp->getResourceManager();
         for (Batch* pBatch : _batchContainer.getBatches())
         {
             if (!pBatch->isOccupied())
                 continue;
 
+            Mesh* pMesh = (Mesh*)resManager.getResource(pBatch->getIdentifier());
+            if (!pMesh)
+            {
+                Debug::log(
+                    "@StaticRenderer::render "
+                    "Failed to find batch's mesh from resource manager with "
+                    "batch identifier: " + std::to_string(pBatch->getIdentifier()),
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                continue;
+            }
+            /*
             if (_batchMeshCache.find(pBatch->getIdentifier()) == _batchMeshCache.end())
             {
                 Debug::log(
@@ -247,6 +260,8 @@ namespace pk
                 continue;
             }
             Mesh* pMesh = _batchMeshCache[pBatch->getIdentifier()];
+            */
+
             const Buffer* pIndexBuffer = pMesh->getIndexBuffer();
             Buffer* pVertexBuffer = pMesh->accessVertexBuffer();
 
@@ -273,16 +288,16 @@ namespace pk
             );
 
             // Get "common descriptor set" from master renderer
-            MasterRenderer* pMasterRenderer = pApp->getMasterRenderer();
+            MasterRenderer& masterRenderer = pApp->getMasterRenderer();
             // Update material properties ubo
             const vec4& materialProperties = _batchMaterialProperties[pBatch->getIdentifier()];
             _materialPropsUniformBuffers[0]->update(&materialProperties, sizeof(vec4));
 
             std::vector<const DescriptorSet*> toBind =
             {
-                pMasterRenderer->getCommonDescriptorSet(),
-                pMasterRenderer->getEnvironmentDescriptorSet(),
-                pMasterRenderer->getDirectionalLightDescriptorSet(),
+                masterRenderer.getCommonDescriptorSet(),
+                masterRenderer.getEnvironmentDescriptorSet(),
+                masterRenderer.getDirectionalLightDescriptorSet(),
                 _batchContainer.getDescriptorSet(pBatch->getIdentifier(), 0)
             };
 
@@ -318,6 +333,6 @@ namespace pk
     void StaticRenderer::freeDescriptorSets()
     {
         _batchContainer.freeDescriptorSets();
-        _batchMeshCache.clear();
+        //_batchMeshCache.clear();
     }
 }

@@ -65,6 +65,7 @@ namespace pk
         const FontGlyphData * const getGlyph(char c) const;
         inline const unsigned int getPixelSize() const { return _pixelSize; }
         inline std::unordered_map<char, FontGlyphData>& getGlyphMapping() { return _glyphMapping; }
+        inline const std::unordered_map<char, FontGlyphData>& getGlyphMapping() const { return _glyphMapping; }
         inline int getTextureAtlasRowCount() const { return _textureAtlasRowCount; }
         inline int getTilePixelWidth() const { return _textureAtlasTileWidth; }
 

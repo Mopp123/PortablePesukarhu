@@ -1,6 +1,6 @@
 ﻿#include "Application.h"
-#include "../Common.h"
-#include "../utils/pkmath.h"
+#include "Common.h"
+#include "utils/pkmath.h"
 
 #include "Debug.h"
 #include <iostream>
@@ -24,36 +24,33 @@ namespace pk
                 SceneManager& sceneManager = app->_sceneManager;
                 sceneManager.handleSceneUpdate();
 
-                MasterRenderer* pMasterRenderer = app->_pMasterRenderer;
+                MasterRenderer& masterRenderer = app->getMasterRenderer();;
                 if (pCamera && pCameraTransform)
                 {
                     const mat4& camTMat = pCameraTransform->getTransformationMatrix();
                     vec3 camPos(camTMat[0 + 3 * 4], camTMat[1 + 3 * 4], camTMat[2 + 3 * 4]);
                     mat4 viewMatrix = camTMat;
                     viewMatrix.inverse();
-                    pMasterRenderer->render(pCamera->getProjMat3D(), viewMatrix, camPos);
+                    masterRenderer.render(pCamera->getProjMat3D(), viewMatrix, camPos);
                 }
                 else
                 {
                     Debug::log("Scene doesn't have active camera", Debug::MessageType::PK_ERROR);
                 }
-                pMasterRenderer->flush();
+                masterRenderer.flush();
                 //Debug::log("delta: " + std::to_string(Timing::get_delta_time()));
             }
             // Detect and handle possible scene switching..
-
             app->_sceneManager.handleSceneSwitching();
             app->_timing.update();
-
-            //GLenum err = glGetError();
-            //if (err != GL_NO_ERROR)
-            //	std::cout << "GL ERROR!: " << err << std::endl;
         }
     }
 
+    uint32_t Application::s_platform = PK_PLATFORM_ID_NONE;
     Application* Application::s_pApplication = nullptr;
 
     Application::Application(
+        uint32_t platform,
         std::string name,
         Window* window,
         Context* graphicsContext,
@@ -64,6 +61,7 @@ namespace pk
         _pGraphicsContext(graphicsContext),
         _pInputManager(inputManager)
     {
+        s_platform = platform;
         s_pApplication = this;
 
         // This is done because swapchain creation requires window
@@ -77,12 +75,14 @@ namespace pk
                 "Currently Application creation is not allowed without window",
                 Debug::MessageType::PK_FATAL_ERROR
             );
-    }
 
-    void Application::init(MasterRenderer* pMasterRenderer)
-    {
-        _pMasterRenderer = pMasterRenderer;
         _resourceManager.createDefaultResources();
+
+        // Need to create renderers after swapchain and default resource creation!
+        _pMasterRenderer = new MasterRenderer;
+        // Need to init renderers' pipelines after MasterRenderer creation since
+        // some of those may need to access master renderer's default descriptorset layouts, etc..
+        _pMasterRenderer->init();
     }
 
     Application::~Application()
@@ -92,7 +92,7 @@ namespace pk
 
     void Application::run()
     {
-#ifdef PK_BUILD_WEB
+#ifdef PK_PLATFORM_WEB
         emscripten_set_main_loop(update, 0, 1);
 #else
         while (_running)
@@ -110,6 +110,11 @@ namespace pk
     void Application::switchScene(Scene* newScene)
     {
         _sceneManager.assignNextScene(newScene);
+    }
+
+    uint32_t Application::get_platform()
+    {
+        return s_platform;
     }
 
     Application* Application::get()

@@ -125,8 +125,8 @@ namespace pk
     void BatchContainer::createDescriptorSets(
         PK_id batchIdentifier,
         const DescriptorSetLayout * const pDescriptorSetLayout,
-        const std::vector<Texture_new*>& textures,
-        const std::vector<Buffer*>& ubo
+        const std::vector<const Texture_new*>& textures,
+        const std::vector<const Buffer*>& ubo
     )
     {
         std::unordered_map<PK_id, BatchDescriptorSets>::iterator it = _batchDescriptorSets.find(batchIdentifier);
@@ -136,7 +136,7 @@ namespace pk
             BatchDescriptorSets& sets = it->second;
 
             const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
-            uint32_t swapchainImages = pSwapchain->getImageCount();
+            const uint32_t swapchainImages = pSwapchain->getImageCount();
             std::vector<DescriptorSet*>& descriptorSet = sets._descriptorSet;
 
             if (descriptorSet.size() > 0)
@@ -153,7 +153,7 @@ namespace pk
 
             for (uint32_t i = 0; i < swapchainImages; ++i)
             {
-                std::vector<Buffer*> b;
+                std::vector<const Buffer*> b;
                 if (!ubo.empty())
                     b.push_back(ubo[i]);
                 DescriptorSet* pDescriptorSet = new DescriptorSet(

@@ -55,8 +55,6 @@ namespace pk
         );
         _textureDescSetLayout = DescriptorSetLayout({ textureDescSetLayoutBinding });
 
-        initPipeline();
-
         // Atm creating these only for quick testing here!!!
         // Static vertex buffer
         float vbData[16] = {
@@ -119,7 +117,7 @@ namespace pk
     {
         const GUIRenderable * const pGuiRenderable = (const GUIRenderable * const)renderableComponent;
 
-        Texture_new* pTexture = Application::get()->getResourceManager().getWhiteTexture();
+        const Texture_new* pTexture = Application::get()->getResourceManager().getWhiteTexture();
         if (pGuiRenderable->pTexture_new)
             pTexture = pGuiRenderable->pTexture_new;
         PK_id batchIdentifier = pTexture->getResourceID();
@@ -151,33 +149,6 @@ namespace pk
                 );
             }
         }
-
-        // Create descriptor sets if necessary BUT ONLY if added to batch successfully
-        /*
-        if (_batchContainer.addData(renderableData, sizeof(float) * s_instanceBufferComponents, batchIdentifier))
-        {
-            if (_descriptorSets.find(batchIdentifier) == _descriptorSets.end())
-            {
-                const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
-                uint32_t swapchainImages = pSwapchain->getImageCount();
-                std::vector<DescriptorSet*> pDescriptorSets(swapchainImages);
-                for (uint32_t i = 0; i < swapchainImages; ++i)
-                {
-                    DescriptorSet* pDescriptorSet = new DescriptorSet(
-                        _textureDescSetLayout,
-                        1,
-                        { pTexture }
-                    );
-                    pDescriptorSets[i] = pDescriptorSet;
-                }
-                _descriptorSets[batchIdentifier] = { pDescriptorSets };
-                Debug::log(
-                    "@GUIRenderer::submit "
-                    "Descriptor sets created for new batch with id: " + std::to_string(batchIdentifier)
-                );
-            }
-        }
-        */
     }
 
     void GUIRenderer::render()

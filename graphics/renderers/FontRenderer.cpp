@@ -49,8 +49,6 @@ namespace pk
         );
         _textureDescSetLayout = DescriptorSetLayout({ textureDescSetLayoutBinding });
 
-        initPipeline();
-
         // Atm creating these only for quick testing here!!!
         // Static vertex buffer
         float vbData[8] = {
@@ -96,8 +94,8 @@ namespace pk
     void FontRenderer::initPipeline()
     {
         // TODO: Better way of interacting with master renderer here
-        MasterRenderer* pMasterRenderer = Application::get()->getMasterRenderer();
-        DescriptorSetLayout commonDescriptorSetLayout = pMasterRenderer->getCommonDescriptorSetLayout();
+        MasterRenderer& masterRenderer = Application::get()->getMasterRenderer();
+        DescriptorSetLayout commonDescriptorSetLayout = masterRenderer.getCommonDescriptorSetLayout();
 
         std::vector<VertexBufferLayout> vbLayouts({ _vertexBufferLayout, _instanceBufferLayout });
         std::vector<DescriptorSetLayout> descSetLayouts(
@@ -139,10 +137,10 @@ namespace pk
             );
             return;
         }
-        Application* pApp = Application::get();
-        ResourceManager& resManager = pApp->getResourceManager();
+        const Application* pApp = Application::get();
+        const ResourceManager& resManager = pApp->getResourceManager();
         PK_id batchIdentifier = pRenderable->fontID;
-        Font* pFont = (Font*)resManager.getResource(batchIdentifier);
+        const Font* pFont = (const Font*)resManager.getResource(batchIdentifier);
         if (!pFont)
         {
             Debug::log(
@@ -152,7 +150,7 @@ namespace pk
             );
             return;
         }
-        Texture_new* pTexture = pFont->accessTexture();
+        const Texture_new* pTexture = pFont->getTexture();
         if (!pTexture)
         {
             Debug::log(
@@ -234,51 +232,6 @@ namespace pk
                     );
                 }
             }
-
-            /*
-            if (_batchContainer.addData(renderableData, sizeof(float) * s_instanceBufferComponents, batchIdentifier))
-            {
-                if (_descriptorSets.find(batchIdentifier) == _descriptorSets.end())
-                {
-                    if (!pFont)
-                    {
-                        Debug::log(
-                            "@FontRenderer::submit "
-                            "Failed to find font resource with id: " + std::to_string(batchIdentifier),
-                            Debug::MessageType::PK_FATAL_ERROR
-                        );
-                        return;
-                    }
-                    Texture_new* pTexture = pFont->accessTexture();
-                    if (!pTexture)
-                    {
-                        Debug::log(
-                            "@FontRenderer::submit "
-                            "Font's texture was nullptr",
-                            Debug::MessageType::PK_FATAL_ERROR
-                        );
-                        return;
-                    }
-                    const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
-                    uint32_t swapchainImages = pSwapchain->getImageCount();
-                    std::vector<DescriptorSet*> pDescriptorSets(swapchainImages);
-                    for (uint32_t i = 0; i < swapchainImages; ++i)
-                    {
-                        DescriptorSet* pDescriptorSet = new DescriptorSet(
-                            _textureDescSetLayout,
-                            1,
-                            { pTexture }
-                        );
-                        pDescriptorSets[i] = pDescriptorSet;
-                    }
-                    _descriptorSets[batchIdentifier] = { pDescriptorSets };
-                    Debug::log(
-                        "@FontRenderer::submit "
-                        "Descriptor sets created for new batch with id: " + std::to_string(batchIdentifier)
-                    );
-                }
-            }*/
-
             // NOTE: Don't quite understand this.. For some reason on some fonts >> 7 works better...
             posX += ((float)(glyphData.advance >> 6)) * scaleFactorX; // now advance cursors for next glyph (note that advance is number of 1/64 pixels). bitshift by 6 to get value in pixels (2^6 = 64) | OLD COMMENT: 2^5 = 32 (pixel size of the font..)
         }

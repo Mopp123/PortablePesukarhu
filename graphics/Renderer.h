@@ -147,8 +147,8 @@ namespace pk
         void createDescriptorSets(
             PK_id batchIdentifier,
             const DescriptorSetLayout * const pDescriptorSetLayout = nullptr,
-            const std::vector<Texture_new*>& textures = {},
-            const std::vector<Buffer*>& ubo = {}
+            const std::vector<const Texture_new*>& textures = {},
+            const std::vector<const Buffer*>& ubo = {}
         );
         void freeDescriptorSets();
         void clear();
@@ -164,9 +164,12 @@ namespace pk
     };
 
 
+    class MasterRenderer;
     class Renderer
     {
     protected:
+        friend class MasterRenderer;
+
         Pipeline* _pPipeline = nullptr;
         std::unordered_map<RenderPassType, std::vector<CommandBuffer*>> _pCommandBuffers;
 

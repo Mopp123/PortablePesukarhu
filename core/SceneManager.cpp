@@ -7,6 +7,29 @@
 
 namespace pk
 {
+    static void submit_renderable(
+        ComponentPool& renderablePool,
+        ComponentPool& transformPool,
+        const std::vector<Entity>& entities,
+        Renderer* pRenderer,
+        uint32_t requiredComponentMask
+    )
+    {
+        for (const Entity& e : entities)
+        {
+            if ((e.componentMask & requiredComponentMask) == requiredComponentMask)
+            {
+                Component* pRenderable = (Component*)renderablePool[e.id];
+                Transform* pTransform = (Transform*)transformPool[e.id];
+                if (!pRenderable->isActive())
+                    continue;
+
+                pRenderer->submit(pRenderable, pTransform->getTransformationMatrix());
+            }
+        }
+    }
+
+
     void SceneManager::handleSceneUpdate()
     {
         _pCurrentScene->update();
@@ -16,85 +39,24 @@ namespace pk
             system->update(_pCurrentScene);
 
         // Submit all "renderable components" for rendering...
-
+        // NOTE: This has to be done here since need quarantee that all transforms and shit has been
+        // properly updated before submission!
         Application* pApp = Application::get();
-        MasterRenderer* pMasterRenderer = pApp->getMasterRenderer();
-        // find gui renderers
-        Renderer* pGuiRenderer = pMasterRenderer->getRenderer(ComponentType::PK_RENDERABLE_GUI);
-        Renderer* pFontRenderer = pMasterRenderer->getRenderer(ComponentType::PK_RENDERABLE_TEXT);
-        // find 3d renderers
-        Renderer* pTerrainRenderer = pMasterRenderer->getRenderer(ComponentType::PK_RENDERABLE_TERRAINTILE);
-        Renderer* pSpriteRenderer = pMasterRenderer->getRenderer(ComponentType::PK_RENDERABLE_SPRITE3D);
-        Renderer* pStaticRenderer = pMasterRenderer->getRenderer(ComponentType::PK_RENDERABLE_STATIC3D);
-
-
-        // submitting renderables
-
         ComponentPool& transformPool = _pCurrentScene->componentPools[ComponentType::PK_TRANSFORM];
-        // Static 3D
-        ComponentPool& staticRenderablePool  = _pCurrentScene->componentPools[ComponentType::PK_RENDERABLE_STATIC3D];
-        for (const Entity& e : _pCurrentScene->entities)
+        MasterRenderer& masterRenderer = pApp->getMasterRenderer();
+        std::map<ComponentType, Renderer*>& renderers = masterRenderer.accessRenderers();
+        std::map<ComponentType, Renderer*>::iterator rIt;
+        const std::vector<Entity>& entities = _pCurrentScene->entities;
+        for (rIt = renderers.begin(); rIt != renderers.end(); ++rIt)
         {
-            if (e.componentMask & ComponentType::PK_TRANSFORM &&
-                e.componentMask & ComponentType::PK_RENDERABLE_STATIC3D)
-            {
-                Static3DRenderable* pRenderable = (Static3DRenderable*)staticRenderablePool[e.id];
-                Transform* pTransform = (Transform*)transformPool[e.id];
-                if (!pRenderable->isActive())
-                    continue;
-
-                pStaticRenderer->submit(pRenderable, pTransform->getTransformationMatrix());
-            }
-        }
-
-        // TERRAIN TILES
-        //*atm we want to pass just empty tMatrix, since tile figures out its' vertex positions from the tile component itself
-        //mat4 empty;
-        //for (const Component* const c_renderableTile : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_TERRAINTILE))
-        //{
-        //    if (c_renderableTile->isActive())
-        //    {
-        //        pTerrainRenderer->submit(c_renderableTile, empty);
-        //    }
-        //}
-        //// 3D SPRITES
-        //for (const Component* const c_renderableSprite : _pCurrentScene->getComponentsOfTypeInScene(ComponentType::PK_RENDERABLE_SPRITE3D))
-        //{
-        //    if (c_renderableSprite->isActive())
-        //    {
-        //        pSpriteRenderer->submit(c_renderableSprite, empty);
-        //    }
-        //}
-
-        // GUI
-        ComponentPool& renderableGUIPool = _pCurrentScene->componentPools[ComponentType::PK_RENDERABLE_GUI];
-        for (const Entity& e : _pCurrentScene->entities)
-        {
-            if (e.componentMask & ComponentType::PK_TRANSFORM &&
-                e.componentMask & ComponentType::PK_RENDERABLE_GUI)
-            {
-                GUIRenderable* pRenderable = (GUIRenderable*)renderableGUIPool[e.id];
-                Transform* pTransform = (Transform*)transformPool[e.id];
-                if (!pRenderable->isActive())
-                    continue;
-
-                pGuiRenderer->submit(pRenderable, pTransform->getTransformationMatrix());
-            }
-        }
-        // TEXT
-        ComponentPool& renderableTextPool = _pCurrentScene->componentPools[ComponentType::PK_RENDERABLE_TEXT];
-        for (const Entity& e : _pCurrentScene->entities)
-        {
-            if (e.componentMask & ComponentType::PK_TRANSFORM &&
-                e.componentMask & ComponentType::PK_RENDERABLE_TEXT)
-            {
-                TextRenderable* pRenderable = (TextRenderable*)renderableTextPool[e.id];
-                Transform* pTransform = (Transform*)transformPool[e.id];
-                if (!pRenderable->isActive())
-                    continue;
-
-                pFontRenderer->submit(pRenderable, pTransform->getTransformationMatrix());
-            }
+            const ComponentType& renderableType = rIt->first;
+            submit_renderable(
+                _pCurrentScene->componentPools[renderableType],
+                transformPool,
+                entities,
+                rIt->second,
+                ComponentType::PK_TRANSFORM | renderableType
+            );
         }
     }
 
@@ -111,7 +73,7 @@ namespace pk
         {
             Debug::log("Attempting to switch scene...");
             Application* pApp = Application::get();
-            pApp->getMasterRenderer()->freeDescriptorSets();
+            pApp->getMasterRenderer().freeDescriptorSets();
             pApp->accessInputManager()->destroyEvents();
             pApp->getResourceManager().free();
             delete _pCurrentScene;
