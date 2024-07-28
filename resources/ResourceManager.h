@@ -6,6 +6,7 @@
 #include "Material.h"
 #include "Mesh.h"
 #include "Model.h"
+#include "Animation.h"
 #include "Font.h"
 #include "Common.h"
 #include "core/Debug.h"
@@ -84,6 +85,10 @@ namespace pk
 
         Model* createModel(
             const std::vector<uint32_t>& meshResourceIDs
+        );
+
+        Animation* createAnimation(
+            const std::vector<Pose>& poses
         );
 
         Font* createFont(

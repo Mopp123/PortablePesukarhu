@@ -51,6 +51,9 @@ namespace pk
         componentPools[ComponentType::PK_LIGHT_DIRECTIONAL] = ComponentPool(
             sizeof(DirectionalLight), maxDirectionalLights, true
         );
+        componentPools[ComponentType::PK_ANIMATION_DATA] = ComponentPool(
+            sizeof(AnimationData), maxEntityCount, true
+        );
 
         // NOTE: Only temporarely adding all default systems here!
         // TODO: Some better way of handling this!!
@@ -319,6 +322,17 @@ namespace pk
         *pDirectionalLight = DirectionalLight(color, direction);
         addComponent(target, pDirectionalLight);
         return pDirectionalLight;
+    }
+
+    AnimationData* Scene::createAnimationData(
+        entityID_t target,
+        PK_id animationResourceID
+    )
+    {
+        AnimationData* pComponent = (AnimationData*)componentPools[ComponentType::PK_ANIMATION_DATA].allocComponent(target);
+        *pComponent = AnimationData(animationResourceID);
+        addComponent(target, pComponent);
+        return pComponent;
     }
 
     Component* Scene::getComponent(entityID_t entityID, ComponentType type, bool nestedSearch)

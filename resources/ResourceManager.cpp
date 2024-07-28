@@ -221,6 +221,15 @@ namespace pk
         return pModel;
     }
 
+    Animation* ResourceManager::createAnimation(
+        const std::vector<Pose>& poses
+    )
+    {
+        Animation* pAnimation = new Animation(poses);
+        _resources[pAnimation->getResourceID()] = pAnimation;
+        return pAnimation;
+    }
+
     Font* ResourceManager::createFont(
         const std::string& filepath,
         int pixelSize

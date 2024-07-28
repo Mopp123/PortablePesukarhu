@@ -26,7 +26,10 @@ namespace pk
 
         PK_UI_CONSTRAINT = 0x100,
 
-        PK_CAMERA = 0x200
+        PK_CAMERA = 0x200,
+
+        PK_ANIMATION_DATA = 0x400
+
     };
 
 

@@ -11,6 +11,7 @@
 #include "ecs/components/renderable/TextRenderable.h"
 #include "ecs/components/renderable/Static3DRenderable.h"
 #include "ecs/components/lighting/Lights.h"
+#include "ecs/components/animation/AnimationData.h"
 #include "graphics/Environment.h"
 
 #include "ecs/systems/System.h"
@@ -103,6 +104,10 @@ namespace pk
             entityID_t target,
             const vec3& color,
             const vec3& direction
+        );
+        AnimationData* createAnimationData(
+            entityID_t target,
+            PK_id animationResourceID
         );
 
         // TODO: all getComponent things could be optimized?
