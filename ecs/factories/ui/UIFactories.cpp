@@ -37,10 +37,7 @@ namespace pk
             virtual ~ButtonMouseButtonEvent()
             {
                 if (_onClick)
-                {
-                    Debug::log("___TEST___DELETED ON CLICK!");
                     delete _onClick;
-                }
             }
             virtual void func(InputMouseButtonName button, InputAction action, int mods)
             {

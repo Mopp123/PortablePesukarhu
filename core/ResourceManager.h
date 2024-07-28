@@ -92,12 +92,16 @@ namespace pk
         );
 
         Resource* getResource(uint32_t id);
+        const Resource* getResource(uint32_t id) const;
 
         // Just for testing atm!!!
         inline std::unordered_map<uint32_t, Resource*>& getResources() { return _resources; }
         std::vector<Resource*> getResourcesOfType(ResourceType type);
 
         inline Texture_new* getWhiteTexture() { return _pWhiteTexture; }
+        inline const Texture_new* getWhiteTexture() const { return _pWhiteTexture; }
+
         inline Texture_new* getBlackTexture() { return _pBlackTexture; }
+        inline const Texture_new* getBlackTexture() const { return _pBlackTexture; }
     };
 }

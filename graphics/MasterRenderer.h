@@ -7,6 +7,10 @@
 #include "Buffers.h"
 #include "Descriptors.h"
 
+#include "renderers/GUIRenderer.h"
+#include "renderers/FontRenderer.h"
+#include "renderers/StaticRenderer.h"
+
 
 namespace pk
 {
@@ -46,7 +50,7 @@ namespace pk
     public:
         MasterRenderer();
         ~MasterRenderer();
-        void addRenderer(ComponentType renderableComponentType, Renderer* renderer);
+        void init();
 
         void render(
             const mat4& persProjMatrix,
@@ -56,6 +60,7 @@ namespace pk
         void flush();
 
         Renderer* const getRenderer(ComponentType renderableType);
+        inline std::map<ComponentType, Renderer*>& accessRenderers() { return _renderers; }
 
         // Frees all renderers' descriptor sets
         void freeDescriptorSets();

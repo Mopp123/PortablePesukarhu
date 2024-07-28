@@ -26,9 +26,10 @@ namespace pk
 
         // TODO: May need recreating if swapchain img count changes!
         std::vector<Buffer*> _materialPropsUniformBuffers;
+        std::vector<const Buffer*> _constMaterialPropsUniformBuffers;
         DescriptorSetLayout _materialDescSetLayout;
 
-        std::unordered_map<PK_id, Mesh*> _batchMeshCache;
+        //std::unordered_map<PK_id, Mesh*> _batchMeshCache;
         std::unordered_map<PK_id, vec4> _batchMaterialProperties;
         BatchContainer _batchContainer;
 

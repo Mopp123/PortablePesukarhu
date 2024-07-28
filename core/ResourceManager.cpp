@@ -249,6 +249,21 @@ namespace pk
         return it->second;
     }
 
+    const Resource* ResourceManager::getResource(uint32_t id) const
+    {
+        std::unordered_map<uint32_t, Resource*>::const_iterator it = _resources.find(id);
+        if (it == _resources.end())
+        {
+            Debug::log(
+                "@ResourceManager::getResource(2) "
+                "Failed to find resource with id: " + std::to_string(id),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
+        return it->second;
+    }
+
     std::vector<Resource*> ResourceManager::getResourcesOfType(ResourceType type)
     {
         std::vector<Resource*> foundResources;

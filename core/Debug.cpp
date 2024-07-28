@@ -1,5 +1,6 @@
 ﻿#include "Debug.h"
 #include "ecs/components/Component.h"
+#include <emscripten/console.h>
 #include <iostream>
 
 #define LS_DEBUG_MESSAGE_TAG__MESSAGE		""
@@ -10,19 +11,37 @@
 
 namespace pk
 {
+#ifdef PK_PLATFORM_WEB
+    void Debug::log(std::string message, MessageType t)
+    {
+        std::string fullMsg = std::string(LS_DEBUG_MESSAGE_TAG__ERROR) + " Invalid message type: " + std::to_string(t);
+        switch (t)
+        {
+            case pk::Debug::PK_MESSAGE:		  fullMsg = std::string(LS_DEBUG_MESSAGE_TAG__MESSAGE) + " " + message; break;
+            case pk::Debug::PK_WARNING:		  fullMsg = std::string(LS_DEBUG_MESSAGE_TAG__WARNING) +  " " + message; break;
+            case pk::Debug::PK_ERROR:		    fullMsg = std::string(LS_DEBUG_MESSAGE_TAG__ERROR) +  " " + message; break;
+            case pk::Debug::PK_FATAL_ERROR: fullMsg = std::string(LS_DEBUG_MESSAGE_TAG__FATAL_ERROR) +  " " + message; break;
+            default:
+                break;
+        }
+        emscripten_console_log(fullMsg.c_str());
+    }
+#else
     void Debug::log(std::string message, MessageType t)
     {
         switch (t)
         {
-            case pk::Debug::PK_MESSAGE:		std::cout << LS_DEBUG_MESSAGE_TAG__MESSAGE << " " << message << std::endl; break;
-            case pk::Debug::PK_WARNING:		std::cout << LS_DEBUG_MESSAGE_TAG__WARNING << " " << message << std::endl; break;
-            case pk::Debug::PK_ERROR:		std::cout << LS_DEBUG_MESSAGE_TAG__ERROR << " " << message << std::endl; break;
+            case pk::Debug::PK_MESSAGE:		  std::cout << LS_DEBUG_MESSAGE_TAG__MESSAGE << " " << message << std::endl; break;
+            case pk::Debug::PK_WARNING:		  std::cout << LS_DEBUG_MESSAGE_TAG__WARNING << " " << message << std::endl; break;
+            case pk::Debug::PK_ERROR:		    std::cout << LS_DEBUG_MESSAGE_TAG__ERROR << " " << message << std::endl; break;
             case pk::Debug::PK_FATAL_ERROR: std::cout << LS_DEBUG_MESSAGE_TAG__FATAL_ERROR << " " << message << std::endl; break;
             default:
                 break;
         }
     }
+#endif
 
+    /*
     void Debug::log_entity(Entity entity)
     {
         std::cout << "<Entity: " + std::to_string(entity.id) + "----------\n";
@@ -49,6 +68,7 @@ namespace pk
             std::cout << "\t\tPK_CAMERA\n";
         std::cout << "--------------------\n";
     }
+    */
 
     void Debug::notify_unimplemented(const std::string& location)
     {

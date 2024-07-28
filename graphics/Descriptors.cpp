@@ -9,13 +9,6 @@ namespace pk
         const size_t buffersCount = _pBuffers.size();
         const size_t texturesCount = _pTextures.size();
         const size_t totalCount = buffersCount + texturesCount;
-        bool isValid = totalCount == layout.getBindings().size();
-        if (!isValid)
-            Debug::log(
-                "___TEST___invalid descriptor set! "
-                "desc item count: " + std::to_string(totalCount) + " "
-                "layout bindings: " + std::to_string(layout.getBindings().size())
-            );
-        return isValid;
+        return totalCount == layout.getBindings().size();
     }
 }

@@ -34,7 +34,7 @@ namespace pk
 
         const Texture_new * const getDiffuseTexture(int index) const;
         Texture_new* accessDiffuseTexture(int index);
-        inline Texture_new* accessSpecularTexture() { return _pSpecularTexture; }
+        inline const Texture_new* getSpecularTexture() const { return _pSpecularTexture; }
         inline float getSpecularStrength() const { return _specularStrength; }
         inline float getSpecularShininess() const { return _specularShininess; }
     };
