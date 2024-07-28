@@ -1,5 +1,5 @@
 #include "Resource.h"
-#include "Debug.h"
+#include "core/Debug.h"
 
 
 namespace pk

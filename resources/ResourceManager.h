@@ -1,12 +1,12 @@
 #pragma once
 
 #include "Resource.h"
-#include "utils/Image.h"
-#include "graphics/Texture.h"
-#include "graphics/Material.h"
-#include "graphics/Mesh.h"
-#include "graphics/Model.h"
-#include "utils/Font.h"
+#include "Image.h"
+#include "Texture.h"
+#include "Material.h"
+#include "Mesh.h"
+#include "Model.h"
+#include "Font.h"
 #include "Common.h"
 #include "core/Debug.h"
 #include <vector>

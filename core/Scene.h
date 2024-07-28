@@ -13,7 +13,7 @@
 #include "ecs/components/lighting/Lights.h"
 #include "graphics/Environment.h"
 
-#include "../ecs/systems/System.h"
+#include "ecs/systems/System.h"
 #include "Debug.h"
 #include <unordered_map>
 #include <vector>

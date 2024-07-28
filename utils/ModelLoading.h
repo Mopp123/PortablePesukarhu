@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics/Model.h"
+#include "resources/Model.h"
 #include <string>
 
 

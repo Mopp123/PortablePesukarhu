@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/Resource.h"
+#include "Resource.h"
 #include "Texture.h"
 
 #define MATERIAL_MAX_DIFFUSE_TEXTURES 3

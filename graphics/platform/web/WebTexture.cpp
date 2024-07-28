@@ -6,7 +6,7 @@
 
 #include "../../../core/Debug.h"
 #include "../../../Common.h"
-#include "utils/Image.h"
+#include "resources/Image.h"
 
 #include <stdio.h>
 

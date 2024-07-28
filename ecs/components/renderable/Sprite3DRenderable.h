@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../Component.h"
-#include "../../../utils/pkmath.h"
-#include "../../../graphics/Texture.h"
+#include "ecs/components/Component.h"
+#include "utils/pkmath.h"
+#include "resources/Texture.h"
 
 
 namespace pk

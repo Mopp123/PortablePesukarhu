@@ -6,7 +6,8 @@
 #include "WebBuffers.h"
 #include "graphics/platform/opengl/shaders/OpenglShader.h"
 #include "graphics/platform/opengl/OpenglContext.h"
-#include "graphics/platform/opengl/OpenglTexture.h"
+
+#include "resources/platform/opengl/OpenglTexture.h"
 
 
 namespace pk

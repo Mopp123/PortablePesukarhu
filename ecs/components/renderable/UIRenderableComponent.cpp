@@ -1,5 +1,5 @@
 #include "UIRenderableComponent.h"
-#include "../../../core/Debug.h"
+#include "core/Debug.h"
 
 namespace pk
 {

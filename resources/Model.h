@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/Resource.h"
+#include "Resource.h"
 #include "Mesh.h"
 #include "Material.h"
 #include <vector>

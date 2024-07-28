@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/Resource.h"
-#include "Buffers.h"
+#include "Resource.h"
+#include "graphics/Buffers.h"
 #include "Material.h"
 
 namespace pk

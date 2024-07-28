@@ -1,6 +1,6 @@
 #include "Texture.h"
 #include "core/Debug.h"
-#include "Context.h"
+#include "graphics/Context.h"
 #include "core/Application.h"
 #include "platform/opengl/OpenglTexture.h"
 
