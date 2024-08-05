@@ -192,7 +192,7 @@ namespace pk
         uint32_t materialResourceID
     )
     {
-        Model* pModel = load_model_glb(filepath);
+        Model* pModel = load_model_gltf(filepath);
         for (Mesh* pMesh : pModel->accessMeshes())
         {
             // atm just testing with single mesh/material!

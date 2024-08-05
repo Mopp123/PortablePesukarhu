@@ -10,12 +10,13 @@ namespace pk
     {
         vec3 pos;
         quat rotation;
+        mat4 matrix;
     };
 
 
     struct Pose
     {
         std::vector<Joint> joints;
-        std::vector<std::vector<uint32_t>> jointChildMapping;
+        std::vector<std::vector<int>> jointChildMapping;
     };
 }

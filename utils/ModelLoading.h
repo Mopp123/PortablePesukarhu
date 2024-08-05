@@ -6,5 +6,5 @@
 
 namespace pk
 {
-    Model* load_model_glb(const std::string& filepath);
+    Model* load_model_gltf(const std::string& filepath);
 }

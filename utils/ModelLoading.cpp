@@ -2,6 +2,7 @@
 #include "core/Debug.h"
 #include "graphics/Buffers.h"
 #include "graphics/platform/opengl/OpenglContext.h"
+#include "graphics/animation/Pose.h"
 #include <string>
 #include <unordered_map>
 
@@ -16,15 +17,15 @@
 #include "tiny_gltf.h"
 
 
-#define GLTF_POINTS 0x0
-#define GLTF_LINES 0x0001
-#define GLTF_LINE_LOOP 0x0002
-#define GLTF_LINE_STRIP 0x0003
-#define GLTF_TRIANGLES 0x0004
+#define GLTF_POINTS         0x0
+#define GLTF_LINES          0x0001
+#define GLTF_LINE_LOOP      0x0002
+#define GLTF_LINE_STRIP     0x0003
+#define GLTF_TRIANGLES      0x0004
 #define GLTF_TRIANGLE_STRIP 0x0005
-#define GLTF_TRIANGLE_FAN 0x0006
-#define GLTF_QUADS 0x0007
-#define GLTF_QUAD_STRIP 0x0008
+#define GLTF_TRIANGLE_FAN   0x0006
+#define GLTF_QUADS          0x0007
+#define GLTF_QUAD_STRIP     0x0008
 
 
 namespace pk
@@ -348,19 +349,92 @@ namespace pk
     }
 
 
-    Model* load_model_glb(const std::string& filepath)
+    static mat4 to_engine_matrix(const std::vector<double>& gltfMatrix)
+    {
+        mat4 matrix;
+        matrix.setIdentity();
+        if (gltfMatrix.size() == 16)
+        {
+            for (int i = 0; i < 4; ++i)
+            {
+                for (int j = 0; j < 4; ++j)
+                    matrix[i + j * 4] = gltfMatrix[i + j * 4];
+            }
+        }
+        return matrix;
+    }
+
+
+    static void add_child_joints(
+        const std::vector<tinygltf::Node>& nodes,
+        const std::vector<int>& childIndices,
+        Pose& pose
+    )
+    {
+        pose.jointChildMapping.push_back(childIndices);
+        for (int i : childIndices)
+        {
+            const tinygltf::Node& node = nodes[i];
+            mat4 nodeMatrix = to_engine_matrix(node.matrix);
+            // TODO:
+            // * get translation if found
+            // * get rotation if found
+            // * get scale if found
+            Joint joint = {
+                { 0, 0, 0 },
+                { 0, 0, 0, 1 },
+                nodeMatrix
+            };
+            pose.joints.push_back(joint);
+            if (!node.children.empty())
+                add_child_joints(nodes, node.children, pose);
+        }
+    }
+
+
+    static Pose load_bind_pose(const tinygltf::Model& gltfModel)
+    {
+        Pose bindPose;
+        std::vector<int> jointIndices = gltfModel.skins[0].joints;
+        const tinygltf::Node& rootNode = gltfModel.nodes[jointIndices[0]];
+        // NOTE: Not use is gltf matrix row or col major..
+        mat4 rootMatrix = to_engine_matrix(rootNode.matrix);
+
+        // TODO:
+        // * get translation if found
+        // * get rotation if found
+        // * get scale if found
+        Joint rootJoint = {
+            { 0, 0, 0 },
+            { 0, 0, 0, 1 },
+            rootMatrix
+        };
+        bindPose.joints.push_back(rootJoint);
+
+        if (!rootNode.children.empty())
+            add_child_joints(gltfModel.nodes, rootNode.children, bindPose);
+
+        return bindPose;
+    }
+
+
+    Model* load_model_gltf(const std::string& filepath)
     {
         tinygltf::Model gltfModel;
         tinygltf::TinyGLTF loader;
         std::string error;
         std::string warning;
 
-        //bool ret = loader.LoadBinaryFromFile(&gltfModel, &error, &warning, filepath); // for binary glTF(.glb)
-        bool ret = loader.LoadASCIIFromFile(&gltfModel, &error, &warning, filepath);
+        std::string ext = filepath.substr(filepath.find("."), filepath.size());
+        bool ret = false;
+        if (ext == ".glb")
+            ret = loader.LoadBinaryFromFile(&gltfModel, &error, &warning, filepath); // for binary glTF(.glb)
+        else if (ext == ".gltf")
+            ret = loader.LoadASCIIFromFile(&gltfModel, &error, &warning, filepath);
 
         if (!warning.empty()) {
             Debug::log(
-                "@load_model_glb "
+                "@load_model_gltf "
                 "Warning while loading .glb file: " + filepath + " "
                 "tinygltf warning: " + warning,
                 Debug::MessageType::PK_WARNING
@@ -369,7 +443,7 @@ namespace pk
 
         if (!error.empty()) {
             Debug::log(
-                "@load_model_glb "
+                "@load_model_gltf "
                 "Error while loading .glb file: " + filepath + " "
                 "tinygltf error: " + error,
                 Debug::MessageType::PK_FATAL_ERROR
@@ -379,13 +453,14 @@ namespace pk
 
         if (!ret) {
             Debug::log(
-                "@load_model_glb "
+                "@load_model_gltf "
                 "Error while loading .glb file: " + filepath + " "
                 "Failed to parse file ",
                 Debug::MessageType::PK_FATAL_ERROR
             );
             return nullptr;
         }
+
         // Combine all gltf buffers into our type for easier parsing later..
         std::vector<GLTFBufferData> gltfBuffers;
         for (size_t i = 0; i < gltfModel.bufferViews.size(); ++i)
@@ -396,7 +471,7 @@ namespace pk
             if (bufferView.target == 0)
             {
                 Debug::log(
-                    "@load_model_glb "
+                    "@load_model_gltf "
                     "bufferView target was 0",
                     Debug::MessageType::PK_WARNING
                 );
@@ -413,13 +488,15 @@ namespace pk
                 }
             );
         }
+
+
         // TODO:
         //  * Support multiple meshes
         const tinygltf::Scene& gltfScene = gltfModel.scenes[gltfModel.defaultScene];
         const std::vector<tinygltf::Node>& modelNodes = gltfModel.nodes;
 
         Debug::log(
-            "@load_model_glb "
+            "@load_model_gltf "
             "Processing glTF Model with total scene count = " + std::to_string(gltfModel.scenes.size()) + " "
             "total node count = " + std::to_string(modelNodes.size())
         );
@@ -428,7 +505,7 @@ namespace pk
         if (gltfModel.scenes.size() != 1)
         {
             Debug::log(
-                "@load_model_glb Multiple scenes not supported!",
+                "@load_model_gltf Multiple scenes not supported!",
                 Debug::MessageType::PK_FATAL_ERROR
             );
             return nullptr;
@@ -448,6 +525,25 @@ namespace pk
             if (pMesh)
                 meshes.push_back(pMesh);
         }
+
+
+        // Load skeleton if can be found..
+        size_t skinsCount = gltfModel.skins.size();
+        if (skinsCount == 1)
+        {
+
+        }
+        else if (skinsCount > 1)
+        {
+            Debug::log(
+                "@load_model_gltf "
+                "Too many skins in file: " + std::to_string(skinsCount) + " "
+                "Currently only 1 is supported",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
+
 
         Model* pModel = new Model(meshes);
         return pModel;
