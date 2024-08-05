@@ -8,8 +8,9 @@ namespace pk
 {
     struct Joint
     {
-        vec3 pos;
+        vec3 translation;
         quat rotation;
+        vec3 scale;
         mat4 matrix;
     };
 

@@ -60,6 +60,40 @@ namespace pk
         _localTransformationMatrix = _transformationMatrix;
     }
 
+    Transform::Transform(vec3 pos, quat rotation, vec3 scale) :
+        Component(ComponentType::PK_TRANSFORM)
+    {
+        mat4 translationMat(1.0f);
+        translationMat[0 + 3 * 4] = pos.x;
+        translationMat[1 + 3 * 4] = pos.y;
+        translationMat[2 + 3 * 4] = pos.z;
+
+        mat4 rotationMat = rotation.toRotationMatrix();
+
+        mat4 scaleMat(1.0f);
+        scaleMat[0 + 0 * 4] = scale.x;
+        scaleMat[1 + 1 * 4] = scale.y;
+        scaleMat[2 + 2 * 4] = scale.z;
+
+        _transformationMatrix = rotationMat * translationMat;
+        _localTransformationMatrix = _transformationMatrix;
+    }
+
+    Transform::Transform(mat4 matrix) :
+        Component(ComponentType::PK_TRANSFORM),
+        _transformationMatrix(matrix),
+        _localTransformationMatrix(matrix)
+    {
+    }
+
+    Transform::Transform(const Transform& other) :
+        Component(ComponentType::PK_TRANSFORM),
+        _hasParent(other._hasParent)
+    {
+        _transformationMatrix = other._transformationMatrix;
+        _localTransformationMatrix = other._localTransformationMatrix;
+    }
+
     void Transform::setPos(vec2 pos)
     {
         mat4& mat = _hasParent ? _localTransformationMatrix : _transformationMatrix;

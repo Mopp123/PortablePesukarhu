@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstring>
+#include <string>
 
 
 namespace pk
@@ -37,6 +38,7 @@ namespace pk
         vec3() {}
         vec3(float x, float y, float z) : x(x), y(y), z(z) {}
         vec3(const vec3& other) : x(other.x), y(other.y), z(other.z) {}
+        std::string toString() const;
 
         float length() const;
         float dotp(const vec3& other) const;
@@ -81,10 +83,15 @@ namespace pk
         float _e[16];
 
     public:
-        mat4() { memset(_e, 0, sizeof(float) * 16); }
+        mat4(float diag = 1.0f);
         mat4(const mat4& other) { memcpy(_e, other._e, sizeof(float) * 16); }
         mat4(mat4&& other) { memcpy(_e, other._e, sizeof(float) * 16); }
+
+        std::string toString() const;
+
         void operator=(const mat4& other);
+        bool operator==(const mat4& other) const;
+        bool operator!=(const mat4& other) const;
 
         void setIdentity();
 
@@ -108,7 +115,7 @@ namespace pk
 	      quat(const vec3& axis, float angle);
 
 	      quat() :
-	          vec4(0,0,0,0)
+	          vec4(0,0,0,1)
 	      {}
 
 	      quat(float x, float y, float z, float w) :
@@ -119,12 +126,14 @@ namespace pk
 	      	vec4(other.x, other.y, other.z, other.w)
 	      {}
 
+        std::string toString() const;
+
         // NOTE: why no firends? :'D
 	      quat operator*(const quat& other) const;
 	      quat operator*(const vec3& other) const;
 
         quat conjugate() const;
-        mat4 to_rotation_matrix() const;
+        mat4 toRotationMatrix() const;
 	  };
 
 

@@ -9,6 +9,12 @@ namespace pk
         _pMeshes(pMeshes)
     {}
 
+    Model::Model(std::vector<Mesh*> pMeshes, Pose bindPose) :
+        Resource(ResourceType::RESOURCE_MODEL),
+        _pMeshes(pMeshes),
+        _bindPose(bindPose)
+    {}
+
     const Mesh * const Model::getMesh(int index) const
     {
         if (index >= _pMeshes.size())

@@ -351,8 +351,8 @@ namespace pk
 
     static mat4 to_engine_matrix(const std::vector<double>& gltfMatrix)
     {
-        mat4 matrix;
-        matrix.setIdentity();
+        // Defaulting to 0 matrix to be able to test does this have matrix at all!
+        mat4 matrix(0.0f);
         if (gltfMatrix.size() == 16)
         {
             for (int i = 0; i < 4; ++i)
@@ -365,56 +365,69 @@ namespace pk
     }
 
 
-    static void add_child_joints(
-        const std::vector<tinygltf::Node>& nodes,
-        const std::vector<int>& childIndices,
-        Pose& pose
+    static void add_joint(
+        const tinygltf::Model& gltfModel,
+        Pose& pose,
+        int parentJointPoseIndex, // index to pose struct's parent joint. NOT glTF node index!
+        int jointNodeIndex
     )
     {
-        pose.jointChildMapping.push_back(childIndices);
-        for (int i : childIndices)
+        const tinygltf::Node& node = gltfModel.nodes[jointNodeIndex];
+        Debug::log("___TEST___ADDED NODE FROM INDEX: " + std::to_string(jointNodeIndex));
+        // NOTE: Not sure is gltf matrix row or col major..
+        mat4 jointMatrix = to_engine_matrix(node.matrix);
+
+        vec3 translation;
+        quat rotation;
+        vec3 scale(1.0f, 1.0f, 1.0f);
+        if (node.translation.size() == 3)
         {
-            const tinygltf::Node& node = nodes[i];
-            mat4 nodeMatrix = to_engine_matrix(node.matrix);
-            // TODO:
-            // * get translation if found
-            // * get rotation if found
-            // * get scale if found
-            Joint joint = {
-                { 0, 0, 0 },
-                { 0, 0, 0, 1 },
-                nodeMatrix
-            };
-            pose.joints.push_back(joint);
-            if (!node.children.empty())
-                add_child_joints(nodes, node.children, pose);
+            translation = vec3(
+                node.translation[0],
+                node.translation[1],
+                node.translation[2]
+            );
         }
-    }
+        if (node.rotation.size() == 4)
+        {
+            rotation = quat(
+                node.rotation[0],
+                node.rotation[1],
+                node.rotation[2],
+                node.rotation[3]
+            );
+        }
+        if (node.scale.size() == 3)
+        {
+            scale = vec3(
+                node.scale[0],
+                node.scale[1],
+                node.scale[2]
+            );
+        }
 
-
-    static Pose load_bind_pose(const tinygltf::Model& gltfModel)
-    {
-        Pose bindPose;
-        std::vector<int> jointIndices = gltfModel.skins[0].joints;
-        const tinygltf::Node& rootNode = gltfModel.nodes[jointIndices[0]];
-        // NOTE: Not use is gltf matrix row or col major..
-        mat4 rootMatrix = to_engine_matrix(rootNode.matrix);
-
-        // TODO:
-        // * get translation if found
-        // * get rotation if found
-        // * get scale if found
-        Joint rootJoint = {
-            { 0, 0, 0 },
-            { 0, 0, 0, 1 },
-            rootMatrix
+        Joint joint = {
+            translation,
+            rotation,
+            scale,
+            jointMatrix
         };
-        bindPose.joints.push_back(rootJoint);
+        const std::vector<int>& children = node.children;
+        pose.joints.push_back(joint);
+        pose.jointChildMapping.push_back({});
+        const int currentJointPoseIndex = pose.joints.size() - 1;
+        if (parentJointPoseIndex != -1)
+            pose.jointChildMapping[parentJointPoseIndex].push_back(currentJointPoseIndex);
 
-        if (!rootNode.children.empty())
-            add_child_joints(gltfModel.nodes, rootNode.children, bindPose);
-
-        return bindPose;
+        for (int childNodeIndex : children)
+        {
+            add_joint(
+                gltfModel,
+                pose,
+                currentJointPoseIndex,
+                childNodeIndex
+            );
+        }
     }
 
 
@@ -529,9 +542,18 @@ namespace pk
 
         // Load skeleton if can be found..
         size_t skinsCount = gltfModel.skins.size();
+        Pose bindPose;
         if (skinsCount == 1)
         {
+            //bindPose = load_bind_pose(gltfModel);
 
+            int rootJointNodeIndex = gltfModel.skins[0].joints[0];
+            add_joint(
+                gltfModel,
+                bindPose,
+                -1, // index to pose struct's parent joint. NOT glTF node index!
+                rootJointNodeIndex
+            );
         }
         else if (skinsCount > 1)
         {
@@ -545,7 +567,9 @@ namespace pk
         }
 
 
-        Model* pModel = new Model(meshes);
-        return pModel;
+        if (skinsCount == 1)
+            return new Model(meshes, bindPose);
+        else
+            return new Model(meshes);
     }
 }

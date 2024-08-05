@@ -48,6 +48,12 @@ namespace pk
     }
 
 
+    std::string vec3::toString() const
+    {
+        std::string out = "( " + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + " )";
+        return out;
+    }
+
     float vec3::length() const
     {
         return sqrtf((x * x) + (y * y) + (z * z));
@@ -137,9 +143,54 @@ namespace pk
     }
 
 
+    mat4::mat4(float diag)
+    {
+        memset(_e, 0, sizeof(float) * 16);
+        //for (int i = 0; i < 4; ++i)
+        //    _e[i * i + 4] = diag;
+
+
+        for (int i = 0; i < 4; ++i)
+        {
+            for (int j = 0; j < 4; ++j)
+            {
+                if (i == j)
+                    _e[i + j * 4] = diag;
+            }
+        }
+
+    }
+
+    std::string mat4::toString() const
+    {
+        std::string out = "";
+        for (int i = 0; i < 4; ++i)
+        {
+            out += "[ ";
+            for (int j = 0; j < 4; ++j)
+            {
+                out += std::to_string(_e[i + j * 4]);
+                if (j < 3)
+                    out += ", ";
+            }
+            out += " ]\n";
+        }
+        return out;
+    }
+
     void mat4::operator=(const mat4& other)
     {
         memcpy(_e, other._e, sizeof(float) * 16);
+    }
+
+    bool mat4::operator==(const mat4& other) const
+    {
+        return memcmp(_e, other._e, sizeof(float) * 16) == 0;
+    }
+
+    bool mat4::operator!=(const mat4& other) const
+    {
+        return memcmp(_e, other._e, sizeof(float) * 16) != 0;
     }
 
     void mat4::setIdentity()
@@ -308,11 +359,17 @@ namespace pk
 
     quat::quat(const vec3& axis, float angle)
     {
-        float sinHalfAngle = sin(angle * 0.5f);
+        float sinHalfAngle = sin(angle / 2.0f);
         x = axis.x * sinHalfAngle;
         y = axis.y * sinHalfAngle;
         z = axis.z * sinHalfAngle;
-        w = cos(angle * 0.5f);
+        w = cos(angle / 2.0f);
+    }
+
+    std::string quat::toString() const
+    {
+        std::string out = "( " + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ", " + std::to_string(w) + " )";
+        return out;
     }
 
     quat quat::operator*(const quat& other) const
@@ -342,7 +399,7 @@ namespace pk
 
     // Used wikipedia "Quat-derived rotation matrix"
 	  // This can only be used for "unit quaternion"
-    mat4 quat::to_rotation_matrix() const
+    mat4 quat::toRotationMatrix() const
     {
         // We force the usage of unit quaternion here...
         quat unitQuat = normalize();

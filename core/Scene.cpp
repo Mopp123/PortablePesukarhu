@@ -12,6 +12,58 @@
 
 namespace pk
 {
+    // result "bones" vector's first is the root entity
+    static void create_bone_entity(
+        Scene& scene,
+        const Pose& pose,
+        int currentJointIndex,
+        entityID_t parent,
+        std::vector<entityID_t>& resultBones
+    )
+    {
+        // Put some model on joint's transform
+        entityID_t entity = scene.createEntity();
+        resultBones.push_back(entity);
+        if (pose.joints.size() <= currentJointIndex)
+        {
+            Debug::log(
+                "@create_bone_entity "
+                "Joint index: " + std::to_string(currentJointIndex) + " out of bounds! Joint count: " + std::to_string(pose.joints.size()),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return;
+        }
+        Joint currentJoint = pose.joints[currentJointIndex];
+        // NOTE: Not sure is scale correct here..
+        mat4 jointMat = currentJoint.matrix;
+        if (jointMat == mat4(0.0f))
+        {
+            scene.createTransform(
+                entity,
+                currentJoint.translation,
+                currentJoint.rotation,
+                { 1.0f, 1.0f, 1.0f }
+            );
+        }
+        else
+        {
+            scene.createTransform(
+                entity,
+                jointMat
+            );
+        }
+
+        if (parent != NULL_ENTITY_ID)
+            scene.addChild(parent, entity);
+
+        if (pose.jointChildMapping.size() > currentJointIndex)
+        {
+            for (int childIndex : pose.jointChildMapping[currentJointIndex])
+                create_bone_entity(scene, pose, childIndex, entity, resultBones);
+        }
+    }
+
+
     Scene::Scene()
     {
         size_t maxEntityCount = 1000;
@@ -96,6 +148,30 @@ namespace pk
             entities.push_back(entity);
         }
         return entity.id;
+    }
+
+    entityID_t Scene::createSkeletonEntity(entityID_t target, const Pose& bindPose)
+    {
+        std::vector<entityID_t> result;
+        create_bone_entity(
+            *this,
+            bindPose,
+            0,
+            NULL_ENTITY_ID,
+            result
+        );
+        if (result.empty())
+        {
+            Debug::log(
+                "@Scene::createSkeletonEntity "
+                "No bones were able to be built! "
+                "Input bindPose joint count: " + std::to_string(bindPose.joints.size()) + " "
+                "Input bindPose childMapping length: " + std::to_string(bindPose.jointChildMapping.size()),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return NULL_ENTITY_ID;
+        }
+        return result[0];
     }
 
     // NOTE: Incomplete and not tested! Propably doesnt work!!
@@ -217,6 +293,30 @@ namespace pk
     {
         Transform* pTransform = (Transform*)componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
         *pTransform = Transform(pos, scale, pitch, yaw);
+        addComponent(target, pTransform);
+        return pTransform;
+    }
+
+    Transform* Scene::createTransform(
+        entityID_t target,
+        vec3 pos,
+        quat rotation,
+        vec3 scale
+    )
+    {
+        Transform* pTransform = (Transform*)componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
+        *pTransform = Transform(pos, rotation, scale);
+        addComponent(target, pTransform);
+        return pTransform;
+    }
+
+    Transform* Scene::createTransform(
+        entityID_t target,
+        mat4 transformationMatrix
+    )
+    {
+        Transform* pTransform = (Transform*)componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
+        *pTransform = Transform(transformationMatrix);
         addComponent(target, pTransform);
         return pTransform;
     }
