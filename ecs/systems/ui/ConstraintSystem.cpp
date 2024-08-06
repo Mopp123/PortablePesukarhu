@@ -28,11 +28,10 @@ namespace pk
             ComponentPool& constraintPool = pScene->componentPools[ComponentType::PK_UI_CONSTRAINT];
             ComponentPool& transformPool = pScene->componentPools[ComponentType::PK_TRANSFORM];
 
-            // This way actually better!
+            uint64_t requiredMask = ComponentType::PK_UI_CONSTRAINT | ComponentType::PK_TRANSFORM;
             for (Entity e : pScene->entities)
             {
-                if (e.componentMask & ComponentType::PK_UI_CONSTRAINT &&
-                    e.componentMask & ComponentType::PK_TRANSFORM)
+                if ((e.componentMask & requiredMask) == requiredMask)
                 {
                     ConstraintData* pConstraint = (ConstraintData*)constraintPool[e.id];
                     Transform* pTransform = (Transform*)transformPool[e.id];

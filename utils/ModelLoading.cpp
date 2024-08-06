@@ -464,16 +464,17 @@ namespace pk
             const tinygltf::Accessor& animDataAccessor = gltfModel.accessors[sampler.output];
             const tinygltf::BufferView& bufferView = gltfModel.bufferViews[animDataAccessor.bufferView];
             const tinygltf::Buffer& animDataBuffer = gltfModel.buffers[bufferView.buffer];
-            PK_byte* pAnimData = (PK_byte*)&animDataBuffer.data[animDataAccessor.byteOffset + bufferView.byteOffset + (sizeof(quat) * useKeyframe)];
 
             // NOTE: Scale anim not implemented!!!
             if (channel.target_path == "translation")
             {
+                PK_byte* pAnimData = (PK_byte*)&animDataBuffer.data[animDataAccessor.byteOffset + bufferView.byteOffset + (sizeof(vec3) * useKeyframe)];
                 vec3 translationValue = *((vec3*)pAnimData);
                 joint.translation = translationValue;
             }
             else if (channel.target_path == "rotation")
             {
+                PK_byte* pAnimData = (PK_byte*)&animDataBuffer.data[animDataAccessor.byteOffset + bufferView.byteOffset + (sizeof(quat) * useKeyframe)];
                 quat rotationValue = *((quat*)pAnimData);
                 rotationValue = rotationValue.normalize();
                 joint.rotation = rotationValue;
@@ -521,7 +522,8 @@ namespace pk
         std::unordered_map<int, std::vector<tinygltf::AnimationChannel>>::const_iterator ncIt;
         for (ncIt = nodeChannelsMapping.begin(); ncIt != nodeChannelsMapping.end(); ++ncIt)
         {
-            for (int keyframeIndex = 0; keyframeIndex < maxKeyframes; ++keyframeIndex)
+            // gltf appears to provide keyframes in reverse order -> take that in account!
+            for (int keyframeIndex = maxKeyframes - 1; keyframeIndex >= 0; --keyframeIndex)
             {
                 int poseJointIndex = nodePoseJointMapping[ncIt->first];
                 Debug::log("___TEST___adding node: " + std::to_string(ncIt->first) + " to index: " + std::to_string(poseJointIndex));

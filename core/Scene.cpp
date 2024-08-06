@@ -8,6 +8,7 @@
 // NOTE: Only temporarely adding all systems here on Scene's constructor!
 #include "ecs/systems/ui/ConstraintSystem.h"
 #include "ecs/systems/TransformSystem.h"
+#include "ecs/systems/Animator.h"
 #include <unordered_map>
 
 namespace pk
@@ -113,6 +114,7 @@ namespace pk
         //  and never even destroy them..
         systems.push_back(new ui::ConstraintSystem);
         systems.push_back(new TransformSystem);
+        systems.push_back(new Animator);
     }
 
     Scene::~Scene()
@@ -426,11 +428,12 @@ namespace pk
 
     AnimationData* Scene::createAnimationData(
         entityID_t target,
-        PK_id animationResourceID
+        PK_id animationResourceID,
+        AnimationMode mode
     )
     {
         AnimationData* pComponent = (AnimationData*)componentPools[ComponentType::PK_ANIMATION_DATA].allocComponent(target);
-        *pComponent = AnimationData(animationResourceID);
+        *pComponent = AnimationData(animationResourceID, mode);
         addComponent(target, pComponent);
         return pComponent;
     }

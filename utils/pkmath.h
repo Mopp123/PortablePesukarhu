@@ -43,6 +43,7 @@ namespace pk
         float length() const;
         float dotp(const vec3& other) const;
         vec3 normalize() const;
+        vec3 lerp(const vec3& other, float amount) const;
 
         friend vec3 operator+(const vec3& left, const vec3& right);
         friend vec3 operator-(const vec3& left, const vec3& right);
@@ -135,6 +136,8 @@ namespace pk
 
         quat conjugate() const;
         mat4 toRotationMatrix() const;
+
+        quat slerp(const quat& other, float amount) const;
 	  };
 
 

@@ -18,5 +18,8 @@ namespace pk
 
         void load() {};
         void save() {};
+
+        inline const Pose& getPose(int keyframe) const { return _poses[keyframe]; }
+        inline size_t getKeyframeCount() const { return _poses.size(); }
     };
 }

@@ -70,6 +70,12 @@ namespace pk
         return { x / len, y / len, z / len };
     }
 
+    vec3 vec3::lerp(const vec3& other, float amount) const
+    {
+        const vec3& v = *this;
+        return v + ((other - v) * amount);
+    }
+
     vec3 operator+(const vec3& left, const vec3& right)
     {
         return { left.x + right.x, left.y + right.y, left.z + right.z };
@@ -111,9 +117,9 @@ namespace pk
         const float len = length();
         return {
             x / len,
-            y / len,
-            z / len,
-            w / len
+              y / len,
+              z / len,
+              w / len
         };
     }
 
@@ -392,18 +398,18 @@ namespace pk
         return result;
     }
 
-	  bool quat::operator==(const quat& other) const
+    bool quat::operator==(const quat& other) const
     {
         return x == other.x && y == other.y && z == other.y && w == other.w;
     }
 
     quat quat::conjugate() const
     {
-    	return { -x, -y, -z, w };
+        return { -x, -y, -z, w };
     }
 
     // Used wikipedia "Quat-derived rotation matrix"
-	  // This can only be used for "unit quaternion"
+    // This can only be used for "unit quaternion"
     mat4 quat::toRotationMatrix() const
     {
         // We force the usage of unit quaternion here...
@@ -434,15 +440,56 @@ namespace pk
         return rotationMatrix;
     }
 
+    // Copied from wikipedia : https://en.wikipedia.org/wiki/Slerp
+    #define QUATERNION_SLERP__DOT_THRESHOLD 0.9995f
+    quat quat::slerp(const quat& other, float amount) const
+    {
+        // Only unit quaternions are valid rotations.
+        // Normalize to avoid undefined behavior.
+        quat ua = normalize();
+        quat ub = other.normalize();
+
+        // Compute the cosine of the angle between the two vectors.
+        float dot = ua.dotp(ub);
+
+        // If the dot product is negative, slerp won't take
+        // the shorter path. Note that v1 and -v1 are equivalent when
+        // the negation is applied to all four components. Fix by
+        // reversing one quaternion.
+        if (dot < 0.0f) {
+            ub = ub * -1.0f;
+            dot = -dot;
+        }
+
+        if (dot > QUATERNION_SLERP__DOT_THRESHOLD)
+        {
+            // If the inputs are too close for comfort, linearly interpolate
+            // and normalize the result.
+            quat result = ua + ((ub - ua) * amount);
+            return result.normalize();
+        }
+
+        // Since dot is in range [0, DOT_THRESHOLD], acos is safe
+        float theta_0 = acos(dot);        // theta_0 = angle between input vectors
+        float theta = theta_0 * amount;   // theta = angle between v0 and result
+        float sin_theta = sin(theta);     // compute this value only once
+        float sin_theta_0 = sin(theta_0); // compute this value only once
+
+        float s0 = cos(theta) - dot * sin_theta / sin_theta_0;  // == sin(theta_0 - theta) / sin(theta_0)
+        float s1 = sin_theta / sin_theta_0;
+
+        return (ua * s0) + (ub * s1);
+    }
+
 
     mat4 create_proj_mat_ortho(
-        float left,
-        float right,
-        float top,
-        float bottom,
-        float zNear,
-        float zFar
-    )
+            float left,
+            float right,
+            float top,
+            float bottom,
+            float zNear,
+            float zFar
+            )
     {
         mat4 result;
         result.setIdentity();
@@ -459,10 +506,10 @@ namespace pk
     }
 
     mat4 create_perspective_projection_matrix(
-        float aspectRatio,
-        float fov,
-        float zNear, float zFar
-    )
+            float aspectRatio,
+            float fov,
+            float zNear, float zFar
+            )
     {
         mat4 matrix;
         matrix.setIdentity();
@@ -484,20 +531,20 @@ namespace pk
         yawMatrix.setIdentity();
         rollMatrix.setIdentity();
 
-	      pitchMatrix[1 + 1 * 4] = cos(pitch);
-	      pitchMatrix[1 + 2 * 4] = -sin(pitch);
-	      pitchMatrix[2 + 1 * 4] = sin(pitch);
-	      pitchMatrix[2 + 2 * 4] = cos(pitch);
+        pitchMatrix[1 + 1 * 4] = cos(pitch);
+        pitchMatrix[1 + 2 * 4] = -sin(pitch);
+        pitchMatrix[2 + 1 * 4] = sin(pitch);
+        pitchMatrix[2 + 2 * 4] = cos(pitch);
 
-	      yawMatrix[0 + 0 * 4] = cos(yaw);
-	      yawMatrix[0 + 2 * 4] = sin(yaw);
-	      yawMatrix[2 + 0 * 4] = -sin(yaw);
-	      yawMatrix[2 + 2 * 4] = cos(yaw);
+        yawMatrix[0 + 0 * 4] = cos(yaw);
+        yawMatrix[0 + 2 * 4] = sin(yaw);
+        yawMatrix[2 + 0 * 4] = -sin(yaw);
+        yawMatrix[2 + 2 * 4] = cos(yaw);
 
-	      rollMatrix[0 + 0 * 4] = cos(roll);
-	      rollMatrix[0 + 1 * 4] = -sin(roll);
-	      rollMatrix[1 + 0 * 4] = sin(roll);
-	      rollMatrix[1 + 1 * 4] = cos(roll);
+        rollMatrix[0 + 0 * 4] = cos(roll);
+        rollMatrix[0 + 1 * 4] = -sin(roll);
+        rollMatrix[1 + 0 * 4] = sin(roll);
+        rollMatrix[1 + 1 * 4] = cos(roll);
 
         return pitchMatrix * yawMatrix * rollMatrix;
     }
