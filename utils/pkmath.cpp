@@ -392,6 +392,11 @@ namespace pk
         return result;
     }
 
+	  bool quat::operator==(const quat& other) const
+    {
+        return x == other.x && y == other.y && z == other.y && w == other.w;
+    }
+
     quat quat::conjugate() const
     {
     	return { -x, -y, -z, w };

@@ -30,6 +30,7 @@ namespace pk
         void setPos(vec3 pos);
 
         void setRotation(float pitch, float yaw, float roll);
+        void setRotation(const quat& rotation);
         void rotate(float pAmount, float yAmount, float rAmount);
 
         void setScale(vec2 scale);

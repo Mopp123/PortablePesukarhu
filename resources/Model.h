@@ -13,12 +13,13 @@ namespace pk
     private:
         // TODO: continuous mesh allocation and change this to be just ptr to that data
         std::vector<Mesh*> _pMeshes;
-        // TODO: Atm just testing skeleton here. Put somewhere else!
+        // TODO: Atm just testing skeleton and anim poses here. Put somewhere else!
         Pose _bindPose;
+        std::vector<Pose> _animPoses;
 
     public:
         Model(std::vector<Mesh*> pMeshes);
-        Model(std::vector<Mesh*> pMeshes, Pose bindPose);
+        Model(std::vector<Mesh*> pMeshes, Pose bindPose, const std::vector<Pose>& animPoses);
 
         // Currently not used until:
         // TODO: "engine internal asset file format"
@@ -29,5 +30,6 @@ namespace pk
         Mesh* accessMesh(int index) { return _pMeshes[index]; }
         std::vector<Mesh*>& accessMeshes() { return _pMeshes; }
         Pose& accessBindPose() { return _bindPose; }
+        std::vector<Pose>& accessAnimPoses() { return _animPoses; }
     };
 }

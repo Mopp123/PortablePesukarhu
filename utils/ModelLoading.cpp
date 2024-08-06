@@ -5,7 +5,7 @@
 #include "graphics/animation/Pose.h"
 #include <string>
 #include <unordered_map>
-
+#include <algorithm>
 #include <iostream>
 
 #define TINYGLTF_IMPLEMENTATION
@@ -364,16 +364,15 @@ namespace pk
         return matrix;
     }
 
-
     static void add_joint(
         const tinygltf::Model& gltfModel,
         Pose& pose,
         int parentJointPoseIndex, // index to pose struct's parent joint. NOT glTF node index!
-        int jointNodeIndex
+        int jointNodeIndex,
+        std::unordered_map<int, int>& outNodeJointMapping
     )
     {
         const tinygltf::Node& node = gltfModel.nodes[jointNodeIndex];
-        Debug::log("___TEST___ADDED NODE FROM INDEX: " + std::to_string(jointNodeIndex));
         // NOTE: Not sure is gltf matrix row or col major..
         mat4 jointMatrix = to_engine_matrix(node.matrix);
 
@@ -416,6 +415,7 @@ namespace pk
         pose.joints.push_back(joint);
         pose.jointChildMapping.push_back({});
         const int currentJointPoseIndex = pose.joints.size() - 1;
+        outNodeJointMapping[jointNodeIndex] = currentJointPoseIndex;
         if (parentJointPoseIndex != -1)
             pose.jointChildMapping[parentJointPoseIndex].push_back(currentJointPoseIndex);
 
@@ -425,9 +425,125 @@ namespace pk
                 gltfModel,
                 pose,
                 currentJointPoseIndex,
-                childNodeIndex
+                childNodeIndex,
+                outNodeJointMapping
             );
         }
+    }
+
+
+    static Joint create_anim_pose_joint(
+        const tinygltf::Model& gltfModel,
+        const tinygltf::Animation& gltfAnim,
+        const std::vector<tinygltf::AnimationChannel>& channels,
+        int keyframeIndex
+    )
+    {
+        Joint joint;
+        for (const tinygltf::AnimationChannel& channel : channels)
+        {
+            const tinygltf::AnimationSampler& sampler = gltfAnim.samplers[channel.sampler];
+
+            Debug::log(
+                "___TEST___processing node: " + std::to_string(channel.target_node) + " "
+                "path: " + channel.target_path + " "
+                "at frame: " + std::to_string(keyframeIndex)
+            );
+
+            // If keyframe count less than asked index -> use last available
+            size_t keyframeCount = gltfModel.accessors[sampler.input].count;
+            int useKeyframe = keyframeIndex;
+            if (keyframeCount <= keyframeIndex)
+                useKeyframe = keyframeCount - 1;
+
+            // Get keyframe timestamp
+            int keyframeBufferIndex = gltfModel.bufferViews[gltfModel.accessors[sampler.input].bufferView].buffer;
+            const tinygltf::Buffer& keyframeBuffer = gltfModel.buffers[keyframeBufferIndex];
+
+            // Get anim data of this channel
+            const tinygltf::Accessor& animDataAccessor = gltfModel.accessors[sampler.output];
+            const tinygltf::BufferView& bufferView = gltfModel.bufferViews[animDataAccessor.bufferView];
+            const tinygltf::Buffer& animDataBuffer = gltfModel.buffers[bufferView.buffer];
+            PK_byte* pAnimData = (PK_byte*)&animDataBuffer.data[animDataAccessor.byteOffset + bufferView.byteOffset + (sizeof(quat) * useKeyframe)];
+
+            // NOTE: Scale anim not implemented!!!
+            if (channel.target_path == "translation")
+            {
+                vec3 translationValue = *((vec3*)pAnimData);
+                joint.translation = translationValue;
+            }
+            else if (channel.target_path == "rotation")
+            {
+                quat rotationValue = *((quat*)pAnimData);
+                rotationValue = rotationValue.normalize();
+                joint.rotation = rotationValue;
+            }
+        }
+        return joint;
+    }
+
+
+    static std::vector<Pose> load_anim_poses(
+        tinygltf::Model& gltfModel,
+        const Pose& bindPose,
+        std::unordered_map<int, int> nodePoseJointMapping
+    )
+    {
+        tinygltf::Animation& gltfAnim = gltfModel.animations[0];
+
+
+        std::unordered_map<int, std::vector<tinygltf::AnimationChannel>> nodeChannelsMapping;
+        // We require all nodes to have same amount of keyframes here!
+        size_t maxKeyframes = 0;
+        Debug::log("___TEST___Channel data:");
+        for (tinygltf::AnimationChannel& channel : gltfAnim.channels)
+        {
+            const tinygltf::AnimationSampler& sampler = gltfAnim.samplers[channel.sampler];
+            size_t keyframeCount = gltfModel.accessors[sampler.input].count;
+            maxKeyframes = std::max(maxKeyframes, keyframeCount);
+
+            Debug::log(
+                "   sampler: " + std::to_string(channel.sampler) + "\n"
+                "       input: " + std::to_string(sampler.input) + "\n"
+                "   node: " + std::to_string(channel.target_node) + "\n"
+                "   path: " + channel.target_path + "\n"
+                "   keyframes: " + std::to_string(keyframeCount)
+            );
+
+            nodeChannelsMapping[channel.target_node].push_back(channel);
+        }
+
+        //std::vector<Joint> poseJoints(nodePoseJointMapping.size());
+        std::unordered_map<int, std::vector<Joint>> poseJoints;
+        for (int i = 0; i < maxKeyframes; ++i)
+            poseJoints[i].resize(nodePoseJointMapping.size());
+
+        std::unordered_map<int, std::vector<tinygltf::AnimationChannel>>::const_iterator ncIt;
+        for (ncIt = nodeChannelsMapping.begin(); ncIt != nodeChannelsMapping.end(); ++ncIt)
+        {
+            for (int keyframeIndex = 0; keyframeIndex < maxKeyframes; ++keyframeIndex)
+            {
+                int poseJointIndex = nodePoseJointMapping[ncIt->first];
+                Debug::log("___TEST___adding node: " + std::to_string(ncIt->first) + " to index: " + std::to_string(poseJointIndex));
+                poseJoints[keyframeIndex][poseJointIndex] = create_anim_pose_joint(
+                    gltfModel,
+                    gltfAnim,
+                    ncIt->second,
+                    keyframeIndex
+                );
+            }
+        }
+        std::vector<Pose> outPoses;
+        std::unordered_map<int, std::vector<Joint>>::const_iterator pjIt;
+        for (pjIt = poseJoints.begin(); pjIt != poseJoints.end(); ++pjIt)
+        {
+            Pose pose;
+            pose.joints = pjIt->second;
+            pose.jointChildMapping = bindPose.jointChildMapping;
+            outPoses.push_back(pose);
+        }
+
+        return outPoses;
     }
 
 
@@ -539,21 +655,33 @@ namespace pk
                 meshes.push_back(pMesh);
         }
 
-
-        // Load skeleton if can be found..
+        // Load skeleton if found
         size_t skinsCount = gltfModel.skins.size();
         Pose bindPose;
+        std::vector<Pose> animPoses;
         if (skinsCount == 1)
         {
-            //bindPose = load_bind_pose(gltfModel);
-
             int rootJointNodeIndex = gltfModel.skins[0].joints[0];
+            // Mapping from gltf joint node index to our pose struct's joint index
+            std::unordered_map<int, int> nodeJointMapping;
             add_joint(
                 gltfModel,
                 bindPose,
                 -1, // index to pose struct's parent joint. NOT glTF node index!
-                rootJointNodeIndex
+                rootJointNodeIndex,
+                nodeJointMapping
             );
+            // Load animations if found
+            // NOTE: For now supporting just a single animation
+            size_t animCount = gltfModel.animations.size();
+            if (animCount == 1)
+            {
+                animPoses = load_anim_poses(
+                    gltfModel,
+                    bindPose,
+                    nodeJointMapping
+                );
+            }
         }
         else if (skinsCount > 1)
         {
@@ -568,7 +696,7 @@ namespace pk
 
 
         if (skinsCount == 1)
-            return new Model(meshes, bindPose);
+            return new Model(meshes, bindPose, animPoses);
         else
             return new Model(meshes);
     }

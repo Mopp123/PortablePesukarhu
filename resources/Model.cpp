@@ -9,10 +9,15 @@ namespace pk
         _pMeshes(pMeshes)
     {}
 
-    Model::Model(std::vector<Mesh*> pMeshes, Pose bindPose) :
+    Model::Model(
+        std::vector<Mesh*> pMeshes,
+        Pose bindPose,
+        const std::vector<Pose>& animPoses
+    ) :
         Resource(ResourceType::RESOURCE_MODEL),
         _pMeshes(pMeshes),
-        _bindPose(bindPose)
+        _bindPose(bindPose),
+        _animPoses(animPoses)
     {}
 
     const Mesh * const Model::getMesh(int index) const

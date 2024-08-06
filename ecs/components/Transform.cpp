@@ -116,20 +116,41 @@ namespace pk
 
         mat4& mat = _hasParent ? _localTransformationMatrix : _transformationMatrix;
 
-	mat[1 + 1 * 4] = rotationMatrix[1 + 1 * 4];
-	mat[1 + 2 * 4] = rotationMatrix[1 + 2 * 4];
-	mat[2 + 1 * 4] = rotationMatrix[2 + 1 * 4];
-	mat[2 + 2 * 4] = rotationMatrix[2 + 2 * 4];
+	      mat[1 + 1 * 4] = rotationMatrix[1 + 1 * 4];
+	      mat[1 + 2 * 4] = rotationMatrix[1 + 2 * 4];
+	      mat[2 + 1 * 4] = rotationMatrix[2 + 1 * 4];
+	      mat[2 + 2 * 4] = rotationMatrix[2 + 2 * 4];
 
-	mat[0 + 0 * 4] = rotationMatrix[0 + 0 * 4];
-	mat[0 + 2 * 4] = rotationMatrix[0 + 2 * 4];
-	mat[2 + 0 * 4] = rotationMatrix[2 + 0 * 4];
-	mat[2 + 2 * 4] = rotationMatrix[2 + 2 * 4];
+	      mat[0 + 0 * 4] = rotationMatrix[0 + 0 * 4];
+	      mat[0 + 2 * 4] = rotationMatrix[0 + 2 * 4];
+	      mat[2 + 0 * 4] = rotationMatrix[2 + 0 * 4];
+	      mat[2 + 2 * 4] = rotationMatrix[2 + 2 * 4];
 
-	mat[0 + 0 * 4] = rotationMatrix[0 + 0 * 4];
-	mat[0 + 1 * 4] = rotationMatrix[0 + 1 * 4];
-	mat[1 + 0 * 4] = rotationMatrix[1 + 0 * 4];
-	mat[1 + 1 * 4] = rotationMatrix[1 + 1 * 4];
+	      mat[0 + 0 * 4] = rotationMatrix[0 + 0 * 4];
+	      mat[0 + 1 * 4] = rotationMatrix[0 + 1 * 4];
+	      mat[1 + 0 * 4] = rotationMatrix[1 + 0 * 4];
+	      mat[1 + 1 * 4] = rotationMatrix[1 + 1 * 4];
+    }
+
+    void Transform::setRotation(const quat& rotation)
+    {
+        mat4 rotationMatrix = rotation.toRotationMatrix();
+        mat4& mat = _hasParent ? _localTransformationMatrix : _transformationMatrix;
+
+	      mat[1 + 1 * 4] = rotationMatrix[1 + 1 * 4];
+	      mat[1 + 2 * 4] = rotationMatrix[1 + 2 * 4];
+	      mat[2 + 1 * 4] = rotationMatrix[2 + 1 * 4];
+	      mat[2 + 2 * 4] = rotationMatrix[2 + 2 * 4];
+
+	      mat[0 + 0 * 4] = rotationMatrix[0 + 0 * 4];
+	      mat[0 + 2 * 4] = rotationMatrix[0 + 2 * 4];
+	      mat[2 + 0 * 4] = rotationMatrix[2 + 0 * 4];
+	      mat[2 + 2 * 4] = rotationMatrix[2 + 2 * 4];
+
+	      mat[0 + 0 * 4] = rotationMatrix[0 + 0 * 4];
+	      mat[0 + 1 * 4] = rotationMatrix[0 + 1 * 4];
+	      mat[1 + 0 * 4] = rotationMatrix[1 + 0 * 4];
+	      mat[1 + 1 * 4] = rotationMatrix[1 + 1 * 4];
     }
 
     void Transform::rotate(float pAmount, float yAmount, float rAmount)

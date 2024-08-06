@@ -83,7 +83,7 @@ namespace pk
         float _e[16];
 
     public:
-        mat4(float diag = 1.0f);
+        mat4(float diag = 0.0f);
         mat4(const mat4& other) { memcpy(_e, other._e, sizeof(float) * 16); }
         mat4(mat4&& other) { memcpy(_e, other._e, sizeof(float) * 16); }
 
@@ -131,6 +131,7 @@ namespace pk
         // NOTE: why no firends? :'D
 	      quat operator*(const quat& other) const;
 	      quat operator*(const vec3& other) const;
+	      bool operator==(const quat& other) const;
 
         quat conjugate() const;
         mat4 toRotationMatrix() const;
