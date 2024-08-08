@@ -19,10 +19,21 @@ namespace pk
             bool enableDepthTest,
             DepthCompareOperation depthCmpOp,
             uint32_t pushConstantSize,
-	    uint32_t pushConstantStageFlags
+	          uint32_t pushConstantStageFlags
         )
         {
             _vertexBufferLayouts = vertexBufferLayouts;
+            uint32_t vbLayoutConflictLocation = 0;
+            if (!VertexBufferLayout::are_valid(_vertexBufferLayouts, &vbLayoutConflictLocation))
+            {
+                Debug::log(
+                    "@OpenglPipeline::init "
+                    "Invalid Vertex Buffer Layouts!"
+                    "Layouts contained multiple elements with same location: " + std::to_string(vbLayoutConflictLocation),
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+            }
+
             _descriptorLayouts = descriptorLayouts;
             _viewportWidth = viewportWidth;
             _viewportHeight = viewportHeight;

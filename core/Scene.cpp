@@ -98,6 +98,9 @@ namespace pk
         componentPools[ComponentType::PK_RENDERABLE_STATIC3D] = ComponentPool(
             sizeof(Static3DRenderable), 100, true
         );
+        componentPools[ComponentType::PK_RENDERABLE_SKINNED] = ComponentPool(
+            sizeof(SkinnedRenderable), 100, true
+        );
         componentPools[ComponentType::PK_RENDERABLE_TERRAINTILE] = ComponentPool(
             sizeof(TerrainTileRenderable), 100, true
         );
@@ -174,6 +177,32 @@ namespace pk
             return NULL_ENTITY_ID;
         }
         return result[0];
+    }
+
+    Entity Scene::getEntity(entityID_t entity) const
+    {
+        Entity outEntity;
+        for (const Entity& e : entities)
+        {
+            if (e.id == entity)
+            {
+                if (isValidEntity(entity))
+                {
+                    outEntity = e;
+                }
+                else
+                {
+                    Debug::log(
+                        "@Scene::getEntity "
+                        "Found entity: " + std::to_string(entity) + " "
+                        "but the entity was invalid!",
+                        Debug::MessageType::PK_ERROR
+                    );
+                }
+                break;
+            }
+        }
+        return outEntity;
     }
 
     // NOTE: Incomplete and not tested! Propably doesnt work!!
@@ -382,8 +411,40 @@ namespace pk
         PK_id meshID
     )
     {
+        if ((getEntity(target).componentMask & ComponentType::PK_TRANSFORM) != ComponentType::PK_TRANSFORM)
+        {
+            Debug::log(
+                "@Scene::createStatic3DRenderable "
+                "Created renderable component for entity: " + std::to_string(target) + " "
+                "with no Transform component! This prevents rendering if transform not specified!",
+                Debug::MessageType::PK_WARNING
+            );
+        }
+
         Static3DRenderable* pRenderable = (Static3DRenderable*)componentPools[ComponentType::PK_RENDERABLE_STATIC3D].allocComponent(target);
         *pRenderable = Static3DRenderable(meshID);
+        addComponent(target, pRenderable);
+        return pRenderable;
+    }
+
+    SkinnedRenderable* Scene::createSkinnedRenderable(
+        entityID_t target,
+        PK_id meshID,
+        entityID_t skeletonEntity
+    )
+    {
+        if ((getEntity(target).componentMask & ComponentType::PK_TRANSFORM) != ComponentType::PK_TRANSFORM)
+        {
+            Debug::log(
+                "@Scene::createSkinnedRenderable "
+                "Created renderable component for entity: " + std::to_string(target) + " "
+                "with no Transform component! This prevents rendering if transform not specified!",
+                Debug::MessageType::PK_WARNING
+            );
+        }
+
+        SkinnedRenderable* pRenderable = (SkinnedRenderable*)componentPools[ComponentType::PK_RENDERABLE_SKINNED].allocComponent(target);
+        *pRenderable = SkinnedRenderable(meshID, skeletonEntity);
         addComponent(target, pRenderable);
         return pRenderable;
     }

@@ -39,6 +39,7 @@ namespace pk
 
     int32_t get_shader_data_type_component_count(ShaderDataType type);
     size_t get_shader_data_type_size(ShaderDataType type);
+    std::string shader_data_type_to_string(ShaderDataType type);
 
     enum VertexInputRate
     {
@@ -124,6 +125,13 @@ namespace pk
         // NOTE: Not sure if copying elems goes correctly here..
         VertexBufferLayout(std::vector<VertexBufferElement> elems, VertexInputRate inputRate);
         VertexBufferLayout(const VertexBufferLayout& other);
+
+        bool isValid() const;
+        // Can be used to make sure pipeline's layouts aren't in conflict with each others
+        static bool are_valid(
+            const std::vector<VertexBufferLayout>& layoutGroup,
+            uint32_t* pOutConflictLocation = nullptr
+        );
 
         inline const std::vector<VertexBufferElement>& getElements() const { return _elements; }
         inline VertexInputRate getInputRate() const { return _inputRate; }

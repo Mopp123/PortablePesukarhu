@@ -27,6 +27,10 @@
 #define GLTF_QUADS          0x0007
 #define GLTF_QUAD_STRIP     0x0008
 
+// Same as in opengl spec types.. GL_INT, etc..
+#define GLTF_ACCESSOR_COMPONENT_TYPE_INT 0x1404
+#define GLTF_ACCESSOR_COMPONENT_TYPE_FLOAT 0x1406
+#define GLTF_ACCESSOR_COMPONENT_TYPE_UNSIGNED_BYTE 0x1401
 
 namespace pk
 {
@@ -126,14 +130,8 @@ namespace pk
         int gltfComponentCount
     )
     {
-        // From opengl spec:
-        // float = 0x1406
-        // int = 0x1404
-        const uint64_t gltfInt = 0x1404;
-        const uint64_t gltfFloat = 0x1406;
-
         // float types
-        if (gltfAccessorComponentType == gltfFloat)
+        if (gltfAccessorComponentType == GLTF_ACCESSOR_COMPONENT_TYPE_FLOAT)
         {
             switch (gltfComponentCount)
             {
@@ -148,7 +146,8 @@ namespace pk
                 default:
                     Debug::log(
                         "@gltf_accessor_component_type_to_engine(float) "
-                        "invalid accessor component type: " + std::to_string(gltfAccessorComponentType),
+                        "invalid accessor component type: " + std::to_string(gltfAccessorComponentType) + " "
+                        "Component count: " + std::to_string(gltfComponentCount),
                         Debug::MessageType::PK_FATAL_ERROR
                     );
                     return ShaderDataType::None;
@@ -156,7 +155,7 @@ namespace pk
             }
         }
         // int types
-        else if (gltfAccessorComponentType == gltfInt)
+        else if (gltfAccessorComponentType == GLTF_ACCESSOR_COMPONENT_TYPE_INT)
         {
             switch (gltfComponentCount)
             {
@@ -179,7 +178,9 @@ namespace pk
         }
         Debug::log(
             "@gltf_accessor_component_type_to_engine "
-            "Unexpected input",
+            "Unexpected input! "
+            "gltf accessor component type: " + std::to_string(gltfAccessorComponentType) + " "
+            "Component count:  " + std::to_string(gltfComponentCount),
             Debug::MessageType::PK_FATAL_ERROR
         );
         return ShaderDataType::None;
@@ -189,14 +190,17 @@ namespace pk
     static Mesh* load_mesh_gltf(
         tinygltf::Model& gltfModel,
         tinygltf::Mesh& gltfMesh,
-        const std::vector<GLTFBufferData>& gltfBuffers,
+        std::vector<GLTFBufferData>& gltfBuffers,
         bool saveDataHostSide
     )
     {
         Mesh* pMesh = nullptr;
         size_t combinedVertexBufferSize = 0;
+        size_t vertexCount = 0;
         size_t indexBufferIndex = 0;
         size_t indexBufferLength = 0;
+
+        bool isSkinned = false;
 
         // sortedVertexBufferAttributes is used to create single vertex buffer containing
         // vertex positions, normals and uv coords in that order starting from location = 0.
@@ -207,6 +211,9 @@ namespace pk
         //  first: pretty obvious...
         //  second: index in gltfBuffers
         std::unordered_map<int, std::pair<VertexBufferElement, int>> sortedVertexBufferAttributes;
+        std::unordered_map<int, tinygltf::Accessor> attribAccessorMapping;
+        std::unordered_map<int, bool> useNullBuffer; // key = attrib, val = if true this attribute is marked to use "null buffer"
+        std::unordered_map<int, size_t> actualAttribElemSize;
         for (size_t i = 0; i < gltfMesh.primitives.size(); ++i)
         {
             tinygltf::Primitive primitive = gltfMesh.primitives[i];
@@ -234,10 +241,23 @@ namespace pk
 
                 // NOTE: using this expects shader having vertex attribs in same order
                 // as here starting from pos 0
-                int attribLocation = -1;
+                int attribLocation = -1; // NOTE: attribLocation is more like attrib index here!
                 if (attrib.first.compare("POSITION") == 0) attribLocation = 0;
                 if (attrib.first.compare("NORMAL") == 0) attribLocation = 1;
                 if (attrib.first.compare("TEXCOORD_0") == 0) attribLocation = 2;
+
+                if (attrib.first.compare("WEIGHTS_0") == 0)
+                {
+                    attribLocation = 3;
+                    //useNullBuffer[attribLocation] = true;
+                    isSkinned = true;
+                }
+                if (attrib.first.compare("JOINTS_0") == 0)
+                {
+                    attribLocation = 4;
+
+                    //useNullBuffer[attribLocation] = true;
+                }
 
                 if (attribLocation > -1)
                 {
@@ -253,17 +273,54 @@ namespace pk
                             Debug::MessageType::PK_FATAL_ERROR
                         );
                     }
-                    ShaderDataType shaderDataType = gltf_accessor_component_type_to_engine(
-                        accessor.componentType,
-                        componentCount
-                    );
+
+                    // Joint indices may come as unsigned bytes -> switch those to float for now..
+                    ShaderDataType shaderDataType = ShaderDataType::None;
+                    if (accessor.componentType != GLTF_ACCESSOR_COMPONENT_TYPE_UNSIGNED_BYTE)
+                    {
+                        shaderDataType = gltf_accessor_component_type_to_engine(accessor.componentType, componentCount);
+                    }
+                    else
+                    {
+                        shaderDataType = gltf_accessor_component_type_to_engine(
+                            TINYGLTF_COMPONENT_TYPE_FLOAT,
+                            componentCount
+                        );
+                        actualAttribElemSize[attribLocation] = 1 * 4; // 1 byte for each vec4 component
+                    }
+                    size_t attribSize = get_shader_data_type_size(shaderDataType);
 
                     VertexBufferElement elem(attribLocation, shaderDataType);
-                    int buffersIndex = accessor.bufferView;
-                    sortedVertexBufferAttributes[attribLocation] = std::make_pair(elem, buffersIndex);
 
-                    const GLTFBufferData& gltfBuffer = gltfBuffers[buffersIndex];
-                    combinedVertexBufferSize += gltfBuffer.size;
+                    if (attrib.first == "JOINTS_0")
+                    {
+                        size_t w0Offset = gltfModel.bufferViews[accessor.bufferView].byteOffset;
+                        size_t w0Size = gltfModel.bufferViews[accessor.bufferView].byteLength;
+                        size_t w0Stride = gltfModel.bufferViews[accessor.bufferView].byteStride;
+                        size_t bufferIndex = gltfModel.bufferViews[accessor.bufferView].buffer;
+                        size_t totalBufferSize = gltfModel.buffers[bufferIndex].data.size();
+                        Debug::log(
+                            "___TEST___Accessor type = " + std::to_string(accessor.type) + " "
+                            "Accessor count = " + std::to_string(accessor.count) + " "
+                            "Component count = " + std::to_string(componentCount) + " "
+                            "JOINTS0 offset = " + std::to_string(w0Offset) + " "
+                            "accessor offset = " + std::to_string(accessor.byteOffset) + " "
+                            "JOINTS0 size = " + std::to_string(w0Size) + " "
+                            "accessor size = " + std::to_string(accessor.count * sizeof(float)) + " "
+                            "JOINTS0 stride = " + std::to_string(w0Stride) + " "
+                            "total buffer size = " + std::to_string(totalBufferSize)
+                        );
+                    }
+
+                    int bufferViewIndex = accessor.bufferView;
+                    sortedVertexBufferAttributes[attribLocation] = std::make_pair(elem, bufferViewIndex);
+                    attribAccessorMapping[attribLocation] = accessor;
+
+                    size_t elemCount = accessor.count;
+                    combinedVertexBufferSize += elemCount * attribSize;
+
+                    if (attribLocation == 0)
+                        vertexCount = elemCount;
                 }
                 else
                 {
@@ -276,7 +333,37 @@ namespace pk
                 }
             }
         }
+        Debug::log("___TEST___combined buffer size = " + std::to_string(combinedVertexBufferSize));
 
+        // Some skinned mesh specific fuckery..
+        /*
+        if (isSkinned)
+        {
+            // If skinned mesh -> make sure weights 1 to 4 (indices 3 to 6)
+            // and joints 1 to 4 (indices 7 to 10) exists even if not specified in file
+            for (int i = 3; i <= 10; ++i)
+            {
+                // atm assumed that weights = 3 to 6 and joints = 7 to 10
+                if (sortedVertexBufferAttributes.find(i) == sortedVertexBufferAttributes.end())
+                {
+                    useNullBuffer[i] = true;
+                    VertexBufferElement elem(i, ShaderDataType::Float);
+                    sortedVertexBufferAttributes[i] = std::make_pair(elem, 0);
+
+                    // each weight and joint is single float
+                    combinedVertexBufferSize += sizeof(float) * vertexCount;
+                }
+            }
+
+            //tinygltf::BufferView wBuf = gltfModel.bufferViews[sortedVertexBufferAttributes[3].second];
+            //const size_t positionsCount = gltfBuffers[sortedVertexBufferAttributes[0].second].size / sizeof(vec3);
+            //Debug::log("___TEST___weights0 count = " + std::to_string(weightCount));
+            //Debug::log("___TEST___positions count = " + std::to_string(positionsCount));
+        }
+        */
+
+
+        // TODO: Change below to NOT use "our gltfBuffers" <- those are fucked!
         // TODO: Attempt to find the index buffer
         const GLTFBufferData& gltfIndexBuffer = gltfBuffers[indexBufferIndex];
         if (gltfIndexBuffer.usage != BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT)
@@ -301,13 +388,32 @@ namespace pk
         while (dstOffset < combinedVertexBufferSize)
         {
             const std::pair<VertexBufferElement, int>& currentAttrib = sortedVertexBufferAttributes[currentAttribIndex];
-            const size_t currentAttribElemSize = get_shader_data_type_size(currentAttrib.first.getType());
+            size_t currentAttribElemSize = get_shader_data_type_size(currentAttrib.first.getType());
 
-            const GLTFBufferData& srcBuffer = gltfBuffers[currentAttrib.second];
-            PK_byte* srcData = srcBuffer.pData + srcOffsets[currentAttribIndex];
-            memcpy(pCombinedRawBuffer + dstOffset, srcData, currentAttribElemSize);
+            size_t gltfInternalSize = currentAttribElemSize;
+            if (actualAttribElemSize.find(currentAttribIndex) != actualAttribElemSize.end())
+                gltfInternalSize = actualAttribElemSize[currentAttribIndex];
 
-            srcOffsets[currentAttribIndex] += currentAttribElemSize;
+            //const GLTFBufferData& srcBuffer = gltfBuffers[currentAttrib.second];
+            //PK_byte* srcData = srcBuffer.pData + srcOffsets[currentAttribIndex];
+
+            if (isSkinned)
+                Debug::log(
+                    "___TEST___adding to combined: \n"
+                    "   attrib location: " + std::to_string(currentAttribIndex) + "\n"
+                    "   attrib type: " + std::to_string(currentAttrib.first.getType()) + "\n"
+                    "   attrib size (shader side): " + std::to_string(currentAttribElemSize) + "\n"
+                    "   dst offset: " + std::to_string(dstOffset)
+                );
+
+            if (!useNullBuffer[currentAttribIndex])
+            {
+                tinygltf::BufferView& bufView = gltfModel.bufferViews[currentAttrib.second];
+                PK_byte* pSrcBuffer = ((PK_byte*)gltfModel.buffers[bufView.buffer].data.data()) + bufView.byteOffset + srcOffsets[currentAttribIndex];
+                memcpy(pCombinedRawBuffer + dstOffset, pSrcBuffer, gltfInternalSize);
+            }
+
+            srcOffsets[currentAttribIndex] += gltfInternalSize;
             dstOffset += currentAttribElemSize;
             // DANGER!!!!
             vbLayoutElements[currentAttrib.first.getLocation()] = currentAttrib.first; // DANGER!!!
@@ -444,12 +550,6 @@ namespace pk
         {
             const tinygltf::AnimationSampler& sampler = gltfAnim.samplers[channel.sampler];
 
-            Debug::log(
-                "___TEST___processing node: " + std::to_string(channel.target_node) + " "
-                "path: " + channel.target_path + " "
-                "at frame: " + std::to_string(keyframeIndex)
-            );
-
             // If keyframe count less than asked index -> use last available
             size_t keyframeCount = gltfModel.accessors[sampler.input].count;
             int useKeyframe = keyframeIndex;
@@ -496,21 +596,11 @@ namespace pk
         std::unordered_map<int, std::vector<tinygltf::AnimationChannel>> nodeChannelsMapping;
         // We require all nodes to have same amount of keyframes here!
         size_t maxKeyframes = 0;
-        Debug::log("___TEST___Channel data:");
         for (tinygltf::AnimationChannel& channel : gltfAnim.channels)
         {
             const tinygltf::AnimationSampler& sampler = gltfAnim.samplers[channel.sampler];
             size_t keyframeCount = gltfModel.accessors[sampler.input].count;
             maxKeyframes = std::max(maxKeyframes, keyframeCount);
-
-            Debug::log(
-                "   sampler: " + std::to_string(channel.sampler) + "\n"
-                "       input: " + std::to_string(sampler.input) + "\n"
-                "   node: " + std::to_string(channel.target_node) + "\n"
-                "   path: " + channel.target_path + "\n"
-                "   keyframes: " + std::to_string(keyframeCount)
-            );
-
             nodeChannelsMapping[channel.target_node].push_back(channel);
         }
 
@@ -526,7 +616,6 @@ namespace pk
             for (int keyframeIndex = maxKeyframes - 1; keyframeIndex >= 0; --keyframeIndex)
             {
                 int poseJointIndex = nodePoseJointMapping[ncIt->first];
-                Debug::log("___TEST___adding node: " + std::to_string(ncIt->first) + " to index: " + std::to_string(poseJointIndex));
                 poseJoints[keyframeIndex][poseJointIndex] = create_anim_pose_joint(
                     gltfModel,
                     gltfAnim,
@@ -642,10 +731,10 @@ namespace pk
             return nullptr;
         }
 
+        // Load meshes
         std::vector<Mesh*> meshes;
         for (size_t i = 0; i < gltfModel.meshes.size(); ++i)
         {
-            Debug::log("Processing mesh at index: " + std::to_string(i));
             tinygltf::Mesh& gltfMesh = gltfModel.meshes[i];
             Mesh* pMesh = load_mesh_gltf(
                 gltfModel,

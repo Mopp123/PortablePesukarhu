@@ -77,7 +77,7 @@ namespace pk
             bool enableDepthTest,
             DepthCompareOperation depthCmpOp,
             uint32_t pushConstantSize,
-	    uint32_t pushConstantStageFlags
+	          uint32_t pushConstantStageFlags
         )
         {}
 

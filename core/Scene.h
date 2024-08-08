@@ -10,6 +10,7 @@
 #include "ecs/components/renderable/GUIRenderable.h"
 #include "ecs/components/renderable/TextRenderable.h"
 #include "ecs/components/renderable/Static3DRenderable.h"
+#include "ecs/components/renderable/SkinnedRenderable.h"
 #include "ecs/components/lighting/Lights.h"
 #include "ecs/components/AnimationData.h"
 #include "graphics/Environment.h"
@@ -51,6 +52,7 @@ namespace pk
         entityID_t createEntity();
         // TODO: Some better way of dealing with this
         entityID_t createSkeletonEntity(entityID_t target, const Pose& bindPose);
+        Entity getEntity(entityID_t entity) const;
         void destroyEntity(entityID_t entityID);
         void addChild(entityID_t entityID, entityID_t childID);
         std::vector<entityID_t> getChildren(entityID_t entityID);
@@ -110,6 +112,11 @@ namespace pk
         Static3DRenderable* createStatic3DRenderable(
             entityID_t target,
             PK_id meshID
+        );
+        SkinnedRenderable* createSkinnedRenderable(
+            entityID_t target,
+            PK_id meshID,
+            entityID_t skeletonEntity
         );
         Camera* createCamera(
             entityID_t target,
