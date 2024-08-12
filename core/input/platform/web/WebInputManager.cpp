@@ -36,7 +36,7 @@ namespace pk
 			WebInputManager* inputManager = (WebInputManager*)userData;
 
 			InputKeyName key = inputManager->convert_to_keyname(keyEvent->key);
-                        inputManager->keyDown[key] = true;
+      inputManager->keyDown[key] = true;
 			int scancode = 0;
 
 			inputManager->processKeyEvents(key, scancode, PK_INPUT_PRESS, 0);
@@ -59,7 +59,7 @@ namespace pk
 			WebInputManager* inputManager = (WebInputManager*)userData;
 
 			InputKeyName key = inputManager->convert_to_keyname(keyEvent->key);
-                        inputManager->keyDown[key] = false;
+      inputManager->keyDown[key] = false;
 			int scancode = 0;
 
 			inputManager->processKeyEvents(key, scancode, PK_INPUT_RELEASE, 0);

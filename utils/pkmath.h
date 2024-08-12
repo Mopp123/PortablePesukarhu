@@ -65,6 +65,7 @@ namespace pk
         vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
         vec4(vec3 v, float w) : x(v.x), y(v.y), z(v.z), w(w) {}
         vec4(const vec4& other) : x(other.x), y(other.y), z(other.z), w(other.w) {}
+        std::string toString() const;
 
         float length() const;
         float dotp(const vec4& other) const;
@@ -95,6 +96,8 @@ namespace pk
         bool operator!=(const mat4& other) const;
 
         void setIdentity();
+
+        mat4 transpose() const;
 
         //	*Found from: https://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix
         //		comment on the site about this :

@@ -22,8 +22,9 @@ namespace pk
         std::vector<entityID_t>& resultBones
     )
     {
-        // Put some model on joint's transform
         entityID_t entity = scene.createEntity();
+        //if (currentJointIndex == 0)
+        //    Debug::log("___TEST___created root joint entity: " + std::to_string(entity));
         resultBones.push_back(entity);
         if (pose.joints.size() <= currentJointIndex)
         {
@@ -35,14 +36,16 @@ namespace pk
             return;
         }
         Joint currentJoint = pose.joints[currentJointIndex];
+        vec3 jointTranslation = currentJoint.translation;
+        quat jointRotation = currentJoint.rotation;
         // NOTE: Not sure is scale correct here..
         mat4 jointMat = currentJoint.matrix;
         if (jointMat == mat4(0.0f))
         {
             scene.createTransform(
                 entity,
-                currentJoint.translation,
-                currentJoint.rotation,
+                { 0, 0, 0},
+                { 0, 0, 0, 1},
                 { 1.0f, 1.0f, 1.0f }
             );
         }
@@ -162,7 +165,7 @@ namespace pk
             *this,
             bindPose,
             0,
-            NULL_ENTITY_ID,
+            target,
             result
         );
         if (result.empty())
@@ -429,6 +432,7 @@ namespace pk
 
     SkinnedRenderable* Scene::createSkinnedRenderable(
         entityID_t target,
+        PK_id modelID,
         PK_id meshID,
         entityID_t skeletonEntity
     )
@@ -444,7 +448,7 @@ namespace pk
         }
 
         SkinnedRenderable* pRenderable = (SkinnedRenderable*)componentPools[ComponentType::PK_RENDERABLE_SKINNED].allocComponent(target);
-        *pRenderable = SkinnedRenderable(meshID, skeletonEntity);
+        *pRenderable = SkinnedRenderable(modelID, meshID, skeletonEntity);
         addComponent(target, pRenderable);
         return pRenderable;
     }

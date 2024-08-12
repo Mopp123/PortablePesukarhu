@@ -96,7 +96,7 @@ namespace pk
             int pixelSize
         );
 
-        Resource* getResource(uint32_t id);
+        Resource* accessResource(uint32_t id);
         const Resource* getResource(uint32_t id) const;
 
         // Just for testing atm!!!

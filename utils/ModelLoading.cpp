@@ -226,6 +226,20 @@ namespace pk
                     sortedVertexBufferAttributes[attribLocation] = std::make_pair(elem, bufferViewIndex);
                     attribAccessorMapping[attribLocation] = accessor;
 
+                    // TESTING
+                    if (attribLocation == 4)
+                    {
+                        tinygltf::BufferView& bview = gltfModel.bufferViews[bufferViewIndex];
+                        size_t offset = bview.byteOffset;
+                        size_t size = bview.byteLength;
+                        Debug::log("___TEST___Joint buffer data(offset = " + std::to_string(offset) + " size = " + std::to_string(size) + "):");
+                        for (size_t i = 0; i < size; ++i)
+                        {
+                            unsigned char val = *(gltfModel.buffers[gltfModel.bufferViews[bufferViewIndex].buffer].data.data() + offset + i);
+                            Debug::log("    [" + std::to_string(i) + "]: " + std::to_string(val));
+                        }
+                    }
+
                     size_t elemCount = accessor.count;
                     combinedVertexBufferSize += elemCount * attribSize;
                 }
@@ -270,6 +284,15 @@ namespace pk
         std::vector<VertexBufferElement> vbLayoutElements(sortedVertexBufferAttributes.size());
 
         size_t currentAttribIndex = 0;
+
+
+        // TESTING
+        const size_t stride = sizeof(float) * 3 * 2 + sizeof(float) * 2 + sizeof(float) * 4 * 2;
+        const size_t vertexCount = combinedVertexBufferSize / stride;
+        std::unordered_map<int, std::pair<vec4, vec4>> vertexJointData;
+        int vertexIndex = 0;
+        int i = 0;
+
         while (dstOffset < combinedVertexBufferSize)
         {
             const std::pair<VertexBufferElement, int>& currentAttrib = sortedVertexBufferAttributes[currentAttribIndex];
@@ -280,8 +303,54 @@ namespace pk
                 gltfInternalSize = actualAttribElemSize[currentAttribIndex];
 
             tinygltf::BufferView& bufView = gltfModel.bufferViews[currentAttrib.second];
-            PK_byte* pSrcBuffer = ((PK_byte*)gltfModel.buffers[bufView.buffer].data.data()) + bufView.byteOffset + srcOffsets[currentAttribIndex];
-            memcpy(pCombinedRawBuffer + dstOffset, pSrcBuffer, gltfInternalSize);
+            PK_ubyte* pSrcBuffer = (PK_ubyte*)(gltfModel.buffers[bufView.buffer].data.data() + bufView.byteOffset + attribAccessorMapping[currentAttribIndex].byteOffset + srcOffsets[currentAttribIndex]);
+
+            // If attrib "gltf internal type" wasn't float
+            //  -> we need to convert it into that (atm done only for joint ids buf which are ubytes)
+            if (currentAttrib.first.getLocation() == 4)
+            {
+                vec4 val;
+                val.x = (float)*pSrcBuffer;
+                val.y = (float)*(pSrcBuffer + 1);
+                val.z = (float)*(pSrcBuffer + 2);
+                val.w = (float)*(pSrcBuffer + 3);
+                vertexJointData[vertexIndex].second = val;
+
+                //Debug::log("___TEST___adding weight: " + std::to_string(val.x) + ", " + std::to_string(val.y) + ", " + std::to_string(val.z) + ", " + std::to_string(val.w));
+                memcpy(pCombinedRawBuffer + dstOffset, &val, sizeof(vec4));
+            }
+            else
+            {
+                // make all weights sum be 1
+                if (currentAttrib.first.getLocation() == 3)
+                {
+                    vec4 val;
+                    val.x = (float)*pSrcBuffer;
+                    val.y = (float)*(pSrcBuffer + sizeof(float));
+                    val.z = (float)*(pSrcBuffer + sizeof(float) * 2);
+                    val.w = (float)*(pSrcBuffer + sizeof(float) * 3);
+                    //Debug::log("___TEST___adding weight(original val): " + std::to_string(val.x) + ", " + std::to_string(val.y) + ", " + std::to_string(val.z) + ", " + std::to_string(val.w));
+                    const float sum = val.x + val.y + val.z + val.w;
+                    if (sum != 0.0f)
+                    {
+                        val.x /= sum;
+                        val.y /= sum;
+                        val.z /= sum;
+                        val.w /= sum;
+                    }
+                    vertexJointData[vertexIndex].first = val;
+                    //Debug::log("___TEST___adding weight: " + std::to_string(val.x) + ", " + std::to_string(val.y) + ", " + std::to_string(val.z) + ", " + std::to_string(val.w));
+
+                    Debug::log("___TEST___ADVANCE: " + std::to_string(gltfInternalSize));
+
+                    memcpy(pCombinedRawBuffer + dstOffset, &val, sizeof(vec4));
+                }
+                else
+                {
+                    memcpy(pCombinedRawBuffer + dstOffset, pSrcBuffer, gltfInternalSize);
+                }
+            }
+
 
             srcOffsets[currentAttribIndex] += gltfInternalSize;
             dstOffset += currentAttribElemSize;
@@ -290,6 +359,23 @@ namespace pk
 
             currentAttribIndex += 1;
             currentAttribIndex = currentAttribIndex % attribCount;
+
+            ++i;
+            if ((i % 5) == 0)
+                ++vertexIndex;
+        }
+
+
+        Debug::log("___TEST___vertex count = " + std::to_string(vertexCount));
+        // TESTING PRINT VERTEX JOINT DATA
+        Debug::log("___TEST___VERTEX JOINT DATA:");
+        for (int i = 0; i < vertexJointData.size(); ++i)
+        {
+            vec4 w = vertexJointData[i].first;
+            vec4 j = vertexJointData[i].second;
+            Debug::log(
+                "    [" + std::to_string(i) + "]: weights: " + w.toString() + " joint ids: " + j.toString()
+            );
         }
 
         Buffer* pVertexBuffer = Buffer::create(
@@ -362,6 +448,7 @@ namespace pk
                 node.rotation[2],
                 node.rotation[3]
             );
+            rotation = rotation.normalize();
         }
         if (node.scale.size() == 3)
         {
@@ -372,11 +459,31 @@ namespace pk
             );
         }
 
+        if (jointMatrix == mat4(0.0f))
+        {
+            mat4 translationMatrix(1.0f);
+            translationMatrix[0 + 3 * 4] = translation.x;
+            translationMatrix[1 + 3 * 4] = translation.y;
+            translationMatrix[2 + 3 * 4] = translation.z;
+
+            mat4 rotationMatrix = rotation.toRotationMatrix();
+
+            mat4 scaleMatrix(1.0f);
+            translationMatrix[0 + 0 * 4] = scale.x;
+            translationMatrix[1 + 1 * 4] = scale.y;
+            translationMatrix[2 + 2 * 4] = scale.z;
+
+            jointMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+        }
+        mat4 inverseBindMatrix = jointMatrix;
+        inverseBindMatrix.inverse();
+
         Joint joint = {
             translation,
             rotation,
             scale,
-            jointMatrix
+            jointMatrix,
+            inverseBindMatrix
         };
         const std::vector<int>& children = node.children;
         pose.joints.push_back(joint);
@@ -452,7 +559,6 @@ namespace pk
     )
     {
         tinygltf::Animation& gltfAnim = gltfModel.animations[0];
-
 
         std::unordered_map<int, std::vector<tinygltf::AnimationChannel>> nodeChannelsMapping;
         // We require all nodes to have same amount of keyframes here!

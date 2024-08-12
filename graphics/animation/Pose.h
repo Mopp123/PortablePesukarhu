@@ -12,6 +12,7 @@ namespace pk
         quat rotation;
         vec3 scale;
         mat4 matrix;
+        mat4 inverseMatrix; // Created only for the bind pose
     };
 
 

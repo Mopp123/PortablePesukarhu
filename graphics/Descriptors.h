@@ -39,6 +39,7 @@ namespace pk
     {
         int locationIndex;
         ShaderDataType type;
+        int arrayLen = 1;
     };
 
 

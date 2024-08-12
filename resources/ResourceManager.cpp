@@ -243,7 +243,7 @@ namespace pk
         return pFont;
     }
 
-    Resource* ResourceManager::getResource(uint32_t id)
+    Resource* ResourceManager::accessResource(uint32_t id)
     {
         std::unordered_map<uint32_t, Resource*>::iterator it = _resources.find(id);
         if (it == _resources.end())

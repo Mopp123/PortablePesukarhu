@@ -102,6 +102,12 @@ namespace pk
     }
 
 
+    std::string vec4::toString() const
+    {
+        std::string out = "( " + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ", " + std::to_string(w) + " )";
+        return out;
+    }
+
     float vec4::length() const
     {
         return sqrtf((x * x) + (y * y) + (z * z) + (w * w));
@@ -204,6 +210,19 @@ namespace pk
         memset(_e, 0, sizeof(float) * 16);
         for (int i = 0; i < 4; ++i)
             _e[i + i * 4] = 1.0f;
+    }
+
+    mat4 mat4::transpose() const
+    {
+        mat4 result;
+        for (int i = 0; i < 4; ++i)
+        {
+            for (int j = 0; j < 4; ++j)
+            {
+                result[i + j * 4] = _e[j + i * 4];
+            }
+        }
+        return result;
     }
 
     //	*Found from: https://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix

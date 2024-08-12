@@ -115,6 +115,7 @@ namespace pk
         );
         SkinnedRenderable* createSkinnedRenderable(
             entityID_t target,
+            PK_id modelID,
             PK_id meshID,
             entityID_t skeletonEntity
         );

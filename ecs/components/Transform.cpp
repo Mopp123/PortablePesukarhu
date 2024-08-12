@@ -75,7 +75,7 @@ namespace pk
         scaleMat[1 + 1 * 4] = scale.y;
         scaleMat[2 + 2 * 4] = scale.z;
 
-        _transformationMatrix = rotationMat * translationMat;
+        _transformationMatrix = translationMat * rotationMat;
         _localTransformationMatrix = _transformationMatrix;
     }
 

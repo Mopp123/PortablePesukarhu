@@ -1,6 +1,7 @@
 #include "OpenglShader.h"
 #include "core/Debug.h"
 #include "graphics/platform/opengl/OpenglContext.h"
+#include <string>
 #include <vector>
 #include <sstream>
 #include <set>
@@ -175,6 +176,7 @@ namespace pk
             std::istringstream in(shaderSource);
 
             std::unordered_map<std::string, std::vector<std::string>> structList;
+            std::unordered_map<std::string, std::string> constVariables;
             bool recordStruct = false;
             std::string recordStructName = "";
 
@@ -198,6 +200,15 @@ namespace pk
 
                 if (!recordStruct)
                 {
+                    if (components.size() > 0)
+                    {
+                        if (components[0] == "const")
+                        {
+                            if (components.size() > 4)
+                                constVariables[components[2]] = components[4];
+                        }
+                    }
+
                     if (components.size() == 2)
                     {
                         if (components[0] == "struct")
@@ -215,9 +226,65 @@ namespace pk
                         else if (components[0] == "uniform")
                         {
                             const std::string& type = components[1];
-                            if (s_ESSLBasicTypes.find(type) != s_ESSLBasicTypes.end())
+                            const std::string& uniformName = components[2];
+
+                            // Check is this array
+                            bool isArray = false;
+                            std::string arrSizeStr = "";
+                            std::string arrName = "";
+                            size_t arrBegin = components[2].find("[");
+                            if (arrBegin != std::string::npos)
+                            {
+                                size_t arrEnd = components[2].find("]");
+                                arrName = components[2].substr(0, arrBegin);
+                                arrSizeStr = components[2].substr(arrBegin + 1, (arrEnd - 1) - arrBegin);
+                                // Currently we dont allow struct arrays, only "basic types"
+                                if (s_ESSLBasicTypes.find(type) == s_ESSLBasicTypes.end())
+                                {
+                                    Debug::log(
+                                        "@OpenglShaderProgram::findLocationsESSL1 "
+                                        "Encountered array uniform that was not of basic type. "
+                                        "Currently array uniforms are required to be of basic type! "
+                                        "uniform: " + uniformName + " "
+                                        "type: " + type,
+                                        Debug::MessageType::PK_FATAL_ERROR
+                                    );
+                                    continue;
+                                }
+                                isArray = true;
+                            }
+
+                            if (s_ESSLBasicTypes.find(type) != s_ESSLBasicTypes.end() && !isArray)
                             {
                                 _uniformLocations.push_back(glGetUniformLocation(_programID, components[2].c_str()));
+                            }
+                            else if (isArray)
+                            {
+                                int arrSize = 0;
+                                if (constVariables.find(arrSizeStr) == constVariables.end())
+                                {
+                                    arrSize = std::stoi(arrSizeStr);
+                                }
+                                else
+                                {
+                                    arrSize = std::stoi(constVariables[arrSizeStr]);
+                                }
+                                if (arrSize <= 0)
+                                {
+                                    Debug::log(
+                                        "@OpenglShaderProgram::findLocationsESSL1 "
+                                        "Encountered invalid array size: " + std::to_string(arrSize) + " "
+                                        "Uniform: " + uniformName,
+                                        Debug::MessageType::PK_FATAL_ERROR
+                                    );
+                                    continue;
+                                }
+                                for (int i = 0; i < arrSize; ++i)
+                                {
+                                    std::string actualUniformName = arrName + "[" + std::to_string(i) + "]";
+                                    int location = glGetUniformLocation(_programID, actualUniformName.c_str());
+                                    _uniformLocations.push_back(location);
+                                }
                             }
                             else
                             {

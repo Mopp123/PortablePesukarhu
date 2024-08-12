@@ -15,6 +15,7 @@ namespace pk
     {
         Transform* pTransform = (Transform*)scene.getComponent(jointEntity, ComponentType::PK_TRANSFORM);
         const Joint& joint = pose.joints[currentJointIndex];
+        pTransform->setPos(joint.translation);
         pTransform->setRotation(joint.rotation);
 
         std::vector<entityID_t> childJointEntities = scene.getChildren(jointEntity);
@@ -42,7 +43,6 @@ namespace pk
         // TODO: Fix anim translations? something wonky 'bout those..
         vec3 interpolatedTranslation = jointCurrentPose.translation.lerp(jointNextPose.translation, amount);
         quat interpolatedRotation = jointCurrentPose.rotation.slerp(jointNextPose.rotation, amount);
-
         pTransform->setPos(interpolatedTranslation);
         pTransform->setRotation(interpolatedRotation);
 
