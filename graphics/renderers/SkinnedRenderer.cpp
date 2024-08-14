@@ -19,13 +19,11 @@ namespace pk
     )
     {
         Transform* pTransform = (Transform*)pScene->getComponent(jointEntity, ComponentType::PK_TRANSFORM);
-
         const mat4& inverseBindMatrix = bindPose.joints[currentJointIndex].inverseMatrix;
-        if (currentJointIndex == 0)
-            matrices[currentJointIndex] = parentMatrix * pTransform->accessTransformationMatrix() * inverseBindMatrix;
-        else
-            matrices[currentJointIndex] = parentMatrix * pTransform->accessLocalTransformationMatrix() * inverseBindMatrix;
-
+        mat4 m(1.0f);
+        m = pTransform->accessLocalTransformationMatrix();
+        matrices.push_back(m * inverseBindMatrix);
+        // NOTE: ISSUE! Propably not mapping to correct entities!!!!!
         std::vector<entityID_t> childJointEntities = pScene->getChildren(jointEntity);
         for (int i = 0; i < childJointEntities.size(); ++i)
         {
@@ -36,7 +34,7 @@ namespace pk
                 childJointIndex,
                 matrices,
                 bindPose,
-                matrices[currentJointIndex]
+                m
             );
         }
     }
@@ -466,10 +464,12 @@ namespace pk
                 */
                 // Update joint matrices buffer to match this renderable's skeleton
 
-                std::vector<mat4> jointMatrices(s_maxJoints);
+                std::vector<mat4> jointMatrices;
                 mat4 identity(1.0f);
-                memset(jointMatrices.data(), 0, sizeof(mat4) * s_maxJoints);
+                //memset(jointMatrices.data(), 0, sizeof(mat4) * s_maxJoints);
                 const Pose& bindPose = pModel->accessBindPose();
+                const Pose& testPose = pModel->accessAnimPoses()[2];
+                // Shits fucked here!!!!
                 update_joint_matrices(
                     pCurrentScene,
                     rootJoint,
@@ -479,10 +479,8 @@ namespace pk
                     mat4(1.0f)
                 );
 
-
                 //for (int i = 0; i < bindPose.joints.size(); ++i)
                 //    jointMatrices[i] = jointMatrices[i] * bindPose.joints[i].inverseMatrix;
-
 
                 _jointMatricesBuffer[0]->update(
                     jointMatrices.data(),

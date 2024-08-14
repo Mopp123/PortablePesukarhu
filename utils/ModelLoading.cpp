@@ -430,7 +430,7 @@ namespace pk
         mat4 jointMatrix = to_engine_matrix(node.matrix);
 
         vec3 translation;
-        quat rotation;
+        quat rotation(0, 0, 0, 1);
         vec3 scale(1.0f, 1.0f, 1.0f);
         if (node.translation.size() == 3)
         {
@@ -514,6 +514,9 @@ namespace pk
     )
     {
         Joint joint;
+        mat4 jointTranslationMatrix(1.0f);
+        mat4 jointRotationMatrix(1.0f);
+        mat4 jointScaleMatrix(1.0f);
         for (const tinygltf::AnimationChannel& channel : channels)
         {
             const tinygltf::AnimationSampler& sampler = gltfAnim.samplers[channel.sampler];
@@ -538,6 +541,11 @@ namespace pk
             {
                 PK_byte* pAnimData = (PK_byte*)&animDataBuffer.data[animDataAccessor.byteOffset + bufferView.byteOffset + (sizeof(vec3) * useKeyframe)];
                 vec3 translationValue = *((vec3*)pAnimData);
+
+                jointTranslationMatrix[0 + 3 * 4] = translationValue.x;
+                jointTranslationMatrix[1 + 3 * 4] = translationValue.y;
+                jointTranslationMatrix[2 + 3 * 4] = translationValue.z;
+
                 joint.translation = translationValue;
             }
             else if (channel.target_path == "rotation")
@@ -545,9 +553,16 @@ namespace pk
                 PK_byte* pAnimData = (PK_byte*)&animDataBuffer.data[animDataAccessor.byteOffset + bufferView.byteOffset + (sizeof(quat) * useKeyframe)];
                 quat rotationValue = *((quat*)pAnimData);
                 rotationValue = rotationValue.normalize();
+                jointRotationMatrix = rotationValue.toRotationMatrix();
                 joint.rotation = rotationValue;
             }
         }
+
+        joint.matrix = jointTranslationMatrix * jointRotationMatrix;
+        mat4 inverseMatrix = joint.matrix;
+        inverseMatrix.inverse();
+        joint.inverseMatrix = inverseMatrix;
+
         return joint;
     }
 
@@ -571,7 +586,6 @@ namespace pk
             nodeChannelsMapping[channel.target_node].push_back(channel);
         }
 
-        //std::vector<Joint> poseJoints(nodePoseJointMapping.size());
         std::unordered_map<int, std::vector<Joint>> poseJoints;
         for (int i = 0; i < maxKeyframes; ++i)
             poseJoints[i].resize(nodePoseJointMapping.size());
@@ -579,11 +593,11 @@ namespace pk
         std::unordered_map<int, std::vector<tinygltf::AnimationChannel>>::const_iterator ncIt;
         for (ncIt = nodeChannelsMapping.begin(); ncIt != nodeChannelsMapping.end(); ++ncIt)
         {
-            // gltf appears to provide keyframes in reverse order -> take that in account!
-            for (int keyframeIndex = maxKeyframes - 1; keyframeIndex >= 0; --keyframeIndex)
+            for (int keyframeIndex = 0; keyframeIndex < maxKeyframes; ++keyframeIndex)
             {
                 int poseJointIndex = nodePoseJointMapping[ncIt->first];
-                poseJoints[keyframeIndex][poseJointIndex] = create_anim_pose_joint(
+                // gltf appears to provide keyframes in reverse order -> thats why: maxKeyframes - (keyframeIndex + 1)
+                poseJoints[maxKeyframes - (keyframeIndex + 1)][poseJointIndex] = create_anim_pose_joint(
                     gltfModel,
                     gltfAnim,
                     ncIt->second,
@@ -591,6 +605,7 @@ namespace pk
                 );
             }
         }
+
         std::vector<Pose> outPoses;
         std::unordered_map<int, std::vector<Joint>>::const_iterator pjIt;
         for (pjIt = poseJoints.begin(); pjIt != poseJoints.end(); ++pjIt)
