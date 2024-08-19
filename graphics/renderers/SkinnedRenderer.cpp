@@ -15,17 +15,17 @@ namespace pk
         int currentJointIndex,
         std::vector<mat4>& matrices,
         const Pose& bindPose,
+        const Pose& pose,
         const mat4& parentMatrix
     )
     {
         Transform* pTransform = (Transform*)pScene->getComponent(jointEntity, ComponentType::PK_TRANSFORM);
         const mat4& inverseBindMatrix = bindPose.joints[currentJointIndex].inverseMatrix;
-        mat4 m(1.0f);
-        m = pTransform->accessLocalTransformationMatrix();
+        mat4 m = pTransform->accessTransformationMatrix();
         matrices.push_back(m * inverseBindMatrix);
-        // NOTE: ISSUE! Propably not mapping to correct entities!!!!!
+
         std::vector<entityID_t> childJointEntities = pScene->getChildren(jointEntity);
-        for (int i = 0; i < childJointEntities.size(); ++i)
+        for (int i = 0; i < bindPose.jointChildMapping[currentJointIndex].size(); ++i)
         {
             int childJointIndex = bindPose.jointChildMapping[currentJointIndex][i];
             update_joint_matrices(
@@ -34,6 +34,7 @@ namespace pk
                 childJointIndex,
                 matrices,
                 bindPose,
+                pose,
                 m
             );
         }
@@ -462,8 +463,8 @@ namespace pk
                     { { 6, ShaderDataType::Mat4 } }
                 );
                 */
-                // Update joint matrices buffer to match this renderable's skeleton
 
+                // Update joint matrices buffer to match this renderable's skeleton
                 std::vector<mat4> jointMatrices;
                 mat4 identity(1.0f);
                 //memset(jointMatrices.data(), 0, sizeof(mat4) * s_maxJoints);
@@ -476,27 +477,14 @@ namespace pk
                     0,
                     jointMatrices,
                     bindPose,
+                    testPose,
                     mat4(1.0f)
                 );
-
-                //for (int i = 0; i < bindPose.joints.size(); ++i)
-                //    jointMatrices[i] = jointMatrices[i] * bindPose.joints[i].inverseMatrix;
 
                 _jointMatricesBuffer[0]->update(
                     jointMatrices.data(),
                     jointMatrices.size() * sizeof(mat4)
                 );
-
-                //if (!s_TEST)
-                //{
-                //    Debug::log("___TEST___joint matrices --------------------------");
-                //    for (mat4& m : jointMatrices)
-                //    {
-                //        Debug::log(m.toString());
-                //    }
-                //    Debug::log("---------------------------------------------------");
-                //    s_TEST = true;
-                //}
 
                 // NOTE: Not sure if its allowed in vulkan to call cmdBindDescriptorSets
                 // multiple times like we do here!

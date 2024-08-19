@@ -338,10 +338,13 @@ namespace pk
                         val.z /= sum;
                         val.w /= sum;
                     }
+                    else if (sum != 1.0f)
+                    {
+                        val = vec4(1.0f, 0, 0, 0);
+                    }
                     vertexJointData[vertexIndex].first = val;
                     //Debug::log("___TEST___adding weight: " + std::to_string(val.x) + ", " + std::to_string(val.y) + ", " + std::to_string(val.z) + ", " + std::to_string(val.w));
-
-                    Debug::log("___TEST___ADVANCE: " + std::to_string(gltfInternalSize));
+                    //Debug::log("___TEST___ADVANCE: " + std::to_string(gltfInternalSize));
 
                     memcpy(pCombinedRawBuffer + dstOffset, &val, sizeof(vec4));
                 }
@@ -725,6 +728,20 @@ namespace pk
                     nodeJointMapping
                 );
             }
+
+
+            // atm only testing here if loading inverse bind matrices from skin could help...
+            const tinygltf::Accessor& invBindAccess = gltfModel.accessors[gltfModel.skins[0].inverseBindMatrices];
+            const tinygltf::BufferView& invBindBufView = gltfModel.bufferViews[invBindAccess.bufferView];
+            const tinygltf::Buffer& invBindBuf = gltfModel.buffers[invBindBufView.buffer];
+            size_t offset = invBindBufView.byteOffset + invBindAccess.byteOffset;
+            for (int i = 0; i < bindPose.joints.size(); ++i)
+            {
+                mat4 inverseBindMatrix(1.0f);
+                memcpy(&inverseBindMatrix, invBindBuf.data.data() + offset, sizeof(mat4));
+                bindPose.joints[i].inverseMatrix = inverseBindMatrix;
+                offset += sizeof(float) * 16;
+            }
         }
         else if (skinsCount > 1)
         {
@@ -739,7 +756,9 @@ namespace pk
 
 
         if (skinsCount == 1)
+        {
             return new Model(meshes, bindPose, animPoses);
+        }
         else
             return new Model(meshes);
     }
