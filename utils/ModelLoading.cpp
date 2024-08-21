@@ -429,7 +429,6 @@ namespace pk
     )
     {
         const tinygltf::Node& node = gltfModel.nodes[jointNodeIndex];
-        // NOTE: Not sure is gltf matrix row or col major..
         mat4 jointMatrix = to_engine_matrix(node.matrix);
 
         vec3 translation;
@@ -623,6 +622,17 @@ namespace pk
     }
 
 
+    // NOTE:
+    // Current limitations:
+    //  * single mesh only
+    //      - also excluding any camera, light nodes, etc..
+    //  * single skeleton only
+    //  * no material loading
+
+    // TODO:
+    //  * get simple sample files working from Khronos repo
+    //      -> something was wrong with RiggedFigure, having something to do
+    //      with multiple vertex attribs overlapping?
     Model* load_model_gltf(const std::string& filepath)
     {
         tinygltf::Model gltfModel;
@@ -717,6 +727,7 @@ namespace pk
                 rootJointNodeIndex,
                 nodeJointMapping
             );
+            Debug::log("___TEST___loaded joints: " + std::to_string(nodeJointMapping.size()));
             // Load animations if found
             // NOTE: For now supporting just a single animation
             size_t animCount = gltfModel.animations.size();
@@ -729,8 +740,7 @@ namespace pk
                 );
             }
 
-
-            // atm only testing here if loading inverse bind matrices from skin could help...
+            // Load inverse bind matrices
             const tinygltf::Accessor& invBindAccess = gltfModel.accessors[gltfModel.skins[0].inverseBindMatrices];
             const tinygltf::BufferView& invBindBufView = gltfModel.bufferViews[invBindAccess.bufferView];
             const tinygltf::Buffer& invBindBuf = gltfModel.buffers[invBindBufView.buffer];

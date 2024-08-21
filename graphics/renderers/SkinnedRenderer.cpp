@@ -14,15 +14,12 @@ namespace pk
         entityID_t jointEntity,
         int currentJointIndex,
         std::vector<mat4>& matrices,
-        const Pose& bindPose,
-        const Pose& pose,
-        const mat4& parentMatrix
+        const Pose& bindPose
     )
     {
         Transform* pTransform = (Transform*)pScene->getComponent(jointEntity, ComponentType::PK_TRANSFORM);
         const mat4& inverseBindMatrix = bindPose.joints[currentJointIndex].inverseMatrix;
-        mat4 m = pTransform->accessTransformationMatrix();
-        matrices.push_back(m * inverseBindMatrix);
+        matrices[currentJointIndex] = pTransform->accessTransformationMatrix() * inverseBindMatrix;
 
         std::vector<entityID_t> childJointEntities = pScene->getChildren(jointEntity);
         for (int i = 0; i < bindPose.jointChildMapping[currentJointIndex].size(); ++i)
@@ -33,9 +30,7 @@ namespace pk
                 childJointEntities[i],
                 childJointIndex,
                 matrices,
-                bindPose,
-                pose,
-                m
+                bindPose
             );
         }
     }
@@ -445,40 +440,20 @@ namespace pk
             const vec4& materialProperties = pBatch->materialProperties;
             _materialPropsUniformBuffers[0]->update(&materialProperties, sizeof(vec4));
 
-
-
             for (int i = 0; i < pBatch->occupiedCount; ++i)
             {
-                const mat4& transformationMatrix = pBatch->transformationMatrices[i];
                 const entityID_t rootJoint = pBatch->rootJoints[i];
 
-                // not needed if using current joint transform thing..
-                /*
-                pRenderCmd->pushConstants(
-                    pCurrentCmdBuf,
-                    ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
-                    0,
-                    sizeof(mat4),
-                    transformationMatrix.getRawArray(),
-                    { { 6, ShaderDataType::Mat4 } }
-                );
-                */
-
                 // Update joint matrices buffer to match this renderable's skeleton
-                std::vector<mat4> jointMatrices;
-                mat4 identity(1.0f);
-                //memset(jointMatrices.data(), 0, sizeof(mat4) * s_maxJoints);
+                std::vector<mat4> jointMatrices(s_maxJoints);
                 const Pose& bindPose = pModel->accessBindPose();
-                const Pose& testPose = pModel->accessAnimPoses()[2];
-                // Shits fucked here!!!!
+
                 update_joint_matrices(
                     pCurrentScene,
                     rootJoint,
                     0,
                     jointMatrices,
-                    bindPose,
-                    testPose,
-                    mat4(1.0f)
+                    bindPose
                 );
 
                 _jointMatricesBuffer[0]->update(

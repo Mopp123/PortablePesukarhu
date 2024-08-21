@@ -25,7 +25,7 @@ namespace pk
         AnimationMode _mode = AnimationMode::PK_ANIMATION_MODE_PLAY_ONCE;
         // Indices to animation resource's poses
         uint32_t _currentPose = 0;
-        uint32_t _nextPose = 0;
+        uint32_t _nextPose = 1;
         // Progression between current and next pose
         float _progress = 0.0f;
 

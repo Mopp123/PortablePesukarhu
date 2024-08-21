@@ -11,9 +11,11 @@ namespace pk
     class Model : public Resource
     {
     private:
-        // TODO: continuous mesh allocation and change this to be just ptr to that data
+        // TODO: continuous mesh allocation and change this to be just ptr to that data?
         std::vector<Mesh*> _pMeshes;
-        // TODO: Atm just testing skeleton and anim poses here. Put somewhere else!
+        // TODO:
+        // Atm skeleton(bindPose) and anim poses here.
+        // -> in future it should be skeleton per skinned mesh and NOT per model!
         Pose _bindPose;
         std::vector<Pose> _animPoses;
 
