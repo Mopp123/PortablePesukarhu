@@ -10,19 +10,21 @@
 #include "graphics/CommandBuffer.h"
 #include "graphics/RenderCommand.h"
 #include "graphics/shaders/Shader.h"
+#include "ecs/components/AnimationData.h"
 
 #include <unordered_map>
 
 
 namespace pk
 {
+    // TODO: Make less fucked up (transformationMatrices and animationData vectors!)
     class SkinnedMeshBatch
     {
     public:
         const Material* pMaterial = nullptr;
         vec4 materialProperties;
         std::vector<mat4> transformationMatrices;
-        std::vector<entityID_t> rootJoints;
+        std::vector<AnimationData*> animationData;
         size_t initialSize = 0;
         size_t occupiedCount = 0;
         std::vector<DescriptorSet*> materialDescriptorSet;
@@ -41,7 +43,7 @@ namespace pk
         SkinnedMeshBatch(const SkinnedMeshBatch& other) = delete;
         ~SkinnedMeshBatch();
 
-        void add(const mat4& transformationMatrix, entityID_t rootJoint);
+        void add(const mat4& transformationMatrix, AnimationData* pAnimData);
 
         // NOTE: We dont clear transformationMatrices here -> we only zero it
         // because we can be quite sure that its' size remains the same on

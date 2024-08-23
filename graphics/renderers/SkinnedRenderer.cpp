@@ -18,6 +18,7 @@ namespace pk
     )
     {
         Transform* pTransform = (Transform*)pScene->getComponent(jointEntity, ComponentType::PK_TRANSFORM);
+
         const mat4& inverseBindMatrix = bindPose.joints[currentJointIndex].inverseMatrix;
         matrices[currentJointIndex] = pTransform->accessTransformationMatrix() * inverseBindMatrix;
 
@@ -35,6 +36,28 @@ namespace pk
         }
     }
 
+
+    static void update_joint_matrices_TEST(
+        Scene* pScene,
+        int currentJointIndex,
+        std::vector<mat4>& matrices,
+        const Pose& pose
+    )
+    {
+        matrices[currentJointIndex] = pose.joints[currentJointIndex].matrix;
+
+        for (int i = 0; i < pose.jointChildMapping[currentJointIndex].size(); ++i)
+        {
+            update_joint_matrices_TEST(
+                pScene,
+                pose.jointChildMapping[currentJointIndex][i],
+                matrices,
+                pose
+            );
+        }
+    }
+
+
     // TODO: Make it possible on "client side project" to set initial
     // size on "init/scene switch stage"
     SkinnedMeshBatch::SkinnedMeshBatch(
@@ -51,7 +74,7 @@ namespace pk
         initialSize(initialSize)
     {
         transformationMatrices.resize(initialSize);
-        rootJoints.resize(initialSize);
+        animationData.resize(initialSize);
 
         const Texture_new* pDiffuseTexture = pMaterial->getDiffuseTexture(0);
         const Texture_new* pSpecularTexture = pMaterial->getSpecularTexture();
@@ -76,17 +99,17 @@ namespace pk
             delete pMaterialDescriptorSet;
     }
 
-    void SkinnedMeshBatch::add(const mat4& transformationMatrix, entityID_t rootJoint)
+    void SkinnedMeshBatch::add(const mat4& transformationMatrix, AnimationData* pAnimData)
     {
-        if (occupiedCount + 1 >= transformationMatrices.size())
+        if (occupiedCount + 1 > transformationMatrices.size())
         {
             transformationMatrices.push_back(transformationMatrix);
-            rootJoints.push_back(rootJoint);
+            animationData.push_back(pAnimData);
         }
         else
         {
             transformationMatrices[occupiedCount] = transformationMatrix;
-            rootJoints[occupiedCount] = rootJoint;
+            animationData[occupiedCount] = pAnimData;
         }
         ++occupiedCount;
     }
@@ -104,9 +127,9 @@ namespace pk
             sizeof(mat4) * transformationMatrices.size()
         );
         memset(
-            rootJoints.data(),
+            animationData.data(),
             0,
-            sizeof(entityID_t) * rootJoints.size()
+            sizeof(entityID_t) * animationData.size()
         );
         occupiedCount = 0;
     }
@@ -147,7 +170,7 @@ namespace pk
                     1,
                     DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                     ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
-                    {{ 6, ShaderDataType::Mat4, s_maxJoints }}
+                    {{ 6, ShaderDataType::Mat4, s_maxJoints }} // locations 6 to 55
                 }
             }
         );
@@ -164,7 +187,7 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 56 }}
+            {{ 57 }} // NOTE: location 56 for transformation matrix
         );
         // Specular texture
         DescriptorSetLayoutBinding specTextureDescSetLayoutBinding(
@@ -172,7 +195,7 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 57 }}
+            {{ 58 }}
         );
         // "properties"
         DescriptorSetLayoutBinding materialPropsDescSetLayoutBinding(
@@ -180,7 +203,7 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 58, ShaderDataType::Float4 }}
+            {{ 59, ShaderDataType::Float4 }}
         );
 
 
@@ -255,6 +278,13 @@ namespace pk
         const ResourceManager& resManager = pApp->getResourceManager();
 
         const SkinnedRenderable * const pRenderable = (const SkinnedRenderable * const)renderableComponent;
+
+        // Get AnimationData component to get pose joint matrices
+        AnimationData* pAnimData = (AnimationData*)Application::get()->accessCurrentScene()->getComponent(
+            pRenderable->entity,
+            ComponentType::PK_ANIMATION_DATA
+        );
+
         PK_id batchIdentifier = pRenderable->meshID;
         const Mesh* pMesh = (const Mesh*)resManager.getResource(pRenderable->meshID);
         if (!pMesh)
@@ -282,7 +312,7 @@ namespace pk
                 return;
             }
             SkinnedMeshBatch* pBatch = _batches[batchIndex];
-            pBatch->add(transformation, pRenderable->skeletonEntity);
+            pBatch->add(transformation, pAnimData);
         }
         else
         {
@@ -299,7 +329,7 @@ namespace pk
                 _materialDescSetLayout,
                 _constMaterialPropsUniformBuffers
             );
-            pNewBatch->add(transformation, pRenderable->skeletonEntity);
+            pNewBatch->add(transformation, pAnimData);
             _batches.push_back(pNewBatch);
             _identifierBatchMapping[batchIdentifier] = _batches.size() - 1;
 
@@ -442,18 +472,15 @@ namespace pk
 
             for (int i = 0; i < pBatch->occupiedCount; ++i)
             {
-                const entityID_t rootJoint = pBatch->rootJoints[i];
-
-                // Update joint matrices buffer to match this renderable's skeleton
+                // Update joint matrices buffer to match this renderable's current pose
+                // TODO: Optimization: alloc this once and just rewrite per draw call!
                 std::vector<mat4> jointMatrices(s_maxJoints);
-                const Pose& bindPose = pModel->accessBindPose();
-
-                update_joint_matrices(
+                AnimationData* pAnimData = pBatch->animationData[i];
+                update_joint_matrices_TEST(
                     pCurrentScene,
-                    rootJoint,
                     0,
                     jointMatrices,
-                    bindPose
+                    pAnimData->getResultPose()
                 );
 
                 _jointMatricesBuffer[0]->update(
@@ -463,6 +490,8 @@ namespace pk
 
                 // NOTE: Not sure if its allowed in vulkan to call cmdBindDescriptorSets
                 // multiple times like we do here!
+                //  -> UPDATE TO ABOVE!
+                //      ->   our system doesnt allow that atm.. Vulkan propably does
                 std::vector<const DescriptorSet*> toBind =
                 {
                     masterRenderer.getCommonDescriptorSet(),
@@ -477,6 +506,18 @@ namespace pk
                     PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
                     0,
                     toBind
+                );
+
+                const mat4& transformationMatrix = pBatch->transformationMatrices[i];
+                pRenderCmd->pushConstants(
+                    pCurrentCmdBuf,
+                    ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
+                    0,
+                    sizeof(mat4),
+                    transformationMatrix.getRawArray(),
+                    {
+                        { 56, ShaderDataType::Mat4 }
+                    }
                 );
 
                 pRenderCmd->drawIndexed(

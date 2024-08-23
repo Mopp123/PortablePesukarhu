@@ -226,20 +226,6 @@ namespace pk
                     sortedVertexBufferAttributes[attribLocation] = std::make_pair(elem, bufferViewIndex);
                     attribAccessorMapping[attribLocation] = accessor;
 
-                    // TESTING
-                    if (attribLocation == 4)
-                    {
-                        tinygltf::BufferView& bview = gltfModel.bufferViews[bufferViewIndex];
-                        size_t offset = bview.byteOffset;
-                        size_t size = bview.byteLength;
-                        Debug::log("___TEST___Joint buffer data(offset = " + std::to_string(offset) + " size = " + std::to_string(size) + "):");
-                        for (size_t i = 0; i < size; ++i)
-                        {
-                            unsigned char val = *(gltfModel.buffers[gltfModel.bufferViews[bufferViewIndex].buffer].data.data() + offset + i);
-                            Debug::log("    [" + std::to_string(i) + "]: " + std::to_string(val));
-                        }
-                    }
-
                     size_t elemCount = accessor.count;
                     combinedVertexBufferSize += elemCount * attribSize;
                 }
@@ -254,7 +240,6 @@ namespace pk
                 }
             }
         }
-        Debug::log("___TEST___combined buffer size = " + std::to_string(combinedVertexBufferSize));
 
         if (!pIndexBufferAccessor)
         {
@@ -316,7 +301,6 @@ namespace pk
                 val.w = (float)*(pSrcBuffer + 3);
                 vertexJointData[vertexIndex].second = val;
 
-                //Debug::log("___TEST___adding weight: " + std::to_string(val.x) + ", " + std::to_string(val.y) + ", " + std::to_string(val.z) + ", " + std::to_string(val.w));
                 memcpy(pCombinedRawBuffer + dstOffset, &val, sizeof(vec4));
             }
             else
@@ -329,7 +313,6 @@ namespace pk
                     val.y = (float)*(pSrcBuffer + sizeof(float));
                     val.z = (float)*(pSrcBuffer + sizeof(float) * 2);
                     val.w = (float)*(pSrcBuffer + sizeof(float) * 3);
-                    //Debug::log("___TEST___adding weight(original val): " + std::to_string(val.x) + ", " + std::to_string(val.y) + ", " + std::to_string(val.z) + ", " + std::to_string(val.w));
                     const float sum = val.x + val.y + val.z + val.w;
                     if (sum != 0.0f)
                     {
@@ -343,8 +326,6 @@ namespace pk
                         val = vec4(1.0f, 0, 0, 0);
                     }
                     vertexJointData[vertexIndex].first = val;
-                    //Debug::log("___TEST___adding weight: " + std::to_string(val.x) + ", " + std::to_string(val.y) + ", " + std::to_string(val.z) + ", " + std::to_string(val.w));
-                    //Debug::log("___TEST___ADVANCE: " + std::to_string(gltfInternalSize));
 
                     memcpy(pCombinedRawBuffer + dstOffset, &val, sizeof(vec4));
                 }
@@ -366,19 +347,6 @@ namespace pk
             ++i;
             if ((i % 5) == 0)
                 ++vertexIndex;
-        }
-
-
-        Debug::log("___TEST___vertex count = " + std::to_string(vertexCount));
-        // TESTING PRINT VERTEX JOINT DATA
-        Debug::log("___TEST___VERTEX JOINT DATA:");
-        for (int i = 0; i < vertexJointData.size(); ++i)
-        {
-            vec4 w = vertexJointData[i].first;
-            vec4 j = vertexJointData[i].second;
-            Debug::log(
-                "    [" + std::to_string(i) + "]: weights: " + w.toString() + " joint ids: " + j.toString()
-            );
         }
 
         Buffer* pVertexBuffer = Buffer::create(

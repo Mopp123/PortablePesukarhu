@@ -2,7 +2,9 @@
 #include "ecs/components/Component.h"
 #include <emscripten/console.h>
 #include <iostream>
+#include <cassert>
 
+// NOTE: Not remembering anymore wtf "LS" stands for here...
 #define LS_DEBUG_MESSAGE_TAG__MESSAGE		""
 #define LS_DEBUG_MESSAGE_TAG__WARNING		"(Warning)"
 #define LS_DEBUG_MESSAGE_TAG__ERROR			"[ERROR]"
@@ -11,7 +13,7 @@
 
 namespace pk
 {
-#ifdef PK_PLATFORM_WEB
+
     void Debug::log(std::string message, MessageType t)
     {
         std::string fullMsg = std::string(LS_DEBUG_MESSAGE_TAG__ERROR) + " Invalid message type: " + std::to_string(t);
@@ -24,22 +26,15 @@ namespace pk
             default:
                 break;
         }
+
+    #ifdef PK_PLATFORM_WEB
         emscripten_console_log(fullMsg.c_str());
+    #else
+        std::cout << fullMsg << std::endl;
+    #endif
+        if (t == MessageType::PK_FATAL_ERROR)
+            assert(0 && "PK_FATAL_ERROR triggered");
     }
-#else
-    void Debug::log(std::string message, MessageType t)
-    {
-        switch (t)
-        {
-            case pk::Debug::PK_MESSAGE:		  std::cout << LS_DEBUG_MESSAGE_TAG__MESSAGE << " " << message << std::endl; break;
-            case pk::Debug::PK_WARNING:		  std::cout << LS_DEBUG_MESSAGE_TAG__WARNING << " " << message << std::endl; break;
-            case pk::Debug::PK_ERROR:		    std::cout << LS_DEBUG_MESSAGE_TAG__ERROR << " " << message << std::endl; break;
-            case pk::Debug::PK_FATAL_ERROR: std::cout << LS_DEBUG_MESSAGE_TAG__FATAL_ERROR << " " << message << std::endl; break;
-            default:
-                break;
-        }
-    }
-#endif
 
     /*
     void Debug::log_entity(Entity entity)

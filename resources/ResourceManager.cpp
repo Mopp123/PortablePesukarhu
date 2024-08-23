@@ -222,10 +222,11 @@ namespace pk
     }
 
     Animation* ResourceManager::createAnimation(
+        const Pose& bindPose,
         const std::vector<Pose>& poses
     )
     {
-        Animation* pAnimation = new Animation(poses);
+        Animation* pAnimation = new Animation(bindPose, poses);
         _resources[pAnimation->getResourceID()] = pAnimation;
         return pAnimation;
     }

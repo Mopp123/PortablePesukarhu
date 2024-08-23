@@ -498,7 +498,14 @@ namespace pk
     )
     {
         AnimationData* pComponent = (AnimationData*)componentPools[ComponentType::PK_ANIMATION_DATA].allocComponent(target);
-        *pComponent = AnimationData(animationResourceID, mode);
+        // For now figure out joint count here.. maybe in future somewhere else..
+        ResourceManager& resManager = Application::get()->getResourceManager();
+        const Animation* pAnimResource = (const Animation*)resManager.getResource(animationResourceID);
+        *pComponent = AnimationData(
+            animationResourceID,
+            mode,
+            pAnimResource->getBindPose()
+        );
         addComponent(target, pComponent);
         return pComponent;
     }

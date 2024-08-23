@@ -2,6 +2,7 @@
 
 #include "ecs/components/Component.h"
 #include "utils/ID.h"
+#include "graphics/animation/Pose.h"
 
 
 namespace pk
@@ -31,18 +32,23 @@ namespace pk
 
         bool _stopped = false;
 
+        Pose _resultPose;
+
     public:
-        AnimationData(PK_id animationResourceID, AnimationMode mode) :
+        AnimationData(PK_id animationResourceID, AnimationMode mode, const Pose& bindPose) :
             Component(ComponentType::PK_ANIMATION_DATA),
             _animationResourceID(animationResourceID),
-            _mode(mode)
-        {}
+            _mode(mode),
+            _resultPose(bindPose)
+        {
+        }
         AnimationData(const AnimationData& other) :
             _animationResourceID(other._animationResourceID),
             _mode(other._mode),
             _currentPose(other._currentPose),
             _nextPose(other._nextPose),
-            _progress(other._progress)
+            _progress(other._progress),
+            _resultPose(other._resultPose)
         {}
         ~AnimationData() {}
 
@@ -56,5 +62,8 @@ namespace pk
 
         inline void TEST_setCurrentPose(uint32_t keyframe) { _currentPose = keyframe; }
         inline void TEST_setNextPose(uint32_t keyframe) { _nextPose = keyframe; }
+
+        inline void setResultPoseJoint(const Joint& joint, int jointIndex) { _resultPose.joints[jointIndex] = joint; }
+        inline const Pose& getResultPose() const { return _resultPose; }
     };
 }

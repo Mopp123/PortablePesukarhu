@@ -10,10 +10,11 @@ namespace pk
     class Animation : public Resource
     {
     private:
+        Pose _bindPose;
         std::vector<Pose> _poses;
 
     public:
-        Animation(const std::vector<Pose>& poses);
+        Animation(const Pose& bindPose, const std::vector<Pose>& poses);
         ~Animation();
 
         void load() {};
@@ -21,5 +22,6 @@ namespace pk
 
         inline const Pose& getPose(int keyframe) const { return _poses[keyframe]; }
         inline size_t getKeyframeCount() const { return _poses.size(); }
+        inline const Pose& getBindPose() const { return _bindPose; }
     };
 }

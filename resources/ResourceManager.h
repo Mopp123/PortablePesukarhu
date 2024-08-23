@@ -88,6 +88,7 @@ namespace pk
         );
 
         Animation* createAnimation(
+            const Pose& bindPose,
             const std::vector<Pose>& poses
         );
 
