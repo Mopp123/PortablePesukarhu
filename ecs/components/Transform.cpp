@@ -79,11 +79,16 @@ namespace pk
         _localTransformationMatrix = _transformationMatrix;
     }
 
-    Transform::Transform(mat4 matrix) :
+    Transform::Transform(mat4 matrix, mat4 inverseBindMatrix) :
         Component(ComponentType::PK_TRANSFORM),
         _transformationMatrix(matrix),
         _localTransformationMatrix(matrix)
     {
+        if (inverseBindMatrix != mat4(0.0f))
+        {
+            _isJoint = true;
+            _inverseBindMatrix = inverseBindMatrix;
+        }
     }
 
     Transform::Transform(const Transform& other) :

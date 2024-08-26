@@ -23,7 +23,7 @@ namespace pk
     public:
         const Material* pMaterial = nullptr;
         vec4 materialProperties;
-        std::vector<mat4> transformationMatrices;
+        std::vector<entityID_t> rootJointEntities;
         std::vector<AnimationData*> animationData;
         size_t initialSize = 0;
         size_t occupiedCount = 0;
@@ -43,7 +43,7 @@ namespace pk
         SkinnedMeshBatch(const SkinnedMeshBatch& other) = delete;
         ~SkinnedMeshBatch();
 
-        void add(const mat4& transformationMatrix, AnimationData* pAnimData);
+        void add(entityID_t rootJointEntity, AnimationData* pAnimData);
 
         // NOTE: We dont clear transformationMatrices here -> we only zero it
         // because we can be quite sure that its' size remains the same on

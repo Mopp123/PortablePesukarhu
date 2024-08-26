@@ -40,22 +40,11 @@ namespace pk
         quat jointRotation = currentJoint.rotation;
         // NOTE: Not sure is scale correct here..
         mat4 jointMat = currentJoint.matrix;
-        if (jointMat == mat4(0.0f))
-        {
-            scene.createTransform(
-                entity,
-                { 0, 0, 0},
-                { 0, 0, 0, 1},
-                { 1.0f, 1.0f, 1.0f }
-            );
-        }
-        else
-        {
-            scene.createTransform(
-                entity,
-                jointMat
-            );
-        }
+        scene.createTransform(
+            entity,
+            jointMat,
+            currentJoint.inverseMatrix
+        );
 
         if (parent != NULL_ENTITY_ID)
             scene.addChild(parent, entity);
@@ -346,11 +335,15 @@ namespace pk
 
     Transform* Scene::createTransform(
         entityID_t target,
-        mat4 transformationMatrix
+        mat4 transformationMatrix,
+        mat4 inverseBindMatrix
     )
     {
         Transform* pTransform = (Transform*)componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
-        *pTransform = Transform(transformationMatrix);
+        if (inverseBindMatrix == mat4(0.0f))
+            *pTransform = Transform(transformationMatrix);
+        else
+            *pTransform = Transform(transformationMatrix, inverseBindMatrix);
         addComponent(target, pTransform);
         return pTransform;
     }

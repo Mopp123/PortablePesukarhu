@@ -84,7 +84,8 @@ namespace pk
         );
         Transform* createTransform(
             entityID_t target,
-            mat4 transformationMatrix
+            mat4 transformationMatrix,
+            mat4 inverseBindMatrix = mat4(0.0f)
         );
         ConstraintData* createUIConstraint(
             entityID_t target,

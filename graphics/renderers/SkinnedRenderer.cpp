@@ -14,13 +14,20 @@ namespace pk
         entityID_t jointEntity,
         int currentJointIndex,
         std::vector<mat4>& matrices,
-        const Pose& bindPose
+        const Pose& bindPose,
+        mat4 parentMatrix
     )
     {
         Transform* pTransform = (Transform*)pScene->getComponent(jointEntity, ComponentType::PK_TRANSFORM);
 
         const mat4& inverseBindMatrix = bindPose.joints[currentJointIndex].inverseMatrix;
-        matrices[currentJointIndex] = pTransform->accessTransformationMatrix() * inverseBindMatrix;
+        mat4 m(1.0f);
+        if (currentJointIndex == 0)
+            m = pTransform->accessTransformationMatrix();
+        else
+            m = parentMatrix * pTransform->accessLocalTransformationMatrix();
+
+        matrices[currentJointIndex] = m * inverseBindMatrix;
 
         std::vector<entityID_t> childJointEntities = pScene->getChildren(jointEntity);
         for (int i = 0; i < bindPose.jointChildMapping[currentJointIndex].size(); ++i)
@@ -31,7 +38,8 @@ namespace pk
                 childJointEntities[i],
                 childJointIndex,
                 matrices,
-                bindPose
+                bindPose,
+                m
             );
         }
     }
@@ -73,7 +81,7 @@ namespace pk
         materialProperties(materialProperties),
         initialSize(initialSize)
     {
-        transformationMatrices.resize(initialSize);
+        rootJointEntities.resize(initialSize);
         animationData.resize(initialSize);
 
         const Texture_new* pDiffuseTexture = pMaterial->getDiffuseTexture(0);
@@ -99,16 +107,16 @@ namespace pk
             delete pMaterialDescriptorSet;
     }
 
-    void SkinnedMeshBatch::add(const mat4& transformationMatrix, AnimationData* pAnimData)
+    void SkinnedMeshBatch::add(entityID_t rootJointEntity, AnimationData* pAnimData)
     {
-        if (occupiedCount + 1 > transformationMatrices.size())
+        if (occupiedCount + 1 > rootJointEntities.size())
         {
-            transformationMatrices.push_back(transformationMatrix);
+            rootJointEntities.push_back(rootJointEntity);
             animationData.push_back(pAnimData);
         }
         else
         {
-            transformationMatrices[occupiedCount] = transformationMatrix;
+            rootJointEntities[occupiedCount] = rootJointEntity;
             animationData[occupiedCount] = pAnimData;
         }
         ++occupiedCount;
@@ -122,9 +130,9 @@ namespace pk
         pMaterial = nullptr;
         materialProperties = { 0.0f, 0.0f, 0.0f, 0.0f };
         memset(
-            transformationMatrices.data(),
+            rootJointEntities.data(),
             0,
-            sizeof(mat4) * transformationMatrices.size()
+            sizeof(mat4) * rootJointEntities.size()
         );
         memset(
             animationData.data(),
@@ -187,7 +195,7 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 57 }} // NOTE: location 56 for transformation matrix
+            {{ 56 }}
         );
         // Specular texture
         DescriptorSetLayoutBinding specTextureDescSetLayoutBinding(
@@ -195,7 +203,7 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 58 }}
+            {{ 57 }}
         );
         // "properties"
         DescriptorSetLayoutBinding materialPropsDescSetLayoutBinding(
@@ -203,7 +211,7 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 59, ShaderDataType::Float4 }}
+            {{ 58, ShaderDataType::Float4 }}
         );
 
 
@@ -279,9 +287,10 @@ namespace pk
 
         const SkinnedRenderable * const pRenderable = (const SkinnedRenderable * const)renderableComponent;
 
+        entityID_t rootJointEntity = pRenderable->rootJointEntity;
         // Get AnimationData component to get pose joint matrices
         AnimationData* pAnimData = (AnimationData*)Application::get()->accessCurrentScene()->getComponent(
-            pRenderable->entity,
+            rootJointEntity,
             ComponentType::PK_ANIMATION_DATA
         );
 
@@ -312,7 +321,7 @@ namespace pk
                 return;
             }
             SkinnedMeshBatch* pBatch = _batches[batchIndex];
-            pBatch->add(transformation, pAnimData);
+            pBatch->add(rootJointEntity, pAnimData);
         }
         else
         {
@@ -329,7 +338,7 @@ namespace pk
                 _materialDescSetLayout,
                 _constMaterialPropsUniformBuffers
             );
-            pNewBatch->add(transformation, pAnimData);
+            pNewBatch->add(rootJointEntity, pAnimData);
             _batches.push_back(pNewBatch);
             _identifierBatchMapping[batchIdentifier] = _batches.size() - 1;
         }
@@ -458,12 +467,23 @@ namespace pk
                 // TODO: Optimization: alloc this once and just rewrite per draw call!
                 std::vector<mat4> jointMatrices(s_maxJoints);
                 AnimationData* pAnimData = pBatch->animationData[i];
+
+                update_joint_matrices(
+                    pCurrentScene,
+                    pBatch->rootJointEntities[i],
+                    0,
+                    jointMatrices,
+                    pMesh->accessBindPose(),
+                    mat4(1.0f)
+                );
+                /*
                 update_joint_matrices_TEST(
                     pCurrentScene,
                     0,
                     jointMatrices,
                     pAnimData->getResultPose()
                 );
+                */
 
                 _jointMatricesBuffer[0]->update(
                     jointMatrices.data(),
@@ -490,17 +510,17 @@ namespace pk
                     toBind
                 );
 
-                const mat4& transformationMatrix = pBatch->transformationMatrices[i];
-                pRenderCmd->pushConstants(
-                    pCurrentCmdBuf,
-                    ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
-                    0,
-                    sizeof(mat4),
-                    transformationMatrix.getRawArray(),
-                    {
-                        { 56, ShaderDataType::Mat4 }
-                    }
-                );
+                //const mat4& transformationMatrix = pBatch->transformationMatrices[i];
+                //pRenderCmd->pushConstants(
+                //    pCurrentCmdBuf,
+                //    ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
+                //    0,
+                //    sizeof(mat4),
+                //    transformationMatrix.getRawArray(),
+                //    {
+                //        { 56, ShaderDataType::Mat4 }
+                //    }
+                //);
 
                 pRenderCmd->drawIndexed(
                     pCurrentCmdBuf,

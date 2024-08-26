@@ -18,16 +18,14 @@ namespace pk
         PK_id meshID = 0;
 
         // NOTE:
-        // Currently need to know entity which holds the AnimationData component
-        //  -> atm necessary before making renderers behave like systems!
-        //  -> also don't want to have links between components!
-        entityID_t entity = NULL_ENTITY_ID;
+        // Currently need to know entity which is the "root joint" and also holding the AnimationData component
+        entityID_t rootJointEntity = NULL_ENTITY_ID;
 
-        SkinnedRenderable(PK_id modelID, PK_id meshID, entityID_t entity) :
+        SkinnedRenderable(PK_id modelID, PK_id meshID, entityID_t rootJointEntity) :
             Component(ComponentType::PK_RENDERABLE_SKINNED),
             modelID(modelID),
             meshID(meshID),
-            entity(entity)
+            rootJointEntity(rootJointEntity)
         {}
     };
 }
