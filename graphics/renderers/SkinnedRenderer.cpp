@@ -332,10 +332,6 @@ namespace pk
             pNewBatch->add(transformation, pAnimData);
             _batches.push_back(pNewBatch);
             _identifierBatchMapping[batchIdentifier] = _batches.size() - 1;
-
-            // Just temp hack to test this stuff..
-            if (_batchModelIDMapping.find(batchIdentifier) == _batchModelIDMapping.end())
-                _batchModelIDMapping[batchIdentifier] = pRenderable->modelID;
         }
     }
 
@@ -414,26 +410,12 @@ namespace pk
             if (_batchMeshMapping.find(batchIdentifier) == _batchMeshMapping.end())
                 _batchMeshMapping[batchIt->first] = (Mesh*)resManager.getResource(batchIdentifier);
 
-            if (_batchModelMapping.find(_batchModelIDMapping[batchIdentifier]) == _batchModelMapping.end())
-                _batchModelMapping[_batchModelIDMapping[batchIdentifier]] = (Model*)resManager.getResource(_batchModelIDMapping[batchIdentifier]);
-
             Mesh* pMesh = _batchMeshMapping[batchIdentifier];
-            Model* pModel = _batchModelMapping[_batchModelIDMapping[batchIdentifier]];
             if (!pMesh)
             {
                 Debug::log(
                     "@SkinnedRenderer::render "
                     "Failed to find batch's mesh from resource manager with "
-                    "batch identifier: " + std::to_string(batchIdentifier),
-                    Debug::MessageType::PK_FATAL_ERROR
-                );
-                continue;
-            }
-            if (!pModel)
-            {
-                Debug::log(
-                    "@SkinnedRenderer::render "
-                    "Failed to find batch's model from resource manager with "
                     "batch identifier: " + std::to_string(batchIdentifier),
                     Debug::MessageType::PK_FATAL_ERROR
                 );
@@ -558,7 +540,6 @@ namespace pk
         _batches.clear();
         _batchMeshMapping.clear();
 
-        _batchModelIDMapping.clear();
         _batchMeshMapping.clear();
     }
 

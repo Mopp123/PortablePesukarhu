@@ -364,7 +364,7 @@ namespace pk
             Debug::log("\tlocation = " + std::to_string(e.getLocation()) + " type = " + std::to_string(e.getType()));
 
         pMesh = new Mesh(
-            pVertexBuffer,
+            { pVertexBuffer },
             pIndexBuffer,
             nullptr,
             { vbLayoutElements, VertexInputRate::VERTEX_INPUT_RATE_VERTEX }
@@ -546,7 +546,7 @@ namespace pk
         tinygltf::Animation& gltfAnim = gltfModel.animations[0];
 
         std::unordered_map<int, std::vector<tinygltf::AnimationChannel>> nodeChannelsMapping;
-        // We require all nodes to have same amount of keyframes here!
+        // We require all nodes to have same amount of keyframes at same time here!
         size_t maxKeyframes = 0;
         for (tinygltf::AnimationChannel& channel : gltfAnim.channels)
         {
@@ -720,6 +720,11 @@ namespace pk
                 bindPose.joints[i].inverseMatrix = inverseBindMatrix;
                 offset += sizeof(float) * 16;
             }
+            // NOTE: Temporarely assign mesh's bind and animation poses here
+            // TODO: Load bind pose an anim poses in same func where mesh loading happens!
+            // TODO: Support multiple meshes
+            meshes[0]->setBindPose(bindPose);
+            meshes[0]->setAnimationPoses(animPoses);
         }
         else if (skinsCount > 1)
         {
@@ -735,7 +740,7 @@ namespace pk
 
         if (skinsCount == 1)
         {
-            return new Model(meshes, bindPose, animPoses);
+            return new Model(meshes);
         }
         else
             return new Model(meshes);

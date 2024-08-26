@@ -29,16 +29,18 @@ namespace pk
         uint32_t _nextPose = 1;
         // Progression between current and next pose
         float _progress = 0.0f;
+        float _speed = 1.0f;
 
         bool _stopped = false;
 
         Pose _resultPose;
 
     public:
-        AnimationData(PK_id animationResourceID, AnimationMode mode, const Pose& bindPose) :
+        AnimationData(PK_id animationResourceID, AnimationMode mode, float speed, const Pose& bindPose) :
             Component(ComponentType::PK_ANIMATION_DATA),
             _animationResourceID(animationResourceID),
             _mode(mode),
+            _speed(speed),
             _resultPose(bindPose)
         {
         }
@@ -59,6 +61,7 @@ namespace pk
         inline void setProgress(float progress) { _progress = progress; }
 
         inline void setMode(AnimationMode mode) { _mode = mode; }
+        inline float getSpeed() const { return _speed; }
 
         inline void TEST_setCurrentPose(uint32_t keyframe) { _currentPose = keyframe; }
         inline void TEST_setNextPose(uint32_t keyframe) { _nextPose = keyframe; }

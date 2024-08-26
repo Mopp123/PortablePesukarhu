@@ -169,7 +169,7 @@ namespace pk
     }
 
     Mesh* ResourceManager::createMesh(
-        Buffer* pVertexBuffer,
+        const std::vector<Buffer*>& vertexBuffers,
         Buffer* pIndexBuffer,
         const VertexBufferLayout& layout,
         uint32_t materialResourceID
@@ -177,7 +177,7 @@ namespace pk
     {
         Material* pMaterial = (Material*)getResource(materialResourceID);
         Mesh* pMesh = new Mesh(
-            pVertexBuffer,
+            vertexBuffers,
             pIndexBuffer,
             pMaterial,
             layout

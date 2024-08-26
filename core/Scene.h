@@ -133,7 +133,8 @@ namespace pk
         AnimationData* createAnimationData(
             entityID_t target,
             PK_id animationResourceID,
-            AnimationMode mode
+            AnimationMode mode,
+            float speed
         );
 
         // TODO: all getComponent things could be optimized?

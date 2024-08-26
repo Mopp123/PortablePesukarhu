@@ -494,7 +494,8 @@ namespace pk
     AnimationData* Scene::createAnimationData(
         entityID_t target,
         PK_id animationResourceID,
-        AnimationMode mode
+        AnimationMode mode,
+        float speed
     )
     {
         AnimationData* pComponent = (AnimationData*)componentPools[ComponentType::PK_ANIMATION_DATA].allocComponent(target);
@@ -504,6 +505,7 @@ namespace pk
         *pComponent = AnimationData(
             animationResourceID,
             mode,
+            speed,
             pAnimResource->getBindPose()
         );
         addComponent(target, pComponent);

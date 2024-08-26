@@ -84,11 +84,6 @@ namespace pk
         std::unordered_map<PK_id, int> _identifierBatchMapping;
         std::unordered_map<PK_id, Mesh*> _batchMeshMapping;
 
-        // Just temp hack to get this working..
-        // TODO: Some better solution to this!
-        std::unordered_map<PK_id, PK_id> _batchModelIDMapping;
-        std::unordered_map<PK_id, Model*> _batchModelMapping;
-
     public:
         SkinnedRenderer();
         ~SkinnedRenderer();

@@ -2,6 +2,7 @@
 
 #include "Resource.h"
 #include "graphics/Buffers.h"
+#include "graphics/animation/Pose.h"
 #include "Material.h"
 #include <vector>
 
@@ -16,19 +17,25 @@ namespace pk
         Material* _pMaterial = nullptr;
         VertexBufferLayout _vertexBufferLayout; // Not sure should this actually even be part of the mesh...
 
+        // These aren't required. Mesh may be skinned or not..
+        Pose _bindPose;
+        std::vector<Pose> _animPoses;
+
     public:
-        // NOTE: buffers' ownership gets transferred to here!
+        // NOTE: buffers' ownerships gets transferred to here!
         Mesh(
-            Buffer* pVertexBuffer,
+            const std::vector<Buffer*>& vertexBuffers,
             Buffer* pIndexBuffer,
             Material* pMaterial,
             VertexBufferLayout vertexBufferLayout
         );
         Mesh(
-            std::vector<Buffer*>& vertexBuffers,
+            const std::vector<Buffer*>& vertexBuffers,
             Buffer* pIndexBuffer,
             Material* pMaterial,
-            VertexBufferLayout vertexBufferLayout
+            VertexBufferLayout vertexBufferLayout,
+            const Pose& bindPose,
+            const std::vector<Pose>& animPoses
         );
         Mesh(const Mesh&) = delete;
         ~Mesh();
@@ -51,5 +58,11 @@ namespace pk
         // to take in as const!!!
         inline  Material* accessMaterial() { return _pMaterial; }
         inline  void setMaterial(Material* pMaterial) { _pMaterial = pMaterial; }
+
+        Pose& accessBindPose() { return _bindPose; }
+        std::vector<Pose>& accessAnimPoses() { return _animPoses; }
+        // TODO: get rid of below after cleaning model loading..
+        inline void setBindPose(const Pose& pose) { _bindPose = pose; }
+        inline void setAnimationPoses(const std::vector<Pose>& animPoses) { _animPoses = animPoses; }
     };
 }

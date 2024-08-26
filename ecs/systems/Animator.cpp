@@ -147,8 +147,7 @@ namespace pk
                     mat4(1.0f)
                 );
 
-                const float TEST_animSpeed = 1.0f;
-                pAnimData->_progress += TEST_animSpeed * Timing::get_delta_time();
+                pAnimData->_progress += pAnimData->getSpeed() * Timing::get_delta_time();
                 if (pAnimData->_progress >= 1.0f)
                 {
                     pAnimData->_progress = 0.0f;

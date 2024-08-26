@@ -5,7 +5,7 @@
 namespace pk
 {
     Mesh::Mesh(
-        Buffer* pVertexBuffer,
+        const std::vector<Buffer*>& vertexBuffers,
         Buffer* pIndexBuffer,
         Material* pMaterial,
         VertexBufferLayout vertexBufferLayout
@@ -15,7 +15,10 @@ namespace pk
         _pMaterial(pMaterial),
         _vertexBufferLayout(vertexBufferLayout)
     {
-        _vertexBuffers.push_back(pVertexBuffer);
+        _vertexBuffers.resize(vertexBuffers.size());
+        for (size_t i = 0; i < vertexBuffers.size(); ++i)
+            _vertexBuffers[i] = vertexBuffers[i];
+
         if (!_vertexBufferLayout.isValid())
         {
             Debug::log(
@@ -27,15 +30,19 @@ namespace pk
     }
 
     Mesh::Mesh(
-        std::vector<Buffer*>& vertexBuffers,
+        const std::vector<Buffer*>& vertexBuffers,
         Buffer* pIndexBuffer,
         Material* pMaterial,
-        VertexBufferLayout vertexBufferLayout
+        VertexBufferLayout vertexBufferLayout,
+        const Pose& bindPose,
+        const std::vector<Pose>& animPoses
     ) :
         Resource(ResourceType::RESOURCE_MESH),
         _pIndexBuffer(pIndexBuffer),
         _pMaterial(pMaterial),
-        _vertexBufferLayout(vertexBufferLayout)
+        _vertexBufferLayout(vertexBufferLayout),
+        _bindPose(bindPose),
+        _animPoses(animPoses)
     {
         _vertexBuffers.resize(vertexBuffers.size());
         for (size_t i = 0; i < vertexBuffers.size(); ++i)

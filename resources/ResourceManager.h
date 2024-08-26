@@ -72,7 +72,7 @@ namespace pk
 
         // NOTE: Buffers' ownership gets transferred to the created mesh!
         Mesh* createMesh(
-            Buffer* pVertexBuffer,
+            const std::vector<Buffer*>& vertexBuffers,
             Buffer* pIndexBuffer,
             const VertexBufferLayout& layout,
             uint32_t materialResourceID
