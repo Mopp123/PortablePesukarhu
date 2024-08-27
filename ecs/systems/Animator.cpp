@@ -21,7 +21,7 @@ namespace pk
         const Joint& jointCurrentPose = current.joints[currentJointIndex];
         const Joint& jointNextPose = next.joints[currentJointIndex];
 
-        // TODO: Fix anim translations? something wonky 'bout those..
+        // TODO: Include scaling
         vec3 interpolatedTranslation = jointCurrentPose.translation.lerp(jointNextPose.translation, amount);
         quat interpolatedRotation = jointCurrentPose.rotation.slerp(jointNextPose.rotation, amount);
         pTransform->setPos(interpolatedTranslation);
