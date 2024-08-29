@@ -36,12 +36,6 @@ namespace pk
         std::vector<entityID_t> freeEntityIDs;
         std::unordered_map<ComponentType, ComponentPool> componentPools;
 
-        // TODO: delete below?
-        //std::unordered_map<uint32_t, Component*> components;
-
-        // TODO: delete below
-        //std::unordered_map<ComponentType, std::vector<uint32_t>> typeComponentMapping;
-
         entityID_t activeCamera = NULL_ENTITY_ID;
         entityID_t directionalLight = NULL_ENTITY_ID;
         struct EnvironmentProperties environmentProperties;
@@ -55,7 +49,8 @@ namespace pk
         Entity getEntity(entityID_t entity) const;
         void destroyEntity(entityID_t entityID);
         void addChild(entityID_t entityID, entityID_t childID);
-        std::vector<entityID_t> getChildren(entityID_t entityID);
+        // NOTE: Could be optimized to return just ptr to first child and child count
+        std::vector<entityID_t> getChildren(entityID_t entityID) const;
 
         void addComponent(entityID_t entityID, Component* component);
         inline bool isValidEntity(entityID_t entityID) const

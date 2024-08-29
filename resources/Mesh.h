@@ -60,6 +60,7 @@ namespace pk
         inline  void setMaterial(Material* pMaterial) { _pMaterial = pMaterial; }
 
         Pose& accessBindPose() { return _bindPose; }
+        const Pose& getBindPose() const { return _bindPose; }
         std::vector<Pose>& accessAnimPoses() { return _animPoses; }
         // TODO: get rid of below after cleaning model loading..
         inline void setBindPose(const Pose& pose) { _bindPose = pose; }

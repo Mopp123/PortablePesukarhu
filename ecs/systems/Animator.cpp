@@ -21,7 +21,7 @@ namespace pk
         const Joint& jointCurrentPose = current.joints[currentJointIndex];
         const Joint& jointNextPose = next.joints[currentJointIndex];
 
-        // TODO: Fix anim translations? something wonky 'bout those..
+        // TODO: Include scaling
         vec3 interpolatedTranslation = jointCurrentPose.translation.lerp(jointNextPose.translation, amount);
         quat interpolatedRotation = jointCurrentPose.rotation.slerp(jointNextPose.rotation, amount);
         pTransform->setPos(interpolatedTranslation);
@@ -136,6 +136,7 @@ namespace pk
                 const Pose& currentPose = pAnimationResource->getPose(currentPoseIndex);
                 const Pose& nextPose = pAnimationResource->getPose(pAnimData->_nextPose);
 
+                /*
                 apply_interpolation_to_joints(
                     *pScene,
                     pAnimData,
@@ -145,6 +146,16 @@ namespace pk
                     pAnimData->_progress,
                     0,
                     mat4(1.0f)
+                );
+                */
+
+                apply_interpolation_to_joints_DEPRECATED(
+                    *pScene,
+                    e.id,
+                    currentPose,
+                    nextPose,
+                    pAnimData->_progress,
+                    0
                 );
 
                 pAnimData->_progress += pAnimData->getSpeed() * Timing::get_delta_time();

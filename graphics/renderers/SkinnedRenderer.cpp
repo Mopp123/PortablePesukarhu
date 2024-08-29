@@ -9,18 +9,31 @@
 
 namespace pk
 {
+    static int s_maxJoints = 50;
+
+    // TODO: Consider some way to optimize
+    // (this + transform system + animator system does almost the same shit
+    //  -> like.. almost ^3 times the work needed.. necessary tho to have
+    //  transforms behaving same way without any weird exceptions)
     static void update_joint_matrices(
         Scene* pScene,
         entityID_t jointEntity,
         int currentJointIndex,
         std::vector<mat4>& matrices,
-        const Pose& bindPose
+        const Pose& bindPose,
+        mat4 parentMatrix
     )
     {
         Transform* pTransform = (Transform*)pScene->getComponent(jointEntity, ComponentType::PK_TRANSFORM);
 
         const mat4& inverseBindMatrix = bindPose.joints[currentJointIndex].inverseMatrix;
-        matrices[currentJointIndex] = pTransform->accessTransformationMatrix() * inverseBindMatrix;
+        mat4 m(1.0f);
+        if (currentJointIndex == 0)
+            m = pTransform->accessTransformationMatrix();
+        else
+            m = parentMatrix * pTransform->accessLocalTransformationMatrix();
+
+        matrices[currentJointIndex] = m * inverseBindMatrix;
 
         std::vector<entityID_t> childJointEntities = pScene->getChildren(jointEntity);
         for (int i = 0; i < bindPose.jointChildMapping[currentJointIndex].size(); ++i)
@@ -31,13 +44,52 @@ namespace pk
                 childJointEntities[i],
                 childJointIndex,
                 matrices,
-                bindPose
+                bindPose,
+                m
             );
         }
     }
 
+    static void update_joint_matrices_SPEED(
+        const Scene* pScene,
+        entityID_t jointEntity,
+        int currentJointIndex,
+        const Pose& bindPose,
+        mat4 parentMatrix,
+        void* pTargetBuffer
+    )
+    {
+        Transform* pTransform = (Transform*)pScene->getComponent(jointEntity, ComponentType::PK_TRANSFORM);
 
-    static void update_joint_matrices_TEST(
+        const mat4& inverseBindMatrix = bindPose.joints[currentJointIndex].inverseMatrix;
+
+        mat4 m(1.0f);
+        if (currentJointIndex == 0)
+            m = pTransform->accessTransformationMatrix();
+        else
+            m = parentMatrix * pTransform->accessLocalTransformationMatrix();
+
+        const mat4 m2 = m * inverseBindMatrix;
+
+        const size_t targetOffset = currentJointIndex * sizeof(mat4);
+        memcpy(((PK_byte*)pTargetBuffer) + targetOffset, &m2, sizeof(mat4));
+
+        std::vector<entityID_t> childJointEntities = pScene->getChildren(jointEntity);
+        for (int i = 0; i < bindPose.jointChildMapping[currentJointIndex].size(); ++i)
+        {
+            int childJointIndex = bindPose.jointChildMapping[currentJointIndex][i];
+            update_joint_matrices_SPEED(
+                pScene,
+                childJointEntities[i],
+                childJointIndex,
+                bindPose,
+                m,
+                pTargetBuffer
+            );
+        }
+    }
+
+    static void update_joint_matrices_DEPRECATED(
         Scene* pScene,
         int currentJointIndex,
         std::vector<mat4>& matrices,
@@ -48,7 +100,7 @@ namespace pk
 
         for (int i = 0; i < pose.jointChildMapping[currentJointIndex].size(); ++i)
         {
-            update_joint_matrices_TEST(
+            update_joint_matrices_DEPRECATED(
                 pScene,
                 pose.jointChildMapping[currentJointIndex][i],
                 matrices,
@@ -63,7 +115,7 @@ namespace pk
     SkinnedMeshBatch::SkinnedMeshBatch(
         const Material* pMaterial,
         const vec4& materialProperties,
-        size_t initialSize,
+        size_t initialCount,
         const DescriptorSetLayout& materialDescriptorSetLayout,
         // NOTE: using same ubo for all batches
         //  ->we only change the data of the ubo to match batch when we render the batch
@@ -71,10 +123,10 @@ namespace pk
     ) :
         pMaterial(pMaterial),
         materialProperties(materialProperties),
-        initialSize(initialSize)
+        initialCount(initialCount)
     {
-        transformationMatrices.resize(initialSize);
-        animationData.resize(initialSize);
+        jointMatrices.resize(initialCount * s_maxJoints);
+        memset(jointMatrices.data(), 0, sizeof(mat4) * jointMatrices.size());
 
         const Texture_new* pDiffuseTexture = pMaterial->getDiffuseTexture(0);
         const Texture_new* pSpecularTexture = pMaterial->getSpecularTexture();
@@ -99,43 +151,50 @@ namespace pk
             delete pMaterialDescriptorSet;
     }
 
-    void SkinnedMeshBatch::add(const mat4& transformationMatrix, AnimationData* pAnimData)
+    void SkinnedMeshBatch::add(
+        const Scene* pScene,
+        const Mesh* pMesh,
+        entityID_t rootJointEntity
+    )
     {
-        if (occupiedCount + 1 > transformationMatrices.size())
+        // Not sure if this fucks up..
+        if (occupiedCount * s_maxJoints >= jointMatrices.size())
         {
-            transformationMatrices.push_back(transformationMatrix);
-            animationData.push_back(pAnimData);
+            jointMatrices.resize(jointMatrices.size() + s_maxJoints);
+            Debug::log(
+                "@SkinnedMeshBatch::add "
+                "Insufficient space in jointMatrices. "
+                "Resized to: " + std::to_string(jointMatrices.size() * sizeof(mat4)) + " bytes. "
+                "Count: " + std::to_string(jointMatrices.size())
+            );
         }
-        else
-        {
-            transformationMatrices[occupiedCount] = transformationMatrix;
-            animationData[occupiedCount] = pAnimData;
-        }
+        // where to put inputted skeleton in the "buffer"
+        const size_t jointMatricesOffset = occupiedCount * (sizeof(mat4) * s_maxJoints);
+
+        void* pTarget = ((PK_byte*)jointMatrices.data()) + jointMatricesOffset;
+        update_joint_matrices_SPEED(
+            pScene,
+            rootJointEntity,
+            0,
+            pMesh->getBindPose(),
+            mat4(1.0f),
+            pTarget
+        );
         ++occupiedCount;
     }
 
-    // NOTE: We dont clear transformationMatrices or rootJoints here -> we only zero it
-    // because we can be quite sure that their sizes remains the same on
-    // next frame as well
+    // NOTE: Set joint matrices to 0 so no unnecessary resizing every frame
     void SkinnedMeshBatch::clear()
     {
-        pMaterial = nullptr;
-        materialProperties = { 0.0f, 0.0f, 0.0f, 0.0f };
         memset(
-            transformationMatrices.data(),
+            jointMatrices.data(),
             0,
-            sizeof(mat4) * transformationMatrices.size()
-        );
-        memset(
-            animationData.data(),
-            0,
-            sizeof(entityID_t) * animationData.size()
+            sizeof(mat4) * jointMatrices.size()
         );
         occupiedCount = 0;
     }
 
 
-    static int s_maxJoints = 50;
     SkinnedRenderer::SkinnedRenderer() :
         _vertexBufferLayout(
             {
@@ -187,7 +246,7 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 57 }} // NOTE: location 56 for transformation matrix
+            {{ 56 }}
         );
         // Specular texture
         DescriptorSetLayoutBinding specTextureDescSetLayoutBinding(
@@ -195,7 +254,7 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 58 }}
+            {{ 57 }}
         );
         // "properties"
         DescriptorSetLayoutBinding materialPropsDescSetLayoutBinding(
@@ -203,7 +262,7 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 59, ShaderDataType::Float4 }}
+            {{ 58, ShaderDataType::Float4 }}
         );
 
 
@@ -264,8 +323,8 @@ namespace pk
             FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
             true,
             DepthCompareOperation::COMPARE_OP_LESS,
-            sizeof(mat4), // sending transformation matrices as push constants
-            ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
+            0, // sending transformation matrices as push constants
+            ShaderStageFlagBits::SHADER_STAGE_NONE
         );
     }
 
@@ -275,15 +334,12 @@ namespace pk
     )
     {
         const Application* pApp = Application::get();
+        const Scene* pScene = pApp->getCurrentScene();
         const ResourceManager& resManager = pApp->getResourceManager();
 
         const SkinnedRenderable * const pRenderable = (const SkinnedRenderable * const)renderableComponent;
 
-        // Get AnimationData component to get pose joint matrices
-        AnimationData* pAnimData = (AnimationData*)Application::get()->accessCurrentScene()->getComponent(
-            pRenderable->entity,
-            ComponentType::PK_ANIMATION_DATA
-        );
+        entityID_t rootJointEntity = pRenderable->rootJointEntity;
 
         PK_id batchIdentifier = pRenderable->meshID;
         const Mesh* pMesh = (const Mesh*)resManager.getResource(pRenderable->meshID);
@@ -312,10 +368,11 @@ namespace pk
                 return;
             }
             SkinnedMeshBatch* pBatch = _batches[batchIndex];
-            pBatch->add(transformation, pAnimData);
+            pBatch->add(pScene, pMesh, rootJointEntity);
         }
         else
         {
+            Debug::log("___TEST___CREATING NEW BATCH! Current batches: " + std::to_string(_batches.size()));
             vec4 materialProperties(
                 pMaterial->getSpecularStrength(),
                 pMaterial->getSpecularShininess(),
@@ -329,7 +386,7 @@ namespace pk
                 _materialDescSetLayout,
                 _constMaterialPropsUniformBuffers
             );
-            pNewBatch->add(transformation, pAnimData);
+            pNewBatch->add(pScene, pMesh, rootJointEntity);
             _batches.push_back(pNewBatch);
             _identifierBatchMapping[batchIdentifier] = _batches.size() - 1;
         }
@@ -455,19 +512,12 @@ namespace pk
             for (int i = 0; i < pBatch->occupiedCount; ++i)
             {
                 // Update joint matrices buffer to match this renderable's current pose
-                // TODO: Optimization: alloc this once and just rewrite per draw call!
-                std::vector<mat4> jointMatrices(s_maxJoints);
-                AnimationData* pAnimData = pBatch->animationData[i];
-                update_joint_matrices_TEST(
-                    pCurrentScene,
-                    0,
-                    jointMatrices,
-                    pAnimData->getResultPose()
-                );
-
+                const size_t entityJointsSize = sizeof(mat4) * s_maxJoints;
+                const size_t jointMatricesOffset = i * entityJointsSize;
+                void* pBatchJointData = ((PK_byte*)pBatch->jointMatrices.data()) + jointMatricesOffset;
                 _jointMatricesBuffer[0]->update(
-                    jointMatrices.data(),
-                    jointMatrices.size() * sizeof(mat4)
+                    pBatchJointData,
+                    entityJointsSize
                 );
 
                 // NOTE: Not sure if its allowed in vulkan to call cmdBindDescriptorSets
@@ -490,18 +540,6 @@ namespace pk
                     toBind
                 );
 
-                const mat4& transformationMatrix = pBatch->transformationMatrices[i];
-                pRenderCmd->pushConstants(
-                    pCurrentCmdBuf,
-                    ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
-                    0,
-                    sizeof(mat4),
-                    transformationMatrix.getRawArray(),
-                    {
-                        { 56, ShaderDataType::Mat4 }
-                    }
-                );
-
                 pRenderCmd->drawIndexed(
                     pCurrentCmdBuf,
                     indexBufLen,
@@ -522,7 +560,12 @@ namespace pk
 
     void SkinnedRenderer::flush()
     {
-        _identifierBatchMapping.clear();
+        for (SkinnedMeshBatch* pBatch : _batches)
+            pBatch->clear();
+        // No fucking idea why I did this here earlier
+        //  -> causes creating new batches each frame without clearing prev batches
+        //      -> huge leak!
+        //_identifierBatchMapping.clear();
     }
 
     void SkinnedRenderer::freeDescriptorSets()

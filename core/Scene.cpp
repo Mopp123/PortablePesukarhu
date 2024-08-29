@@ -40,22 +40,10 @@ namespace pk
         quat jointRotation = currentJoint.rotation;
         // NOTE: Not sure is scale correct here..
         mat4 jointMat = currentJoint.matrix;
-        if (jointMat == mat4(0.0f))
-        {
-            scene.createTransform(
-                entity,
-                { 0, 0, 0},
-                { 0, 0, 0, 1},
-                { 1.0f, 1.0f, 1.0f }
-            );
-        }
-        else
-        {
-            scene.createTransform(
-                entity,
-                jointMat
-            );
-        }
+        scene.createTransform(
+            entity,
+            jointMat
+        );
 
         if (parent != NULL_ENTITY_ID)
             scene.addChild(parent, entity);
@@ -267,7 +255,8 @@ namespace pk
         entityChildMapping[entityID].push_back(childID);
     }
 
-    std::vector<entityID_t> Scene::getChildren(entityID_t entityID)
+    // NOTE: Could be optimized to return just ptr to first child and child count
+    std::vector<entityID_t> Scene::getChildren(entityID_t entityID) const
     {
         if (!isValidEntity(entityID))
         {
@@ -278,7 +267,9 @@ namespace pk
             );
             return {};
         }
-        return entityChildMapping[entityID];
+        if (entityChildMapping.find(entityID) == entityChildMapping.end())
+            return {};
+        return entityChildMapping.at(entityID);
     }
 
     void Scene::addComponent(entityID_t entityID, Component* component)
