@@ -42,8 +42,7 @@ namespace pk
         mat4 jointMat = currentJoint.matrix;
         scene.createTransform(
             entity,
-            jointMat,
-            currentJoint.inverseMatrix
+            jointMat
         );
 
         if (parent != NULL_ENTITY_ID)
@@ -256,7 +255,8 @@ namespace pk
         entityChildMapping[entityID].push_back(childID);
     }
 
-    std::vector<entityID_t> Scene::getChildren(entityID_t entityID)
+    // NOTE: Could be optimized to return just ptr to first child and child count
+    std::vector<entityID_t> Scene::getChildren(entityID_t entityID) const
     {
         if (!isValidEntity(entityID))
         {
@@ -267,7 +267,9 @@ namespace pk
             );
             return {};
         }
-        return entityChildMapping[entityID];
+        if (entityChildMapping.find(entityID) == entityChildMapping.end())
+            return {};
+        return entityChildMapping.at(entityID);
     }
 
     void Scene::addComponent(entityID_t entityID, Component* component)
@@ -335,15 +337,11 @@ namespace pk
 
     Transform* Scene::createTransform(
         entityID_t target,
-        mat4 transformationMatrix,
-        mat4 inverseBindMatrix
+        mat4 transformationMatrix
     )
     {
         Transform* pTransform = (Transform*)componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
-        if (inverseBindMatrix == mat4(0.0f))
-            *pTransform = Transform(transformationMatrix);
-        else
-            *pTransform = Transform(transformationMatrix, inverseBindMatrix);
+        *pTransform = Transform(transformationMatrix);
         addComponent(target, pTransform);
         return pTransform;
     }

@@ -17,15 +17,16 @@
 
 namespace pk
 {
-    // TODO: Make less fucked up (transformationMatrices and animationData vectors!)
+    // TODO: Maybe also have possibility of having version of batching which
+    // uses less mem (causing it also to be slower..)
     class SkinnedMeshBatch
     {
     public:
         const Material* pMaterial = nullptr;
         vec4 materialProperties;
-        std::vector<entityID_t> rootJointEntities;
-        std::vector<AnimationData*> animationData;
-        size_t initialSize = 0;
+        // *stride = mat4 * maxJoints -> max joint matrices per entity
+        std::vector<mat4> jointMatrices;
+        size_t initialCount = 0;
         size_t occupiedCount = 0;
         std::vector<DescriptorSet*> materialDescriptorSet;
 
@@ -34,7 +35,7 @@ namespace pk
         SkinnedMeshBatch(
             const Material* pMaterial,
             const vec4& materialProperties,
-            size_t initialSize,
+            size_t initialCount,
             const DescriptorSetLayout& materialDescriptorSetLayout,
             // NOTE: using same ubo for all batches
             //  ->we only change the data of the ubo to match batch when we render the batch
@@ -43,11 +44,8 @@ namespace pk
         SkinnedMeshBatch(const SkinnedMeshBatch& other) = delete;
         ~SkinnedMeshBatch();
 
-        void add(entityID_t rootJointEntity, AnimationData* pAnimData);
+        void add(const Scene* pScene, const Mesh* pMesh, entityID_t rootJointEntity);
 
-        // NOTE: We dont clear transformationMatrices here -> we only zero it
-        // because we can be quite sure that its' size remains the same on
-        // next frame as well
         void clear();
     };
 
