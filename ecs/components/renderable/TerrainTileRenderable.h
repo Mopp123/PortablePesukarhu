@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../Component.h"
+#include "ecs/components/Component.h"
 #include <cstdint>
-#include "../../../utils/pkmath.h"
-#include "../../../graphics/Texture.h"
+#include "utils/pkmath.h"
+#include "resources/Texture.h"
 #include <vector>
 
 #define PK_TERRAINTILE_HEIGHT_INDEX_TOP_LEFT		0
@@ -37,7 +37,7 @@ namespace pk
 		int gridY = 0;
 
 		float scale = 10.0f;
-		
+
 		TerrainTileRenderable(int32_t worldX, int32_t worldZ, int gridX, int gridY, float scale);
 
 		inline float getAverageHeight() const { return (vertexHeights[0] + vertexHeights[1] + vertexHeights[2] + vertexHeights[3]) / 4; }

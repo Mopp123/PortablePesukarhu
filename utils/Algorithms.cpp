@@ -17,7 +17,7 @@ namespace pk
 	vec2 screen_to_ndc(int screenX, int screenY)
 	{
 		const Window* const window = Application::get()->getWindow();
-		
+
 		return { ((float)screenX / (float)window->getWidth()) * 2.0f - 1.0f,
 				((float)screenY / (float)window->getHeight()) * 2.0f - 1.0f };
 	}
@@ -45,9 +45,14 @@ namespace pk
 
 		vec4 worldSpace = invViewMat * cameraSpace;
 		worldSpace.w = 0.0f;
-		worldSpace.normalize();
-		
-		return { worldSpace.x, worldSpace.y ,worldSpace.z };
+		vec4 normalizedWorldSpace = worldSpace.normalize();
+
+		return
+		{
+			normalizedWorldSpace.x,
+			normalizedWorldSpace.y,
+			normalizedWorldSpace.z
+		};
 	}
 
 

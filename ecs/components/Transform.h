@@ -22,11 +22,15 @@ namespace pk
         Transform(vec2 pos, vec2 scale);
         Transform(vec3 pos, vec3 scale);
         Transform(vec3 pos, vec3 scale, float pitch, float yaw);
+        Transform(vec3 pos, quat rotation, vec3 scale);
+        Transform(mat4 matrix);
+        Transform(const Transform& other);
 
         void setPos(vec2 pos);
         void setPos(vec3 pos);
 
         void setRotation(float pitch, float yaw, float roll);
+        void setRotation(const quat& rotation);
         void rotate(float pAmount, float yAmount, float rAmount);
 
         void setScale(vec2 scale);

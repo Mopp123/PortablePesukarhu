@@ -6,7 +6,8 @@
 #include "WebBuffers.h"
 #include "graphics/platform/opengl/shaders/OpenglShader.h"
 #include "graphics/platform/opengl/OpenglContext.h"
-#include "graphics/platform/opengl/OpenglTexture.h"
+
+#include "resources/platform/opengl/OpenglTexture.h"
 
 
 namespace pk
@@ -411,22 +412,36 @@ namespace pk
                                 }
                                 case ShaderDataType::Mat4:
                                 {
-                                    mat4 matrix;
-                                    valSize = sizeof(mat4);
-                                    memcpy(&matrix, pCurrentData, valSize);
+                                    valSize = sizeof(mat4) * uboInfo.arrayLen;
+                                    /*
                                     glUniformMatrix4fv(
                                         shaderUniformLocations[uboInfo.locationIndex],
-                                        1,
+                                        uboInfo.arrayLen,
                                         GL_FALSE,
-                                        (const float*)&matrix
+                                        (const float*)pCurrentData
                                     );
+                                    */
+                                    for (int i = 0; i < uboInfo.arrayLen; ++i)
+                                    {
+                                        const PK_byte* pData = pCurrentData + i * sizeof(mat4);
+                                        mat4 test;
+                                        memcpy(&test, pData, sizeof(mat4));
+                                        //Debug::log("___TEST___sending mat to: " + std::to_string(shaderUniformLocations[uboInfo.locationIndex + i]));
+                                        glUniformMatrix4fv(
+                                            shaderUniformLocations[uboInfo.locationIndex + i],
+                                            1,
+                                            GL_FALSE,
+                                            (const float*)pData
+                                        );
+                                    }
                                     break;
                                 }
 
                                 default:
                                     Debug::log(
                                         "@WebRenderCommand::bindDescriptorSets "
-                                        "Unsupported ShaderDataType. "
+                                        "Unsupported ShaderDataType: " + std::to_string(uboInfo.type) + " "
+                                        "using location index: " + std::to_string(uboInfo.locationIndex) + " "
                                         "Currently implemented types are: "
                                         "Int, Float, Float2, Float3, Float4",
                                         Debug::MessageType::PK_FATAL_ERROR

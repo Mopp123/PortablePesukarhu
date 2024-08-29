@@ -1,9 +1,10 @@
 #pragma once
 
 #include "Buffers.h"
-#include "Texture.h"
+#include "resources/Texture.h"
 #include "shaders/Shader.h"
 #include <vector>
+
 
 namespace pk
 {
@@ -38,6 +39,7 @@ namespace pk
     {
         int locationIndex;
         ShaderDataType type;
+        int arrayLen = 1;
     };
 
 

@@ -3,6 +3,7 @@
 #include "Context.h"
 #include "platform/web/WebBuffers.h"
 #include <cstdlib>
+#include <set>
 
 
 namespace pk
@@ -88,6 +89,25 @@ namespace pk
     }
 
 
+    std::string shader_data_type_to_string(ShaderDataType type)
+    {
+        switch (type)
+        {
+            case None : return "None";
+            case Int : return "Int";
+            case Int2 : return "Int2";
+            case Int3 : return "Int3";
+            case Int4 : return "Int4";
+            case Float : return "Float";
+            case Float2 : return "Float2";
+            case Float3 : return "Float3";
+            case Float4 : return "Float4";
+            case Mat4 : return "Mat4";
+            default : return "Invalid type";
+        }
+    }
+
+
     VertexBufferLayout::VertexBufferLayout(std::vector<VertexBufferElement> elems, VertexInputRate inputRate) :
         _elements(elems),
         _inputRate(inputRate)
@@ -101,6 +121,46 @@ namespace pk
         _inputRate(other._inputRate),
         _stride(other._stride)
     {}
+
+    bool VertexBufferLayout::isValid() const
+    {
+        std::set<uint32_t> attribLocations;
+        for (const VertexBufferElement& elem : _elements)
+        {
+            const uint32_t location = elem.getLocation();
+            if (attribLocations.find(location) == attribLocations.end())
+                attribLocations.insert(location);
+            else
+                return false;
+        }
+        return true;
+    }
+
+    bool VertexBufferLayout::are_valid(
+        const std::vector<VertexBufferLayout>& layoutGroup,
+        uint32_t* pOutConflictLocation
+    )
+    {
+        std::set<uint32_t> attribLocations;
+        for (const VertexBufferLayout& layout : layoutGroup)
+        {
+            for (const VertexBufferElement& elem : layout.getElements())
+            {
+                const uint32_t location = elem.getLocation();
+                if (attribLocations.find(location) == attribLocations.end())
+                {
+                    attribLocations.insert(location);
+                }
+                else
+                {
+                    if (pOutConflictLocation)
+                        *pOutConflictLocation = location;
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
 
     Buffer::Buffer(

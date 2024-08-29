@@ -17,16 +17,20 @@ namespace pk
         PK_RENDERABLE_SPRITE3D = 0x4,
         PK_RENDERABLE_TERRAINTILE = 0x8,
         PK_RENDERABLE_STATIC3D = 0x10,
+        PK_RENDERABLE_SKINNED = 0x20,
 
-        PK_UIELEM_STATE = 0x20,
+        PK_UIELEM_STATE = 0x40,
 
-        PK_LIGHT_DIRECTIONAL = 0x40,
+        PK_LIGHT_DIRECTIONAL = 0x80,
 
-        PK_TRANSFORM = 0x80,
+        PK_TRANSFORM = 0x100,
 
-        PK_UI_CONSTRAINT = 0x100,
+        PK_UI_CONSTRAINT = 0x200,
 
-        PK_CAMERA = 0x200
+        PK_CAMERA = 0x400,
+
+        PK_ANIMATION_DATA = 0x800
+
     };
 
 

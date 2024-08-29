@@ -5,10 +5,10 @@
 #include "Window.h"
 #include "input/InputManager.h"
 #include "SceneManager.h"
-#include "../graphics/Context.h"
+#include "graphics/Context.h"
 
 #include "../graphics/MasterRenderer.h"
-#include "ResourceManager.h"
+#include "resources/ResourceManager.h"
 #include "Timing.h"
 
 #include <vector>

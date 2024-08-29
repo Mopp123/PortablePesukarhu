@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../ecs/components/Component.h"
-#include "../ecs/components/Camera.h"
+#include "ecs/components/Component.h"
+#include "ecs/components/Camera.h"
 #include "shaders/Shader.h"
-#include "../utils/pkmath.h"
+#include "utils/pkmath.h"
 
 #include "Swapchain.h"
 #include "Buffers.h"
-#include "Texture.h"
+#include "resources/Texture.h"
 #include "Pipeline.h"
 #include "CommandBuffer.h"
 #include "utils/ID.h"

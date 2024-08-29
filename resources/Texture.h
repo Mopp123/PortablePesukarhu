@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/Resource.h"
-#include "utils/Image.h"
+#include "Resource.h"
+#include "Image.h"
 #include <cstdint>
 
 

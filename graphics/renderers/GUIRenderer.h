@@ -3,11 +3,11 @@
 #include "graphics/Renderer.h"
 #include "graphics/Pipeline.h"
 #include "graphics/Buffers.h"
-#include "graphics/Texture.h"
 #include "graphics/Descriptors.h"
 #include "graphics/CommandBuffer.h"
 #include "graphics/RenderCommand.h"
 #include "graphics/shaders/Shader.h"
+#include "resources/Texture.h"
 
 #include <unordered_map>
 

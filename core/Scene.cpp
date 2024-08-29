@@ -8,10 +8,54 @@
 // NOTE: Only temporarely adding all systems here on Scene's constructor!
 #include "ecs/systems/ui/ConstraintSystem.h"
 #include "ecs/systems/TransformSystem.h"
+#include "ecs/systems/Animator.h"
 #include <unordered_map>
 
 namespace pk
 {
+    // result "bones" vector's first is the root entity
+    static void create_bone_entity(
+        Scene& scene,
+        const Pose& pose,
+        int currentJointIndex,
+        entityID_t parent,
+        std::vector<entityID_t>& resultBones
+    )
+    {
+        entityID_t entity = scene.createEntity();
+        //if (currentJointIndex == 0)
+        //    Debug::log("___TEST___created root joint entity: " + std::to_string(entity));
+        resultBones.push_back(entity);
+        if (pose.joints.size() <= currentJointIndex)
+        {
+            Debug::log(
+                "@create_bone_entity "
+                "Joint index: " + std::to_string(currentJointIndex) + " out of bounds! Joint count: " + std::to_string(pose.joints.size()),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return;
+        }
+        Joint currentJoint = pose.joints[currentJointIndex];
+        vec3 jointTranslation = currentJoint.translation;
+        quat jointRotation = currentJoint.rotation;
+        // NOTE: Not sure is scale correct here..
+        mat4 jointMat = currentJoint.matrix;
+        scene.createTransform(
+            entity,
+            jointMat
+        );
+
+        if (parent != NULL_ENTITY_ID)
+            scene.addChild(parent, entity);
+
+        if (pose.jointChildMapping.size() > currentJointIndex)
+        {
+            for (int childIndex : pose.jointChildMapping[currentJointIndex])
+                create_bone_entity(scene, pose, childIndex, entity, resultBones);
+        }
+    }
+
+
     Scene::Scene()
     {
         size_t maxEntityCount = 1000;
@@ -45,11 +89,17 @@ namespace pk
         componentPools[ComponentType::PK_RENDERABLE_STATIC3D] = ComponentPool(
             sizeof(Static3DRenderable), 100, true
         );
+        componentPools[ComponentType::PK_RENDERABLE_SKINNED] = ComponentPool(
+            sizeof(SkinnedRenderable), 100, true
+        );
         componentPools[ComponentType::PK_RENDERABLE_TERRAINTILE] = ComponentPool(
             sizeof(TerrainTileRenderable), 100, true
         );
         componentPools[ComponentType::PK_LIGHT_DIRECTIONAL] = ComponentPool(
             sizeof(DirectionalLight), maxDirectionalLights, true
+        );
+        componentPools[ComponentType::PK_ANIMATION_DATA] = ComponentPool(
+            sizeof(AnimationData), maxEntityCount, true
         );
 
         // NOTE: Only temporarely adding all default systems here!
@@ -58,6 +108,7 @@ namespace pk
         //  and never even destroy them..
         systems.push_back(new ui::ConstraintSystem);
         systems.push_back(new TransformSystem);
+        systems.push_back(new Animator);
     }
 
     Scene::~Scene()
@@ -93,6 +144,56 @@ namespace pk
             entities.push_back(entity);
         }
         return entity.id;
+    }
+
+    entityID_t Scene::createSkeletonEntity(entityID_t target, const Pose& bindPose)
+    {
+        std::vector<entityID_t> result;
+        create_bone_entity(
+            *this,
+            bindPose,
+            0,
+            target,
+            result
+        );
+        if (result.empty())
+        {
+            Debug::log(
+                "@Scene::createSkeletonEntity "
+                "No bones were able to be built! "
+                "Input bindPose joint count: " + std::to_string(bindPose.joints.size()) + " "
+                "Input bindPose childMapping length: " + std::to_string(bindPose.jointChildMapping.size()),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return NULL_ENTITY_ID;
+        }
+        return result[0];
+    }
+
+    Entity Scene::getEntity(entityID_t entity) const
+    {
+        Entity outEntity;
+        for (const Entity& e : entities)
+        {
+            if (e.id == entity)
+            {
+                if (isValidEntity(entity))
+                {
+                    outEntity = e;
+                }
+                else
+                {
+                    Debug::log(
+                        "@Scene::getEntity "
+                        "Found entity: " + std::to_string(entity) + " "
+                        "but the entity was invalid!",
+                        Debug::MessageType::PK_ERROR
+                    );
+                }
+                break;
+            }
+        }
+        return outEntity;
     }
 
     // NOTE: Incomplete and not tested! Propably doesnt work!!
@@ -154,7 +255,8 @@ namespace pk
         entityChildMapping[entityID].push_back(childID);
     }
 
-    std::vector<entityID_t> Scene::getChildren(entityID_t entityID)
+    // NOTE: Could be optimized to return just ptr to first child and child count
+    std::vector<entityID_t> Scene::getChildren(entityID_t entityID) const
     {
         if (!isValidEntity(entityID))
         {
@@ -165,7 +267,9 @@ namespace pk
             );
             return {};
         }
-        return entityChildMapping[entityID];
+        if (entityChildMapping.find(entityID) == entityChildMapping.end())
+            return {};
+        return entityChildMapping.at(entityID);
     }
 
     void Scene::addComponent(entityID_t entityID, Component* component)
@@ -214,6 +318,30 @@ namespace pk
     {
         Transform* pTransform = (Transform*)componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
         *pTransform = Transform(pos, scale, pitch, yaw);
+        addComponent(target, pTransform);
+        return pTransform;
+    }
+
+    Transform* Scene::createTransform(
+        entityID_t target,
+        vec3 pos,
+        quat rotation,
+        vec3 scale
+    )
+    {
+        Transform* pTransform = (Transform*)componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
+        *pTransform = Transform(pos, rotation, scale);
+        addComponent(target, pTransform);
+        return pTransform;
+    }
+
+    Transform* Scene::createTransform(
+        entityID_t target,
+        mat4 transformationMatrix
+    )
+    {
+        Transform* pTransform = (Transform*)componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
+        *pTransform = Transform(transformationMatrix);
         addComponent(target, pTransform);
         return pTransform;
     }
@@ -277,8 +405,41 @@ namespace pk
         PK_id meshID
     )
     {
+        if ((getEntity(target).componentMask & ComponentType::PK_TRANSFORM) != ComponentType::PK_TRANSFORM)
+        {
+            Debug::log(
+                "@Scene::createStatic3DRenderable "
+                "Created renderable component for entity: " + std::to_string(target) + " "
+                "with no Transform component! This prevents rendering if transform not specified!",
+                Debug::MessageType::PK_WARNING
+            );
+        }
+
         Static3DRenderable* pRenderable = (Static3DRenderable*)componentPools[ComponentType::PK_RENDERABLE_STATIC3D].allocComponent(target);
         *pRenderable = Static3DRenderable(meshID);
+        addComponent(target, pRenderable);
+        return pRenderable;
+    }
+
+    SkinnedRenderable* Scene::createSkinnedRenderable(
+        entityID_t target,
+        PK_id modelID,
+        PK_id meshID,
+        entityID_t skeletonEntity
+    )
+    {
+        if ((getEntity(target).componentMask & ComponentType::PK_TRANSFORM) != ComponentType::PK_TRANSFORM)
+        {
+            Debug::log(
+                "@Scene::createSkinnedRenderable "
+                "Created renderable component for entity: " + std::to_string(target) + " "
+                "with no Transform component! This prevents rendering if transform not specified!",
+                Debug::MessageType::PK_WARNING
+            );
+        }
+
+        SkinnedRenderable* pRenderable = (SkinnedRenderable*)componentPools[ComponentType::PK_RENDERABLE_SKINNED].allocComponent(target);
+        *pRenderable = SkinnedRenderable(modelID, meshID, skeletonEntity);
         addComponent(target, pRenderable);
         return pRenderable;
     }
@@ -319,6 +480,27 @@ namespace pk
         *pDirectionalLight = DirectionalLight(color, direction);
         addComponent(target, pDirectionalLight);
         return pDirectionalLight;
+    }
+
+    AnimationData* Scene::createAnimationData(
+        entityID_t target,
+        PK_id animationResourceID,
+        AnimationMode mode,
+        float speed
+    )
+    {
+        AnimationData* pComponent = (AnimationData*)componentPools[ComponentType::PK_ANIMATION_DATA].allocComponent(target);
+        // For now figure out joint count here.. maybe in future somewhere else..
+        ResourceManager& resManager = Application::get()->getResourceManager();
+        const Animation* pAnimResource = (const Animation*)resManager.getResource(animationResourceID);
+        *pComponent = AnimationData(
+            animationResourceID,
+            mode,
+            speed,
+            pAnimResource->getBindPose()
+        );
+        addComponent(target, pComponent);
+        return pComponent;
     }
 
     Component* Scene::getComponent(entityID_t entityID, ComponentType type, bool nestedSearch)

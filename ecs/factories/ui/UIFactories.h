@@ -2,14 +2,13 @@
 
 #include <string>
 
-#include "utils/Font.h"
+#include "resources/Font.h"
+#include "resources/Texture.h"
 #include "ecs/Entity.h"
 #include "ecs/components/ui/ConstraintData.h"
-#include "../../components/renderable/TextRenderable.h"
+#include "ecs/components/renderable/TextRenderable.h"
 #include "ecs/components/ui/UIElemState.h"
-#include "../../../core/input/InputEvent.h"
-
-#include "graphics/Texture.h"
+#include "core/input/InputEvent.h"
 
 
 namespace pk

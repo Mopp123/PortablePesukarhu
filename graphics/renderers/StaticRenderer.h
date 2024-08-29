@@ -1,10 +1,10 @@
 #pragma once
 
+#include "resources/Texture.h"
+#include "resources/Mesh.h"
 #include "graphics/Renderer.h"
 #include "graphics/Pipeline.h"
 #include "graphics/Buffers.h"
-#include "graphics/Texture.h"
-#include "graphics/Mesh.h"
 #include "graphics/Descriptors.h"
 #include "graphics/CommandBuffer.h"
 #include "graphics/RenderCommand.h"

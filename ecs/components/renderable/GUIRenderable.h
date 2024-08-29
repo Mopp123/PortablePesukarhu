@@ -1,8 +1,8 @@
 #pragma once
 
 #include "UIRenderableComponent.h"
-#include "../../../graphics/Texture.h"
-#include "../../../utils/pkmath.h"
+#include "resources/Texture.h"
+#include "utils/pkmath.h"
 
 
 namespace pk

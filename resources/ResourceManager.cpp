@@ -169,7 +169,7 @@ namespace pk
     }
 
     Mesh* ResourceManager::createMesh(
-        Buffer* pVertexBuffer,
+        const std::vector<Buffer*>& vertexBuffers,
         Buffer* pIndexBuffer,
         const VertexBufferLayout& layout,
         uint32_t materialResourceID
@@ -177,7 +177,7 @@ namespace pk
     {
         Material* pMaterial = (Material*)getResource(materialResourceID);
         Mesh* pMesh = new Mesh(
-            pVertexBuffer,
+            vertexBuffers,
             pIndexBuffer,
             pMaterial,
             layout
@@ -192,7 +192,7 @@ namespace pk
         uint32_t materialResourceID
     )
     {
-        Model* pModel = load_model_glb(filepath);
+        Model* pModel = load_model_gltf(filepath);
         for (Mesh* pMesh : pModel->accessMeshes())
         {
             // atm just testing with single mesh/material!
@@ -221,6 +221,16 @@ namespace pk
         return pModel;
     }
 
+    Animation* ResourceManager::createAnimation(
+        const Pose& bindPose,
+        const std::vector<Pose>& poses
+    )
+    {
+        Animation* pAnimation = new Animation(bindPose, poses);
+        _resources[pAnimation->getResourceID()] = pAnimation;
+        return pAnimation;
+    }
+
     Font* ResourceManager::createFont(
         const std::string& filepath,
         int pixelSize
@@ -234,7 +244,7 @@ namespace pk
         return pFont;
     }
 
-    Resource* ResourceManager::getResource(uint32_t id)
+    Resource* ResourceManager::accessResource(uint32_t id)
     {
         std::unordered_map<uint32_t, Resource*>::iterator it = _resources.find(id);
         if (it == _resources.end())

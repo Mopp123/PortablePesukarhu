@@ -8,6 +8,11 @@
 #include "core/Application.h"
 #include "core/Window.h"
 
+#include "renderers/GUIRenderer.h"
+#include "renderers/FontRenderer.h"
+#include "renderers/StaticRenderer.h"
+#include "renderers/SkinnedRenderer.h"
+
 
 namespace pk
 {
@@ -129,9 +134,10 @@ namespace pk
             { _pDirectionalLightUniformBuffer }
         );
 
-        _renderers[ComponentType::PK_RENDERABLE_GUI] = new GUIRenderer;
-        _renderers[ComponentType::PK_RENDERABLE_TEXT] = new FontRenderer;
-        _renderers[ComponentType::PK_RENDERABLE_STATIC3D] = new StaticRenderer;
+        _renderers[ComponentType::PK_RENDERABLE_GUI] = (Renderer*)(new GUIRenderer);
+        _renderers[ComponentType::PK_RENDERABLE_TEXT] = (Renderer*)(new FontRenderer);
+        _renderers[ComponentType::PK_RENDERABLE_STATIC3D] = (Renderer*)(new StaticRenderer);
+        _renderers[ComponentType::PK_RENDERABLE_SKINNED] = (Renderer*)(new SkinnedRenderer);
     }
 
     void MasterRenderer::init()

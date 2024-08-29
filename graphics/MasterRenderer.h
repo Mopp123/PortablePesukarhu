@@ -7,10 +7,6 @@
 #include "Buffers.h"
 #include "Descriptors.h"
 
-#include "renderers/GUIRenderer.h"
-#include "renderers/FontRenderer.h"
-#include "renderers/StaticRenderer.h"
-
 
 namespace pk
 {

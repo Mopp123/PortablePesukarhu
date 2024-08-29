@@ -10,10 +10,13 @@
 #include "ecs/components/renderable/GUIRenderable.h"
 #include "ecs/components/renderable/TextRenderable.h"
 #include "ecs/components/renderable/Static3DRenderable.h"
+#include "ecs/components/renderable/SkinnedRenderable.h"
 #include "ecs/components/lighting/Lights.h"
+#include "ecs/components/AnimationData.h"
 #include "graphics/Environment.h"
+#include "graphics/animation/Pose.h"
 
-#include "../ecs/systems/System.h"
+#include "ecs/systems/System.h"
 #include "Debug.h"
 #include <unordered_map>
 #include <vector>
@@ -33,12 +36,6 @@ namespace pk
         std::vector<entityID_t> freeEntityIDs;
         std::unordered_map<ComponentType, ComponentPool> componentPools;
 
-        // TODO: delete below?
-        //std::unordered_map<uint32_t, Component*> components;
-
-        // TODO: delete below
-        //std::unordered_map<ComponentType, std::vector<uint32_t>> typeComponentMapping;
-
         entityID_t activeCamera = NULL_ENTITY_ID;
         entityID_t directionalLight = NULL_ENTITY_ID;
         struct EnvironmentProperties environmentProperties;
@@ -47,9 +44,13 @@ namespace pk
         virtual ~Scene();
 
         entityID_t createEntity();
+        // TODO: Some better way of dealing with this
+        entityID_t createSkeletonEntity(entityID_t target, const Pose& bindPose);
+        Entity getEntity(entityID_t entity) const;
         void destroyEntity(entityID_t entityID);
         void addChild(entityID_t entityID, entityID_t childID);
-        std::vector<entityID_t> getChildren(entityID_t entityID);
+        // NOTE: Could be optimized to return just ptr to first child and child count
+        std::vector<entityID_t> getChildren(entityID_t entityID) const;
 
         void addComponent(entityID_t entityID, Component* component);
         inline bool isValidEntity(entityID_t entityID) const
@@ -58,13 +59,27 @@ namespace pk
                 return false;
             return entities[entityID].id != NULL_ENTITY_ID;
         }
-        Transform* createTransform(entityID_t target, vec2 pos, vec2 scale);
+        Transform* createTransform(
+            entityID_t target,
+            vec2 pos,
+            vec2 scale
+        );
         Transform* createTransform(
             entityID_t target,
             vec3 pos,
             vec3 scale,
             float pitch = 0.0f,
             float yaw = 0.0f
+        );
+        Transform* createTransform(
+            entityID_t target,
+            vec3 pos,
+            quat rotation,
+            vec3 scale
+        );
+        Transform* createTransform(
+            entityID_t target,
+            mat4 transformationMatrix
         );
         ConstraintData* createUIConstraint(
             entityID_t target,
@@ -93,6 +108,12 @@ namespace pk
             entityID_t target,
             PK_id meshID
         );
+        SkinnedRenderable* createSkinnedRenderable(
+            entityID_t target,
+            PK_id modelID,
+            PK_id meshID,
+            entityID_t skeletonEntity
+        );
         Camera* createCamera(
             entityID_t target,
             const vec3& position,
@@ -103,6 +124,12 @@ namespace pk
             entityID_t target,
             const vec3& color,
             const vec3& direction
+        );
+        AnimationData* createAnimationData(
+            entityID_t target,
+            PK_id animationResourceID,
+            AnimationMode mode,
+            float speed
         );
 
         // TODO: all getComponent things could be optimized?

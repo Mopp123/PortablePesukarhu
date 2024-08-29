@@ -2,7 +2,7 @@
 #include "OpenglTexture.h"
 #include "core/Debug.h"
 #include "core/Application.h"
-#include "core/ResourceManager.h"
+#include "resources/ResourceManager.h"
 
 
 namespace pk

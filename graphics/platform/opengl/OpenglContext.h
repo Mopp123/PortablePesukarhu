@@ -12,5 +12,6 @@ namespace pk
     {
         GLenum to_gl_shader(ShaderStageFlagBits stage);
         GLenum to_gl_data_type(ShaderDataType shaderDataType);
+        std::string gl_error_to_string(GLenum error);
     }
 }

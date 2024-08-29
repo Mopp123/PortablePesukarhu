@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/Resource.h"
-#include "graphics/Texture.h"
+#include "Resource.h"
+#include "Texture.h"
 #include <unordered_map>
 
 #include "utils/pkmath.h"

@@ -1,12 +1,13 @@
 #pragma once
 
 #include "Resource.h"
-#include "utils/Image.h"
-#include "graphics/Texture.h"
-#include "graphics/Material.h"
-#include "graphics/Mesh.h"
-#include "graphics/Model.h"
-#include "utils/Font.h"
+#include "Image.h"
+#include "Texture.h"
+#include "Material.h"
+#include "Mesh.h"
+#include "Model.h"
+#include "Animation.h"
+#include "Font.h"
 #include "Common.h"
 #include "core/Debug.h"
 #include <vector>
@@ -71,7 +72,7 @@ namespace pk
 
         // NOTE: Buffers' ownership gets transferred to the created mesh!
         Mesh* createMesh(
-            Buffer* pVertexBuffer,
+            const std::vector<Buffer*>& vertexBuffers,
             Buffer* pIndexBuffer,
             const VertexBufferLayout& layout,
             uint32_t materialResourceID
@@ -86,12 +87,17 @@ namespace pk
             const std::vector<uint32_t>& meshResourceIDs
         );
 
+        Animation* createAnimation(
+            const Pose& bindPose,
+            const std::vector<Pose>& poses
+        );
+
         Font* createFont(
             const std::string& filepath,
             int pixelSize
         );
 
-        Resource* getResource(uint32_t id);
+        Resource* accessResource(uint32_t id);
         const Resource* getResource(uint32_t id) const;
 
         // Just for testing atm!!!

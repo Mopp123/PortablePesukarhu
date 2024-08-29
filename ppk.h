@@ -13,6 +13,7 @@
 
 #include "graphics/Context.h"
 
+#include "ecs/Entity.h"
 #include "ecs/components/renderable/TerrainTileRenderable.h"
 #include "ecs/components/renderable/Sprite3DRenderable.h"
 #include "ecs/components/renderable/GUIRenderable.h"
@@ -20,8 +21,10 @@
 #include "ecs/components/renderable/UIRenderableComponent.h"
 #include "ecs/components/lighting/Lights.h"
 #include "ecs/components/ui/UIElemState.h"
+#include "ecs/components/AnimationData.h"
 
 #include "ecs/systems/ui/ConstraintSystem.h"
+#include "ecs/systems/Animator.h"
 #include "ecs/factories/ui/UIFactories.h"
 
 #include "graphics/MasterRenderer.h"

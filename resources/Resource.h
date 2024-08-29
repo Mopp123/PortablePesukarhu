@@ -16,7 +16,8 @@ namespace pk
         RESOURCE_FONT,
         RESOURCE_MATERIAL,
         RESOURCE_MESH,
-        RESOURCE_MODEL
+        RESOURCE_MODEL,
+        RESOURCE_ANIMATION
     };
 
 
