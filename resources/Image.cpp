@@ -89,7 +89,7 @@ namespace pk
         Debug::notify_unimplemented("ImageData::save");
     }
 
-    float ImageData::getBrightnessAt(int x, int y)
+    float ImageData::getBrightnessAt(int x, int y) const
     {
         int index = (x + y * _width) * _channels;
         float b = ((float)_pData[index]) / 255.0f;

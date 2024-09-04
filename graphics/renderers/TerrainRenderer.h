@@ -21,6 +21,7 @@ namespace pk
 
         std::vector<const Texture_new*> channelTextures;
         const Texture_new* pBlendmapTexture = nullptr;
+        mat4 transformationMatrix = mat4(1.0f);
         TerrainRenderable* pRenderable = nullptr;
         std::vector<DescriptorSet*> materialDescriptorSet;
     };
@@ -66,7 +67,11 @@ namespace pk
         virtual void initPipeline();
 
     private:
-        TerrainRenderData createTerrainRenderData(const TerrainRenderable* pRenderable);
+        TerrainRenderData createTerrainRenderData(
+            const TerrainRenderable* pRenderable,
+            mat4 transformationMatrix
+        );
+        // NOTE: Vertex data is generated from 0,0,0 towards +z direction
         void createRenderDataBuffers(
             const std::vector<float>& heightmap,
             float tileWidth,

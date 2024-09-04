@@ -29,6 +29,7 @@ namespace pk
 
         // NOTE: common descriptors uniform locations for 3d stuff from master renderer
         // go from 0 to 5 -> 6 first available
+        //  -> 6 used as push constant transformation matrix
 
         // TerrainMaterial desc set layout
         // Blendmap channel textures
@@ -41,16 +42,17 @@ namespace pk
                     1,
                     DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                     ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-                    {{ 6 + i }}
+                    {{ 7 + i }}
                 )
             );
         }
+
         DescriptorSetLayoutBinding blendmapDescSetBinding(
             TERRAIN_MATERIAL_MAX_CHANNEL_TEXTURES, // first after channel texture bindings
             1,
             DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 6 + TERRAIN_MATERIAL_MAX_CHANNEL_TEXTURES }} // TODO: some way to find out "common desc sets count"
+            {{ 7 + TERRAIN_MATERIAL_MAX_CHANNEL_TEXTURES }} // TODO: some way to find out "common desc sets count"
         );
         descSetBindings.push_back(blendmapDescSetBinding);
 
@@ -94,7 +96,8 @@ namespace pk
             FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
             true,
             DepthCompareOperation::COMPARE_OP_LESS,
-            0, 0
+            sizeof(mat4),
+            ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
         );
     }
 
@@ -105,7 +108,7 @@ namespace pk
     {
         const TerrainRenderable * const pRenderable = (const TerrainRenderable * const)renderableComponent;
         if (_toRender.find(pRenderable) == _toRender.end())
-            _toRender[pRenderable] = createTerrainRenderData(pRenderable);
+            _toRender[pRenderable] = createTerrainRenderData(pRenderable, transformation);
         // recreate descriptor sets if necessary..
         if (_toRender[pRenderable].materialDescriptorSet.empty())
             createRenderDataDescriptorSets(_toRender[pRenderable]);
@@ -200,6 +203,17 @@ namespace pk
                 renderData.materialDescriptorSet[0] // TODO: this should be current swapchain img index
             };
 
+            pRenderCmd->pushConstants(
+                pCurrentCmdBuf,
+                ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
+                0,
+                sizeof(mat4),
+                renderData.transformationMatrix.getRawArray(),
+                {
+                    { 6, ShaderDataType::Mat4 }
+                }
+            );
+
             pRenderCmd->bindDescriptorSets(
                 pCurrentCmdBuf,
                 PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
@@ -253,9 +267,14 @@ namespace pk
         deleteRenderDataBuffers();
     }
 
-    TerrainRenderData TerrainRenderer::createTerrainRenderData(const TerrainRenderable* pRenderable)
+    TerrainRenderData TerrainRenderer::createTerrainRenderData(
+        const TerrainRenderable* pRenderable,
+        mat4 transformationMatrix
+    )
     {
         TerrainRenderData renderData;
+        renderData.transformationMatrix = transformationMatrix;
+
         ResourceManager& resManager = Application::get()->getResourceManager();
 
         TerrainMaterial* pMaterial = (TerrainMaterial*)resManager.getResource(pRenderable->terrainMaterialID);
@@ -273,6 +292,7 @@ namespace pk
         return renderData;
     }
 
+    // NOTE: Vertex data is generated from 0,0,0 towards +z direction
     void TerrainRenderer::createRenderDataBuffers(
         const std::vector<float>& heightmap,
         float tileWidth,
@@ -295,30 +315,37 @@ namespace pk
 		    {
 		        for (int z = 0; z < verticesPerRow; z++)
 		    	  {
-		    		    vec3 vertexPos(x * tileWidth, heightmap[x + z * verticesPerRow], -z * tileWidth);
+		    		    vec3 vertexPos(x * tileWidth, heightmap[x + z * verticesPerRow], z * tileWidth);
 		    		    vertexPositions.push_back(vertexPos);
 
 		    		    // Figure out normal (quite shit and unpercise way, but it looks fine for now..)
-		    		    float up = 0.0f;
-		    		    float down = 0.0f;
-		    		    float left = 0.0f;
-		    		    float right = 0.0f;
+                // Calc normal
+					      float left = 0;
+					      float right = 0;
+					      float down = 0;
+					      float up = 0;
 
-		    		    if (z + 1 < verticesPerRow) up =	heightmap[x + (z + 1) * verticesPerRow];
-		    		    if (z - 1 >= 0)				      down =	heightmap[x + (z - 1) * verticesPerRow];
-		    		    if (x - 1 >= 0)				      left =	heightmap[(x - 1) + z * verticesPerRow];
-		    		    if (x + 1 < verticesPerRow) right = heightmap[(x + 1) + z * verticesPerRow];
+					      int heightmapX = x;
+					      int heightmapY = z;
 
-		    		    float nx = left - right;
-		    		    float nz = up - down;
+					      if (heightmapX - 1 >= 0)
+					      	  left = heightmap[(heightmapX - 1) + heightmapY * verticesPerRow];
 
-		    		    vec3 normal(nx, 0, nz);
-		    		    normal = normal.normalize();
-		    		    normal.x *= 0.5f;
-		    		    normal.z *= 0.5f;
-		    		    normal.y = 1.0f;
+					      if (heightmapX + 1 < verticesPerRow)
+					      	  right = heightmap[(heightmapX + 1) + heightmapY * verticesPerRow];
 
-		    		    vertexNormals.push_back(normal);
+					      if (heightmapY + 1 < verticesPerRow)
+					      	  up = heightmap[heightmapX + (heightmapY + 1) * verticesPerRow];
+
+					      if (heightmapY - 1 >= 0)
+					          down = heightmap[heightmapX + (heightmapY - 1) * verticesPerRow];
+
+
+                float heightVal = heightmap[x + z * verticesPerRow];
+					      //vec3 normal((left - right), _heightModifier * 0.1f, (down - up)); // this is fucking dumb...
+					      vec3 normal((left - right), 1.0f, (down - up)); // this is fucking dumb...
+					      normal = normal.normalize();
+					      vertexNormals.push_back(normal);
 
                 // uv
 		    		    vec2 texCoord(vertexPos.x / totalWidth, vertexPos.z / totalWidth);
