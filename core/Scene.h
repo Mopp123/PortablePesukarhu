@@ -11,6 +11,7 @@
 #include "ecs/components/renderable/TextRenderable.h"
 #include "ecs/components/renderable/Static3DRenderable.h"
 #include "ecs/components/renderable/SkinnedRenderable.h"
+#include "ecs/components/renderable/TerrainRenderable.h"
 #include "ecs/components/lighting/Lights.h"
 #include "ecs/components/AnimationData.h"
 #include "graphics/Environment.h"
@@ -113,6 +114,12 @@ namespace pk
             PK_id modelID,
             PK_id meshID,
             entityID_t skeletonEntity
+        );
+        TerrainRenderable* createTerrainRenderable(
+            entityID_t target,
+            uint32_t terrainMaterialID, // NOTE: TerrainMaterial id not "regular" Material id
+            const std::vector<float>& heightmap,
+            float tileWidth
         );
         Camera* createCamera(
             entityID_t target,

@@ -204,7 +204,7 @@ namespace pk
         }
 
         Texture_new* pBlendmapTexture = (Texture_new*)getResource(blendmapTextureID);
-        if (pBlendmapTexture)
+        if (!pBlendmapTexture)
         {
             Debug::log(
                 "@ResourceManager::createTerrainMaterial "

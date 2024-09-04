@@ -12,6 +12,7 @@
 #include "renderers/FontRenderer.h"
 #include "renderers/StaticRenderer.h"
 #include "renderers/SkinnedRenderer.h"
+#include "renderers/TerrainRenderer.h"
 
 
 namespace pk
@@ -138,6 +139,7 @@ namespace pk
         _renderers[ComponentType::PK_RENDERABLE_TEXT] = (Renderer*)(new FontRenderer);
         _renderers[ComponentType::PK_RENDERABLE_STATIC3D] = (Renderer*)(new StaticRenderer);
         _renderers[ComponentType::PK_RENDERABLE_SKINNED] = (Renderer*)(new SkinnedRenderer);
+        _renderers[ComponentType::PK_RENDERABLE_TERRAIN] = (Renderer*)(new TerrainRenderer);
     }
 
     void MasterRenderer::init()
@@ -257,6 +259,15 @@ namespace pk
     {
         for (const auto& renderer : _renderers)
             renderer.second->freeDescriptorSets();
+    }
+
+    void MasterRenderer::handleSceneSwitch()
+    {
+        for (const auto& renderer : _renderers)
+        {
+            renderer.second->freeDescriptorSets();
+            renderer.second->onSceneSwitch();
+        }
     }
 
     void MasterRenderer::handleWindowResize()

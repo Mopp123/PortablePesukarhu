@@ -195,6 +195,8 @@ namespace pk
 
         virtual void freeDescriptorSets() {}
 
+        virtual void onSceneSwitch() {}
+
     protected:
         // Pipeline has its' own init func but what that func takes in dependant on renderer
         // so thats why we need this implemented for all renderers
