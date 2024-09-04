@@ -10,32 +10,27 @@
 #include "graphics/RenderCommand.h"
 #include "graphics/shaders/Shader.h"
 
-#include <unordered_map>
-
+#include "ecs/components/renderable/TerrainRenderable.h"
 
 namespace pk
 {
-    class StaticRenderer : public Renderer
+    class TerrainRenderer : public Renderer
     {
     private:
         Shader* _pVertexShader = nullptr;
         Shader* _pFragmentShader = nullptr;
 
         VertexBufferLayout _vertexBufferLayout;
-        VertexBufferLayout _instanceBufferLayout;
 
         // TODO: Requires recreating if swapchain img count changes!
         std::vector<Buffer*> _materialPropsUniformBuffers;
-        std::vector<const Buffer*> _constMaterialPropsUniformBuffers; // Needed cuz BatchContainer takes uniform buffers as const.. dumb as fuck I know..
         DescriptorSetLayout _materialDescSetLayout;
 
-        //std::unordered_map<PK_id, Mesh*> _batchMeshCache;
-        std::unordered_map<PK_id, vec4> _batchMaterialProperties;
-        BatchContainer _batchContainer;
+        std::vector<const TerrainRenderable*> _toRender;
 
     public:
-        StaticRenderer();
-        ~StaticRenderer();
+        TerrainRenderer();
+        ~TerrainRenderer();
 
         virtual void submit(const Component* const renderableComponent, const mat4& transformation);
         virtual void render();
