@@ -75,7 +75,7 @@ namespace pk
             Application* pApp = Application::get();
             pApp->getMasterRenderer().handleSceneSwitch();
             pApp->accessInputManager()->destroyEvents();
-            pApp->getResourceManager().free();
+            pApp->getResourceManager().freeResources();
             delete _pCurrentScene;
             _pCurrentScene = _pNextScene;
             _pCurrentScene->init();

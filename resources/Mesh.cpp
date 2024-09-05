@@ -7,6 +7,25 @@ namespace pk
     Mesh::Mesh(
         const std::vector<Buffer*>& vertexBuffers,
         Buffer* pIndexBuffer,
+        Material* pMaterial
+    ) :
+        Resource(ResourceType::RESOURCE_MESH),
+        _pIndexBuffer(pIndexBuffer),
+        _pMaterial(pMaterial),
+        // TODO: remove layout from mesh
+        _vertexBufferLayout(
+            {},
+            VertexInputRate::VERTEX_INPUT_RATE_VERTEX
+        )
+    {
+        _vertexBuffers.resize(vertexBuffers.size());
+        for (size_t i = 0; i < vertexBuffers.size(); ++i)
+            _vertexBuffers[i] = vertexBuffers[i];
+    }
+
+    Mesh::Mesh(
+        const std::vector<Buffer*>& vertexBuffers,
+        Buffer* pIndexBuffer,
         Material* pMaterial,
         VertexBufferLayout vertexBufferLayout
     ) :

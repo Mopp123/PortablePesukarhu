@@ -3,7 +3,7 @@
 #include "Resource.h"
 #include "Texture.h"
 
-#define MATERIAL_MAX_DIFFUSE_TEXTURES 3
+#define MATERIAL_MAX_DIFFUSE_TEXTURES 4
 
 namespace pk
 {
@@ -14,6 +14,8 @@ namespace pk
         Texture_new* _pSpecularTexture = nullptr;
         Texture_new* _pNormalTexture = nullptr;
 
+        Texture_new* _pBlendmapTexture = nullptr;
+
         // NOTE: not used atm cuz currently just testing flat shaded static 3d meshes
         float _specularStrength = 0.0f;
         float _specularShininess = 0.0f;
@@ -23,7 +25,8 @@ namespace pk
             std::vector<Texture_new*> pDiffuseTextures,
             Texture_new* pSpecularTexture = nullptr,
             float specularStrength = 1.0f,
-            float specularShininess = 32.0f
+            float specularShininess = 32.0f,
+            Texture_new* pBlendmapTexture = nullptr
         );
         Material(const Material&) = delete;
 
@@ -35,6 +38,7 @@ namespace pk
         const Texture_new * const getDiffuseTexture(int index) const;
         Texture_new* accessDiffuseTexture(int index);
         inline const Texture_new* getSpecularTexture() const { return _pSpecularTexture; }
+        inline const Texture_new* getBlendmapTexture() const { return _pBlendmapTexture; }
         inline float getSpecularStrength() const { return _specularStrength; }
         inline float getSpecularShininess() const { return _specularShininess; }
     };

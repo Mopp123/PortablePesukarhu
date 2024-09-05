@@ -117,7 +117,8 @@ namespace pk
         );
         TerrainRenderable* createTerrainRenderable(
             entityID_t target,
-            uint32_t terrainMaterialID, // NOTE: TerrainMaterial id not "regular" Material id
+            PK_id meshID,
+            PK_id materialID,
             const std::vector<float>& heightmap,
             float tileWidth
         );

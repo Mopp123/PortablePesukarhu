@@ -2,6 +2,7 @@
 #include "core/Debug.h"
 #include "utils/ID.h"
 #include "utils/ModelLoading.h"
+#include "utils/MeshGenerator.h"
 
 
 namespace pk
@@ -11,14 +12,14 @@ namespace pk
 
     ResourceManager::~ResourceManager()
     {
-        free();
+        freeResources();
 
         std::unordered_map<uint32_t, Resource*>::iterator itPersistent;
         for (itPersistent = _resources.begin(); itPersistent != _resources.end(); ++itPersistent)
             delete itPersistent->second;
     }
 
-    void ResourceManager::free()
+    void ResourceManager::freeResources()
     {
         std::unordered_map<uint32_t, Resource*>::iterator it;
         for (it = _resources.begin(); it != _resources.end(); ++it)
@@ -124,7 +125,8 @@ namespace pk
         const std::vector<uint32_t>& diffuseTextureIDs,
         uint32_t specularTextureID,
         float specularStrength,
-        float shininess
+        float shininess,
+        uint32_t blendmapTextureID
     )
     {
         std::vector<Texture_new*> textures(diffuseTextureIDs.size());
@@ -158,11 +160,27 @@ namespace pk
             else
                 pSpecularTexture = _pWhiteTexture;
         }
+
+        Texture_new* pBlendmapTexture = nullptr;
+        if (blendmapTextureID)
+        {
+            pBlendmapTexture = (Texture_new*)getResource(blendmapTextureID);
+            if (!pBlendmapTexture)
+            {
+                Debug::log(
+                    "@ResourceManager::createMaterial "
+                    "Failed to find blendmap texture with id: " + std::to_string(blendmapTextureID),
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return nullptr;
+            }
+        }
         Material* pMaterial = new Material(
             textures,
             pSpecularTexture,
             specularStrength,
-            shininess
+            shininess,
+            pBlendmapTexture
         );
         _resources[pMaterial->getResourceID()] = pMaterial;
         return pMaterial;
@@ -234,6 +252,24 @@ namespace pk
             pIndexBuffer,
             pMaterial,
             layout
+        );
+        _resources[pMesh->getResourceID()] = pMesh;
+        return pMesh;
+    }
+
+    Mesh* ResourceManager::createTerrainMesh(
+        const std::vector<float>& heightmap,
+        float tileWidth,
+        uint32_t materialResourceID
+    )
+    {
+        Material* pMaterial = (Material*)getResource(materialResourceID);
+        std::pair<Buffer*, Buffer*> buffers = generate_terrain_mesh_data(heightmap, tileWidth);
+
+        Mesh* pMesh = new Mesh(
+            { buffers.first },
+            buffers.second,
+            pMaterial
         );
         _resources[pMesh->getResourceID()] = pMesh;
         return pMesh;

@@ -16,13 +16,7 @@ namespace pk
 {
     struct TerrainRenderData
     {
-        std::vector<Buffer*> pVertexBuffer; // one for each swapchain img
-        Buffer* pIndexBuffer = nullptr;
-
-        std::vector<const Texture_new*> channelTextures;
-        const Texture_new* pBlendmapTexture = nullptr;
         mat4 transformationMatrix = mat4(1.0f);
-        TerrainRenderable* pRenderable = nullptr;
         std::vector<DescriptorSet*> materialDescriptorSet;
     };
 
@@ -39,15 +33,12 @@ namespace pk
         // *atm not using any ubos for terrain materials..
         // std::vector<Buffer*> _materialPropsUniformBuffers;
         DescriptorSetLayout _materialDescSetLayout;
-        std::vector<DescriptorSet*> _materialDescriptorSet;
 
-        //std::vector<const TerrainRenderable*> _toRender;
-
-        // *Using renderable's pointer as kind of like "batch identifier"
-        std::unordered_map<const TerrainRenderable*, TerrainRenderData> _toRender;
+        // *Using renderable's mesh id as kind of like "batch identifier"
+        std::unordered_map<PK_id, TerrainRenderData> _toRender;
         // "identifiers" of terrains submitted on current frame
         // *Used to determine if terrain was deleted and dont want to render it anymore
-        std::set<const TerrainRenderable*> _submittedTerrains;
+        std::set<PK_id> _submittedTerrains;
 
 
     public:
@@ -71,14 +62,10 @@ namespace pk
             const TerrainRenderable* pRenderable,
             mat4 transformationMatrix
         );
-        // NOTE: Vertex data is generated from 0,0,0 towards +z direction
-        void createRenderDataBuffers(
-            const std::vector<float>& heightmap,
-            float tileWidth,
+
+        void createRenderDataDescriptorSets(
+            const TerrainRenderable * const pRenderable,
             TerrainRenderData& target
         );
-        void createRenderDataDescriptorSets(TerrainRenderData& target);
-
-        void deleteRenderDataBuffers();
     };
 }

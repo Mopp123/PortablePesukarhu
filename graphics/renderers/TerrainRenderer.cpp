@@ -65,7 +65,6 @@ namespace pk
     TerrainRenderer::~TerrainRenderer()
     {
         freeDescriptorSets();
-        deleteRenderDataBuffers();
         delete _pVertexShader;
         delete _pFragmentShader;
     }
@@ -107,13 +106,14 @@ namespace pk
     )
     {
         const TerrainRenderable * const pRenderable = (const TerrainRenderable * const)renderableComponent;
-        if (_toRender.find(pRenderable) == _toRender.end())
-            _toRender[pRenderable] = createTerrainRenderData(pRenderable, transformation);
-        // recreate descriptor sets if necessary..
-        if (_toRender[pRenderable].materialDescriptorSet.empty())
-            createRenderDataDescriptorSets(_toRender[pRenderable]);
 
-        _submittedTerrains.insert(pRenderable);
+        if (_toRender.find(pRenderable->meshID) == _toRender.end())
+            _toRender[pRenderable->meshID] = createTerrainRenderData(pRenderable, transformation);
+        // recreate descriptor sets if necessary..
+        if (_toRender[pRenderable->meshID].materialDescriptorSet.empty())
+            createRenderDataDescriptorSets(pRenderable, _toRender[pRenderable->meshID]);
+
+        _submittedTerrains.insert(pRenderable->meshID);
     }
 
     void TerrainRenderer::render()
@@ -168,12 +168,16 @@ namespace pk
         const DescriptorSet* pEnvDescriptorSet = masterRenderer.getEnvironmentDescriptorSet();
         const DescriptorSet* pDirLightDescriptorSet = masterRenderer.getDirectionalLightDescriptorSet();
 
-        std::unordered_map<const TerrainRenderable*, TerrainRenderData>::const_iterator rIt;
+        ResourceManager& resManager = pApp->getResourceManager();
+
+        std::unordered_map<PK_id, TerrainRenderData>::const_iterator rIt;
         for (rIt = _toRender.begin(); rIt != _toRender.end(); ++rIt)
         {
             const TerrainRenderData& renderData = rIt->second;
-            const Buffer* pIndexBuffer = renderData.pIndexBuffer;
-            Buffer* pVertexBuffer = renderData.pVertexBuffer[0]; // TODO: this should be current swapchain img index
+            Mesh* pMesh = (Mesh*)resManager.getResource(rIt->first);
+
+            const Buffer* pIndexBuffer = pMesh->getIndexBuffer();;
+            Buffer* pVertexBuffer = pMesh->accessVertexBuffer_DANGER(0);
 
             size_t indexBufLen = pIndexBuffer->getDataLength();
             IndexType indexType = IndexType::INDEX_TYPE_NONE;
@@ -241,7 +245,7 @@ namespace pk
     void TerrainRenderer::flush()
     {
         // Figure out if need to erase from _toRender
-        std::unordered_map<const TerrainRenderable*, TerrainRenderData>::iterator it;
+        std::unordered_map<PK_id, TerrainRenderData>::iterator it;
         for (it = _toRender.begin(); it != _toRender.end(); ++it)
         {
             if (_submittedTerrains.find(it->first) == _submittedTerrains.end())
@@ -252,7 +256,7 @@ namespace pk
 
     void TerrainRenderer::freeDescriptorSets()
     {
-        std::unordered_map<const TerrainRenderable*, TerrainRenderData>::iterator it;
+        std::unordered_map<PK_id, TerrainRenderData>::iterator it;
         for (it = _toRender.begin(); it != _toRender.end(); ++it)
         {
             TerrainRenderData& renderData = it->second;
@@ -264,7 +268,6 @@ namespace pk
 
     void TerrainRenderer::handleSceneSwitch()
     {
-        deleteRenderDataBuffers();
     }
 
     TerrainRenderData TerrainRenderer::createTerrainRenderData(
@@ -274,159 +277,26 @@ namespace pk
     {
         TerrainRenderData renderData;
         renderData.transformationMatrix = transformationMatrix;
-
-        ResourceManager& resManager = Application::get()->getResourceManager();
-
-        TerrainMaterial* pMaterial = (TerrainMaterial*)resManager.getResource(pRenderable->terrainMaterialID);
-        renderData.channelTextures = {
-            pMaterial->getChannelTexture(0),
-            pMaterial->getChannelTexture(1),
-            pMaterial->getChannelTexture(2),
-            pMaterial->getChannelTexture(3)
-        };
-        renderData.pBlendmapTexture = pMaterial->getBlendmapTexture();
-
-        createRenderDataBuffers(pRenderable->heightmap, pRenderable->tileWidth, renderData);
-        createRenderDataDescriptorSets(renderData);
+        createRenderDataDescriptorSets(pRenderable, renderData);
 
         return renderData;
     }
 
-    // NOTE: Vertex data is generated from 0,0,0 towards +z direction
-    void TerrainRenderer::createRenderDataBuffers(
-        const std::vector<float>& heightmap,
-        float tileWidth,
+    void TerrainRenderer::createRenderDataDescriptorSets(
+        const TerrainRenderable * const pRenderable,
         TerrainRenderData& target
     )
     {
-        // expecting heightmap always to be square
-        uint32_t verticesPerRow = sqrt(heightmap.size());
+        Application* pApp = Application::get();
+        ResourceManager& resManager = pApp->getResourceManager();
+        const Material* pMaterial = (const Material*)resManager.getResource(pRenderable->materialID);
+        const Texture_new* pTex0 = pMaterial->getDiffuseTexture(0);
+        const Texture_new* pTex1 = pMaterial->getDiffuseTexture(1);
+        const Texture_new* pTex2 = pMaterial->getDiffuseTexture(2);
+        const Texture_new* pTex3 = pMaterial->getDiffuseTexture(3);
+        const Texture_new* pBlendmapTex = pMaterial->getBlendmapTexture();
 
-		    std::vector<vec3> vertexPositions;
-		    std::vector<vec3> vertexNormals;
-		    std::vector<vec2> vertexTexCoords;
-
-		    uint32_t vertexCount = 0;
-
-        // actual "world space width"
-		    float totalWidth = tileWidth * verticesPerRow;
-
-		    for (int x = 0; x < verticesPerRow; x++)
-		    {
-		        for (int z = 0; z < verticesPerRow; z++)
-		    	  {
-		    		    vec3 vertexPos(x * tileWidth, heightmap[x + z * verticesPerRow], z * tileWidth);
-		    		    vertexPositions.push_back(vertexPos);
-
-		    		    // Figure out normal (quite shit and unpercise way, but it looks fine for now..)
-                // Calc normal
-					      float left = 0;
-					      float right = 0;
-					      float down = 0;
-					      float up = 0;
-
-					      int heightmapX = x;
-					      int heightmapY = z;
-
-					      if (heightmapX - 1 >= 0)
-					      	  left = heightmap[(heightmapX - 1) + heightmapY * verticesPerRow];
-
-					      if (heightmapX + 1 < verticesPerRow)
-					      	  right = heightmap[(heightmapX + 1) + heightmapY * verticesPerRow];
-
-					      if (heightmapY + 1 < verticesPerRow)
-					      	  up = heightmap[heightmapX + (heightmapY + 1) * verticesPerRow];
-
-					      if (heightmapY - 1 >= 0)
-					          down = heightmap[heightmapX + (heightmapY - 1) * verticesPerRow];
-
-
-                float heightVal = heightmap[x + z * verticesPerRow];
-					      //vec3 normal((left - right), _heightModifier * 0.1f, (down - up)); // this is fucking dumb...
-					      vec3 normal((left - right), 1.0f, (down - up)); // this is fucking dumb...
-					      normal = normal.normalize();
-					      vertexNormals.push_back(normal);
-
-                // uv
-		    		    vec2 texCoord(vertexPos.x / totalWidth, vertexPos.z / totalWidth);
-		    		    vertexTexCoords.push_back(texCoord);
-
-		    		    vertexCount++;
-		    	  }
-		    }
-
-		    // Combine all into 1 buffer
-		    std::vector<float> vertexData;
-		    vertexData.reserve((3 + 3 + 2) * vertexCount);
-		    for (int i = 0; i < vertexCount; i++)
-		    {
-            vertexData.emplace_back(vertexPositions[i].x);
-            vertexData.emplace_back(vertexPositions[i].y);
-            vertexData.emplace_back(vertexPositions[i].z);
-
-            vertexData.emplace_back(vertexNormals[i].x);
-            vertexData.emplace_back(vertexNormals[i].y);
-            vertexData.emplace_back(vertexNormals[i].z);
-
-            vertexData.emplace_back(vertexTexCoords[i].x);
-            vertexData.emplace_back(vertexTexCoords[i].y);
-		    }
-
-		    std::vector<uint32_t> indices;
-		    for (uint32_t x = 0; x < verticesPerRow; x++)
-		    {
-		    	  for (uint32_t z = 0; z < verticesPerRow; z++)
-		    	  {
-		    		    if (x >= verticesPerRow - 1 || z >= verticesPerRow - 1)
-		    		        continue;
-
-		    		    uint32_t topLeft = x + (z + 1) * verticesPerRow;
-		    		    uint32_t bottomLeft = x + z * verticesPerRow;
-
-		    		    uint32_t topRight = (x + 1) + (z + 1) * verticesPerRow;
-		    		    uint32_t bottomRight = (x + 1) + z * verticesPerRow;
-
-
-		    		    indices.push_back(bottomLeft);
-		    		    indices.push_back(topLeft);
-		    		    indices.push_back(topRight);
-
-		    		    indices.push_back(topRight);
-		    		    indices.push_back(bottomRight);
-		    		    indices.push_back(bottomLeft);
-		    	  }
-		    }
-
-        // Buffer for each swapchain img since we expect that the vertex buffer
-        // may change due to altered heightmap!
-
-        const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
-        uint32_t swapchainImages = pSwapchain->getImageCount();
-        std::vector<Buffer*> vertexBuffers(swapchainImages);
-        for (int i = 0; i < swapchainImages; ++i)
-        {
-            vertexBuffers[i] = Buffer::create(
-                vertexData.data(),
-                sizeof(float),
-                vertexData.size(),
-                BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                true // If we want to alter heights at runtime
-            );
-        }
-        Buffer* pIndexBuffer = Buffer::create(
-            indices.data(),
-            sizeof(uint32_t),
-            indices.size(),
-            BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT
-        );
-
-        target.pVertexBuffer = vertexBuffers;
-        target.pIndexBuffer = pIndexBuffer;
-    }
-
-    void TerrainRenderer::createRenderDataDescriptorSets(TerrainRenderData& target)
-    {
-        const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
+        const Swapchain* pSwapchain = pApp->getWindow()->getSwapchain();
         uint32_t swapchainImages = pSwapchain->getImageCount();
         target.materialDescriptorSet.resize(swapchainImages);
         for (int i = 0; i < swapchainImages; ++i)
@@ -435,24 +305,13 @@ namespace pk
                 _materialDescSetLayout,
                 1,
                 {
-                    target.channelTextures[0],
-                    target.channelTextures[1],
-                    target.channelTextures[2],
-                    target.channelTextures[3],
-                    target.pBlendmapTexture
+                    pTex0,
+                    pTex1,
+                    pTex2,
+                    pTex3,
+                    pBlendmapTex
                 }
             );
-        }
-    }
-
-    void TerrainRenderer::deleteRenderDataBuffers()
-    {
-        std::unordered_map<const TerrainRenderable*, TerrainRenderData>::iterator it;
-        for (it = _toRender.begin(); it != _toRender.end(); ++it)
-        {
-            for (Buffer* pBuf : it->second.pVertexBuffer)
-                delete pBuf;
-            delete it->second.pIndexBuffer;
         }
     }
 }
