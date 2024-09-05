@@ -4,6 +4,8 @@
 #include "utils/ModelLoading.h"
 #include "utils/MeshGenerator.h"
 
+#include <utility>
+
 
 namespace pk
 {
@@ -64,6 +66,22 @@ namespace pk
         _pBlackTexture = createTexture(pBlackImg->getResourceID(), defaultTextureSampler);
         _persistentResources[pBlackImg->getResourceID()] = pBlackImg;
         _persistentResources[_pBlackTexture->getResourceID()] = _pBlackTexture;
+
+        // Blue texture
+        PK_ubyte pBluePixels[2 * 2 * 3];
+        for (int i = 0; i < 2; ++i)
+        {
+            for (int j = 0; j < 2; ++j)
+            {
+                pBluePixels[(i + j * 2)] = 0;
+                pBluePixels[(i + j * 2) + 1] = 0;
+                pBluePixels[(i + j * 2) + 2] = 255;
+            }
+        }
+        ImageData* pBlueImg = createImage(pBluePixels, 2, 2, 3);
+        _pBlueTexture = createTexture(pBlueImg->getResourceID(), defaultTextureSampler);
+        _persistentResources[pBlueImg->getResourceID()] = pBlueImg;
+        _persistentResources[_pBlueTexture->getResourceID()] = _pBlueTexture;
     }
 
     ImageData* ResourceManager::loadImage(
@@ -264,7 +282,10 @@ namespace pk
     )
     {
         Material* pMaterial = (Material*)getResource(materialResourceID);
-        std::pair<Buffer*, Buffer*> buffers = generate_terrain_mesh_data(heightmap, tileWidth);
+        std::pair<Buffer*, Buffer*> buffers = generate_terrain_mesh_data(
+            heightmap,
+            tileWidth
+        );
 
         Mesh* pMesh = new Mesh(
             { buffers.first },

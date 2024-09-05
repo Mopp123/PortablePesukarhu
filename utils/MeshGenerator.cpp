@@ -1,8 +1,12 @@
 #include "MeshGenerator.h"
+#include "utils/pkmath.h"
 
 namespace pk
 {
-	std::pair<Buffer*, Buffer*> generate_terrain_mesh(const std::vector<float>& heightmap, float tileWidth)
+	std::pair<Buffer*, Buffer*> generate_terrain_mesh_data(
+		const std::vector<float>& heightmap,
+		float tileWidth
+	)
 	{
 		// expecting heightmap always to be square
 		uint32_t verticesPerRow = sqrt(heightmap.size());
