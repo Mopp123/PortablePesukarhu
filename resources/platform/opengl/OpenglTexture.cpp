@@ -55,6 +55,9 @@ namespace pk
             const int channels = pImgData->getChannels();
             const int width = pImgData->getWidth();
             const int height = pImgData->getHeight();
+            _width = width;
+            _height = height;
+            _channels = channels;
 
             switch (channels)
             {
@@ -143,6 +146,78 @@ namespace pk
             Debug::log("OpenglTexture texture created successfully");
             // NOTE: Not sure why not previously unbinding the texture here??
             glBindTexture(GL_TEXTURE_2D, 0);
+        }
+
+
+        void OpenglTexture::update(
+            void* pData,
+            size_t dataSize,
+            size_t width,
+            size_t height,
+            uint32_t glTextureUnit
+        )
+        {
+            if (width != _width)
+            {
+                Debug::log(
+                    "@OpenglTexture::update "
+                    "updated width: " + std::to_string(width) + " "
+                    "was different from original: " + std::to_string(_width),
+                    Debug::MessageType::PK_WARNING
+                );
+            }
+
+            if (height != _height)
+            {
+                Debug::log(
+                    "@OpenglTexture::update "
+                    "updated height: " + std::to_string(height) + " "
+                    "was different from original: " + std::to_string(_height),
+                    Debug::MessageType::PK_WARNING
+                );
+            }
+
+            _width = width;
+            _height = height;
+
+            GLint glFormat;
+            switch (_channels)
+            {
+                case 1: glFormat = GL_ALPHA; break;
+                case 3: glFormat = GL_RGB; break;
+                case 4: glFormat = GL_RGBA; break;
+                // NOTE: Noticed that atm only rgba works on web..
+                default:
+                    Debug::log(
+                        "@OpenglTexture::update "
+                        "Invalid color channel count: " + std::to_string(_channels) + " ",
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
+                    break;
+            }
+
+            switch (glTextureUnit)
+            {
+                case 0: glActiveTexture(GL_TEXTURE0); break;
+                case 1: glActiveTexture(GL_TEXTURE1); break;
+                case 2: glActiveTexture(GL_TEXTURE2); break;
+                case 3: glActiveTexture(GL_TEXTURE3); break;
+                case 4: glActiveTexture(GL_TEXTURE4); break;
+                case 5: glActiveTexture(GL_TEXTURE5); break;
+                default: break;
+            }
+            glBindTexture(GL_TEXTURE_2D, _glTexID);
+            glTexSubImage2D(
+                GL_TEXTURE_2D,
+                0,
+                0,
+                0,
+                width,
+                height,
+                glFormat,
+                GL_UNSIGNED_BYTE,
+                pData
+            );
         }
     }
 }

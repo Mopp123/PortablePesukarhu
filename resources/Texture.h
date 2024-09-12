@@ -89,6 +89,14 @@ namespace pk
         virtual void load() {}
         virtual void save() {}
 
+        virtual void update(
+            void* pData,
+            size_t dataSize,
+            size_t width,
+            size_t height,
+            uint32_t glTextureUnit // atm needed for gl fuckery..
+        ) {}
+
         // NOTE: Why pImgData is not const here?
         static Texture_new* create(
             uint32_t imgResourceID,

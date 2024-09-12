@@ -2,7 +2,6 @@
 #include "Application.h"
 
 #include "ecs/components/renderable/Sprite3DRenderable.h"
-#include "ecs/components/renderable/TerrainTileRenderable.h"
 #include "ecs/components/lighting/Lights.h"
 
 // NOTE: Only temporarely adding all systems here on Scene's constructor!
@@ -92,10 +91,6 @@ namespace pk
         componentPools[ComponentType::PK_RENDERABLE_SKINNED] = ComponentPool(
             sizeof(SkinnedRenderable), 100, true
         );
-        // TODO: Get rid of TerrainTileRenderable thing.. that was a bad idea..
-        //componentPools[ComponentType::PK_RENDERABLE_TERRAINTILE] = ComponentPool(
-        //    sizeof(TerrainTileRenderable), 100, true
-        //);
         componentPools[ComponentType::PK_RENDERABLE_TERRAIN] = ComponentPool(
             sizeof(TerrainRenderable), 1, true
         );
