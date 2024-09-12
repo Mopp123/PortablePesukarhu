@@ -61,6 +61,8 @@ namespace pk
         // Frees all renderers' descriptor sets
         void freeDescriptorSets();
 
+        void handleSceneSwitch();
+
         inline const DescriptorSetLayout getCommonDescriptorSetLayout() const { return _commonDescriptorSetLayout; }
         inline const DescriptorSet* getCommonDescriptorSet() const { return _pCommonDescriptorSet; }
 

@@ -20,7 +20,7 @@ namespace pk
         }
 
         uint32_t id = 0;
-        while (s_usedIDs.find(id) != s_usedIDs.end() || id == 0)
+        while ((s_usedIDs.find(id) != s_usedIDs.end()) || id == 0)
         {
             // randomize each byte individually..
             for (size_t i = 0; i < sizeof(uint32_t); ++i)

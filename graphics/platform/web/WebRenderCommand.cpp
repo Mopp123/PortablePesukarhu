@@ -179,6 +179,17 @@ namespace pk
                     );
                     break;
             }
+
+            if (glPipeline->getEnableColorBlending())
+            {
+                glEnable(GL_BLEND);
+                // TODO: allow specifying this
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            }
+            else
+            {
+                glDisable(GL_BLEND);
+            }
         }
 
         void WebRenderCommand::bindIndexBuffer(

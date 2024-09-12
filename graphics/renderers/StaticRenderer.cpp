@@ -124,6 +124,7 @@ namespace pk
             FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
             true,
             DepthCompareOperation::COMPARE_OP_LESS,
+            false,
             0, 0
         );
     }

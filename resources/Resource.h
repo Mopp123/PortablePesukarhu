@@ -4,7 +4,7 @@
 #include <cstring>
 #include <string>
 
-#define MAX_FILEPATH_SIZE 32
+#define MAX_FILEPATH_SIZE 64
 
 namespace pk
 {

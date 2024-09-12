@@ -26,6 +26,8 @@ namespace pk
             bool _enableDepthTest = false;
             DepthCompareOperation _depthCmpOp;
 
+            bool _enableColorBlending = false;
+
         public:
             OpenglPipeline(const OpenglPipeline&) = delete;
             ~OpenglPipeline() {}
@@ -44,6 +46,7 @@ namespace pk
                 FrontFace frontFace,
                 bool enableDepthTest,
                 DepthCompareOperation depthCmpOp,
+                bool enableColorBlending,
                 uint32_t pushConstantSize,
 	        uint32_t pushConstantStageFlags
             ) override;
@@ -60,6 +63,8 @@ namespace pk
 
             inline bool getEnableDepthTest() const { return _enableDepthTest; }
             inline DepthCompareOperation getDepthCompareOperation() const { return _depthCmpOp; }
+
+            inline bool getEnableColorBlending() const { return _enableColorBlending; }
 
         protected:
             OpenglPipeline() {}

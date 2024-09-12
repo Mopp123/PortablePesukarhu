@@ -8,10 +8,12 @@ namespace pk
         std::vector<Texture_new*> pDiffuseTextures,
         Texture_new* pSpecularTexture,
         float specularStrength,
-        float specularShininess
+        float specularShininess,
+        Texture_new* pBlendmapTexture
     ) :
         Resource(ResourceType::RESOURCE_MATERIAL),
         _pSpecularTexture(pSpecularTexture),
+        _pBlendmapTexture(pBlendmapTexture),
         _specularStrength(specularStrength),
         _specularShininess(specularShininess)
     {

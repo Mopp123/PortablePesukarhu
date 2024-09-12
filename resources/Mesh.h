@@ -26,8 +26,13 @@ namespace pk
         Mesh(
             const std::vector<Buffer*>& vertexBuffers,
             Buffer* pIndexBuffer,
+            Material* pMaterial
+        );
+        Mesh(
+            const std::vector<Buffer*>& vertexBuffers,
+            Buffer* pIndexBuffer,
             Material* pMaterial,
-            VertexBufferLayout vertexBufferLayout
+            VertexBufferLayout vertexBufferLayout // TODO: remove layout from mesh
         );
         Mesh(
             const std::vector<Buffer*>& vertexBuffers,

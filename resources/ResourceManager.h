@@ -4,6 +4,7 @@
 #include "Image.h"
 #include "Texture.h"
 #include "Material.h"
+#include "TerrainMaterial.h"
 #include "Mesh.h"
 #include "Model.h"
 #include "Animation.h"
@@ -38,7 +39,7 @@ namespace pk
         ResourceManager();
         ~ResourceManager();
         ResourceManager(const ResourceManager&) = delete;
-        void free();
+        void freeResources();
 
         void createDefaultResources();
 
@@ -67,7 +68,13 @@ namespace pk
             const std::vector<uint32_t>& diffuseTextureIDs,
             uint32_t specularTextureID = 0,
             float specularStrength = 0.0f,
-            float shininess = 1.0f
+            float shininess = 1.0f,
+            uint32_t blendmapTextureID = 0
+        );
+
+        TerrainMaterial* createTerrainMaterial(
+            const std::vector<uint32_t>& channelTextureIDs,
+            uint32_t blendmapTextureID
         );
 
         // NOTE: Buffers' ownership gets transferred to the created mesh!
@@ -75,6 +82,12 @@ namespace pk
             const std::vector<Buffer*>& vertexBuffers,
             Buffer* pIndexBuffer,
             const VertexBufferLayout& layout,
+            uint32_t materialResourceID
+        );
+
+        Mesh* createTerrainMesh(
+            const std::vector<float>& heightmap,
+            float tileWidth,
             uint32_t materialResourceID
         );
 

@@ -323,6 +323,7 @@ namespace pk
             FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
             true,
             DepthCompareOperation::COMPARE_OP_LESS,
+            false,
             0, // sending transformation matrices as push constants
             ShaderStageFlagBits::SHADER_STAGE_NONE
         );

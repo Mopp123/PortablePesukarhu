@@ -2,6 +2,9 @@
 #include "core/Debug.h"
 #include "utils/ID.h"
 #include "utils/ModelLoading.h"
+#include "utils/MeshGenerator.h"
+
+#include <utility>
 
 
 namespace pk
@@ -11,14 +14,14 @@ namespace pk
 
     ResourceManager::~ResourceManager()
     {
-        free();
+        freeResources();
 
         std::unordered_map<uint32_t, Resource*>::iterator itPersistent;
         for (itPersistent = _resources.begin(); itPersistent != _resources.end(); ++itPersistent)
             delete itPersistent->second;
     }
 
-    void ResourceManager::free()
+    void ResourceManager::freeResources()
     {
         std::unordered_map<uint32_t, Resource*>::iterator it;
         for (it = _resources.begin(); it != _resources.end(); ++it)
@@ -47,8 +50,7 @@ namespace pk
         TextureSampler defaultTextureSampler;
 
         // White texture
-        // NOTE: Don't remember why I put 4 channels here instead of 1...
-        // ..there might not even be reason for that....
+        // NOTE: Theres some issue using 3 channels on small textures so using 4 for now..
         PK_ubyte pWhitePixels[2 * 2 * 4];
         memset(pWhitePixels, 255, 2 * 2 * 4);
         ImageData* pWhiteImg = createImage(pWhitePixels, 2, 2, 4);
@@ -57,9 +59,9 @@ namespace pk
         _persistentResources[_pWhiteTexture->getResourceID()] = _pWhiteTexture;
 
         // Black texture
-        PK_ubyte pBlackPixels[2 * 2 * 3];
-        memset(pBlackPixels, 0, 2 * 2 * 3);
-        ImageData* pBlackImg = createImage(pBlackPixels, 2, 2, 3);
+        PK_ubyte pBlackPixels[2 * 2 * 4];
+        memset(pBlackPixels, 0, 2 * 2 * 4);
+        ImageData* pBlackImg = createImage(pBlackPixels, 2, 2, 4);
         _pBlackTexture = createTexture(pBlackImg->getResourceID(), defaultTextureSampler);
         _persistentResources[pBlackImg->getResourceID()] = pBlackImg;
         _persistentResources[_pBlackTexture->getResourceID()] = _pBlackTexture;
@@ -124,7 +126,8 @@ namespace pk
         const std::vector<uint32_t>& diffuseTextureIDs,
         uint32_t specularTextureID,
         float specularStrength,
-        float shininess
+        float shininess,
+        uint32_t blendmapTextureID
     )
     {
         std::vector<Texture_new*> textures(diffuseTextureIDs.size());
@@ -158,11 +161,80 @@ namespace pk
             else
                 pSpecularTexture = _pWhiteTexture;
         }
+
+        Texture_new* pBlendmapTexture = nullptr;
+        if (blendmapTextureID)
+        {
+            pBlendmapTexture = (Texture_new*)getResource(blendmapTextureID);
+            if (!pBlendmapTexture)
+            {
+                Debug::log(
+                    "@ResourceManager::createMaterial "
+                    "Failed to find blendmap texture with id: " + std::to_string(blendmapTextureID),
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return nullptr;
+            }
+        }
         Material* pMaterial = new Material(
             textures,
             pSpecularTexture,
             specularStrength,
-            shininess
+            shininess,
+            pBlendmapTexture
+        );
+        _resources[pMaterial->getResourceID()] = pMaterial;
+        return pMaterial;
+    }
+
+    TerrainMaterial* ResourceManager::createTerrainMaterial(
+        const std::vector<uint32_t>& channelTextureIDs,
+        uint32_t blendmapTextureID
+    )
+    {
+        if (channelTextureIDs.size() != TERRAIN_MATERIAL_MAX_CHANNEL_TEXTURES)
+        {
+            Debug::log(
+                "@ResourceManager::createTerrainMaterial "
+                "Invalid amount of channel textures. "
+                "Required amount: " + std::to_string(TERRAIN_MATERIAL_MAX_CHANNEL_TEXTURES) + " "
+                "for each blendmap RGBA channels!",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+        }
+
+        std::vector<Texture_new*> channelTextures;
+        for (uint32_t channelTextureID : channelTextureIDs)
+        {
+            Texture_new* pTexture = (Texture_new*)getResource(channelTextureID);
+            if (!pTexture)
+            {
+                Debug::log(
+                    "@ResourceManager::createTerrainMaterial "
+                    "Invalid channel texture ID: " + std::to_string(channelTextureID),
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return nullptr;
+            }
+            else
+            {
+                channelTextures.push_back(pTexture);
+            }
+        }
+
+        Texture_new* pBlendmapTexture = (Texture_new*)getResource(blendmapTextureID);
+        if (!pBlendmapTexture)
+        {
+            Debug::log(
+                "@ResourceManager::createTerrainMaterial "
+                "Invalid blendmap texture ID: " + std::to_string(blendmapTextureID),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
+        TerrainMaterial* pMaterial = new TerrainMaterial(
+            channelTextures,
+            pBlendmapTexture
         );
         _resources[pMaterial->getResourceID()] = pMaterial;
         return pMaterial;
@@ -181,6 +253,27 @@ namespace pk
             pIndexBuffer,
             pMaterial,
             layout
+        );
+        _resources[pMesh->getResourceID()] = pMesh;
+        return pMesh;
+    }
+
+    Mesh* ResourceManager::createTerrainMesh(
+        const std::vector<float>& heightmap,
+        float tileWidth,
+        uint32_t materialResourceID
+    )
+    {
+        Material* pMaterial = (Material*)getResource(materialResourceID);
+        std::pair<Buffer*, Buffer*> buffers = generate_terrain_mesh_data(
+            heightmap,
+            tileWidth
+        );
+
+        Mesh* pMesh = new Mesh(
+            { buffers.first },
+            buffers.second,
+            pMaterial
         );
         _resources[pMesh->getResourceID()] = pMesh;
         return pMesh;

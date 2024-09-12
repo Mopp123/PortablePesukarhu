@@ -31,7 +31,7 @@ namespace pk
 
         void clearData();
 
-        float getBrightnessAt(int x, int y);
+        float getBrightnessAt(int x, int y) const;
         void setColorAt(int x, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
         void setColorAt_UNSAFE(int x, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 

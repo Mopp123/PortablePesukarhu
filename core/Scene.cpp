@@ -2,7 +2,6 @@
 #include "Application.h"
 
 #include "ecs/components/renderable/Sprite3DRenderable.h"
-#include "ecs/components/renderable/TerrainTileRenderable.h"
 #include "ecs/components/lighting/Lights.h"
 
 // NOTE: Only temporarely adding all systems here on Scene's constructor!
@@ -92,8 +91,8 @@ namespace pk
         componentPools[ComponentType::PK_RENDERABLE_SKINNED] = ComponentPool(
             sizeof(SkinnedRenderable), 100, true
         );
-        componentPools[ComponentType::PK_RENDERABLE_TERRAINTILE] = ComponentPool(
-            sizeof(TerrainTileRenderable), 100, true
+        componentPools[ComponentType::PK_RENDERABLE_TERRAIN] = ComponentPool(
+            sizeof(TerrainRenderable), 1, true
         );
         componentPools[ComponentType::PK_LIGHT_DIRECTIONAL] = ComponentPool(
             sizeof(DirectionalLight), maxDirectionalLights, true
@@ -440,6 +439,35 @@ namespace pk
 
         SkinnedRenderable* pRenderable = (SkinnedRenderable*)componentPools[ComponentType::PK_RENDERABLE_SKINNED].allocComponent(target);
         *pRenderable = SkinnedRenderable(modelID, meshID, skeletonEntity);
+        addComponent(target, pRenderable);
+        return pRenderable;
+    }
+
+    TerrainRenderable* Scene::createTerrainRenderable(
+        entityID_t target,
+        PK_id meshID,
+        PK_id materialID,
+        const std::vector<float>& heightmap,
+        float tileWidth
+    )
+    {
+        if ((getEntity(target).componentMask & ComponentType::PK_TRANSFORM) != ComponentType::PK_TRANSFORM)
+        {
+            Debug::log(
+                "@Scene::createTerrainRenderable "
+                "Created terrain renderable component for entity: " + std::to_string(target) + " "
+                "with no Transform component! This prevents rendering if transform not specified!",
+                Debug::MessageType::PK_WARNING
+            );
+        }
+
+        TerrainRenderable* pRenderable = (TerrainRenderable*)componentPools[ComponentType::PK_RENDERABLE_TERRAIN].allocComponent(target);
+        *pRenderable = TerrainRenderable(
+            meshID,
+            materialID,
+            heightmap,
+            tileWidth
+        );
         addComponent(target, pRenderable);
         return pRenderable;
     }
