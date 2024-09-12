@@ -76,8 +76,9 @@ namespace pk
             FrontFace frontFace,
             bool enableDepthTest,
             DepthCompareOperation depthCmpOp,
+            bool enableColorBlending, // TODO: more options to handle this..
             uint32_t pushConstantSize,
-	          uint32_t pushConstantStageFlags
+	        uint32_t pushConstantStageFlags
         )
         {}
 

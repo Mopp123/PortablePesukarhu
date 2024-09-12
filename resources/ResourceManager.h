@@ -31,7 +31,6 @@ namespace pk
         std::unordered_map<uint32_t, Resource*> _persistentResources;
         Texture_new* _pWhiteTexture = nullptr;
         Texture_new* _pBlackTexture = nullptr;
-        Texture_new* _pBlueTexture = nullptr;
 
         // Resources loaded per scene
         std::unordered_map<uint32_t, Resource*> _resources;
@@ -123,8 +122,5 @@ namespace pk
 
         inline Texture_new* getBlackTexture() { return _pBlackTexture; }
         inline const Texture_new* getBlackTexture() const { return _pBlackTexture; }
-
-        inline Texture_new* getBlueTexture() { return _pBlueTexture; }
-        inline const Texture_new* getBlueTexture() const { return _pBlueTexture; }
     };
 }

@@ -50,8 +50,7 @@ namespace pk
         TextureSampler defaultTextureSampler;
 
         // White texture
-        // NOTE: Don't remember why I put 4 channels here instead of 1...
-        // ..there might not even be reason for that....
+        // NOTE: Theres some issue using 3 channels on small textures so using 4 for now..
         PK_ubyte pWhitePixels[2 * 2 * 4];
         memset(pWhitePixels, 255, 2 * 2 * 4);
         ImageData* pWhiteImg = createImage(pWhitePixels, 2, 2, 4);
@@ -60,28 +59,12 @@ namespace pk
         _persistentResources[_pWhiteTexture->getResourceID()] = _pWhiteTexture;
 
         // Black texture
-        PK_ubyte pBlackPixels[2 * 2 * 3];
-        memset(pBlackPixels, 0, 2 * 2 * 3);
-        ImageData* pBlackImg = createImage(pBlackPixels, 2, 2, 3);
+        PK_ubyte pBlackPixels[2 * 2 * 4];
+        memset(pBlackPixels, 0, 2 * 2 * 4);
+        ImageData* pBlackImg = createImage(pBlackPixels, 2, 2, 4);
         _pBlackTexture = createTexture(pBlackImg->getResourceID(), defaultTextureSampler);
         _persistentResources[pBlackImg->getResourceID()] = pBlackImg;
         _persistentResources[_pBlackTexture->getResourceID()] = _pBlackTexture;
-
-        // Blue texture
-        PK_ubyte pBluePixels[2 * 2 * 3];
-        for (int i = 0; i < 2; ++i)
-        {
-            for (int j = 0; j < 2; ++j)
-            {
-                pBluePixels[(i + j * 2)] = 0;
-                pBluePixels[(i + j * 2) + 1] = 0;
-                pBluePixels[(i + j * 2) + 2] = 255;
-            }
-        }
-        ImageData* pBlueImg = createImage(pBluePixels, 2, 2, 3);
-        _pBlueTexture = createTexture(pBlueImg->getResourceID(), defaultTextureSampler);
-        _persistentResources[pBlueImg->getResourceID()] = pBlueImg;
-        _persistentResources[_pBlueTexture->getResourceID()] = _pBlueTexture;
     }
 
     ImageData* ResourceManager::loadImage(

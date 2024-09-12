@@ -118,6 +118,7 @@ namespace pk
             FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
             true,
             DepthCompareOperation::COMPARE_OP_ALWAYS,
+            false,
             sizeof(FontPushConstants), ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
         );
     }

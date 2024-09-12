@@ -95,6 +95,7 @@ namespace pk
             FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
             true,
             DepthCompareOperation::COMPARE_OP_LESS,
+            true,
             sizeof(mat4),
             ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
         );

@@ -18,8 +18,9 @@ namespace pk
             FrontFace frontFace,
             bool enableDepthTest,
             DepthCompareOperation depthCmpOp,
+            bool enableColorBlending,
             uint32_t pushConstantSize,
-	          uint32_t pushConstantStageFlags
+	        uint32_t pushConstantStageFlags
         )
         {
             _vertexBufferLayouts = vertexBufferLayouts;
@@ -61,6 +62,8 @@ namespace pk
 
             _enableDepthTest = enableDepthTest;
             _depthCmpOp = depthCmpOp;
+
+            _enableColorBlending = enableColorBlending;
         }
 
         void OpenglPipeline::cleanUp()

@@ -61,9 +61,12 @@ namespace pk
                 case 1: glFormat = GL_ALPHA; break;
                 case 3: glFormat = GL_RGB; break;
                 case 4: glFormat = GL_RGBA; break;
+                // NOTE: Noticed that atm only rgba works on web..
                 default:
                     Debug::log(
-                        "Invalid color channel count while creating OpenglTexture",
+                        "Invalid color channel count: " + std::to_string(channels) + " "
+                        "while creating OpenglTexture. "
+                        "Currently 4 channels are required (for some reason doesn't work on web if no 4 channels)",
                         Debug::MessageType::PK_FATAL_ERROR
                     );
                     break;
