@@ -43,6 +43,8 @@ namespace pk
         Buffer* _pDirectionalLightUniformBuffer = nullptr;
         DescriptorSet* _pDirectionalLightDescriptorSet = nullptr;
 
+        vec4 _clearColor = vec4(0, 0, 0, 1);
+
     public:
         MasterRenderer();
         ~MasterRenderer();
@@ -71,6 +73,8 @@ namespace pk
 
         inline const DescriptorSetLayout getDirectionalLightDescriptorSetLayout() const { return _directionalLightDescriptorSetLayout; }
         inline const DescriptorSet* getDirectionalLightDescriptorSet() const { return _pDirectionalLightDescriptorSet; }
+
+        inline void setClearColor(const vec4& clearColor) { _clearColor = clearColor; }
     private:
         void handleWindowResize();
     };

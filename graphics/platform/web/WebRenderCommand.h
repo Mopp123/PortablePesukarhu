@@ -12,7 +12,7 @@ namespace pk
         {
         public:
             ~WebRenderCommand() {}
-            virtual void beginRenderPass();
+            virtual void beginRenderPass(vec4 clearColor);
             virtual void endRenderPass();
 
             // NOTE: atm just quick hack and only opengl specific!!!

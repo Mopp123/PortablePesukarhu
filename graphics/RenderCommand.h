@@ -4,6 +4,7 @@
 #include "Pipeline.h"
 #include "Buffers.h"
 #include "Descriptors.h"
+#include "utils/pkmath.h"
 #include <vector>
 
 
@@ -18,7 +19,7 @@ namespace pk
         RenderCommand(const RenderCommand& other) = delete;
         virtual ~RenderCommand() {}
 
-        virtual void beginRenderPass() = 0;
+        virtual void beginRenderPass(vec4 clearColor) = 0;
         virtual void endRenderPass() = 0;
 
         // NOTE: atm just quick hack and only opengl specific!!!

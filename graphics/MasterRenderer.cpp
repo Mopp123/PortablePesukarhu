@@ -193,7 +193,7 @@ namespace pk
         }
         else if (swapchainImgResult == AcquireSwapchainImgResult::SUCCESS)
         {
-            pRenderCommand->beginRenderPass();
+            pRenderCommand->beginRenderPass(_clearColor);
 
             // Update common uniform buffers here?...
             vec4 camPos(cameraPos, 1.0f);
