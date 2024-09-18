@@ -28,7 +28,9 @@ namespace pk
 
         for (Entity e : pScene->entities)
         {
-            if (e.componentMask & ComponentType::PK_TRANSFORM)
+            // Atm disable this system for entities which has ui constraints
+            // REASON: If transform is constrained -> u cant fucking touch it!(unless through the constraint)
+            if ((e.componentMask & ComponentType::PK_TRANSFORM) && !(e.componentMask & ComponentType::PK_UI_CONSTRAINT ))
             {
                 if (e.parentID == NULL_ENTITY_ID)
                 {
@@ -44,6 +46,8 @@ namespace pk
         for (entityID_t child : _pScene->entityChildMapping[parent])
         {
             Transform* pChildTransform = (Transform*)((*_pTransformPool)[child]);
+            // NOTE: wasnt used anymore?
+            // TODO: delete below..
             pChildTransform->_hasParent = true;
 
             mat4& childLocalMat = pChildTransform->accessLocalTransformationMatrix();

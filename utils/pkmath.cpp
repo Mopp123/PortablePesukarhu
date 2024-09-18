@@ -6,6 +6,12 @@
 
 namespace pk
 {
+    std::string vec2::toString() const
+    {
+        std::string out = "( " + std::to_string(x) + ", " + std::to_string(y) + " )";
+        return out;
+    }
+
     float vec2::length() const
     {
         return sqrtf((x * x) + (y * y));

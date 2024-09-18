@@ -105,8 +105,8 @@ namespace pk
         // TODO: Some better way of handling this!!
         //  Also you would need to create all default systems at start
         //  and never even destroy them..
-        systems.push_back(new ui::ConstraintSystem);
         systems.push_back(new TransformSystem);
+        systems.push_back(new ui::ConstraintSystem);
         systems.push_back(new Animator);
     }
 

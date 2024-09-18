@@ -36,7 +36,10 @@ namespace pk
                     ConstraintData* pConstraint = (ConstraintData*)constraintPool[e.id];
                     Transform* pTransform = (Transform*)transformPool[e.id];
                     // NOTE: we dont care if these components are inactive here..
-                    mat4& tMat = pTransform->hasParent() ? pTransform->accessLocalTransformationMatrix() : pTransform->accessTransformationMatrix();
+
+                    // NOTE: Don't remember what was the point with below? maybe none?
+                    //mat4& tMat = pTransform->hasParent() ? pTransform->accessLocalTransformationMatrix() : pTransform->accessTransformationMatrix();
+                    mat4& tMat = pTransform->accessTransformationMatrix();
 
                     const float& transformWidth = tMat[0 + 0 * 4];
                     const float& transformHeight = tMat[1 + 1 * 4];

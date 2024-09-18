@@ -15,6 +15,7 @@ namespace pk
         vec2() {}
         vec2(float x, float y) :  x(x), y(y) {}
         vec2(const vec2& other) : x(other.x), y(other.y) {}
+        std::string toString() const;
 
         float length() const;
         float dotp(const vec2& other) const;

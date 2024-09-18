@@ -79,6 +79,31 @@ namespace pk
             delete _pCurrentScene;
             _pCurrentScene = _pNextScene;
             _pCurrentScene->init();
+
+            // TODO: Deal with this shit at some point!
+            // IMPORTANT: Also camera shouldn't have "2D proj mat"!!!
+            //  -> Some kind of canvas shit for all 2d stuff to separate 2d from 3d
+            //  rendering things completely!!!
+            if (_pCurrentScene->activeCamera == NULL_ENTITY_ID)
+            {
+                Debug::log(
+                    "@SceneManager::handleSceneSwitching "
+                    "New scene didn't create or assign active camera entity/component. "
+                    "Currently this is required!",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                delete _pCurrentScene;
+            }
+            if (_pCurrentScene->directionalLight == NULL_ENTITY_ID)
+            {
+                Debug::log(
+                    "@SceneManager::handleSceneSwitching "
+                    "New scene didn't create or assign active directional light entity/component. "
+                    "Currently this is required!",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                delete _pCurrentScene;
+            }
             _pNextScene = nullptr;
         }
     }
