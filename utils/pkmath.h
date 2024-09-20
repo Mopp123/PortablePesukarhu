@@ -72,6 +72,8 @@ namespace pk
         float dotp(const vec4& other) const;
         vec4 normalize() const;
 
+        inline vec3 toVec3() const { return { x, y, z }; }
+
         friend vec4 operator+(const vec4& left, const vec4& right);
         friend vec4 operator-(const vec4& left, const vec4& right);
         friend vec4 operator*(const vec4& left, const vec4& right);

@@ -88,28 +88,38 @@ namespace pk
         {
         private:
             entityID_t _buttonEntity = NULL_ENTITY_ID;
+            entityID_t _txtEntity = NULL_ENTITY_ID;
             entityID_t _imgEntity = NULL_ENTITY_ID;
-            vec3 _originalColor = vec3(0, 0, 0);
-            vec3 _highlightColor = vec3(1, 1, 1);
+            vec3 _txtOriginalColor = vec3(0, 0, 0);
+            vec3 _txtHighlightColor = vec3(1, 1, 1);
+            vec3 _imgOriginalColor = vec3(0, 0, 0);
+            vec3 _imgHighlightColor = vec3(1, 1, 1);
 
         public:
             ButtonMouseCursorPosEvent(
                 entityID_t buttonEntity,
+                entityID_t textEntity,
                 entityID_t imgEntity,
-                vec3 highlightColor
+                vec3 txtHighlightColor,
+                vec3 imgHighlightColor
             ) :
                 _buttonEntity(buttonEntity),
+                _txtEntity(textEntity),
                 _imgEntity(imgEntity),
-                _highlightColor(highlightColor)
+                _txtHighlightColor(txtHighlightColor),
+                _imgHighlightColor(imgHighlightColor)
             {
                 const Scene* pScene = Application::get()->getCurrentScene();
+                const TextRenderable* pTxt = (const TextRenderable*)pScene->getComponent(_txtEntity, ComponentType::PK_RENDERABLE_TEXT);
                 const GUIRenderable* pImg = (const GUIRenderable*)pScene->getComponent(_imgEntity, ComponentType::PK_RENDERABLE_GUI);
-                _originalColor = pImg->color;
+                _txtOriginalColor = pTxt->color;
+                _imgOriginalColor = pImg->color;
             }
 
             virtual void func(int x, int y)
             {
                 Scene* pScene = Application::get()->accessCurrentScene();
+                TextRenderable* pTxt = (TextRenderable*)pScene->getComponent(_txtEntity, ComponentType::PK_RENDERABLE_TEXT);
                 GUIRenderable* pImg = (GUIRenderable*)pScene->getComponent(_imgEntity, ComponentType::PK_RENDERABLE_GUI);
                 const Transform* pTransform = (const Transform*)pScene->getComponent(_imgEntity, ComponentType::PK_TRANSFORM);
                 UIElemState* pUIState = (UIElemState*)pScene->getComponent(_buttonEntity, ComponentType::PK_UIELEM_STATE);
@@ -144,7 +154,10 @@ namespace pk
                     */
 
                     if (!pUIState->selected)
-                        pImg->color = _highlightColor;
+                    {
+                        pTxt->color = _txtHighlightColor;
+                        pImg->color = _imgHighlightColor;
+                    }
                     pUIState->mouseOver = true;
                 }
                 else
@@ -156,7 +169,10 @@ namespace pk
                     */
 
                     if (!pUIState->selected)
-                        pImg->color = _originalColor;
+                    {
+                        pTxt->color = _txtOriginalColor;
+                        pImg->color = _imgOriginalColor;
+                    }
                     pUIState->mouseOver = false;
                 }
             }
@@ -350,6 +366,9 @@ namespace pk
             OnClickEvent* onClick,
             bool selectable,
             vec3 color,
+            vec3 textColor,
+            vec3 textHighlightColor,
+            vec3 backgroundHighlightColor,
             vec4 borderColor,
             float borderThickness,
             Texture_new* pTexture,
@@ -385,7 +404,8 @@ namespace pk
             entityID_t txtEntity = create_text(
                 txt, font,
                 horizontalType, horizontalVal,
-                verticalType, verticalVal
+                verticalType, verticalVal,
+                textColor
             ).first;
 
             currentScene->addChild(buttonEntity, imgEntity);
@@ -411,7 +431,6 @@ namespace pk
             UIElemState* pUIElemState = currentScene->createUIElemState(buttonEntity);
             pUIElemState->selectable = selectable;
 
-            vec3 highlightColor(0.5f, 0.5f, 0.5f);
             vec3 selectedColor(0.3f, 0.3f, 0.3f);
             inputManager->addMouseButtonEvent(
                 new ButtonMouseButtonEvent(
@@ -424,8 +443,10 @@ namespace pk
             inputManager->addCursorPosEvent(
                 new ButtonMouseCursorPosEvent(
                     buttonEntity,
+                    txtEntity,
                     imgEntity,
-                    highlightColor
+                    textHighlightColor,
+                    backgroundHighlightColor
                 )
             );
             return buttonEntity;
@@ -439,7 +460,11 @@ namespace pk
             VerticalConstraintType verticalType, float verticalVal,
             int width,
             InputFieldOnSubmitEvent* onSubmitEvent,
-            bool clearOnSubmit
+            bool clearOnSubmit,
+            vec3 color,
+            vec3 textColor,
+            vec3 textHighlightColor,
+            vec3 backgroundHighlightColor
         )
         {
             Scene* currentScene = Application::get()->accessCurrentScene();
@@ -451,42 +476,59 @@ namespace pk
             pUIElemState->selectable = true;
             pUIElemState->clearOnSubmit = clearOnSubmit;
 
-            // Create button (*Override the button's UIElemState)
-            entityID_t buttonEntity = create_button(
-                "", // txt
-                font,
-                horizontalType, horizontalVal, // horiz. constraint
-                verticalType, verticalVal, // vert. constraint
-                (float)width, font.getPixelSize() + 4, // scale
-                nullptr, // onclick
-                true, // selectable
-                { 0.05f, 0.05f, 0.05f }, // color
-                { 0.1f, 0.1f, 0.1f, 1.0f }, // border color
-                2, // border thickness
-                nullptr, // texture
-                {0, 0, 1, 1} // cropping
-            );
 
             // figure out text's size
-            float infoTxtDisplacement = font.getPixelSize();
+            float infoTxtWidth = 0.0f;//font.getPixelSize();
             float pos = 0.0f;
             for (char c : infoTxt)
             {
                 const FontGlyphData * const glyph = font.getGlyph(c);
                 if (glyph)
                 {
-                    infoTxtDisplacement = pos + glyph->bearingX;
+                    infoTxtWidth = pos + glyph->bearingX;
                     pos += ((float)(glyph->advance >> 6));
                 }
             }
-            // Also add a little gap..
-            infoTxtDisplacement += font.getPixelSize();
+            // TODO: Comment wtf happening here!!!!!!!
+            // NOTE: Still something fucked about this!!
+            //  -> No fucking idea what that magic 4 comes from.. but seems good..
+            float buttonDisplacement = infoTxtWidth;
+            float infoDisplacement = 0;
+            if (horizontalType == HorizontalConstraintType::PIXEL_RIGHT)
+            {
+                buttonDisplacement = 0;
+                infoDisplacement = width + 4;
+            }
+            else
+            {
+                buttonDisplacement += ((float)font.getPixelSize()) - 4;
+            }
+
+            // Create button (*Override the button's UIElemState)
+            entityID_t buttonEntity = create_button(
+                "", // txt
+                font,
+                horizontalType, horizontalVal + buttonDisplacement, // horiz. constraint
+                verticalType, verticalVal, // vert. constraint
+                (float)width, font.getPixelSize(), // scale
+                nullptr, // onclick
+                true, // selectable
+                color,
+                textColor,
+                textHighlightColor,
+                backgroundHighlightColor,
+                { color.x, color.y, color.z, 1.0f }, // border color
+                2, // border thickness
+                nullptr, // texture
+                {0, 0, 1, 1} // cropping
+            );
 
             // Create info txt
             uint32_t infoTxtEntity = create_text(
                 infoTxt, font,
-                horizontalType, horizontalVal - infoTxtDisplacement, // *Add displacement to info text, so its to the right of the box
-                verticalType, verticalVal
+                horizontalType, horizontalVal + infoDisplacement, // *Add displacement to info text, so its to the right of the box
+                verticalType, verticalVal,
+                textColor
             ).first;
 
             currentScene->addChild(inputFieldEntity, buttonEntity);

@@ -70,6 +70,9 @@ namespace pk
             OnClickEvent* onClick,
             bool selectable = false,
             vec3 color = { 0.1f, 0.1f, 0.1f },
+            vec3 textColor = { 1, 1, 1 },
+            vec3 textHighlightColor = { 1, 1, 1 },
+            vec3 backgroundHighlightColor = { 0.2f, 0.2f, 0.2f },
             vec4 borderColor = { 0.6f, 0.6f, 0.6f, 1.0f },
             float borderThickness = 2,
             Texture_new* pTexture = nullptr,
@@ -83,7 +86,11 @@ namespace pk
             VerticalConstraintType verticalType, float verticalVal,
             int width,
             InputFieldOnSubmitEvent* onSubmitEvent,
-            bool clearOnSubmit = false
+            bool clearOnSubmit = false,
+            vec3 color = { 0.1f, 0.1f, 0.1f },
+            vec3 textColor = { 1, 1, 1 },
+            vec3 textHighlightColor = { 1, 1, 1 },
+            vec3 backgroundHighlightColor = { 0.2f, 0.2f, 0.2f }
         );
     }
 }
