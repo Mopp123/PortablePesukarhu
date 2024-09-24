@@ -139,4 +139,17 @@ namespace pk
         _pData[index_b] = b;
         _pData[index_a] = a;
     }
+
+    void ImageData::setColorAt_UNSAFE(int pixelIndex, unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+    {
+        int index_r = (pixelIndex) * _channels;
+        int index_g = (pixelIndex) * _channels + 1;
+        int index_b = (pixelIndex) * _channels + 2;
+        int index_a = (pixelIndex) * _channels + 3;
+
+        _pData[index_r] = r;
+        _pData[index_g] = g;
+        _pData[index_b] = b;
+        _pData[index_a] = a;
+    }
 }

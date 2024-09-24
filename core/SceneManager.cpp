@@ -58,6 +58,8 @@ namespace pk
                 ComponentType::PK_TRANSFORM | renderableType
             );
         }
+
+        _pCurrentScene->lateUpdate();
     }
 
     // triggers scene switching at the end of the frame

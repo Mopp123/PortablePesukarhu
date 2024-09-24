@@ -21,9 +21,9 @@ namespace pk
 		// actual "world space width"
 		float totalWidth = tileWidth * verticesPerRow;
 
-		for (int x = 0; x < verticesPerRow; x++)
+		for (int z = 0; z < verticesPerRow; z++)
 		{
-			for (int z = 0; z < verticesPerRow; z++)
+			for (int x = 0; x < verticesPerRow; x++)
 			{
 				vec3 vertexPos(x * tileWidth, heightmap[x + z * verticesPerRow], z * tileWidth);
 				vertexPositions.push_back(vertexPos);
@@ -51,7 +51,7 @@ namespace pk
 					down = heightmap[heightmapX + (heightmapY - 1) * verticesPerRow];
 
 
-				float heightVal = heightmap[x + z * verticesPerRow];
+				//float heightVal = heightmap[x + z * verticesPerRow];
 				//vec3 normal((left - right), _heightModifier * 0.1f, (down - up)); // this is fucking dumb...
 				vec3 normal((left - right), 1.0f, (down - up)); // this is fucking dumb...
 				normal = normal.normalize();

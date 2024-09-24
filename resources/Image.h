@@ -34,11 +34,14 @@ namespace pk
         float getBrightnessAt(int x, int y) const;
         void setColorAt(int x, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
         void setColorAt_UNSAFE(int x, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+        void setColorAt_UNSAFE(int pixelIndex, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 
         inline const unsigned char* getData() const { return _pData; }
         inline int getWidth() const { return _width; }
         inline int getHeight() const { return _height; }
         inline int getChannels() const { return _channels; }
+        // Returns total size in bytes
+        inline size_t getSize() const { return _width * _height * _channels; }
 
         inline bool hasAlpha() const { return _hasAlpha; }
     };
