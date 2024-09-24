@@ -254,9 +254,27 @@ namespace pk
                 // Update gl buf immediately if marked
                 if (pWebBuffer->_shouldUpdate)
                 {
-                    // TODO: Allow specifying GLenum usage(GL_STATIC_DRAW, etc..) (not to be confused with the BufferUsage)
-                    glBufferData(GL_ARRAY_BUFFER, pWebBuffer->getTotalSize(), pWebBuffer->_data, GL_STATIC_DRAW);
+                    // Doesn't work atm because _updateOffset is just the latest offset..
+                    // TODO: Some way to call glBufferData and glBufferSubData immediately when buffer::update is called!
+                    /*
+                    if (pWebBuffer->getUpdateFrequency() == BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_DYNAMIC)
+                    {
+                        glBufferSubData(
+                            GL_ARRAY_BUFFER,
+                            pWebBuffer->_updateOffset,
+                            pWebBuffer->_updateSize,
+                            pWebBuffer->_data
+                        );
+                    }*/
+                    glBufferData(
+                        GL_ARRAY_BUFFER,
+                        pWebBuffer->getTotalSize(),
+                        pWebBuffer->_data,
+                        pWebBuffer->getUpdateFrequency() == BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STREAM ? GL_STREAM_DRAW : GL_STATIC_DRAW
+                    );
                     pWebBuffer->_shouldUpdate = false;
+                    pWebBuffer->_updateOffset = 0;
+                    pWebBuffer->_updateSize = 0;
                 }
 
                 // Currently assuming that each pipeline's vb layout's index

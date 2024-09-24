@@ -5,7 +5,8 @@ namespace pk
 {
 	std::pair<Buffer*, Buffer*> generate_terrain_mesh_data(
 		const std::vector<float>& heightmap,
-		float tileWidth
+		float tileWidth,
+		BufferUpdateFrequency updateFrequency
 	)
 	{
 		// expecting heightmap always to be square
@@ -113,13 +114,15 @@ namespace pk
 			sizeof(float),
 			vertexData.size(),
 			BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			updateFrequency,
 			true // If we want to alter heights at runtime
 		);
 		Buffer* pIndexBuffer = Buffer::create(
 			indices.data(),
 			sizeof(uint32_t),
 			indices.size(),
-			BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT
+			BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT,
+			BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STATIC
 		);
 
 		return std::make_pair(pVertexBuffer, pIndexBuffer);

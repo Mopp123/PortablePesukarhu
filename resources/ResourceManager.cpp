@@ -68,12 +68,15 @@ namespace pk
     }
 
     ImageData* ResourceManager::loadImage(
-        const std::string& filepath
+        const std::string& filepath,
+        bool persistent
     )
     {
         ImageData* pImgData = new ImageData(filepath);
         pImgData->load();
         _resources[pImgData->getResourceID()] = (Resource*)pImgData;
+        if (persistent)
+            _persistentResources[pImgData->getResourceID()] = (Resource*)pImgData;
         return pImgData;
     }
 
@@ -96,7 +99,8 @@ namespace pk
 
     Texture_new* ResourceManager::loadTexture(
         const std::string& filepath,
-        TextureSampler sampler
+        TextureSampler sampler,
+        bool persistent
     )
     {
         Debug::notify_unimplemented("ResourceManager::loadTexture#1");
@@ -105,13 +109,14 @@ namespace pk
 
     Texture_new* ResourceManager::createTexture(
         uint32_t imageResourceID,
-        TextureSampler sampler
+        TextureSampler sampler,
+        bool persistent
     )
     {
         if (_resources.find(imageResourceID) == _resources.end())
         {
             Debug::log(
-                "@ResourceManager::loadTexture "
+                "@ResourceManager::createTexture "
                 "Failed to find image resource with id: " + std::to_string(imageResourceID),
                 Debug::MessageType::PK_FATAL_ERROR
             );
@@ -119,6 +124,8 @@ namespace pk
         }
         Texture_new* pTexture = Texture_new::create(imageResourceID, sampler);
         _resources[pTexture->getResourceID()] = pTexture;
+        if (persistent)
+            _persistentResources[pTexture->getResourceID()] = pTexture;
         return pTexture;
     }
 
@@ -127,7 +134,8 @@ namespace pk
         uint32_t specularTextureID,
         float specularStrength,
         float shininess,
-        uint32_t blendmapTextureID
+        uint32_t blendmapTextureID,
+        bool persistent
     )
     {
         std::vector<Texture_new*> textures(diffuseTextureIDs.size());
@@ -184,6 +192,8 @@ namespace pk
             pBlendmapTexture
         );
         _resources[pMaterial->getResourceID()] = pMaterial;
+        if (persistent)
+            _persistentResources[pMaterial->getResourceID()] = pMaterial;
         return pMaterial;
     }
 
@@ -244,7 +254,8 @@ namespace pk
         const std::vector<Buffer*>& vertexBuffers,
         Buffer* pIndexBuffer,
         const VertexBufferLayout& layout,
-        uint32_t materialResourceID
+        uint32_t materialResourceID,
+        bool persistent
     )
     {
         Material* pMaterial = (Material*)getResource(materialResourceID);
@@ -255,19 +266,23 @@ namespace pk
             layout
         );
         _resources[pMesh->getResourceID()] = pMesh;
+        if (persistent)
+            _persistentResources[pMesh->getResourceID()] = pMesh;
         return pMesh;
     }
 
     Mesh* ResourceManager::createTerrainMesh(
         const std::vector<float>& heightmap,
         float tileWidth,
-        uint32_t materialResourceID
+        uint32_t materialResourceID,
+        BufferUpdateFrequency updateFrequency
     )
     {
         Material* pMaterial = (Material*)getResource(materialResourceID);
         std::pair<Buffer*, Buffer*> buffers = generate_terrain_mesh_data(
             heightmap,
-            tileWidth
+            tileWidth,
+            updateFrequency
         );
 
         Mesh* pMesh = new Mesh(
@@ -282,7 +297,8 @@ namespace pk
     // TODO: Validate resource ids when adding new resource to _resources!
     Model* ResourceManager::loadModel(
         const std::string& filepath,
-        uint32_t materialResourceID
+        uint32_t materialResourceID,
+        bool persistent
     )
     {
         Model* pModel = load_model_gltf(filepath);
@@ -293,13 +309,15 @@ namespace pk
             pMesh->setMaterial(pMaterial);
             _resources[pMesh->getResourceID()] = pMesh;
         }
-
         _resources[pModel->getResourceID()] = pModel;
+        if (persistent)
+            _persistentResources[pModel->getResourceID()] = pModel;
         return pModel;
     }
 
     Model* ResourceManager::createModel(
-        const std::vector<uint32_t>& meshResourceIDs
+        const std::vector<uint32_t>& meshResourceIDs,
+        bool persistent
     )
     {
         std::vector<Mesh*> pMeshes(meshResourceIDs.size());
@@ -311,6 +329,8 @@ namespace pk
         }
         Model* pModel = new Model(pMeshes);
         _resources[pModel->getResourceID()] = pModel;
+        if (persistent)
+            _persistentResources[pModel->getResourceID()] = pModel;
         return pModel;
     }
 
@@ -350,6 +370,30 @@ namespace pk
             return nullptr;
         }
         return it->second;
+    }
+
+    void ResourceManager::deleteResource(uint32_t id)
+    {
+        std::unordered_map<uint32_t, Resource*>::iterator it = _resources.find(id);
+        if (it == _resources.end())
+        {
+            Debug::log(
+                "@ResourceManager::deleteResource "
+                "Failed to find resource with id: " + std::to_string(id),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return;
+        }
+        delete it->second;
+        _resources.erase(id);
+        Debug::log(
+            "@ResourceManager::deleteResource "
+            "Explicitly deleted resource: " + std::to_string(id)
+        );
+
+        std::unordered_map<uint32_t, Resource*>::iterator itPersistent = _persistentResources.find(id);
+        if (itPersistent != _persistentResources.end())
+            _persistentResources.erase(id);
     }
 
     const Resource* ResourceManager::getResource(uint32_t id) const

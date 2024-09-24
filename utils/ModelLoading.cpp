@@ -258,6 +258,7 @@ namespace pk
             indexBufElemSize,
             indexBufferLength,
             BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT,
+            BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STATIC,
             false
         );
 
@@ -354,6 +355,7 @@ namespace pk
             1,
             combinedVertexBufferSize,
             BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT,
+            BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STATIC,
             false
         );
 

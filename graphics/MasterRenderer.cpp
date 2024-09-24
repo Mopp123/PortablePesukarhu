@@ -76,6 +76,7 @@ namespace pk
             sizeof(CommonUniforms),
             1,
             BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_DYNAMIC,
             true
         );
         _pCommonDescriptorSet = new DescriptorSet(
@@ -101,6 +102,7 @@ namespace pk
             sizeof(EnvironmentProperties),
             1,
             BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_DYNAMIC,
             true
         );
         _pEnvironmentDescriptorSet = new DescriptorSet(
@@ -127,6 +129,7 @@ namespace pk
             sizeof(DirectionalLightProperties),
             1,
             BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_DYNAMIC,
             true
         );
         _pDirectionalLightDescriptorSet = new DescriptorSet(

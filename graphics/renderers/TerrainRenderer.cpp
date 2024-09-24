@@ -110,6 +110,9 @@ namespace pk
 
         if (_toRender.find(pRenderable->meshID) == _toRender.end())
             _toRender[pRenderable->meshID] = createTerrainRenderData(pRenderable, transformation);
+        else
+            _toRender[pRenderable->meshID].transformationMatrix = transformation;
+
         // recreate descriptor sets if necessary..
         if (_toRender[pRenderable->meshID].materialDescriptorSet.empty())
             createRenderDataDescriptorSets(pRenderable, _toRender[pRenderable->meshID]);

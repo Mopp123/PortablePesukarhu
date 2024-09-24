@@ -49,6 +49,8 @@ namespace pk
             // the buffer gets bound. This is to use opengl binding and unbinding
             // calls less frequently
             bool _shouldUpdate = false;
+            size_t _updateSize = 0;
+            size_t _updateOffset = 0; // Doesn't work atm!
 
         public:
             WebBuffer(const WebBuffer&) = delete;
@@ -66,6 +68,7 @@ namespace pk
                 size_t elementSize,
                 size_t dataLength,
                 uint32_t bufferUsageFlags,
+                BufferUpdateFrequency bufferUpdateFrequency,
                 bool saveDataHostSide
             );
         };

@@ -65,6 +65,13 @@ namespace pk
     };
 
 
+    enum BufferUpdateFrequency
+    {
+        BUFFER_UPDATE_FREQUENCY_STATIC = 0,
+        BUFFER_UPDATE_FREQUENCY_DYNAMIC,
+        BUFFER_UPDATE_FREQUENCY_STREAM
+    };
+
     enum IndexType
     {
         INDEX_TYPE_NONE = 0,
@@ -146,6 +153,7 @@ namespace pk
         size_t _dataElemSize = 0; // size of a single entry in data
         size_t _dataLength = 0; // number of elements in the data
         uint32_t _bufferUsageFlags = 0;
+        BufferUpdateFrequency _updateFrequency;
 
     public:
         Buffer(const Buffer&) = delete;
@@ -163,12 +171,14 @@ namespace pk
         inline size_t getDataLength() const { return _dataLength; }
         inline uint32_t getBufferUsage() const { return _bufferUsageFlags; }
         inline size_t getTotalSize() const { return _dataElemSize * _dataLength; }
+        inline BufferUpdateFrequency getUpdateFrequency() const { return _updateFrequency; }
 
         static Buffer* create(
             void* data,
             size_t elementSize,
             size_t dataLength,
             uint32_t bufferUsageFlags,
+            BufferUpdateFrequency bufferUpdateFrequency,
             bool saveDataHostSide = false
         );
 
@@ -177,6 +187,12 @@ namespace pk
         // *NOTE! "dataLength" number of "elements" in the "data buffer" (NOT total size)
         // *NOTE! "Data" gets just copied here! Ownership of the data doesn't get transferred here!
         // (This is to accomplish RAII(and resource lifetimes to be tied to objects' lifetimes) and copying to work correctly)
-        Buffer(void* data, size_t elementSize, size_t dataLength, uint32_t bufferUsageFlags);
+        Buffer(
+            void* data,
+            size_t elementSize,
+            size_t dataLength,
+            uint32_t bufferUsageFlags,
+            BufferUpdateFrequency bufferUpdateFrequency
+        );
     };
 }

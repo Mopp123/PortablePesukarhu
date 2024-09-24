@@ -23,6 +23,24 @@ namespace pk
         }
 
 
+        static GLenum to_webgl_buffer_update_frequency(BufferUpdateFrequency f)
+        {
+            switch (f)
+            {
+                case BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STATIC:	return GL_STATIC_DRAW;
+                case BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_DYNAMIC: return GL_DYNAMIC_DRAW;
+                case BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STREAM: return GL_STREAM_DRAW;
+                default:
+                    Debug::log(
+                        "@to_webgl_buffer_update_frequency "
+                        "Invalid buffer update frequency: " + std::to_string(f),
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
+                    return GL_STATIC_DRAW;
+            }
+        }
+
+
         WebVertexBuffer::WebVertexBuffer(const std::vector<float>& data, VertexBufferUsage usage) :
             VertexBuffer(data, usage)
         {
@@ -65,9 +83,10 @@ namespace pk
                 size_t elementSize,
                 size_t dataLength,
                 uint32_t bufferUsageFlags,
+                BufferUpdateFrequency bufferUpdateFrequency,
                 bool saveDataHostSide
         ) :
-            Buffer(data, elementSize, dataLength, bufferUsageFlags)
+            Buffer(data, elementSize, dataLength, bufferUsageFlags, bufferUpdateFrequency)
         {
             uint32_t invalidMask = BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT & BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT;
             if (bufferUsageFlags & invalidMask)
@@ -79,12 +98,15 @@ namespace pk
                 return;
             }
 
+            // in gl terms its the glBufferData's "usage"
+            GLenum glBufferUpdateFrequency = to_webgl_buffer_update_frequency(bufferUpdateFrequency);
+
             if (bufferUsageFlags & BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT)
             {
                 Debug::log("Creating WebBuffer<vertex>");
                 glGenBuffers(1, &_id);
                 glBindBuffer(GL_ARRAY_BUFFER, _id);
-                glBufferData(GL_ARRAY_BUFFER, _dataElemSize * _dataLength, _data, GL_STATIC_DRAW);
+                glBufferData(GL_ARRAY_BUFFER, _dataElemSize * _dataLength, _data, glBufferUpdateFrequency);
                 glBindBuffer(GL_ARRAY_BUFFER, 0);
             }
             else if (bufferUsageFlags & BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT)
@@ -142,6 +164,9 @@ namespace pk
             if (_dataLength * _dataElemSize >= dataSize)
             {
                 memcpy(_data, data, dataSize);
+                // Used when calling the actual glBufferData or glBufferSubData
+                _updateOffset = 0;
+                _updateSize = dataSize;
                 // Don't need to call any glBufferData or subData for uniform buffers on gl side
                 // UNTIL uniform buffer support..
                 if (!(_bufferUsageFlags & BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT))
@@ -163,6 +188,9 @@ namespace pk
             if (_dataLength * _dataElemSize >= offset + dataSize)
             {
                 memcpy(((PK_byte*)_data) + offset, data, dataSize);
+                // Used when calling the actual glBufferData or glBufferSubData
+                _updateOffset = offset;
+                _updateSize = dataSize;
                 // Don't need to call any glBufferData or subData for uniform buffers on gl side
                 // UNTIL uniform buffer support..
                 if (!(_bufferUsageFlags & BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT))

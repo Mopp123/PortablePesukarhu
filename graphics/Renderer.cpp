@@ -31,6 +31,7 @@ namespace pk
             1,
             maxSize,
             BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT,
+            BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_DYNAMIC,
             true
         );
         delete[] pInitialData;

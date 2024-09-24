@@ -72,13 +72,15 @@ namespace pk
             vbData,
             sizeof(float),
             16,
-            BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT
+            BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT,
+            BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STATIC
         );
         _pIndexBuffer = Buffer::create(
             indices,
             sizeof(unsigned short),
             6,
-            BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT
+            BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT,
+            BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STATIC
         );
     }
 

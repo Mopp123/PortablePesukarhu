@@ -167,11 +167,13 @@ namespace pk
         void* data,
         size_t elementSize,
         size_t dataLength,
-        uint32_t bufferUsageFlags
+        uint32_t bufferUsageFlags,
+        BufferUpdateFrequency bufferUpdateFrequency
     ) :
         _dataElemSize(elementSize),
         _dataLength(dataLength),
-        _bufferUsageFlags(bufferUsageFlags)
+        _bufferUsageFlags(bufferUsageFlags),
+        _updateFrequency(bufferUpdateFrequency)
     {
         Debug::log("Allocating new buffer<raw> with total size: " + std::to_string(_dataElemSize * _dataLength));
         _data = calloc(_dataLength, _dataElemSize);
@@ -194,6 +196,7 @@ namespace pk
         size_t elementSize,
         size_t dataLength,
         uint32_t bufferUsageFlags,
+        BufferUpdateFrequency bufferUpdateFrequency,
         bool saveDataHostSide
     )
     {
@@ -209,6 +212,7 @@ namespace pk
                     elementSize,
                     dataLength,
                     bufferUsageFlags,
+                    bufferUpdateFrequency,
                     saveHostSide
                 );
             default:

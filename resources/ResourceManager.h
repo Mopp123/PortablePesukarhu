@@ -44,7 +44,8 @@ namespace pk
         void createDefaultResources();
 
         ImageData* loadImage(
-            const std::string& filepath
+            const std::string& filepath,
+            bool persistent = false
         );
 
         ImageData* createImage(
@@ -56,12 +57,14 @@ namespace pk
 
         Texture_new* loadTexture(
             const std::string& filepath,
-            TextureSampler sampler
+            TextureSampler sampler,
+            bool persistent = false
         );
 
         Texture_new* createTexture(
             uint32_t imageResourceID,
-            TextureSampler sampler
+            TextureSampler sampler,
+            bool persistent = false
         );
 
         Material* createMaterial(
@@ -69,7 +72,8 @@ namespace pk
             uint32_t specularTextureID = 0,
             float specularStrength = 0.0f,
             float shininess = 1.0f,
-            uint32_t blendmapTextureID = 0
+            uint32_t blendmapTextureID = 0,
+            bool persistent = false
         );
 
         TerrainMaterial* createTerrainMaterial(
@@ -82,22 +86,26 @@ namespace pk
             const std::vector<Buffer*>& vertexBuffers,
             Buffer* pIndexBuffer,
             const VertexBufferLayout& layout,
-            uint32_t materialResourceID
+            uint32_t materialResourceID,
+            bool persistent = false
         );
 
         Mesh* createTerrainMesh(
             const std::vector<float>& heightmap,
             float tileWidth,
-            uint32_t materialResourceID
+            uint32_t materialResourceID,
+            BufferUpdateFrequency updateFrequency = BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STATIC
         );
 
         Model* loadModel(
             const std::string& filepath,
-            uint32_t materialResourceID
+            uint32_t materialResourceID,
+            bool persistent = false
         );
 
         Model* createModel(
-            const std::vector<uint32_t>& meshResourceIDs
+            const std::vector<uint32_t>& meshResourceIDs,
+            bool persistent = false
         );
 
         Animation* createAnimation(
@@ -109,6 +117,8 @@ namespace pk
             const std::string& filepath,
             int pixelSize
         );
+
+        void deleteResource(uint32_t id);
 
         Resource* accessResource(uint32_t id);
         const Resource* getResource(uint32_t id) const;

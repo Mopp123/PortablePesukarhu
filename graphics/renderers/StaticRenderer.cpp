@@ -83,6 +83,7 @@ namespace pk
                 sizeof(vec4),
                 1,
                 BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STATIC,
                 true
             );
             const Buffer* pConstCopy = (const Buffer*)pMatUbo;

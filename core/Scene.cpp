@@ -551,7 +551,7 @@ namespace pk
             );
             return nullptr;
         }
-        if (entities[entityID].componentMask & (uint64_t)type)
+        if ((entities[entityID].componentMask & (uint64_t)type) == (uint64_t)type)
             return (Component*)componentPools[type].getComponent_DANGER(entityID);
         if (!nestedSearch)
             Debug::log(
