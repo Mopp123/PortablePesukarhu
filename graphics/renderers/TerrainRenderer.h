@@ -52,7 +52,7 @@ namespace pk
 
         virtual void freeDescriptorSets();
 
-        virtual void handleSceneSwitch();
+        virtual void onSceneSwitch();
 
     protected:
         virtual void initPipeline();

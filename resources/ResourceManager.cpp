@@ -402,8 +402,8 @@ namespace pk
         if (it == _resources.end())
         {
             Debug::log(
-                "@ResourceManager::getResource(2) "
-                "Failed to find resource with id: " + std::to_string(id),
+                "@ResourceManager::getResource "
+                "Failed to find " + Resource::get_resource_type_name(it->second->getType()) + " resource with id: " + std::to_string(id),
                 Debug::MessageType::PK_FATAL_ERROR
             );
             return nullptr;

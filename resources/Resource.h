@@ -6,6 +6,17 @@
 
 #define MAX_FILEPATH_SIZE 64
 
+// TODO: some better way of dealing with this..
+#define PK_RESOURCE_NAME_NONE       "None"
+#define PK_RESOURCE_NAME_IMAGE      "Image"
+#define PK_RESOURCE_NAME_TEXTURE    "Texture"
+#define PK_RESOURCE_NAME_FONT       "Font"
+#define PK_RESOURCE_NAME_MATERIAL   "Material"
+#define PK_RESOURCE_NAME_MESH       "Mesh"
+#define PK_RESOURCE_NAME_MODEL      "Model"
+#define PK_RESOURCE_NAME_ANIMATION  "Animation"
+
+
 namespace pk
 {
     enum ResourceType
@@ -36,6 +47,8 @@ namespace pk
 
         virtual void load() = 0;
         virtual void save() = 0;
+
+        static std::string get_resource_type_name(ResourceType type);
 
         inline uint32_t getResourceID() const { return _resourceID; }
         inline ResourceType getType() const { return _type; }

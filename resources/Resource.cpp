@@ -22,10 +22,34 @@ namespace pk
             }
             memcpy(_filepath, filepath.data(), pathSize);
         }
+        const std::string typeName = get_resource_type_name(_type);
+        Debug::log("Created " + typeName + " resource with id: " + std::to_string(_resourceID));
     }
 
     Resource::~Resource()
     {
         ID::erase(_resourceID);
+    }
+
+    std::string Resource::get_resource_type_name(ResourceType type)
+    {
+        switch (type)
+        {
+            case RESOURCE_NONE :        return PK_RESOURCE_NAME_NONE;
+            case RESOURCE_IMAGE :       return PK_RESOURCE_NAME_IMAGE;
+            case RESOURCE_TEXTURE :     return PK_RESOURCE_NAME_TEXTURE;
+            case RESOURCE_FONT :        return PK_RESOURCE_NAME_FONT;
+            case RESOURCE_MATERIAL :    return PK_RESOURCE_NAME_MATERIAL;
+            case RESOURCE_MESH :        return PK_RESOURCE_NAME_MESH;
+            case RESOURCE_MODEL :       return PK_RESOURCE_NAME_MODEL;
+            case RESOURCE_ANIMATION :   return PK_RESOURCE_NAME_ANIMATION;
+            default:
+                Debug::log(
+                    "@get_resource_type_name "
+                    "No name specified for resource type: " + std::to_string(type),
+                    Debug::MessageType::PK_ERROR
+                );
+                return "ERROR";
+        }
     }
 }

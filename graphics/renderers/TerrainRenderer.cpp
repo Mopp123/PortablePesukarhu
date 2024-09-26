@@ -270,8 +270,9 @@ namespace pk
         }
     }
 
-    void TerrainRenderer::handleSceneSwitch()
+    void TerrainRenderer::onSceneSwitch()
     {
+        _toRender.clear();
     }
 
     TerrainRenderData TerrainRenderer::createTerrainRenderData(
