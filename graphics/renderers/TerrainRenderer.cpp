@@ -91,14 +91,15 @@ namespace pk
             _pVertexShader, _pFragmentShader,
             (float)viewportExtent.width, (float)viewportExtent.height,
             { 0, 0, (uint32_t)viewportExtent.width, (uint32_t)viewportExtent.height },
-            CullMode::CULL_MODE_NONE,
+            CullMode::CULL_MODE_BACK,
             FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
             true,
-            DepthCompareOperation::COMPARE_OP_LESS,
-            true,
+            DepthCompareOperation::COMPARE_OP_LESS_OR_EQUAL,
+            false,
             sizeof(mat4),
             ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
         );
+
     }
 
     void TerrainRenderer::submit(
@@ -299,6 +300,7 @@ namespace pk
         const Texture_new* pTex1 = pMaterial->getDiffuseTexture(1);
         const Texture_new* pTex2 = pMaterial->getDiffuseTexture(2);
         const Texture_new* pTex3 = pMaterial->getDiffuseTexture(3);
+        const Texture_new* pTex4 = pMaterial->getDiffuseTexture(4);
         const Texture_new* pBlendmapTex = pMaterial->getBlendmapTexture();
 
         const Swapchain* pSwapchain = pApp->getWindow()->getSwapchain();
@@ -314,6 +316,7 @@ namespace pk
                     pTex1,
                     pTex2,
                     pTex3,
+                    pTex4,
                     pBlendmapTex
                 }
             );

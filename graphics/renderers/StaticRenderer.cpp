@@ -124,7 +124,7 @@ namespace pk
             CullMode::CULL_MODE_BACK,
             FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
             true,
-            DepthCompareOperation::COMPARE_OP_LESS,
+            DepthCompareOperation::COMPARE_OP_LESS_OR_EQUAL,
             false,
             0, 0
         );

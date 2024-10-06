@@ -5,22 +5,6 @@
 
 namespace pk
 {
-    // TODO: Delete current BatchData shit..
-    void BatchData::addNewInstance()
-    {
-        currentDataPtr += instanceDataLen;
-        isFull = currentDataPtr >= maxTotalBatchDataLen;
-    }
-    void BatchData::insertInstanceData(int bufferIndex, const std::vector<float>& data)
-    {
-        VertexBuffer* vb = vertexBuffers[bufferIndex];
-        /*float* dat = &vb->accessRawData()[0];
-          memcpy(dat + currentDataPtr, &data[0], sizeof(float) * instanceDataLen);
-          */
-        vb->update(data, sizeof(float) * currentDataPtr, sizeof(float) * data.size());
-    }
-
-
     Batch::Batch(size_t maxSize) :
         _maxSize(maxSize)
     {
@@ -31,7 +15,7 @@ namespace pk
             1,
             maxSize,
             BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT,
-            BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_DYNAMIC,
+            BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STREAM,
             true
         );
         delete[] pInitialData;

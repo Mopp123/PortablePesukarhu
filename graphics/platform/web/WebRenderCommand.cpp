@@ -486,6 +486,16 @@ namespace pk
                         // TODO: some boundary checking..
                         for (const UniformInfo& layoutInfo : uniformInfo)
                         {
+                            #ifdef PK_DEBUG_FULL
+                            if (!textures[textureBindingIndex])
+                            {
+                                Debug::log(
+                                    "@WebRenderCommand::bindDescriptorSets "
+                                    "Texture at binding index: " + std::to_string(textureBindingIndex) + " was nullptr",
+                                    Debug::MessageType::PK_FATAL_ERROR
+                                );
+                            }
+                            #endif
                             glUniform1i(shaderUniformLocations[layoutInfo.locationIndex], binding.getBinding());
                             // well following is quite fucking dumb.. dunno how could do this better
                             glActiveTexture(binding_to_gl_texture_slot(binding.getBinding()));

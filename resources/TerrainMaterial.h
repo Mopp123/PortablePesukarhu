@@ -3,7 +3,9 @@
 #include "Resource.h"
 #include "Texture.h"
 
-#define TERRAIN_MATERIAL_MAX_CHANNEL_TEXTURES 4
+// Can have textures for channels
+// "black", "red", "green", "blue", "alpha"
+#define TERRAIN_MATERIAL_MAX_CHANNEL_TEXTURES 5
 
 namespace pk
 {
