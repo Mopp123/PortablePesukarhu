@@ -30,7 +30,7 @@ namespace pk
         {
             // Atm disable this system for entities which has ui constraints
             // REASON: If transform is constrained -> u cant fucking touch it!(unless through the constraint)
-            if ((e.componentMask & ComponentType::PK_TRANSFORM) && !(e.componentMask & ComponentType::PK_UI_CONSTRAINT ))
+            if ((e.componentMask & ComponentType::PK_TRANSFORM) && !(e.componentMask & ComponentType::PK_UI_CONSTRAINT))
             {
                 if (e.parentID == NULL_ENTITY_ID)
                 {

@@ -38,6 +38,8 @@ namespace pk
         for (System* system : _pCurrentScene->systems)
             system->update(_pCurrentScene);
 
+        _pCurrentScene->lateUpdate();
+
         // Submit all "renderable components" for rendering...
         // NOTE: This has to be done here since need quarantee that all transforms and shit has been
         // properly updated before submission!
@@ -59,7 +61,6 @@ namespace pk
             );
         }
 
-        _pCurrentScene->lateUpdate();
     }
 
     // triggers scene switching at the end of the frame
