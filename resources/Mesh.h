@@ -64,9 +64,10 @@ namespace pk
         inline  Material* accessMaterial() { return _pMaterial; }
         inline  void setMaterial(Material* pMaterial) { _pMaterial = pMaterial; }
 
-        Pose& accessBindPose() { return _bindPose; }
-        const Pose& getBindPose() const { return _bindPose; }
-        std::vector<Pose>& accessAnimPoses() { return _animPoses; }
+        inline Pose& accessBindPose() { return _bindPose; }
+        inline const Pose& getBindPose() const { return _bindPose; }
+        inline std::vector<Pose>& accessAnimPoses() { return _animPoses; }
+        inline const std::vector<Pose>& getAnimPoses() const { return _animPoses; }
         // TODO: get rid of below after cleaning model loading..
         inline void setBindPose(const Pose& pose) { _bindPose = pose; }
         inline void setAnimationPoses(const std::vector<Pose>& animPoses) { _animPoses = animPoses; }

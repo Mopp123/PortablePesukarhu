@@ -33,26 +33,33 @@ namespace pk
 
         bool _stopped = false;
 
+        std::vector<uint32_t> _keyframes;
+
         Pose _resultPose;
 
     public:
-        AnimationData(PK_id animationResourceID, AnimationMode mode, float speed, const Pose& bindPose) :
-            Component(ComponentType::PK_ANIMATION_DATA),
-            _animationResourceID(animationResourceID),
-            _mode(mode),
-            _speed(speed),
-            _resultPose(bindPose)
-        {
-        }
-        AnimationData(const AnimationData& other) :
-            _animationResourceID(other._animationResourceID),
-            _mode(other._mode),
-            _currentPose(other._currentPose),
-            _nextPose(other._nextPose),
-            _progress(other._progress),
-            _resultPose(other._resultPose)
-        {}
+        AnimationData(
+            PK_id animationResourceID,
+            AnimationMode mode,
+            float speed,
+            const Pose& bindPose
+        );
+        AnimationData(
+            PK_id animationResourceID,
+            AnimationMode mode,
+            float speed,
+            const Pose& bindPose,
+            std::vector<uint32_t> keyframes
+        );
+        AnimationData(const AnimationData& other);
         ~AnimationData() {}
+
+        void reset();
+        void set(
+            const std::vector<uint32_t>& keyframes,
+            float speed,
+            AnimationMode mode
+        );
 
         inline PK_id getResourceID() const { return _animationResourceID; }
         inline uint32_t getCurrentPose() const { return _currentPose; }

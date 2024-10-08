@@ -12,6 +12,10 @@
 
 #include "ecs/components/renderable/TerrainRenderable.h"
 
+
+#define TERRAIN_MATERIAL_MAX_CHANNEL_TEXTURES 5
+
+
 namespace pk
 {
     struct TerrainRenderData

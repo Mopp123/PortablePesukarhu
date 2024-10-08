@@ -524,6 +524,18 @@ namespace pk
             {
                 PK_byte* pAnimData = (PK_byte*)&animDataBuffer.data[animDataAccessor.byteOffset + bufferView.byteOffset + (sizeof(quat) * useKeyframe)];
                 quat rotationValue = *((quat*)pAnimData);
+                // Found out that with some configuration u can export gltfs from
+                // blender without animation sampling -> causing "null rotations" for some keyframes..
+                // *propably applies to translations and scaling as well..
+                if (rotationValue.length() <= 0.0f)
+                {
+                    Debug::log(
+                        "@create_anim_pose_joint "
+                        "Rotation for keyframe: " + std::to_string(useKeyframe) + " "
+                        "was null! Check your gltf export settings!",
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
+                }
                 rotationValue = rotationValue.normalize();
                 jointRotationMatrix = rotationValue.toRotationMatrix();
                 joint.rotation = rotationValue;
@@ -698,9 +710,20 @@ namespace pk
                 nodeJointMapping
             );
             Debug::log("___TEST___loaded joints: " + std::to_string(nodeJointMapping.size()));
+
+
             // Load animations if found
             // NOTE: For now supporting just a single animation
             size_t animCount = gltfModel.animations.size();
+            if (animCount > 1)
+            {
+                Debug::log(
+                    "@load_model_gltf "
+                    "Multiple animations(" + std::to_string(animCount) + ") "
+                    "from file: " + filepath + " Currently only a single animation is supported",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+            }
             if (animCount == 1)
             {
                 animPoses = load_anim_poses(

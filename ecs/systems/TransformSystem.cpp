@@ -35,7 +35,8 @@ namespace pk
                 if (e.parentID == NULL_ENTITY_ID)
                 {
                     Transform* pTransform = (Transform*)((*_pTransformPool)[e.id]);
-                    applyTransforms(e.id, pTransform);
+                    if (pTransform->isActive())
+                        applyTransforms(e.id, pTransform);
                 }
             }
         }

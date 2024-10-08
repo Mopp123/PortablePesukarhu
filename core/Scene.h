@@ -137,7 +137,8 @@ namespace pk
             entityID_t target,
             PK_id animationResourceID,
             AnimationMode mode,
-            float speed
+            float speed,
+            std::vector<uint32_t> keyframes = {}
         );
 
         // TODO: all getComponent things could be optimized?

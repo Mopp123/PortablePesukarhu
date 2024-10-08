@@ -31,7 +31,7 @@ namespace pk
         // go from 0 to 5 -> 6 first available
         //  -> 6 used as push constant transformation matrix
 
-        // TerrainMaterial desc set layout
+        // Material desc set layout
         // Blendmap channel textures
         std::vector<DescriptorSetLayoutBinding> descSetBindings;
         for (int i = 0; i < TERRAIN_MATERIAL_MAX_CHANNEL_TEXTURES; ++i)

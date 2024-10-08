@@ -4,7 +4,6 @@
 #include "Image.h"
 #include "Texture.h"
 #include "Material.h"
-#include "TerrainMaterial.h"
 #include "Mesh.h"
 #include "Model.h"
 #include "Animation.h"
@@ -74,11 +73,6 @@ namespace pk
             float shininess = 1.0f,
             uint32_t blendmapTextureID = 0,
             bool persistent = false
-        );
-
-        TerrainMaterial* createTerrainMaterial(
-            const std::vector<uint32_t>& channelTextureIDs,
-            uint32_t blendmapTextureID
         );
 
         // NOTE: Buffers' ownership gets transferred to the created mesh!

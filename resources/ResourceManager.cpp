@@ -197,59 +197,6 @@ namespace pk
         return pMaterial;
     }
 
-    TerrainMaterial* ResourceManager::createTerrainMaterial(
-        const std::vector<uint32_t>& channelTextureIDs,
-        uint32_t blendmapTextureID
-    )
-    {
-        if (channelTextureIDs.size() != TERRAIN_MATERIAL_MAX_CHANNEL_TEXTURES)
-        {
-            Debug::log(
-                "@ResourceManager::createTerrainMaterial "
-                "Invalid amount of channel textures. "
-                "Required amount: " + std::to_string(TERRAIN_MATERIAL_MAX_CHANNEL_TEXTURES) + " "
-                "for each blendmap RGBA channels!",
-                Debug::MessageType::PK_FATAL_ERROR
-            );
-        }
-
-        std::vector<Texture_new*> channelTextures;
-        for (uint32_t channelTextureID : channelTextureIDs)
-        {
-            Texture_new* pTexture = (Texture_new*)getResource(channelTextureID);
-            if (!pTexture)
-            {
-                Debug::log(
-                    "@ResourceManager::createTerrainMaterial "
-                    "Invalid channel texture ID: " + std::to_string(channelTextureID),
-                    Debug::MessageType::PK_FATAL_ERROR
-                );
-                return nullptr;
-            }
-            else
-            {
-                channelTextures.push_back(pTexture);
-            }
-        }
-
-        Texture_new* pBlendmapTexture = (Texture_new*)getResource(blendmapTextureID);
-        if (!pBlendmapTexture)
-        {
-            Debug::log(
-                "@ResourceManager::createTerrainMaterial "
-                "Invalid blendmap texture ID: " + std::to_string(blendmapTextureID),
-                Debug::MessageType::PK_FATAL_ERROR
-            );
-            return nullptr;
-        }
-        TerrainMaterial* pMaterial = new TerrainMaterial(
-            channelTextures,
-            pBlendmapTexture
-        );
-        _resources[pMaterial->getResourceID()] = pMaterial;
-        return pMaterial;
-    }
-
     Mesh* ResourceManager::createMesh(
         const std::vector<Buffer*>& vertexBuffers,
         Buffer* pIndexBuffer,

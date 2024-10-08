@@ -514,7 +514,8 @@ namespace pk
         entityID_t target,
         PK_id animationResourceID,
         AnimationMode mode,
-        float speed
+        float speed,
+        std::vector<uint32_t> keyframes
     )
     {
         AnimationData* pComponent = (AnimationData*)componentPools[ComponentType::PK_ANIMATION_DATA].allocComponent(target);
@@ -525,7 +526,8 @@ namespace pk
             animationResourceID,
             mode,
             speed,
-            pAnimResource->getBindPose()
+            pAnimResource->getBindPose(),
+            keyframes
         );
         addComponent(target, pComponent);
         return pComponent;

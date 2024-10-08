@@ -105,6 +105,9 @@ namespace pk
             if ((e.componentMask & requiredMask) == requiredMask)
             {
                 AnimationData* pAnimData = (AnimationData*)animDataPool[e.id];
+                if (!pAnimData->isActive())
+                    continue;
+
                 // Override stopped if mode changed elsewhere
                 if (pAnimData->_mode == AnimationMode::PK_ANIMATION_MODE_REPEAT)
                     pAnimData->_stopped = false;
@@ -128,13 +131,27 @@ namespace pk
 
                 // TODO:
                 // Fucking overly complicated below -> clean that up!!
-                const size_t keyframeCount = pAnimationResource->getKeyframeCount();
+                size_t keyframeCount = pAnimationResource->getKeyframeCount();
                 const AnimationMode& animMode = pAnimData->_mode;
 
                 uint32_t& currentPoseIndex = pAnimData->_currentPose;
                 uint32_t& nextPoseIndex = pAnimData->_nextPose;
-                const Pose& currentPose = pAnimationResource->getPose(currentPoseIndex);
-                const Pose& nextPose = pAnimationResource->getPose(pAnimData->_nextPose);
+
+                Pose currentPose;
+                Pose nextPose;
+
+                // TODO: Boundary checking!
+                if (pAnimData->_keyframes.empty())
+                {
+                    currentPose = pAnimationResource->getPose(currentPoseIndex);
+                    nextPose = pAnimationResource->getPose(nextPoseIndex);
+                }
+                else
+                {
+                    keyframeCount = pAnimData->_keyframes.size();
+                    currentPose = pAnimationResource->getPose(pAnimData->_keyframes[currentPoseIndex]);
+                    nextPose = pAnimationResource->getPose(pAnimData->_keyframes[nextPoseIndex]);
+                }
 
                 /*
                 apply_interpolation_to_joints(

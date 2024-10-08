@@ -117,34 +117,34 @@ namespace pk
 
 
     class quat : public vec4
-	  {
+	{
     public:
-	      quat(const vec3& axis, float angle);
+	    quat(const vec3& axis, float angle);
 
-	      quat() :
-	          vec4(0,0,0,1)
-	      {}
+	    quat() :
+	        vec4(0,0,0,1)
+	    {}
 
-	      quat(float x, float y, float z, float w) :
-	          vec4(x, y, z, w)
-	      {}
+	    quat(float x, float y, float z, float w) :
+	        vec4(x, y, z, w)
+	    {}
 
-	      quat(const vec4& other) :
-	      	vec4(other.x, other.y, other.z, other.w)
-	      {}
+	    quat(const vec4& other) :
+	    	vec4(other.x, other.y, other.z, other.w)
+	    {}
 
         std::string toString() const;
 
         // NOTE: why no firends? :'D
-	      quat operator*(const quat& other) const;
-	      quat operator*(const vec3& other) const;
-	      bool operator==(const quat& other) const;
+	    quat operator*(const quat& other) const;
+	    quat operator*(const vec3& other) const;
+	    bool operator==(const quat& other) const;
 
         quat conjugate() const;
         mat4 toRotationMatrix() const;
 
         quat slerp(const quat& other, float amount) const;
-	  };
+    };
 
 
     mat4 create_proj_mat_ortho(
