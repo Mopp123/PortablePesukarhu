@@ -4,6 +4,8 @@
 #include "ecs/components/renderable/GUIRenderable.h"
 #include "../ecs/components/Transform.h"
 
+#include <chrono>
+
 
 namespace pk
 {
@@ -34,16 +36,40 @@ namespace pk
     {
         _pCurrentScene->update();
 
+        Application* pApp = Application::get();
+        InputManager* pInputManager = pApp->accessInputManager();
+
+        // Record perf in debug mode using F-keys
+        #ifdef PK_DEBUG_FULL
+        bool recordSystemPerf = false;
+        std::chrono::time_point<std::chrono::high_resolution_clock> startSystemPerfRecord;
+        if (pInputManager->isKeyDown(PK_INPUT_KEY_F1))
+        {
+            recordSystemPerf = true;
+            startSystemPerfRecord = std::chrono::high_resolution_clock::now();
+        }
+        #endif
+
         // Update all systems of the scene
         for (System* system : _pCurrentScene->systems)
             system->update(_pCurrentScene);
+
+        #ifdef PK_DEBUG_FULL
+        if (recordSystemPerf)
+        {
+            std::chrono::duration<float> delta = std::chrono::high_resolution_clock::now() - startSystemPerfRecord;
+            Debug::log(
+                "@SceneManager::handleSceneUpdate "
+                "System update took: " + std::to_string(delta.count())
+            );
+        }
+        #endif
 
         _pCurrentScene->lateUpdate();
 
         // Submit all "renderable components" for rendering...
         // NOTE: This has to be done here since need quarantee that all transforms and shit has been
         // properly updated before submission!
-        Application* pApp = Application::get();
         ComponentPool& transformPool = _pCurrentScene->componentPools[ComponentType::PK_TRANSFORM];
         MasterRenderer& masterRenderer = pApp->getMasterRenderer();
         std::map<ComponentType, Renderer*>& renderers = masterRenderer.accessRenderers();
