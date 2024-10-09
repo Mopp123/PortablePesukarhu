@@ -10,13 +10,17 @@
 namespace pk
 {
     static void submit_renderable(
+        Scene* pScene,
         ComponentPool& renderablePool,
         ComponentPool& transformPool,
         const std::vector<Entity>& entities,
         Renderer* pRenderer,
-        uint32_t requiredComponentMask
+        uint32_t requiredComponentMask,
+        ComponentType requiredAdditionalComponent
     )
     {
+        void* pCustomData = nullptr;
+        size_t customDataSize = 0;
         for (const Entity& e : entities)
         {
             if ((e.componentMask & requiredComponentMask) == requiredComponentMask)
@@ -26,7 +30,22 @@ namespace pk
                 if (!pRenderable->isActive())
                     continue;
 
-                pRenderer->submit(pRenderable, pTransform->getTransformationMatrix());
+                if (requiredAdditionalComponent != ComponentType::PK_EMPTY)
+                {
+                    Component* pAdditionalComponent = pScene->getComponent(
+                        e.id,
+                        requiredAdditionalComponent
+                    );
+                    pCustomData = (void*)pAdditionalComponent;
+                    customDataSize = sizeof(Component*); // ..ptr size should be same for any ptr
+                }
+
+                pRenderer->submit(
+                    pRenderable,
+                    pTransform->getTransformationMatrix(),
+                    pCustomData,
+                    customDataSize
+                );
             }
         }
     }
@@ -78,12 +97,16 @@ namespace pk
         for (rIt = renderers.begin(); rIt != renderers.end(); ++rIt)
         {
             const ComponentType& renderableType = rIt->first;
+            // TODO: make this more clever..
+            ComponentType requiredAdditionalComponent = renderableType == ComponentType::PK_RENDERABLE_SKINNED ? ComponentType::PK_ANIMATION_DATA : ComponentType::PK_EMPTY;
             submit_renderable(
+                _pCurrentScene,
                 _pCurrentScene->componentPools[renderableType],
                 transformPool,
                 entities,
                 rIt->second,
-                ComponentType::PK_TRANSFORM | renderableType
+                ComponentType::PK_TRANSFORM | renderableType,
+                requiredAdditionalComponent
             );
         }
 

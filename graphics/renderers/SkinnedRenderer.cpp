@@ -90,21 +90,27 @@ namespace pk
     }
 
     static void update_joint_matrices_DEPRECATED(
-        Scene* pScene,
+        const Scene * const pScene,
         int currentJointIndex,
-        std::vector<mat4>& matrices,
-        const Pose& pose
+        const Pose& pose,
+        void* pTargetBuffer
     )
     {
-        matrices[currentJointIndex] = pose.joints[currentJointIndex].matrix;
+        const size_t targetOffset = currentJointIndex * sizeof(mat4);
+        memcpy(
+            ((PK_byte*)pTargetBuffer) + targetOffset,
+            &pose.joints[currentJointIndex].matrix,
+            sizeof(mat4)
+        );
+        //targetMatrices[currentJointIndex] = pose.joints[currentJointIndex].matrix;
 
         for (int i = 0; i < pose.jointChildMapping[currentJointIndex].size(); ++i)
         {
             update_joint_matrices_DEPRECATED(
                 pScene,
                 pose.jointChildMapping[currentJointIndex][i],
-                matrices,
-                pose
+                pose,
+                pTargetBuffer
             );
         }
     }
@@ -152,9 +158,9 @@ namespace pk
     }
 
     void SkinnedMeshBatch::add(
-        const Scene* pScene,
-        const Mesh* pMesh,
-        entityID_t rootJointEntity
+        const Scene * const pScene,
+        const Mesh * const  pMesh,
+        const AnimationData * const pAnimData
     )
     {
         // Not sure if this fucks up..
@@ -170,14 +176,22 @@ namespace pk
         }
         // where to put inputted skeleton in the "buffer"
         const size_t jointMatricesOffset = occupiedCount * (sizeof(mat4) * s_maxJoints);
-
         void* pTarget = ((PK_byte*)jointMatrices.data()) + jointMatricesOffset;
+        /*
         update_joint_matrices_SPEED(
             pScene,
             rootJointEntity,
             0,
             pMesh->getBindPose(),
             mat4(1.0f),
+            pTarget
+        );
+        */
+
+        update_joint_matrices_DEPRECATED(
+            pScene,
+            0,
+            pAnimData->getResultPose(),
             pTarget
         );
         ++occupiedCount;
@@ -332,7 +346,9 @@ namespace pk
 
     void SkinnedRenderer::submit(
         const Component* const renderableComponent,
-        const mat4& transformation
+        const mat4& transformation,
+        void* pCustomData,
+        size_t customDataSize
     )
     {
         const Application* pApp = Application::get();
@@ -340,8 +356,20 @@ namespace pk
         const ResourceManager& resManager = pApp->getResourceManager();
 
         const SkinnedRenderable * const pRenderable = (const SkinnedRenderable * const)renderableComponent;
+        #ifdef PK_DEBUG_FULL
+        if (!pCustomData)
+        {
+            Debug::log(
+                "@SkinnedRenderer::submit "
+                "Custom data was nullptr",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return;
+        }
+        #endif
+        const AnimationData * const pAnimData = (const AnimationData * const)pCustomData;
 
-        entityID_t rootJointEntity = pRenderable->rootJointEntity;
+        //entityID_t rootJointEntity = pRenderable->rootJointEntity;
 
         PK_id batchIdentifier = pRenderable->meshID;
         const Mesh* pMesh = (const Mesh*)resManager.getResource(pRenderable->meshID);
@@ -370,7 +398,7 @@ namespace pk
                 return;
             }
             SkinnedMeshBatch* pBatch = _batches[batchIndex];
-            pBatch->add(pScene, pMesh, rootJointEntity);
+            pBatch->add(pScene, pMesh, pAnimData);
         }
         else
         {
@@ -388,7 +416,7 @@ namespace pk
                 _materialDescSetLayout,
                 _constMaterialPropsUniformBuffers
             );
-            pNewBatch->add(pScene, pMesh, rootJointEntity);
+            pNewBatch->add(pScene, pMesh, pAnimData);
             _batches.push_back(pNewBatch);
             _identifierBatchMapping[batchIdentifier] = _batches.size() - 1;
         }

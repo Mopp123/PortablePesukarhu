@@ -127,7 +127,9 @@ namespace pk
 
     void FontRenderer::submit(
         const Component* const renderableComponent,
-        const mat4& transform
+        const mat4& transformation,
+        void* pCustomData,
+        size_t customDataSize
     )
     {
         const TextRenderable * const pRenderable = (const TextRenderable * const)renderableComponent;
@@ -175,7 +177,7 @@ namespace pk
             return;
         }
 
-        vec2 position(transform[0 + 3 * 4], transform[1 + 3 * 4]);
+        vec2 position(transformation[0 + 3 * 4], transformation[1 + 3 * 4]);
         const vec3& color = pRenderable->color;
 
         // TODO: Quit supporting dynamic scaling -> makes text look just shit atm..

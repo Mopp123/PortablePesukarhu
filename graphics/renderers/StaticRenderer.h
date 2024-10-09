@@ -37,7 +37,12 @@ namespace pk
         StaticRenderer();
         ~StaticRenderer();
 
-        virtual void submit(const Component* const renderableComponent, const mat4& transformation);
+        virtual void submit(
+            const Component* const renderableComponent,
+            const mat4& transformation,
+            void* pCustomData = nullptr,
+            size_t customDataSize = 0
+        );
         virtual void render();
 
         virtual void flush();

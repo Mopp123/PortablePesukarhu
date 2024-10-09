@@ -132,7 +132,9 @@ namespace pk
 
     void StaticRenderer::submit(
         const Component* const renderableComponent,
-        const mat4& transformation
+        const mat4& transformation,
+        void* pCustomData,
+        size_t customDataSize
     )
     {
         const Application* pApp = Application::get();

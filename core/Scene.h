@@ -112,8 +112,7 @@ namespace pk
         SkinnedRenderable* createSkinnedRenderable(
             entityID_t target,
             PK_id modelID,
-            PK_id meshID,
-            entityID_t skeletonEntity
+            PK_id meshID
         );
         TerrainRenderable* createTerrainRenderable(
             entityID_t target,
