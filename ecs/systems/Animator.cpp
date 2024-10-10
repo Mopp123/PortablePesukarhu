@@ -3,12 +3,16 @@
 #include "core/Scene.h"
 #include "ecs/components/ComponentPool.h"
 
+#include <chrono>
+
 
 namespace pk
 {
+    static std::unordered_map<entityID_t, std::chrono::time_point<std::chrono::high_resolution_clock>> s_TEST_lastUpdate;
+
     // Was using this when skeleton was hierarchy of Transforms and needed to apply
     // the animation to those..
-    static void apply_interpolation_to_joints_DEPRECATED(
+    static void apply_interpolation_to_joints_FAST(
         Scene& scene,
         AnimationData* pAnimData,
         const Pose& bindPose,
@@ -47,7 +51,7 @@ namespace pk
         for (int i = 0; i < childJoints.size(); ++i)
         {
             int childJointIndex = childJoints[i];
-            apply_interpolation_to_joints_DEPRECATED(
+            apply_interpolation_to_joints_FAST(
                 scene,
                 pAnimData,
                 bindPose,
@@ -61,7 +65,7 @@ namespace pk
     }
 
 
-    static void apply_interpolation_to_joints(
+    static void apply_interpolation_to_joints_SLOW(
         Scene& scene,
         AnimationData* pAnimationData,
         const Pose& bindPose,
@@ -98,7 +102,7 @@ namespace pk
 
         for (int i = 0; i < bindPose.jointChildMapping[currentJointIndex].size(); ++i)
         {
-            apply_interpolation_to_joints(
+            apply_interpolation_to_joints_SLOW(
                 scene,
                 pAnimationData,
                 bindPose,
@@ -123,7 +127,6 @@ namespace pk
     {
         const ResourceManager& resourceManager = Application::get()->getResourceManager();
         ComponentPool& animDataPool = pScene->componentPools[ComponentType::PK_ANIMATION_DATA];
-        ComponentPool& transformPool = pScene->componentPools[ComponentType::PK_TRANSFORM];
 
         uint64_t requiredMask = ComponentType::PK_ANIMATION_DATA | ComponentType::PK_TRANSFORM;
         for (Entity e : pScene->entities)
@@ -131,7 +134,6 @@ namespace pk
             if ((e.componentMask & requiredMask) == requiredMask)
             {
                 AnimationData* pAnimData = (AnimationData*)animDataPool[e.id];
-                Transform* pTransform = (Transform*)transformPool[e.id];
                 if (!pAnimData->isActive())
                     continue;
 
@@ -193,16 +195,21 @@ namespace pk
                 );
                 */
 
-                apply_interpolation_to_joints_DEPRECATED(
-                    *pScene,
-                    pAnimData,
-                    pAnimationResource->getBindPose(),
-                    currentPose,
-                    nextPose,
-                    pAnimData->_progress,
-                    0,
-                    pTransform->accessTransformationMatrix()
-                );
+                std::chrono::duration<float> timeSinceLastUpdate = std::chrono::high_resolution_clock::now() - s_TEST_lastUpdate[e.id];
+                if (timeSinceLastUpdate.count() > 0.1125f)
+                {
+                    apply_interpolation_to_joints_FAST(
+                        *pScene,
+                        pAnimData,
+                        pAnimationResource->getBindPose(),
+                        currentPose,
+                        nextPose,
+                        pAnimData->_progress,
+                        0,
+                        mat4(1.0f)
+                    );
+                    s_TEST_lastUpdate[e.id] = std::chrono::high_resolution_clock::now();
+                }
 
                 pAnimData->_progress += pAnimData->getSpeed() * Timing::get_delta_time();
                 if (pAnimData->_progress >= 1.0f)

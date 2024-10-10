@@ -6,6 +6,8 @@
 #include <iostream>
 #include <emscripten.h>
 
+#include <chrono>
+
 
 namespace pk
 {
@@ -25,6 +27,15 @@ namespace pk
                 sceneManager.handleSceneUpdate();
 
                 MasterRenderer& masterRenderer = app->getMasterRenderer();;
+                #ifdef PK_DEBUG_FULL
+                std::chrono::time_point<std::chrono::high_resolution_clock> startRenderPerfRecord;
+                bool recordRenderPerf = false;
+                if (app->accessInputManager()->isKeyDown(PK_INPUT_KEY_F1))
+                {
+                    recordRenderPerf = true;
+                    startRenderPerfRecord = std::chrono::high_resolution_clock::now();
+                }
+                #endif
                 if (pCamera && pCameraTransform)
                 {
                     const mat4& camTMat = pCameraTransform->getTransformationMatrix();
@@ -38,6 +49,16 @@ namespace pk
                     Debug::log("Scene doesn't have active camera", Debug::MessageType::PK_ERROR);
                 }
                 masterRenderer.flush();
+                #ifdef PK_DEBUG_FULL
+                if (recordRenderPerf)
+                {
+                    std::chrono::duration<float> delta = std::chrono::high_resolution_clock::now() - startRenderPerfRecord;
+                    Debug::log(
+                        "@Application::update(Emscripten) "
+                        "   Rendering took: " + std::to_string(delta.count())
+                    );
+                }
+                #endif
                 //Debug::log("delta: " + std::to_string(Timing::get_delta_time()));
             }
             // Detect and handle possible scene switching..
