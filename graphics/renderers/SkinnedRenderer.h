@@ -26,6 +26,7 @@ namespace pk
         vec4 materialProperties;
         // *stride = mat4 * maxJoints -> max joint matrices per entity
         std::vector<mat4> jointMatrices;
+        std::vector<mat4> transformationMatrices; // transformation matrix per skinned renderable because joint matrices don't have world transform
         size_t initialCount = 0;
         size_t occupiedCount = 0;
         std::vector<DescriptorSet*> materialDescriptorSet;
@@ -44,7 +45,12 @@ namespace pk
         SkinnedMeshBatch(const SkinnedMeshBatch& other) = delete;
         ~SkinnedMeshBatch();
 
-        void add(const Scene* pScene, const Mesh* pMesh, entityID_t rootJointEntity);
+        void add(
+            const Scene * const pScene,
+            const Mesh * const pMesh,
+            const mat4& transformationMatrix,
+            const AnimationData * const pAnimData
+        );
 
         void clear();
     };
@@ -86,7 +92,12 @@ namespace pk
         SkinnedRenderer();
         ~SkinnedRenderer();
 
-        virtual void submit(const Component* const renderableComponent, const mat4& transformation);
+        virtual void submit(
+            const Component* const renderableComponent,
+            const mat4& transformation,
+            void* pCustomData = nullptr,
+            size_t customDataSize = 0
+        );
         virtual void render();
 
         virtual void flush();

@@ -104,7 +104,9 @@ namespace pk
 
     void TerrainRenderer::submit(
         const Component* const renderableComponent,
-        const mat4& transformation
+        const mat4& transformation,
+        void* pCustomData,
+        size_t customDataSize
     )
     {
         const TerrainRenderable * const pRenderable = (const TerrainRenderable * const)renderableComponent;

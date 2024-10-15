@@ -49,7 +49,12 @@ namespace pk
         TerrainRenderer();
         ~TerrainRenderer();
 
-        virtual void submit(const Component* const renderableComponent, const mat4& transformation);
+        virtual void submit(
+            const Component* const renderableComponent,
+            const mat4& transformation,
+            void* pCustomData,
+            size_t customDataSize
+        );
         virtual void render();
 
         virtual void flush();

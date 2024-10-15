@@ -423,8 +423,7 @@ namespace pk
     SkinnedRenderable* Scene::createSkinnedRenderable(
         entityID_t target,
         PK_id modelID,
-        PK_id meshID,
-        entityID_t skeletonEntity
+        PK_id meshID
     )
     {
         if ((getEntity(target).componentMask & ComponentType::PK_TRANSFORM) != ComponentType::PK_TRANSFORM)
@@ -438,7 +437,7 @@ namespace pk
         }
 
         SkinnedRenderable* pRenderable = (SkinnedRenderable*)componentPools[ComponentType::PK_RENDERABLE_SKINNED].allocComponent(target);
-        *pRenderable = SkinnedRenderable(modelID, meshID, skeletonEntity);
+        *pRenderable = SkinnedRenderable(modelID, meshID);
         addComponent(target, pRenderable);
         return pRenderable;
     }

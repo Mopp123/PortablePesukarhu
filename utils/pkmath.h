@@ -46,6 +46,11 @@ namespace pk
         vec3 normalize() const;
         vec3 lerp(const vec3& other, float amount) const;
 
+        bool operator == (const vec3& other) const
+        {
+            return x == other.x && y == other.y && z == other.z;
+        }
+
         friend vec3 operator+(const vec3& left, const vec3& right);
         friend vec3 operator-(const vec3& left, const vec3& right);
         friend vec3 operator*(const vec3& left, const vec3& right);

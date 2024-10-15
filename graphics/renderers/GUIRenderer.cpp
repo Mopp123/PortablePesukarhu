@@ -116,7 +116,12 @@ namespace pk
         );
     }
 
-    void GUIRenderer::submit(const Component* const renderableComponent, const mat4& transformation)
+    void GUIRenderer::submit(
+        const Component* const renderableComponent,
+        const mat4& transformation,
+        void* pCustomData,
+        size_t customDataSize
+    )
     {
         const GUIRenderable * const pGuiRenderable = (const GUIRenderable * const)renderableComponent;
 

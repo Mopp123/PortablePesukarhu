@@ -40,7 +40,13 @@ namespace pk
         FontRenderer();
         ~FontRenderer();
 
-        virtual void submit(const Component* const renderableComponent, const mat4& transform);
+        virtual void submit(
+            const Component* const renderableComponent,
+            const mat4& transformation,
+            void* pCustomData = nullptr,
+            size_t customDataSize = 0
+        );
+
         virtual void render();
 
         virtual void flush();

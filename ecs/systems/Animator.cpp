@@ -8,35 +8,60 @@ namespace pk
 {
     // Was using this when skeleton was hierarchy of Transforms and needed to apply
     // the animation to those..
-    static void apply_interpolation_to_joints_DEPRECATED(
+    static void apply_interpolation_to_joints_FAST(
         Scene& scene,
-        entityID_t jointEntity,
+        AnimationData* pAnimData,
+        const Pose& bindPose,
         const Pose& current,
         const Pose& next,
         float amount,
-        int currentJointIndex
+        int currentJointIndex,
+        const mat4& parentMatrix
     )
     {
-        Transform* pTransform = (Transform*)scene.getComponent(jointEntity, ComponentType::PK_TRANSFORM);
         const Joint& jointCurrentPose = current.joints[currentJointIndex];
         const Joint& jointNextPose = next.joints[currentJointIndex];
 
         // TODO: Include scaling
         vec3 interpolatedTranslation = jointCurrentPose.translation.lerp(jointNextPose.translation, amount);
+        mat4 translationMatrix(1.0f);
+        translationMatrix[0 + 3 * 4] = interpolatedTranslation.x;
+        translationMatrix[1 + 3 * 4] = interpolatedTranslation.y;
+        translationMatrix[2 + 3 * 4] = interpolatedTranslation.z;
         quat interpolatedRotation = jointCurrentPose.rotation.slerp(jointNextPose.rotation, amount);
-        pTransform->setPos(interpolatedTranslation);
-        pTransform->setRotation(interpolatedRotation);
 
-        std::vector<entityID_t> childJointEntities = scene.getChildren(jointEntity);
-        for (int i = 0; i < childJointEntities.size(); ++i)
+        const mat4& inverseBindMatrix = bindPose.joints[currentJointIndex].inverseMatrix;
+        mat4 m = parentMatrix * translationMatrix * interpolatedRotation.toRotationMatrix();
+
+        pAnimData->setResultPoseJoint(
+            {
+                interpolatedTranslation,
+                interpolatedRotation,
+                { 1.0f, 1.0f, 1.0f }, // Atm scaling is disabled!
+                m * inverseBindMatrix
+            },
+            currentJointIndex
+        );
+
+        const std::vector<int>& childJoints = bindPose.jointChildMapping[currentJointIndex];
+        for (int i = 0; i < childJoints.size(); ++i)
         {
-            int childJointIndex = current.jointChildMapping[currentJointIndex][i];
-            apply_interpolation_to_joints_DEPRECATED(scene, childJointEntities[i], current, next, amount, childJointIndex);
+            int childJointIndex = childJoints[i];
+            apply_interpolation_to_joints_FAST(
+                scene,
+                pAnimData,
+                bindPose,
+                current,
+                next,
+                amount,
+                childJointIndex,
+                m
+            );
         }
     }
 
 
-    static void apply_interpolation_to_joints(
+    static void apply_interpolation_to_joints_SLOW(
         Scene& scene,
         AnimationData* pAnimationData,
         const Pose& bindPose,
@@ -73,7 +98,7 @@ namespace pk
 
         for (int i = 0; i < bindPose.jointChildMapping[currentJointIndex].size(); ++i)
         {
-            apply_interpolation_to_joints(
+            apply_interpolation_to_joints_SLOW(
                 scene,
                 pAnimationData,
                 bindPose,
@@ -99,7 +124,7 @@ namespace pk
         const ResourceManager& resourceManager = Application::get()->getResourceManager();
         ComponentPool& animDataPool = pScene->componentPools[ComponentType::PK_ANIMATION_DATA];
 
-        uint64_t requiredMask = ComponentType::PK_ANIMATION_DATA;
+        uint64_t requiredMask = ComponentType::PK_ANIMATION_DATA | ComponentType::PK_TRANSFORM;
         for (Entity e : pScene->entities)
         {
             if ((e.componentMask & requiredMask) == requiredMask)
@@ -165,14 +190,15 @@ namespace pk
                     mat4(1.0f)
                 );
                 */
-
-                apply_interpolation_to_joints_DEPRECATED(
+                apply_interpolation_to_joints_FAST(
                     *pScene,
-                    e.id,
+                    pAnimData,
+                    pAnimationResource->getBindPose(),
                     currentPose,
                     nextPose,
                     pAnimData->_progress,
-                    0
+                    0,
+                    mat4(1.0f)
                 );
 
                 pAnimData->_progress += pAnimData->getSpeed() * Timing::get_delta_time();

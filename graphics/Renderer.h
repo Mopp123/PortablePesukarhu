@@ -115,7 +115,12 @@ namespace pk
         void handleWindowResize();
 
         // submit renderable component for rendering (batch preparing, before rendering)
-        virtual void submit(const Component* const renderableComponent, const mat4& transformation) = 0;
+        virtual void submit(
+            const Component* const renderableComponent,
+            const mat4& transformation,
+            void* pCustomData = nullptr,
+            size_t customDataSize = 0
+        ) = 0;
 
         virtual void render() = 0;
 

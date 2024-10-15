@@ -89,22 +89,28 @@ namespace pk
         }
     }
 
-    static void update_joint_matrices_DEPRECATED(
-        Scene* pScene,
+    static void update_joint_matrices_FASTEST(
+        const Scene * const pScene,
         int currentJointIndex,
-        std::vector<mat4>& matrices,
-        const Pose& pose
+        const Pose& pose,
+        void* pTargetBuffer
     )
     {
-        matrices[currentJointIndex] = pose.joints[currentJointIndex].matrix;
+        const size_t targetOffset = currentJointIndex * sizeof(mat4);
+        memcpy(
+            ((PK_byte*)pTargetBuffer) + targetOffset,
+            &pose.joints[currentJointIndex].matrix,
+            sizeof(mat4)
+        );
+        //targetMatrices[currentJointIndex] = pose.joints[currentJointIndex].matrix;
 
         for (int i = 0; i < pose.jointChildMapping[currentJointIndex].size(); ++i)
         {
-            update_joint_matrices_DEPRECATED(
+            update_joint_matrices_FASTEST(
                 pScene,
                 pose.jointChildMapping[currentJointIndex][i],
-                matrices,
-                pose
+                pose,
+                pTargetBuffer
             );
         }
     }
@@ -126,6 +132,7 @@ namespace pk
         initialCount(initialCount)
     {
         jointMatrices.resize(initialCount * s_maxJoints);
+        transformationMatrices.resize(initialCount);
         memset(jointMatrices.data(), 0, sizeof(mat4) * jointMatrices.size());
 
         const Texture_new* pDiffuseTexture = pMaterial->getDiffuseTexture(0);
@@ -152,9 +159,10 @@ namespace pk
     }
 
     void SkinnedMeshBatch::add(
-        const Scene* pScene,
-        const Mesh* pMesh,
-        entityID_t rootJointEntity
+        const Scene * const pScene,
+        const Mesh * const  pMesh,
+        const mat4& transformationMatrix,
+        const AnimationData * const pAnimData
     )
     {
         // Not sure if this fucks up..
@@ -168,16 +176,35 @@ namespace pk
                 "Count: " + std::to_string(jointMatrices.size())
             );
         }
+        if (occupiedCount >= transformationMatrices.size())
+        {
+            transformationMatrices.resize(transformationMatrices.size() + 1);
+            Debug::log(
+                "@SkinnedMeshBatch::add "
+                "Insufficient space in transformationMatrices. "
+                "Resized to: " + std::to_string(transformationMatrices.size() * sizeof(mat4)) + " bytes. "
+                "Count: " + std::to_string(transformationMatrices.size())
+            );
+        }
+        transformationMatrices[occupiedCount] = transformationMatrix;
         // where to put inputted skeleton in the "buffer"
         const size_t jointMatricesOffset = occupiedCount * (sizeof(mat4) * s_maxJoints);
-
         void* pTarget = ((PK_byte*)jointMatrices.data()) + jointMatricesOffset;
+        /*
         update_joint_matrices_SPEED(
             pScene,
             rootJointEntity,
             0,
             pMesh->getBindPose(),
             mat4(1.0f),
+            pTarget
+        );
+        */
+
+        update_joint_matrices_FASTEST(
+            pScene,
+            0,
+            pAnimData->getResultPose(),
             pTarget
         );
         ++occupiedCount;
@@ -190,6 +217,11 @@ namespace pk
             jointMatrices.data(),
             0,
             sizeof(mat4) * jointMatrices.size()
+        );
+        memset(
+            transformationMatrices.data(),
+            0,
+            sizeof(mat4) * transformationMatrices.size()
         );
         occupiedCount = 0;
     }
@@ -246,7 +278,7 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 56 }}
+            {{ 57 }} // location 56 = transformationMatrix as push constant
         );
         // Specular texture
         DescriptorSetLayoutBinding specTextureDescSetLayoutBinding(
@@ -254,7 +286,7 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 57 }}
+            {{ 58 }}
         );
         // "properties"
         DescriptorSetLayoutBinding materialPropsDescSetLayoutBinding(
@@ -262,7 +294,7 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 58, ShaderDataType::Float4 }}
+            {{ 59, ShaderDataType::Float4 }}
         );
 
 
@@ -332,7 +364,9 @@ namespace pk
 
     void SkinnedRenderer::submit(
         const Component* const renderableComponent,
-        const mat4& transformation
+        const mat4& transformation,
+        void* pCustomData,
+        size_t customDataSize
     )
     {
         const Application* pApp = Application::get();
@@ -340,8 +374,20 @@ namespace pk
         const ResourceManager& resManager = pApp->getResourceManager();
 
         const SkinnedRenderable * const pRenderable = (const SkinnedRenderable * const)renderableComponent;
+        #ifdef PK_DEBUG_FULL
+        if (!pCustomData)
+        {
+            Debug::log(
+                "@SkinnedRenderer::submit "
+                "Custom data was nullptr",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return;
+        }
+        #endif
+        const AnimationData * const pAnimData = (const AnimationData * const)pCustomData;
 
-        entityID_t rootJointEntity = pRenderable->rootJointEntity;
+        //entityID_t rootJointEntity = pRenderable->rootJointEntity;
 
         PK_id batchIdentifier = pRenderable->meshID;
         const Mesh* pMesh = (const Mesh*)resManager.getResource(pRenderable->meshID);
@@ -370,7 +416,7 @@ namespace pk
                 return;
             }
             SkinnedMeshBatch* pBatch = _batches[batchIndex];
-            pBatch->add(pScene, pMesh, rootJointEntity);
+            pBatch->add(pScene, pMesh, transformation, pAnimData);
         }
         else
         {
@@ -388,10 +434,11 @@ namespace pk
                 _materialDescSetLayout,
                 _constMaterialPropsUniformBuffers
             );
-            pNewBatch->add(pScene, pMesh, rootJointEntity);
+            pNewBatch->add(pScene, pMesh, transformation, pAnimData);
             _batches.push_back(pNewBatch);
             _identifierBatchMapping[batchIdentifier] = _batches.size() - 1;
         }
+
     }
 
     void SkinnedRenderer::render()
@@ -542,6 +589,17 @@ namespace pk
                     toBind
                 );
 
+                pRenderCmd->pushConstants(
+                    pCurrentCmdBuf,
+                    ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
+                    0,
+                    sizeof(mat4),
+                    &pBatch->transformationMatrices[i],
+                    {
+                        { 56, ShaderDataType::Mat4 }
+                    }
+                );
+
                 pRenderCmd->drawIndexed(
                     pCurrentCmdBuf,
                     indexBufLen,
@@ -550,6 +608,44 @@ namespace pk
                     0,
                     0
                 );
+                // test draw same renderable multiple times..
+                /*
+                int testCount = 15 * 2 + 1;
+                int spacing = 4.0f;
+                mat4 originTransform = pBatch->transformationMatrices[i];
+                for (int z = 0; z < testCount; ++z)
+                {
+                    for (int x = 0; x < testCount; ++x)
+                    {
+                        mat4 localTransform(1.0f);
+                        localTransform[0 + 3 * 4] = x * spacing;
+                        localTransform[1 + 3 * 4] = 0.0f;
+                        localTransform[2 + 3 * 4] = z * spacing;
+
+                        mat4 finalTransform = originTransform * localTransform;
+
+                        pRenderCmd->pushConstants(
+                            pCurrentCmdBuf,
+                            ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
+                            0,
+                            sizeof(mat4),
+                            &finalTransform,
+                            {
+                                { 56, ShaderDataType::Mat4 }
+                            }
+                        );
+
+                        pRenderCmd->drawIndexed(
+                            pCurrentCmdBuf,
+                            indexBufLen,
+                            1,
+                            0,
+                            0,
+                            0
+                        );
+                    }
+                }
+                */
             }
         }
 
