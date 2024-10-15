@@ -218,6 +218,25 @@ namespace pk
         return pMesh;
     }
 
+    Mesh* ResourceManager::createMesh(
+        const std::vector<Buffer*>& vertexBuffers,
+        Buffer* pIndexBuffer,
+        uint32_t materialResourceID,
+        bool persistent
+    )
+    {
+        Material* pMaterial = (Material*)getResource(materialResourceID);
+        Mesh* pMesh = new Mesh(
+            vertexBuffers,
+            pIndexBuffer,
+            pMaterial
+        );
+        _resources[pMesh->getResourceID()] = pMesh;
+        if (persistent)
+            _persistentResources[pMesh->getResourceID()] = pMesh;
+        return pMesh;
+    }
+
     Mesh* ResourceManager::createTerrainMesh(
         const std::vector<float>& heightmap,
         float tileWidth,

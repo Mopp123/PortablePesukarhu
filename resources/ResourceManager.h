@@ -83,6 +83,13 @@ namespace pk
             uint32_t materialResourceID,
             bool persistent = false
         );
+        // TODO: Replace above createMesh with below (no more layout in meshes!)
+        Mesh* createMesh(
+            const std::vector<Buffer*>& vertexBuffers,
+            Buffer* pIndexBuffer,
+            uint32_t materialResourceID,
+            bool persistent = false
+        );
 
         Mesh* createTerrainMesh(
             const std::vector<float>& heightmap,

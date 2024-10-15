@@ -291,7 +291,7 @@ namespace pk
             Debug::log(
                 "@Scene::addComponent "
                 "Attempted to add component to entity: " + std::to_string(entityID) + " but "
-                "it already has a component of this type: " + std::to_string(componentTypeID),
+                "it already has a component of this type: " + component_type_to_string(component->getType()),
                 Debug::PK_FATAL_ERROR
             );
             return;

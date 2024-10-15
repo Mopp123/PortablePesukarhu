@@ -22,13 +22,16 @@ namespace pk
         float _specularStrength = 0.0f;
         float _specularShininess = 0.0f;
 
+        bool _shadeless = false;
+
     public:
         Material(
             std::vector<Texture_new*> pDiffuseTextures,
             Texture_new* pSpecularTexture = nullptr,
             float specularStrength = 1.0f,
             float specularShininess = 32.0f,
-            Texture_new* pBlendmapTexture = nullptr
+            Texture_new* pBlendmapTexture = nullptr,
+            bool shadeless = false
         );
         Material(const Material&) = delete;
 
@@ -43,5 +46,7 @@ namespace pk
         inline const Texture_new* getBlendmapTexture() const { return _pBlendmapTexture; }
         inline float getSpecularStrength() const { return _specularStrength; }
         inline float getSpecularShininess() const { return _specularShininess; }
+        inline void setShadeless(bool arg) { _shadeless = arg; }
+        inline bool isShadeless() const { return _shadeless; }
     };
 }

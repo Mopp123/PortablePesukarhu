@@ -9,13 +9,15 @@ namespace pk
         Texture_new* pSpecularTexture,
         float specularStrength,
         float specularShininess,
-        Texture_new* pBlendmapTexture
+        Texture_new* pBlendmapTexture,
+        bool shadeless
     ) :
         Resource(ResourceType::RESOURCE_MATERIAL),
         _pSpecularTexture(pSpecularTexture),
         _pBlendmapTexture(pBlendmapTexture),
         _specularStrength(specularStrength),
-        _specularShininess(specularShininess)
+        _specularShininess(specularShininess),
+        _shadeless(shadeless)
     {
         if (pDiffuseTextures.size() > MATERIAL_MAX_DIFFUSE_TEXTURES)
         {

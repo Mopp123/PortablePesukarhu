@@ -198,6 +198,9 @@ namespace pk
                 }
                 components.push_back(line);
 
+                if (components[0].substr(0, 2) == "//")
+                    continue;
+
                 if (!recordStruct)
                 {
                     if (components.size() > 0)

@@ -159,7 +159,7 @@ namespace pk
         _batchMaterialProperties[batchIdentifier] = {
             pMaterial->getSpecularStrength(),
             pMaterial->getSpecularShininess(),
-            0.0f,
+            (float)pMaterial->isShadeless(),
             0.0f
         };
 
