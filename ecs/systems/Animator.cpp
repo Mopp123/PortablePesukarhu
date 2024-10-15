@@ -3,13 +3,9 @@
 #include "core/Scene.h"
 #include "ecs/components/ComponentPool.h"
 
-#include <chrono>
-
 
 namespace pk
 {
-    static std::unordered_map<entityID_t, std::chrono::time_point<std::chrono::high_resolution_clock>> s_TEST_lastUpdate;
-
     // Was using this when skeleton was hierarchy of Transforms and needed to apply
     // the animation to those..
     static void apply_interpolation_to_joints_FAST(
@@ -194,22 +190,16 @@ namespace pk
                     mat4(1.0f)
                 );
                 */
-
-                std::chrono::duration<float> timeSinceLastUpdate = std::chrono::high_resolution_clock::now() - s_TEST_lastUpdate[e.id];
-                if (timeSinceLastUpdate.count() > 0.1125f)
-                {
-                    apply_interpolation_to_joints_FAST(
-                        *pScene,
-                        pAnimData,
-                        pAnimationResource->getBindPose(),
-                        currentPose,
-                        nextPose,
-                        pAnimData->_progress,
-                        0,
-                        mat4(1.0f)
-                    );
-                    s_TEST_lastUpdate[e.id] = std::chrono::high_resolution_clock::now();
-                }
+                apply_interpolation_to_joints_FAST(
+                    *pScene,
+                    pAnimData,
+                    pAnimationResource->getBindPose(),
+                    currentPose,
+                    nextPose,
+                    pAnimData->_progress,
+                    0,
+                    mat4(1.0f)
+                );
 
                 pAnimData->_progress += pAnimData->getSpeed() * Timing::get_delta_time();
                 if (pAnimData->_progress >= 1.0f)
