@@ -120,7 +120,6 @@ namespace pk
     // size on "init/scene switch stage"
     SkinnedMeshBatch::SkinnedMeshBatch(
         const Material* pMaterial,
-        const vec4& materialProperties,
         size_t initialCount,
         const DescriptorSetLayout& materialDescriptorSetLayout,
         // NOTE: using same ubo for all batches
@@ -128,7 +127,6 @@ namespace pk
         const std::vector<const Buffer*>& pMaterialPropsUniformBuffers
     ) :
         pMaterial(pMaterial),
-        materialProperties(materialProperties),
         initialCount(initialCount)
     {
         jointMatrices.resize(initialCount * s_maxJoints);
@@ -288,13 +286,16 @@ namespace pk
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
             {{ 58 }}
         );
-        // "properties"
+        // "additional data"
         DescriptorSetLayoutBinding materialPropsDescSetLayoutBinding(
             2,
-            1,
+            2,
             DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 59, ShaderDataType::Float4 }}
+            {
+                { 59, ShaderDataType::Float4 }, // color
+                { 60, ShaderDataType::Float4 }  // "properties"
+            }
         );
 
 
@@ -307,12 +308,16 @@ namespace pk
         );
 
         // Create material "properties" ubo
+        vec4 initialMaterialColor(1, 1, 1, 1);
         vec4 initialMaterialProps(1.0f, 32.0f, 0.0f, 0.0f);
+        std::vector<PK_byte> initialMaterialData(sizeof(vec4) * 2);
+        memcpy(initialMaterialData.data(), &initialMaterialColor, sizeof(vec4));
+        memcpy(initialMaterialData.data() + sizeof(vec4), &initialMaterialProps, sizeof(vec4));
         for (int i = 0; i < swapchainImages; ++i)
         {
             Buffer* pMatUbo = Buffer::create(
-                &initialMaterialProps,
-                sizeof(vec4),
+                initialMaterialData.data(),
+                sizeof(vec4) * 2,
                 1,
                 BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                 BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_DYNAMIC,
@@ -387,8 +392,6 @@ namespace pk
         #endif
         const AnimationData * const pAnimData = (const AnimationData * const)pCustomData;
 
-        //entityID_t rootJointEntity = pRenderable->rootJointEntity;
-
         PK_id batchIdentifier = pRenderable->meshID;
         const Mesh* pMesh = (const Mesh*)resManager.getResource(pRenderable->meshID);
         if (!pMesh)
@@ -421,15 +424,8 @@ namespace pk
         else
         {
             Debug::log("___TEST___CREATING NEW BATCH! Current batches: " + std::to_string(_batches.size()));
-            vec4 materialProperties(
-                pMaterial->getSpecularStrength(),
-                pMaterial->getSpecularShininess(),
-                0.0f,
-                0.0f
-            );
             SkinnedMeshBatch* pNewBatch = new SkinnedMeshBatch(
                 pMaterial,
-                materialProperties,
                 32,
                 _materialDescSetLayout,
                 _constMaterialPropsUniformBuffers
@@ -555,8 +551,17 @@ namespace pk
             // Get "common descriptor set" from master renderer
             MasterRenderer& masterRenderer = pApp->getMasterRenderer();
             // Update material properties ubo
-            const vec4& materialProperties = pBatch->materialProperties;
-            _materialPropsUniformBuffers[0]->update(&materialProperties, sizeof(vec4));
+            const Material* pBatchMaterial = pBatch->pMaterial;
+            vec4 materialData[2] = {
+                pBatchMaterial->getColor(),
+                {
+                    pBatchMaterial->getSpecularStrength(),
+                    pBatchMaterial->getSpecularShininess(),
+                    (float)pBatchMaterial->isShadeless(),
+                    0.0f
+                }
+            };
+            _materialPropsUniformBuffers[0]->update(materialData, sizeof(vec4) * 2);
 
             for (int i = 0; i < pBatch->occupiedCount; ++i)
             {

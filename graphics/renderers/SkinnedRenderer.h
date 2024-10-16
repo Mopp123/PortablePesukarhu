@@ -23,7 +23,6 @@ namespace pk
     {
     public:
         const Material* pMaterial = nullptr;
-        vec4 materialProperties;
         // *stride = mat4 * maxJoints -> max joint matrices per entity
         std::vector<mat4> jointMatrices;
         std::vector<mat4> transformationMatrices; // transformation matrix per skinned renderable because joint matrices don't have world transform
@@ -35,7 +34,6 @@ namespace pk
         // size on "init/scene switch stage"
         SkinnedMeshBatch(
             const Material* pMaterial,
-            const vec4& materialProperties,
             size_t initialCount,
             const DescriptorSetLayout& materialDescriptorSetLayout,
             // NOTE: using same ubo for all batches

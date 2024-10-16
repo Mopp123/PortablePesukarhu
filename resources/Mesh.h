@@ -15,7 +15,6 @@ namespace pk
         std::vector<Buffer*> _vertexBuffers;
         Buffer* _pIndexBuffer = nullptr;
         Material* _pMaterial = nullptr;
-        VertexBufferLayout _vertexBufferLayout; // Not sure should this actually even be part of the mesh...
 
         // These aren't required. Mesh may be skinned or not..
         Pose _bindPose;
@@ -32,13 +31,6 @@ namespace pk
             const std::vector<Buffer*>& vertexBuffers,
             Buffer* pIndexBuffer,
             Material* pMaterial,
-            VertexBufferLayout vertexBufferLayout // TODO: remove layout from mesh
-        );
-        Mesh(
-            const std::vector<Buffer*>& vertexBuffers,
-            Buffer* pIndexBuffer,
-            Material* pMaterial,
-            VertexBufferLayout vertexBufferLayout,
             const Pose& bindPose,
             const std::vector<Pose>& animPoses
         );

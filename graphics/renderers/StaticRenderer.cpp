@@ -56,39 +56,46 @@ namespace pk
             {{ 7 }}
         );
         // "properties"
-        DescriptorSetLayoutBinding materialPropsDescSetLayoutBinding(
+        DescriptorSetLayoutBinding materialDataDescSetLayoutBinding(
             2,
-            1,
+            2,
             DescriptorType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 8, ShaderDataType::Float4 }}
+            {
+                { 8, ShaderDataType::Float4 },
+                { 9, ShaderDataType::Float4 }
+            }
         );
 
         _materialDescSetLayout = DescriptorSetLayout(
             {
                 diffTextureDescSetLayoutBinding,
                 specTextureDescSetLayoutBinding,
-                materialPropsDescSetLayoutBinding
+                materialDataDescSetLayoutBinding
             }
         );
 
-        // Create material "properties" ubo
+        // Create additional "material data" ubo
         const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
         uint32_t swapchainImages = pSwapchain->getImageCount();
+        vec4 initialMaterialColor(1, 1, 1, 1);
         vec4 initialMaterialProps(1.0f, 32.0f, 0.0f, 0.0f);
+        std::vector<PK_byte> initialMaterialData(sizeof(vec4) * 2);
+        memcpy(initialMaterialData.data(), &initialMaterialColor, sizeof(vec4));
+        memcpy(initialMaterialData.data() + sizeof(vec4), &initialMaterialProps, sizeof(vec4));
         for (int i = 0; i < swapchainImages; ++i)
         {
             Buffer* pMatUbo = Buffer::create(
-                &initialMaterialProps,
-                sizeof(vec4),
+                initialMaterialData.data(),
+                sizeof(vec4) * 2,
                 1,
                 BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                 BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STATIC,
                 true
             );
             const Buffer* pConstCopy = (const Buffer*)pMatUbo;
-            _materialPropsUniformBuffers.push_back(pMatUbo);
-            _constMaterialPropsUniformBuffers.push_back(pConstCopy);
+            _materialDataUniformBuffers.push_back(pMatUbo);
+            _constMaterialDataUniformBuffers.push_back(pConstCopy);
         }
     }
 
@@ -156,7 +163,8 @@ namespace pk
         const Texture_new* pDiffuseTexture = pMaterial->getDiffuseTexture(0);
         const Texture_new* pSpecularTexture = pMaterial->getSpecularTexture();
 
-        _batchMaterialProperties[batchIdentifier] = {
+        _batchMaterialData[batchIdentifier][0] = pMaterial->getColor();
+        _batchMaterialData[batchIdentifier][1] = {
             pMaterial->getSpecularStrength(),
             pMaterial->getSpecularShininess(),
             (float)pMaterial->isShadeless(),
@@ -179,7 +187,7 @@ namespace pk
                         pDiffuseTexture,
                         pSpecularTexture
                     },
-                    _constMaterialPropsUniformBuffers
+                    _constMaterialDataUniformBuffers
                 );
                 //_batchMeshCache[batchIdentifier] = const_cast<Mesh*>(pMesh);
             }
@@ -294,8 +302,8 @@ namespace pk
             // Get "common descriptor set" from master renderer
             MasterRenderer& masterRenderer = pApp->getMasterRenderer();
             // Update material properties ubo
-            const vec4& materialProperties = _batchMaterialProperties[pBatch->getIdentifier()];
-            _materialPropsUniformBuffers[0]->update(&materialProperties, sizeof(vec4));
+            vec4* materialProperties = &_batchMaterialData[pBatch->getIdentifier()][0];
+            _materialDataUniformBuffers[0]->update(materialProperties, sizeof(vec4) * 2);
 
             std::vector<const DescriptorSet*> toBind =
             {

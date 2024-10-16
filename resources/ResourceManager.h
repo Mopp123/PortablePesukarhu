@@ -72,18 +72,11 @@ namespace pk
             float specularStrength = 0.0f,
             float shininess = 1.0f,
             uint32_t blendmapTextureID = 0,
+            vec4 color = vec4(1, 1, 1, 1),
+            bool shadeless = false,
             bool persistent = false
         );
 
-        // NOTE: Buffers' ownership gets transferred to the created mesh!
-        Mesh* createMesh(
-            const std::vector<Buffer*>& vertexBuffers,
-            Buffer* pIndexBuffer,
-            const VertexBufferLayout& layout,
-            uint32_t materialResourceID,
-            bool persistent = false
-        );
-        // TODO: Replace above createMesh with below (no more layout in meshes!)
         Mesh* createMesh(
             const std::vector<Buffer*>& vertexBuffers,
             Buffer* pIndexBuffer,

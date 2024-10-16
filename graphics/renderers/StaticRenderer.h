@@ -25,12 +25,12 @@ namespace pk
         VertexBufferLayout _instanceBufferLayout;
 
         // TODO: Requires recreating if swapchain img count changes!
-        std::vector<Buffer*> _materialPropsUniformBuffers;
-        std::vector<const Buffer*> _constMaterialPropsUniformBuffers; // Needed cuz BatchContainer takes uniform buffers as const.. dumb as fuck I know..
+        std::vector<Buffer*> _materialDataUniformBuffers;
+        std::vector<const Buffer*> _constMaterialDataUniformBuffers; // Needed cuz BatchContainer takes uniform buffers as const.. dumb as fuck I know..
         DescriptorSetLayout _materialDescSetLayout;
 
         //std::unordered_map<PK_id, Mesh*> _batchMeshCache;
-        std::unordered_map<PK_id, vec4> _batchMaterialProperties;
+        std::unordered_map<PK_id, vec4[2]> _batchMaterialData;
         BatchContainer _batchContainer;
 
     public:

@@ -368,8 +368,7 @@ namespace pk
         pMesh = new Mesh(
             { pVertexBuffer },
             pIndexBuffer,
-            nullptr,
-            { vbLayoutElements, VertexInputRate::VERTEX_INPUT_RATE_VERTEX }
+            nullptr
         );
         return pMesh;
     }

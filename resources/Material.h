@@ -2,6 +2,7 @@
 
 #include "Resource.h"
 #include "Texture.h"
+#include "utils/pkmath.h"
 
 // For each color channel + "blackness channel"
 // possible channels = black, red, green, blue and alpha
@@ -22,6 +23,8 @@ namespace pk
         float _specularStrength = 0.0f;
         float _specularShininess = 0.0f;
 
+        vec4 _color = vec4(1, 1, 1, 1);
+
         bool _shadeless = false;
 
     public:
@@ -31,6 +34,7 @@ namespace pk
             float specularStrength = 1.0f,
             float specularShininess = 32.0f,
             Texture_new* pBlendmapTexture = nullptr,
+            vec4 color = vec4(1, 1, 1, 1),
             bool shadeless = false
         );
         Material(const Material&) = delete;
@@ -46,6 +50,8 @@ namespace pk
         inline const Texture_new* getBlendmapTexture() const { return _pBlendmapTexture; }
         inline float getSpecularStrength() const { return _specularStrength; }
         inline float getSpecularShininess() const { return _specularShininess; }
+        inline void setColor(const vec4& color) { _color = color; }
+        inline const vec4& getColor() const { return _color; }
         inline void setShadeless(bool arg) { _shadeless = arg; }
         inline bool isShadeless() const { return _shadeless; }
     };

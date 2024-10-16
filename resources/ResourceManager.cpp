@@ -135,6 +135,8 @@ namespace pk
         float specularStrength,
         float shininess,
         uint32_t blendmapTextureID,
+        vec4 color,
+        bool shadeless,
         bool persistent
     )
     {
@@ -189,33 +191,14 @@ namespace pk
             pSpecularTexture,
             specularStrength,
             shininess,
-            pBlendmapTexture
+            pBlendmapTexture,
+            color,
+            shadeless
         );
         _resources[pMaterial->getResourceID()] = pMaterial;
         if (persistent)
             _persistentResources[pMaterial->getResourceID()] = pMaterial;
         return pMaterial;
-    }
-
-    Mesh* ResourceManager::createMesh(
-        const std::vector<Buffer*>& vertexBuffers,
-        Buffer* pIndexBuffer,
-        const VertexBufferLayout& layout,
-        uint32_t materialResourceID,
-        bool persistent
-    )
-    {
-        Material* pMaterial = (Material*)getResource(materialResourceID);
-        Mesh* pMesh = new Mesh(
-            vertexBuffers,
-            pIndexBuffer,
-            pMaterial,
-            layout
-        );
-        _resources[pMesh->getResourceID()] = pMesh;
-        if (persistent)
-            _persistentResources[pMesh->getResourceID()] = pMesh;
-        return pMesh;
     }
 
     Mesh* ResourceManager::createMesh(
