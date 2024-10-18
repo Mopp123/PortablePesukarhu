@@ -55,7 +55,10 @@ namespace pk
         translationMatrix[1 + 3 * 4] = pos.y;
         translationMatrix[2 + 3 * 4] = pos.z;
 
-        _transformationMatrix = translationMatrix * scaleMatrix * yawMatrix * pitchMatrix;
+        // Don't know why previously scale was between translation and rotation..
+        //_transformationMatrix = translationMatrix * scaleMatrix * yawMatrix * pitchMatrix;
+        _transformationMatrix = translationMatrix * yawMatrix * pitchMatrix * scaleMatrix;
+
         // Not sure if to do below..?
         _localTransformationMatrix = _transformationMatrix;
     }
@@ -75,7 +78,7 @@ namespace pk
         scaleMat[1 + 1 * 4] = scale.y;
         scaleMat[2 + 2 * 4] = scale.z;
 
-        _transformationMatrix = translationMat * rotationMat;
+        _transformationMatrix = translationMat * rotationMat * scaleMat;
         _localTransformationMatrix = _transformationMatrix;
     }
 
@@ -169,12 +172,21 @@ namespace pk
 
     void Transform::setScale(vec3 scale)
     {
-        Debug::notify_unimplemented("Transform::setScale(2)");
-        return;
+        // NOTE: This might be incorrect!!!
+        mat4& m = _hasParent ? _localTransformationMatrix : _transformationMatrix;
 
-        _transformationMatrix[0 + 0 * 4] = scale.x;
-        _transformationMatrix[1 + 1 * 4] = scale.y;
-        _transformationMatrix[2 + 1 * 4] = scale.z;
+        mat4 scaleMatrix(1.0f);
+        scaleMatrix[0 + 0 * 4] = scale.x;
+        scaleMatrix[1 + 1 * 4] = scale.y;
+        scaleMatrix[2 + 2 * 4] = scale.z;
+
+        float currentSX = vec3(m[0 + 0 * 4], m[1 + 0 * 4], m[2 + 0 * 4]).length();
+        float currentSY = vec3(m[0 + 1 * 4], m[1 + 1 * 4], m[2 + 1 * 4]).length();
+        float currentSZ = vec3(m[0 + 2 * 4], m[1 + 2 * 4], m[2 + 2 * 4]).length();
+
+        m[0 + 0 * 4] = m[0 + 0 * 4] / currentSX * scale.x;
+        m[1 + 1 * 4] = m[1 + 1 * 4] / currentSY * scale.y;
+        m[2 + 2 * 4] = m[2 + 2 * 4] / currentSZ * scale.z;
     }
 
     vec3 Transform::right() const
@@ -203,5 +215,43 @@ namespace pk
                 _transformationMatrix[2 + 2 * 4]
                 );
         return backwards * -1.0f;
+    }
+
+    vec3 Transform::getLocalPos() const
+    {
+        return {
+            _localTransformationMatrix[0 + 3 * 4],
+            _localTransformationMatrix[1 + 3 * 4],
+            _localTransformationMatrix[2 + 3 * 4]
+        };
+    }
+
+    vec3 Transform::getGlobalPos() const
+    {
+        return {
+            _transformationMatrix[0 + 3 * 4],
+            _transformationMatrix[1 + 3 * 4],
+            _transformationMatrix[2 + 3 * 4]
+        };
+    }
+
+    vec3 Transform::getLocalScale() const
+    {
+        const mat4& m = _localTransformationMatrix;
+        return {
+            vec3(m[0 + 0 * 4], m[1 + 0 * 4], m[2 + 0 * 4]).length(),
+            vec3(m[0 + 1 * 4], m[1 + 1 * 4], m[2 + 1 * 4]).length(),
+            vec3(m[0 + 2 * 4], m[1 + 2 * 4], m[2 + 2 * 4]).length()
+        };
+    }
+
+    vec3 Transform::getGlobalScale() const
+    {
+        const mat4& m = _transformationMatrix;
+        return {
+            vec3(m[0 + 0 * 4], m[1 + 0 * 4], m[2 + 0 * 4]).length(),
+            vec3(m[0 + 1 * 4], m[1 + 1 * 4], m[2 + 1 * 4]).length(),
+            vec3(m[0 + 2 * 4], m[1 + 2 * 4], m[2 + 2 * 4]).length()
+        };
     }
 }

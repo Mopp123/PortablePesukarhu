@@ -31,6 +31,8 @@ namespace pk
         Texture_new* _pWhiteTexture = nullptr;
         Texture_new* _pBlackTexture = nullptr;
 
+        Material* _pDefaultMaterial = nullptr;
+
         // Resources loaded per scene
         std::unordered_map<uint32_t, Resource*> _resources;
 
@@ -51,7 +53,8 @@ namespace pk
             PK_ubyte* pData,
             int width,
             int height,
-            int channels
+            int channels,
+            bool persistent = false
         );
 
         Texture_new* loadTexture(
@@ -126,5 +129,7 @@ namespace pk
 
         inline Texture_new* getBlackTexture() { return _pBlackTexture; }
         inline const Texture_new* getBlackTexture() const { return _pBlackTexture; }
+
+        inline const Material* getDefaultMaterial() const { return _pDefaultMaterial; }
     };
 }

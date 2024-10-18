@@ -40,7 +40,10 @@ namespace pk
         vec3 up() const;
         vec3 forward() const;
 
-        inline vec2 getPos() const { return { _transformationMatrix[0 + 3 * 4], _transformationMatrix[1 + 3 * 4] }; }
+        vec3 getLocalPos() const;
+        vec3 getGlobalPos() const;
+        vec3 getLocalScale() const;
+        vec3 getGlobalScale() const;
         inline const mat4& getTransformationMatrix() const { return _transformationMatrix; }
         inline mat4& accessTransformationMatrix() { return _transformationMatrix; }
         inline mat4& accessLocalTransformationMatrix() { return _localTransformationMatrix; }

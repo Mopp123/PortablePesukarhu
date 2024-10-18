@@ -83,7 +83,14 @@ namespace pk
         for (Batch* pBatch : _batches)
         {
             if (pBatch->isFull())
+            {
+                Debug::log(
+                    "@BatchContainer::addData "
+                    "Failed to add data using batchID: " + std::to_string(batchIdentifier) + " "
+                    "Attempted batch instance count: " + std::to_string(pBatch->getInstanceCount())
+                );
                 continue;
+            }
 
             if (pBatch->isOccupied() && pBatch->getIdentifier() == batchIdentifier)
             {
@@ -182,20 +189,6 @@ namespace pk
     {
         for (Batch* pBatch : _batches)
             pBatch->clear();
-        _occupiedBatches.clear();
-    }
-
-    const Batch* BatchContainer::getBatch(PK_id batchIdentifier) const
-    {
-        std::unordered_map<PK_id, Batch*>::const_iterator it = _occupiedBatches.find(batchIdentifier);
-        if (it != _occupiedBatches.end())
-            return it->second;
-        Debug::log(
-            "@BatchContainer::getBatch "
-            "Couldn't find batch with identifier: " + std::to_string(batchIdentifier),
-            Debug::MessageType::PK_ERROR
-        );
-        return nullptr;
     }
 
     bool BatchContainer::hasDescriptorSets(PK_id batchIdentifier) const

@@ -43,6 +43,7 @@ namespace pk
 
         float length() const;
         float dotp(const vec3& other) const;
+        vec3 crossp(const vec3& other) const;
         vec3 normalize() const;
         vec3 lerp(const vec3& other, float amount) const;
 

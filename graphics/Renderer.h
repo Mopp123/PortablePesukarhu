@@ -61,7 +61,6 @@ namespace pk
     {
     private:
         std::vector<Batch*> _batches;
-        std::unordered_map<PK_id, Batch*> _occupiedBatches;
 
         struct BatchDescriptorSets
         {
@@ -89,11 +88,7 @@ namespace pk
         void freeDescriptorSets();
         void clear();
 
-        const Batch* getBatch(PK_id batchIdentifier) const;
-        inline Batch* accessBatch_DANGER(PK_id batchIdentifier) { return _occupiedBatches[batchIdentifier]; }
         inline std::vector<Batch*>& getBatches() { return _batches; }
-        inline const std::unordered_map<PK_id, Batch*>& getOccupiedBatches() const { return _occupiedBatches; }
-        inline std::unordered_map<PK_id, Batch*>& accessOccupiedBatches() { return _occupiedBatches; }
 
         bool hasDescriptorSets(PK_id batchIdentifier) const;
         const DescriptorSet* getDescriptorSet(PK_id batchIdentifier, uint32_t index) const;

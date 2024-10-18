@@ -46,25 +46,31 @@ namespace pk
         // (Current rendering systems gets fucked up if some gl attrib or uniform location
         // is not used and returns -1)
 
-
         TextureSampler defaultTextureSampler;
 
         // White texture
         // NOTE: Theres some issue using 3 channels on small textures so using 4 for now..
         PK_ubyte pWhitePixels[2 * 2 * 4];
         memset(pWhitePixels, 255, 2 * 2 * 4);
-        ImageData* pWhiteImg = createImage(pWhitePixels, 2, 2, 4);
-        _pWhiteTexture = createTexture(pWhiteImg->getResourceID(), defaultTextureSampler);
-        _persistentResources[pWhiteImg->getResourceID()] = pWhiteImg;
-        _persistentResources[_pWhiteTexture->getResourceID()] = _pWhiteTexture;
+        ImageData* pWhiteImg = createImage(pWhitePixels, 2, 2, 4, true);
+        _pWhiteTexture = createTexture(pWhiteImg->getResourceID(), defaultTextureSampler, true);
 
         // Black texture
         PK_ubyte pBlackPixels[2 * 2 * 4];
         memset(pBlackPixels, 0, 2 * 2 * 4);
-        ImageData* pBlackImg = createImage(pBlackPixels, 2, 2, 4);
-        _pBlackTexture = createTexture(pBlackImg->getResourceID(), defaultTextureSampler);
-        _persistentResources[pBlackImg->getResourceID()] = pBlackImg;
-        _persistentResources[_pBlackTexture->getResourceID()] = _pBlackTexture;
+        ImageData* pBlackImg = createImage(pBlackPixels, 2, 2, 4, true);
+        _pBlackTexture = createTexture(pBlackImg->getResourceID(), defaultTextureSampler, true);
+
+        _pDefaultMaterial = createMaterial(
+            { _pWhiteTexture->getResourceID() },
+            0,
+            0.0f,
+            1.0f,
+            0,
+            { 1, 1, 1, 1 },
+            true,
+            true
+        );
     }
 
     ImageData* ResourceManager::loadImage(
@@ -84,7 +90,8 @@ namespace pk
         PK_ubyte* pData,
         int width,
         int height,
-        int channels
+        int channels,
+        bool persistent
     )
     {
         ImageData* pImgData = new ImageData(
@@ -94,6 +101,8 @@ namespace pk
             channels
         );
         _resources[pImgData->getResourceID()] = (Resource*)pImgData;
+        if (persistent)
+            _persistentResources[pImgData->getResourceID()] = (Resource*)pImgData;
         return pImgData;
     }
 

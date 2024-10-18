@@ -70,6 +70,15 @@ namespace pk
         return ((x * other.x) + (y * other.y) + (z * other.z));
     }
 
+    vec3 vec3::crossp(const vec3& other) const
+    {
+        return {
+            y * other.z - z * other.y,
+            z * other.x - x * other.z,
+            x * other.y - y * other.x
+        };
+    }
+
     vec3 vec3::normalize() const
     {
         const float len = length();
