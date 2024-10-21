@@ -75,10 +75,11 @@ namespace pk
 
     ImageData* ResourceManager::loadImage(
         const std::string& filepath,
+        bool flip,
         bool persistent
     )
     {
-        ImageData* pImgData = new ImageData(filepath);
+        ImageData* pImgData = new ImageData(filepath, flip);
         pImgData->load();
         _resources[pImgData->getResourceID()] = (Resource*)pImgData;
         if (persistent)

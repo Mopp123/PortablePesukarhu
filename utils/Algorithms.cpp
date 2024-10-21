@@ -85,7 +85,7 @@ namespace pk
 	)
 	{
 		bool allowCulling = true;
-		const float kEpsilon = 0.025f;
+		const float kEpsilon = 0.00025f;
 
 	    vec3 v0v1 = v1 - v0;
 	    vec3 v0v2 = v2 - v0;
@@ -154,7 +154,7 @@ namespace pk
         vertices[6] = { colliderPos.x + colliderScale.x, colliderPos.y - colliderScale.y, colliderPos.z - colliderScale.z };
         // tri 2 (bottom right)
         // vertices[6]
-        vertices[7] = { colliderPos.z - colliderScale.x, colliderPos.y - colliderScale.y, colliderPos.z - colliderScale.z };
+        vertices[7] = { colliderPos.x - colliderScale.x, colliderPos.y - colliderScale.y, colliderPos.z - colliderScale.z };
         // vertices[4]
 
         // "right face"

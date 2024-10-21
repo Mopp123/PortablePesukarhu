@@ -46,6 +46,7 @@ namespace pk
 
         ImageData* loadImage(
             const std::string& filepath,
+            bool flip = false,
             bool persistent = false
         );
 

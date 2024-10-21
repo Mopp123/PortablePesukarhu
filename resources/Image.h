@@ -15,9 +15,10 @@ namespace pk
         int _channels = -1;
 
         bool _hasAlpha = false;
+        bool _flip = false;
 
     public:
-        ImageData(const std::string& filepath);
+        ImageData(const std::string& filepath, bool flip = false);
         ImageData(
             unsigned char* pixels,
             int width,

@@ -12,8 +12,9 @@
 
 namespace pk
 {
-    ImageData::ImageData(const std::string& filepath) :
-        Resource(ResourceType::RESOURCE_IMAGE, filepath)
+    ImageData::ImageData(const std::string& filepath, bool flip) :
+        Resource(ResourceType::RESOURCE_IMAGE, filepath),
+        _flip(flip)
     {}
 
     ImageData::ImageData(
@@ -55,8 +56,9 @@ namespace pk
         int height = 0;
         int channels = 0;
         // When loading gltf models we dont need to flip...
+        //  -> but otherwise on opengl we do need to flip?
         bool flipVertically = Context::get_api_type() == GRAPHICS_API_WEBGL;
-        stbi_set_flip_vertically_on_load(false);
+        stbi_set_flip_vertically_on_load(_flip);
         // TODO: Test if below works, may fuck up due to MAX_FILEPATH_SIZE?
         unsigned char* stbImageData = stbi_load(_filepath, &width, &height, &channels, 0);
 

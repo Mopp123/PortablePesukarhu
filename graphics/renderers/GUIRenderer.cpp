@@ -9,7 +9,15 @@
 
 namespace pk
 {
-    static const size_t s_instanceBufferComponents = 2 * 2 + 4 * 2 + 1;
+    /* Instance vertex buffer components:
+        Float2 : pos
+        Float2 : scale
+        Float4 : color
+        Float4 : border color
+        Float  : border thickness
+        Float4 : texture cropping
+    */
+    static const size_t s_instanceBufferComponents = 2 + 2 + 4 + 4 + 1 + 4;
     static const size_t s_maxInstanceCount = 400; // per batch, not total max count!
     GUIRenderer::GUIRenderer() :
         _vertexBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
@@ -40,7 +48,8 @@ namespace pk
                 { 3, ShaderDataType::Float2 }, // scale
                 { 4, ShaderDataType::Float4 }, // color
                 { 5, ShaderDataType::Float4 }, // border color
-                { 6, ShaderDataType::Float }  // border thickness
+                { 6, ShaderDataType::Float },  // border thickness
+                { 7, ShaderDataType::Float4 }  // texture cropping
             },
             VertexInputRate::VERTEX_INPUT_RATE_INSTANCE
         );
@@ -107,12 +116,12 @@ namespace pk
             _pVertexShader, _pFragmentShader,
             (float)viewportExtent.width, (float)viewportExtent.height,
             { 0, 0, (uint32_t)viewportExtent.width, (uint32_t)viewportExtent.height },
-            CullMode::CULL_MODE_NONE,
+            CullMode::CULL_MODE_BACK,
             FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
             true,
             DepthCompareOperation::COMPARE_OP_ALWAYS,
             false,
-            sizeof(mat4), ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
+            0, ShaderStageFlagBits::SHADER_STAGE_NONE
         );
     }
 
@@ -135,13 +144,15 @@ namespace pk
 
         const vec4 color = vec4(pGuiRenderable->color, 1.0f);
         const vec4& borderColor = pGuiRenderable->borderColor;
+        const vec4& textureCropping = pGuiRenderable->textureCropping;
 
         float renderableData[s_instanceBufferComponents] = {
             pos.x, pos.y,
             scale.x, scale.y ,
             color.x, color.y, color.z, color.w,
             borderColor.x, borderColor.y, borderColor.z, borderColor.w,
-            pGuiRenderable->borderThickness
+            pGuiRenderable->borderThickness,
+            textureCropping.x, textureCropping.y, textureCropping.z, textureCropping.w
         };
 
         // Testing..
