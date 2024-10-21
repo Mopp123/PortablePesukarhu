@@ -82,7 +82,7 @@ namespace pk
         void createDescriptorSets(
             PK_id batchIdentifier,
             const DescriptorSetLayout * const pDescriptorSetLayout = nullptr,
-            const std::vector<const Texture_new*>& textures = {},
+            const std::vector<const Texture*>& textures = {},
             const std::vector<const Buffer*>& ubo = {}
         );
         void freeDescriptorSets();

@@ -281,11 +281,10 @@ namespace pk
             HorizontalConstraintType horizontalType, float horizontalVal,
             VerticalConstraintType verticalType, float verticalVal,
             float width, float height,
-            Texture* texture,
             vec3 color,
             vec4 borderColor,
             float borderThickness,
-            Texture_new* pTexture,
+            Texture* pTexture,
             vec4 textureCropping
         )
         {
@@ -371,7 +370,7 @@ namespace pk
             vec3 backgroundHighlightColor,
             vec4 borderColor,
             float borderThickness,
-            Texture_new* pTexture,
+            Texture* pTexture,
             vec4 textureCropping
         )
         {
@@ -383,7 +382,6 @@ namespace pk
                 horizontalType, horizontalVal,
                 verticalType, verticalVal,
                 width, height,
-                nullptr,
                 color,
                 borderColor,
                 borderThickness,

@@ -92,7 +92,7 @@ namespace pk
         UIElemState* createUIElemState(entityID_t target);
         GUIRenderable* createGUIRenderable(
             entityID_t target,
-            Texture_new* pTexture = nullptr,
+            Texture* pTexture = nullptr,
             vec3 color = { 1, 1, 1 },
             vec4 borderColor = { 1, 1, 1, 1 },
             float borderThickness = 0.0f,

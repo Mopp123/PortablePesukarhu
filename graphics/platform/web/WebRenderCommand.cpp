@@ -362,7 +362,7 @@ namespace pk
                 ++descriptorSetIndex;
 
                 const std::vector<const Buffer*>& buffers = descriptorSet->getBuffers();
-                const std::vector<const Texture_new*>& textures = descriptorSet->getTextures();
+                const std::vector<const Texture*>& textures = descriptorSet->getTextures();
                 // Not to be confused with binding number.
                 // This just index of the layout's bindings vector
                 int bufferBindingIndex = 0;

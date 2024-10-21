@@ -60,8 +60,8 @@ namespace pk
         virtual void load();
         virtual void save() {}
 
-        Texture_new* accessTexture();
-        const Texture_new* getTexture() const;
+        Texture* accessTexture();
+        const Texture* getTexture() const;
         const FontGlyphData * const getGlyph(char c) const;
         inline const unsigned int getPixelSize() const { return _pixelSize; }
         inline std::unordered_map<char, FontGlyphData>& getGlyphMapping() { return _glyphMapping; }

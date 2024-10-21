@@ -182,7 +182,7 @@ namespace pk
         );
         _imgDataResourceID = pFontImgData->getResourceID();
 
-        Texture_new* pTexture = resourceManager.createTexture(
+        Texture* pTexture = resourceManager.createTexture(
             _imgDataResourceID,
             TextureSampler(
                 TextureSamplerFilterMode::PK_SAMPLER_FILTER_MODE_LINEAR,
@@ -197,14 +197,14 @@ namespace pk
         FT_Done_FreeType(freetypeLib);
     }
 
-    Texture_new* Font::accessTexture()
+    Texture* Font::accessTexture()
     {
-        return (Texture_new*)Application::get()->getResourceManager().getResource(_textureResourceID);
+        return (Texture*)Application::get()->getResourceManager().getResource(_textureResourceID);
     }
 
-    const Texture_new* Font::getTexture() const
+    const Texture* Font::getTexture() const
     {
-        return (Texture_new*)Application::get()->getResourceManager().getResource(_textureResourceID);
+        return (Texture*)Application::get()->getResourceManager().getResource(_textureResourceID);
     }
 
 

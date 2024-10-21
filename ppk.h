@@ -14,7 +14,6 @@
 #include "graphics/Context.h"
 
 #include "ecs/Entity.h"
-#include "ecs/components/renderable/TerrainTileRenderable.h"
 #include "ecs/components/renderable/Sprite3DRenderable.h"
 #include "ecs/components/renderable/GUIRenderable.h"
 #include "ecs/components/renderable/TextRenderable.h"

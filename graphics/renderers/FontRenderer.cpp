@@ -155,7 +155,7 @@ namespace pk
             );
             return;
         }
-        const Texture_new* pTexture = pFont->getTexture();
+        const Texture* pTexture = pFont->getTexture();
         if (!pTexture)
         {
             Debug::log(
@@ -303,7 +303,7 @@ namespace pk
             // Quite dumb, but will do for now..
 
             Font* pBatchFont = (Font*)resourceManager.getResource(pBatch->getIdentifier());
-            Texture_new* pBatchTexture = pBatchFont->accessTexture();
+            Texture* pBatchTexture = pBatchFont->accessTexture();
             if (!pBatchTexture)
             {
                 Debug::log(

@@ -5,11 +5,11 @@
 namespace pk
 {
     Material::Material(
-        std::vector<Texture_new*> pDiffuseTextures,
-        Texture_new* pSpecularTexture,
+        std::vector<Texture*> pDiffuseTextures,
+        Texture* pSpecularTexture,
         float specularStrength,
         float specularShininess,
-        Texture_new* pBlendmapTexture,
+        Texture* pBlendmapTexture,
         vec4 color,
         bool shadeless
     ) :
@@ -31,10 +31,10 @@ namespace pk
             );
             return;
         }
-        memcpy(_pDiffuseTextures, pDiffuseTextures.data(), sizeof(Texture_new*) * pDiffuseTextures.size());
+        memcpy(_pDiffuseTextures, pDiffuseTextures.data(), sizeof(Texture*) * pDiffuseTextures.size());
     }
 
-    const Texture_new * const Material::getDiffuseTexture(int index) const
+    const Texture * const Material::getDiffuseTexture(int index) const
     {
         if (index >= MATERIAL_MAX_DIFFUSE_TEXTURES)
         {
@@ -45,7 +45,7 @@ namespace pk
             );
             return nullptr;
         }
-        Texture_new* pTexture = _pDiffuseTextures[index];
+        Texture* pTexture = _pDiffuseTextures[index];
         if (!pTexture)
         {
             Debug::log(
@@ -57,7 +57,7 @@ namespace pk
         return pTexture;
     }
 
-    Texture_new* Material::accessDiffuseTexture(int index)
+    Texture* Material::accessDiffuseTexture(int index)
     {
         if (index >= MATERIAL_MAX_DIFFUSE_TEXTURES)
         {
@@ -68,7 +68,7 @@ namespace pk
             );
             return nullptr;
         }
-        Texture_new* pTexture = _pDiffuseTextures[index];
+        Texture* pTexture = _pDiffuseTextures[index];
         if (!pTexture)
         {
             Debug::log(

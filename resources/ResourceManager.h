@@ -28,8 +28,8 @@ namespace pk
     private:
         // Resources which lives through whole execution
         std::unordered_map<uint32_t, Resource*> _persistentResources;
-        Texture_new* _pWhiteTexture = nullptr;
-        Texture_new* _pBlackTexture = nullptr;
+        Texture* _pWhiteTexture = nullptr;
+        Texture* _pBlackTexture = nullptr;
 
         Material* _pDefaultMaterial = nullptr;
 
@@ -57,13 +57,13 @@ namespace pk
             bool persistent = false
         );
 
-        Texture_new* loadTexture(
+        Texture* loadTexture(
             const std::string& filepath,
             TextureSampler sampler,
             bool persistent = false
         );
 
-        Texture_new* createTexture(
+        Texture* createTexture(
             uint32_t imageResourceID,
             TextureSampler sampler,
             bool persistent = false
@@ -124,11 +124,11 @@ namespace pk
         inline std::unordered_map<uint32_t, Resource*>& getResources() { return _resources; }
         std::vector<Resource*> getResourcesOfType(ResourceType type);
 
-        inline Texture_new* getWhiteTexture() { return _pWhiteTexture; }
-        inline const Texture_new* getWhiteTexture() const { return _pWhiteTexture; }
+        inline Texture* getWhiteTexture() { return _pWhiteTexture; }
+        inline const Texture* getWhiteTexture() const { return _pWhiteTexture; }
 
-        inline Texture_new* getBlackTexture() { return _pBlackTexture; }
-        inline const Texture_new* getBlackTexture() const { return _pBlackTexture; }
+        inline Texture* getBlackTexture() { return _pBlackTexture; }
+        inline const Texture* getBlackTexture() const { return _pBlackTexture; }
 
         inline const Material* getDefaultMaterial() const { return _pDefaultMaterial; }
     };

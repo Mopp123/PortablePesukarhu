@@ -7,17 +7,17 @@
 
 namespace pk
 {
-    Texture_new::Texture_new(TextureSampler sampler, uint32_t imgResourceID) :
+    Texture::Texture(TextureSampler sampler, uint32_t imgResourceID) :
         Resource(ResourceType::RESOURCE_TEXTURE),
         _sampler(sampler),
         _imgResourceID(imgResourceID)
     {}
 
-    Texture_new::~Texture_new()
+    Texture::~Texture()
     {}
 
     // TODO: Be able to call this only through ResourceManager
-    Texture_new* Texture_new::create(
+    Texture* Texture::create(
         uint32_t imgResourceID,
         TextureSampler sampler
     )

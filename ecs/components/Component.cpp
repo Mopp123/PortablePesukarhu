@@ -11,7 +11,6 @@ namespace pk
             case (PK_RENDERABLE_GUI) : return "GUIRenderable";
             case (PK_RENDERABLE_TEXT) : return "TextRenderable";
             case (PK_RENDERABLE_SPRITE3D) : return "SpriteRenderable";
-            case (PK_RENDERABLE_TERRAINTILE) : return "TerrainTileRenderable";
             case (PK_RENDERABLE_STATIC3D) : return "Static3DRenderable";
             case (PK_UIELEM_STATE) : return "UIElementState";
             case (PK_LIGHT_DIRECTIONAL) : return "Directionallight";

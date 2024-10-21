@@ -18,7 +18,7 @@ namespace pk
             uint32_t imgResourceID,
             TextureSampler sampler
         ) :
-            Texture_new(sampler, imgResourceID)
+            Texture(sampler, imgResourceID)
         {
             Application* pApp = Application::get();
             if (!pApp)

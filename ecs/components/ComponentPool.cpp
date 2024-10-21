@@ -9,7 +9,6 @@
 #include "renderable/GUIRenderable.h"
 #include "renderable/Sprite3DRenderable.h"
 #include "renderable/Static3DRenderable.h"
-#include "renderable/TerrainTileRenderable.h"
 #include "renderable/TextRenderable.h"
 #include "renderable/GUIRenderable.h"
 

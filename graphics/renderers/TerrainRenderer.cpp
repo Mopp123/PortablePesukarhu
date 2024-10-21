@@ -298,12 +298,12 @@ namespace pk
         Application* pApp = Application::get();
         ResourceManager& resManager = pApp->getResourceManager();
         const Material* pMaterial = (const Material*)resManager.getResource(pRenderable->materialID);
-        const Texture_new* pTex0 = pMaterial->getDiffuseTexture(0);
-        const Texture_new* pTex1 = pMaterial->getDiffuseTexture(1);
-        const Texture_new* pTex2 = pMaterial->getDiffuseTexture(2);
-        const Texture_new* pTex3 = pMaterial->getDiffuseTexture(3);
-        const Texture_new* pTex4 = pMaterial->getDiffuseTexture(4);
-        const Texture_new* pBlendmapTex = pMaterial->getBlendmapTexture();
+        const Texture* pTex0 = pMaterial->getDiffuseTexture(0);
+        const Texture* pTex1 = pMaterial->getDiffuseTexture(1);
+        const Texture* pTex2 = pMaterial->getDiffuseTexture(2);
+        const Texture* pTex3 = pMaterial->getDiffuseTexture(3);
+        const Texture* pTex4 = pMaterial->getDiffuseTexture(4);
+        const Texture* pBlendmapTex = pMaterial->getBlendmapTexture();
 
         const Swapchain* pSwapchain = pApp->getWindow()->getSwapchain();
         uint32_t swapchainImages = pSwapchain->getImageCount();

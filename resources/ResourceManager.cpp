@@ -106,7 +106,7 @@ namespace pk
         return pImgData;
     }
 
-    Texture_new* ResourceManager::loadTexture(
+    Texture* ResourceManager::loadTexture(
         const std::string& filepath,
         TextureSampler sampler,
         bool persistent
@@ -116,7 +116,7 @@ namespace pk
         return nullptr;
     }
 
-    Texture_new* ResourceManager::createTexture(
+    Texture* ResourceManager::createTexture(
         uint32_t imageResourceID,
         TextureSampler sampler,
         bool persistent
@@ -131,7 +131,7 @@ namespace pk
             );
             return nullptr;
         }
-        Texture_new* pTexture = Texture_new::create(imageResourceID, sampler);
+        Texture* pTexture = Texture::create(imageResourceID, sampler);
         _resources[pTexture->getResourceID()] = pTexture;
         if (persistent)
             _persistentResources[pTexture->getResourceID()] = pTexture;
@@ -149,20 +149,20 @@ namespace pk
         bool persistent
     )
     {
-        std::vector<Texture_new*> textures(diffuseTextureIDs.size());
+        std::vector<Texture*> textures(diffuseTextureIDs.size());
         for (int i = 0; i < diffuseTextureIDs.size(); ++i)
         {
-            Texture_new* pTexture = (Texture_new*)getResource(diffuseTextureIDs[i]);
+            Texture* pTexture = (Texture*)getResource(diffuseTextureIDs[i]);
             if (pTexture)
                 textures[i] = pTexture;
         }
         // Use black texture as default specular texture if not defined and shininess == 0
         // Use white texture as default specular texture if not defined and shininess > 0
         // *By default all materials require specular texture
-        Texture_new* pSpecularTexture = nullptr;
+        Texture* pSpecularTexture = nullptr;
         if (specularTextureID)
         {
-            pSpecularTexture = (Texture_new*)getResource(specularTextureID);
+            pSpecularTexture = (Texture*)getResource(specularTextureID);
             if (!pSpecularTexture)
             {
                 Debug::log(
@@ -181,10 +181,10 @@ namespace pk
                 pSpecularTexture = _pWhiteTexture;
         }
 
-        Texture_new* pBlendmapTexture = nullptr;
+        Texture* pBlendmapTexture = nullptr;
         if (blendmapTextureID)
         {
-            pBlendmapTexture = (Texture_new*)getResource(blendmapTextureID);
+            pBlendmapTexture = (Texture*)getResource(blendmapTextureID);
             if (!pBlendmapTexture)
             {
                 Debug::log(

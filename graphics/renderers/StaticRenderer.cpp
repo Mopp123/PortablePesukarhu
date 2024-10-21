@@ -160,8 +160,8 @@ namespace pk
             return;
         }
         const Material* pMaterial = pMesh->getMaterial();
-        const Texture_new* pDiffuseTexture = pMaterial->getDiffuseTexture(0);
-        const Texture_new* pSpecularTexture = pMaterial->getSpecularTexture();
+        const Texture* pDiffuseTexture = pMaterial->getDiffuseTexture(0);
+        const Texture* pSpecularTexture = pMaterial->getSpecularTexture();
 
         _batchMaterialData[batchIdentifier][0] = pMaterial->getColor();
         _batchMaterialData[batchIdentifier][1] = {

@@ -5,10 +5,10 @@ namespace pk
 {
     namespace opengl
     {
-        class OpenglTexture : public Texture_new
+        class OpenglTexture : public Texture
         {
         private:
-            friend class Texture_new;
+            friend class Texture;
             uint32_t _glTexID = 0;
 
             int _width = 0;

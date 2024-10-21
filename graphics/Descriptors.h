@@ -106,7 +106,7 @@ namespace pk
     private:
         DescriptorSetLayout _layout;
         std::vector<const Buffer*> _pBuffers;
-        std::vector<const Texture_new*> _pTextures;
+        std::vector<const Texture*> _pTextures;
 
     public:
         DescriptorSet(
@@ -121,7 +121,7 @@ namespace pk
         DescriptorSet(
             DescriptorSetLayout layout,
             uint32_t descriptorCount, // Don't remember what this was exactly..? and why..?
-            std::vector<const Texture_new*> pTextures
+            std::vector<const Texture*> pTextures
         ) :
             _layout(layout),
             _pTextures(pTextures)
@@ -130,7 +130,7 @@ namespace pk
         DescriptorSet(
             DescriptorSetLayout layout,
             uint32_t descriptorCount, // Don't remember what this was exactly..? and why..?
-            std::vector<const Texture_new*> pTextures,
+            std::vector<const Texture*> pTextures,
             std::vector<const Buffer*> pBuffers
         ) :
             _layout(layout),
@@ -144,6 +144,6 @@ namespace pk
 
         inline const DescriptorSetLayout& getLayout() const { return _layout; }
         inline const std::vector<const Buffer*>& getBuffers() const { return _pBuffers; }
-        inline const std::vector<const Texture_new*>& getTextures() const { return _pTextures; }
+        inline const std::vector<const Texture*>& getTextures() const { return _pTextures; }
     };
 }

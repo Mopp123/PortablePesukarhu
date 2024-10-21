@@ -11,22 +11,19 @@ namespace pk
     {
     public:
         vec3 color;
-        Texture* texture = nullptr;
         // TODO: replace "texture" with this after rendering overhaul
-        Texture_new* pTexture_new = nullptr;
+        Texture* pTexture = nullptr;
         vec4 textureCropping;
         vec4 borderColor;
         float borderThickness = 0.0f;
 
         GUIRenderable(
-            Texture* texture = nullptr,
             vec4 textureCropping = vec4(0, 0, 1, 1),
-            Texture_new* pTexture_new = nullptr
+            Texture* pTexture = nullptr
         ) :
             UIRenderableComponent(ComponentType::PK_RENDERABLE_GUI),
             color(1, 1, 1),
-            texture(texture),
-            pTexture_new(pTexture_new),
+            pTexture(pTexture),
             textureCropping(textureCropping),
             borderColor(vec4(color, 1.0f)),
             borderThickness(0.0f)
@@ -35,8 +32,7 @@ namespace pk
         GUIRenderable(const GUIRenderable& other) :
             UIRenderableComponent(other),
             color(other.color),
-            texture(other.texture),
-            pTexture_new(other.pTexture_new),
+            pTexture(other.pTexture),
             textureCropping(other.textureCropping),
             borderColor(other.borderColor),
             borderThickness(other.borderThickness)

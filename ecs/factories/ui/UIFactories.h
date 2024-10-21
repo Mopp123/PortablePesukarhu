@@ -44,11 +44,10 @@ namespace pk
             HorizontalConstraintType horizontalType, float horizontalVal,
             VerticalConstraintType verticalType, float verticalVal,
             float width, float height,
-            Texture* texture = nullptr,
             vec3 color = { 1, 1, 1 },
             vec4 borderColor = { 1, 1, 1, 1 },
             float borderThickness = 0.0f,
-            Texture_new* pTexture = nullptr,
+            Texture* pTexture = nullptr,
             vec4 textureCropping = vec4(0, 0, 1, 1)
         );
 
@@ -75,7 +74,7 @@ namespace pk
             vec3 backgroundHighlightColor = { 0.2f, 0.2f, 0.2f },
             vec4 borderColor = { 0.6f, 0.6f, 0.6f, 1.0f },
             float borderThickness = 2,
-            Texture_new* pTexture = nullptr,
+            Texture* pTexture = nullptr,
             vec4 textureCropping = vec4(0, 0, 1, 1)
         );
 

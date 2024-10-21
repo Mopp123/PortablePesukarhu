@@ -125,9 +125,9 @@ namespace pk
     {
         const GUIRenderable * const pGuiRenderable = (const GUIRenderable * const)renderableComponent;
 
-        const Texture_new* pTexture = Application::get()->getResourceManager().getWhiteTexture();
-        if (pGuiRenderable->pTexture_new)
-            pTexture = pGuiRenderable->pTexture_new;
+        const Texture* pTexture = Application::get()->getResourceManager().getWhiteTexture();
+        if (pGuiRenderable->pTexture)
+            pTexture = pGuiRenderable->pTexture;
         PK_id batchIdentifier = pTexture->getResourceID();
 
         vec2 pos(transformation[0 + 3 * 4], transformation[1 + 3 * 4]);
@@ -222,7 +222,7 @@ namespace pk
 
             // Figure out which texture using which resource
             // Quite dumb, but will do for now..
-            Texture_new* pBatchTexture = (Texture_new*)resourceManager.getResource(pBatch->getIdentifier());
+            Texture* pBatchTexture = (Texture*)resourceManager.getResource(pBatch->getIdentifier());
             if (!pBatchTexture)
             {
                 Debug::log(

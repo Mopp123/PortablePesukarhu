@@ -46,45 +46,15 @@ namespace pk
     };
 
 
-    class Texture
-    {
-    protected:
-        TextureSampler _sampler;
-        int _width = 0;
-        int _height = 0;
-        int _channels = 3;
-        // Can be used to specify how many "individual sprites" inside a "texture atlas", containing multiple sprites
-        int _tiling = 1;
-
-    public:
-        Texture(TextureSampler sampler, int tiling = 1) :
-            _sampler(sampler), _tiling(tiling)
-        {}
-
-        Texture(TextureSampler sampler, int width, int height, int channels) :
-            _sampler(sampler), _width(width), _height(height), _channels(channels)
-        {}
-
-        virtual ~Texture()
-        {}
-
-        virtual void update(void* data, int slot = 0) = 0;
-
-        inline const TextureSampler& getSampler() const { return _sampler; }
-        inline int getChannels() const { return _channels; }
-        inline int getTiling() const { return _tiling ;}
-    };
-
-    // TODO: Update everything to use below rather than the "old texture system"
-    class Texture_new : public Resource
+    class Texture : public Resource
     {
     protected:
         TextureSampler _sampler;
         uint32_t _imgResourceID = 0;
 
     public:
-        Texture_new(const Texture_new&) = delete;
-        virtual ~Texture_new();
+        Texture(const Texture&) = delete;
+        virtual ~Texture();
 
         virtual void load() {}
         virtual void save() {}
@@ -98,7 +68,7 @@ namespace pk
         ) {}
 
         // NOTE: Why pImgData is not const here?
-        static Texture_new* create(
+        static Texture* create(
             uint32_t imgResourceID,
             TextureSampler sampler
         );
@@ -108,7 +78,7 @@ namespace pk
         inline const TextureSampler& getSampler() const { return _sampler; }
 
     protected:
-        Texture_new(TextureSampler sampler, uint32_t imgResourceID);
+        Texture(TextureSampler sampler, uint32_t imgResourceID);
     };
 
 
@@ -126,7 +96,6 @@ namespace pk
         );
         ~TextureAtlas();
 
-        //const Texture_new * const getTexture() const;
         inline int getRowCount() const { return _rowCount; }
     };
 }

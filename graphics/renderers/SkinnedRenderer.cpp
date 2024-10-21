@@ -133,8 +133,8 @@ namespace pk
         transformationMatrices.resize(initialCount);
         memset(jointMatrices.data(), 0, sizeof(mat4) * jointMatrices.size());
 
-        const Texture_new* pDiffuseTexture = pMaterial->getDiffuseTexture(0);
-        const Texture_new* pSpecularTexture = pMaterial->getSpecularTexture();
+        const Texture* pDiffuseTexture = pMaterial->getDiffuseTexture(0);
+        const Texture* pSpecularTexture = pMaterial->getSpecularTexture();
 
         const Swapchain* pSwapchain = Application::get()->getWindow()->getSwapchain();
         uint32_t swapchainImages = pSwapchain->getImageCount();
