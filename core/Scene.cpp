@@ -299,6 +299,13 @@ namespace pk
         entity.componentMask |= componentTypeID;
     }
 
+    bool Scene::isValidEntity(entityID_t entityID) const
+    {
+        if (entityID < 0 || entityID >= entities.size())
+            return false;
+        return entities[entityID].id != NULL_ENTITY_ID;
+    }
+
     Transform* Scene::createTransform(entityID_t target, vec2 pos, vec2 scale)
     {
         Transform* pTransform = (Transform*)componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
@@ -553,7 +560,9 @@ namespace pk
             return nullptr;
         }
         if ((entities[entityID].componentMask & (uint64_t)type) == (uint64_t)type)
+        {
             return (Component*)componentPools[type].getComponent_DANGER(entityID);
+        }
         if (!nestedSearch)
             Debug::log(
                 "Couldn't find component of type: " + std::to_string(type) + " from entity: " + std::to_string(entityID)

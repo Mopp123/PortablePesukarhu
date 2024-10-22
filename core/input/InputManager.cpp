@@ -142,4 +142,12 @@ namespace pk
             return it->second;
         return false;
     }
+
+    bool InputManager::isMouseButtonDown(InputMouseButtonName button) const
+    {
+        std::unordered_map<InputMouseButtonName, bool>::const_iterator it = mouseDown.find(button);
+        if (it != mouseDown.end())
+            return it->second;
+        return false;
+    }
 }

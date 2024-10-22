@@ -59,7 +59,7 @@ namespace pk
 			WebInputManager* inputManager = (WebInputManager*)userData;
 
 			InputKeyName key = inputManager->convert_to_keyname(keyEvent->key);
-      inputManager->keyDown[key] = false;
+			inputManager->keyDown[key] = false;
 			int scancode = 0;
 
 			inputManager->processKeyEvents(key, scancode, PK_INPUT_RELEASE, 0);
@@ -81,6 +81,7 @@ namespace pk
 			WebInputManager* inputManager = (WebInputManager*)userData;
 
 			InputMouseButtonName button = inputManager->convert_to_buttonname(mouseEvent->button);
+			inputManager->mouseDown[button] = true;
 			inputManager->processMouseButtonEvents(button, PK_INPUT_PRESS, 0);
 
 			return true;
@@ -90,6 +91,7 @@ namespace pk
 			WebInputManager* inputManager = (WebInputManager*)userData;
 
 			InputMouseButtonName button = inputManager->convert_to_buttonname(mouseEvent->button);
+			inputManager->mouseDown[button] = false;
 			inputManager->processMouseButtonEvents(button, PK_INPUT_RELEASE, 0);
 
 			return true;

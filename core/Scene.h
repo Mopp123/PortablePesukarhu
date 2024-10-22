@@ -54,12 +54,7 @@ namespace pk
         std::vector<entityID_t> getChildren(entityID_t entityID) const;
 
         void addComponent(entityID_t entityID, Component* component);
-        inline bool isValidEntity(entityID_t entityID) const
-        {
-            if (entityID < 0 || entityID >= entities.size())
-                return false;
-            return entities[entityID].id != NULL_ENTITY_ID;
-        }
+        bool isValidEntity(entityID_t entityID) const;
         Transform* createTransform(
             entityID_t target,
             vec2 pos,

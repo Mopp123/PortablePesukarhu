@@ -23,8 +23,9 @@ namespace pk
 
     public:
         // Mainly for testing purposes!
-        // To check immediate keydown instead of having to always have some inputEvent
+        // To check immediate key and mouse down instead of having to always have some inputEvent
         std::unordered_map<InputKeyName, bool> keyDown;
+        std::unordered_map<InputMouseButtonName, bool> mouseDown;
 
     public:
         InputManager();
@@ -47,6 +48,7 @@ namespace pk
         void processWindowResizeEvents(int w, int h);
 
         bool isKeyDown(InputKeyName key) const;
+        bool isMouseButtonDown(InputMouseButtonName button) const;
 
         inline void setMousePos(int x, int y) { _mouseX = x; _mouseY = y; }
         inline int getMouseX() const { return _mouseX; }
