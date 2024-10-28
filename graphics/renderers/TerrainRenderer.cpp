@@ -303,6 +303,7 @@ namespace pk
         const Texture* pTex2 = pMaterial->getDiffuseTexture(2);
         const Texture* pTex3 = pMaterial->getDiffuseTexture(3);
         const Texture* pTex4 = pMaterial->getDiffuseTexture(4);
+        const Texture* pTex5 = pMaterial->getDiffuseTexture(5);
         const Texture* pBlendmapTex = pMaterial->getBlendmapTexture();
 
         const Swapchain* pSwapchain = pApp->getWindow()->getSwapchain();
@@ -319,6 +320,7 @@ namespace pk
                     pTex2,
                     pTex3,
                     pTex4,
+                    pTex5,
                     pBlendmapTex
                 }
             );
