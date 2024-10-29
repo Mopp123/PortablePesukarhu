@@ -1,6 +1,7 @@
 #include "TerrainRenderer.h"
 #include "core/Application.h"
 #include "ecs/components/renderable/TerrainRenderable.h"
+#include "resources/TerrainMesh.h"
 
 #include <GL/glew.h>
 
@@ -34,7 +35,7 @@ namespace pk
         // Material desc set layout
         // Blendmap channel textures
         std::vector<DescriptorSetLayoutBinding> descSetBindings;
-        for (int i = 0; i < TERRAIN_MATERIAL_MAX_CHANNEL_TEXTURES; ++i)
+        for (int i = 0; i < TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS; ++i)
         {
             descSetBindings.push_back(
                 DescriptorSetLayoutBinding(
@@ -48,11 +49,11 @@ namespace pk
         }
 
         DescriptorSetLayoutBinding blendmapDescSetBinding(
-            TERRAIN_MATERIAL_MAX_CHANNEL_TEXTURES, // first after channel texture bindings
+            TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS, // first after channel texture bindings
             1,
             DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 7 + TERRAIN_MATERIAL_MAX_CHANNEL_TEXTURES }} // TODO: some way to find out "common desc sets count"
+            {{ 7 + TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS }} // TODO: some way to find out "common desc sets count"
         );
         descSetBindings.push_back(blendmapDescSetBinding);
 
@@ -111,16 +112,16 @@ namespace pk
     {
         const TerrainRenderable * const pRenderable = (const TerrainRenderable * const)renderableComponent;
 
-        if (_toRender.find(pRenderable->meshID) == _toRender.end())
-            _toRender[pRenderable->meshID] = createTerrainRenderData(pRenderable, transformation);
+        if (_toRender.find(pRenderable->terrainMeshID) == _toRender.end())
+            _toRender[pRenderable->terrainMeshID] = createTerrainRenderData(pRenderable, transformation);
         else
-            _toRender[pRenderable->meshID].transformationMatrix = transformation;
+            _toRender[pRenderable->terrainMeshID].transformationMatrix = transformation;
 
         // recreate descriptor sets if necessary..
-        if (_toRender[pRenderable->meshID].materialDescriptorSet.empty())
-            createRenderDataDescriptorSets(pRenderable, _toRender[pRenderable->meshID]);
+        if (_toRender[pRenderable->terrainMeshID].materialDescriptorSet.empty())
+            createRenderDataDescriptorSets(pRenderable, _toRender[pRenderable->terrainMeshID]);
 
-        _submittedTerrains.insert(pRenderable->meshID);
+        _submittedTerrains.insert(pRenderable->terrainMeshID);
     }
 
     void TerrainRenderer::render()
@@ -181,10 +182,10 @@ namespace pk
         for (rIt = _toRender.begin(); rIt != _toRender.end(); ++rIt)
         {
             const TerrainRenderData& renderData = rIt->second;
-            Mesh* pMesh = (Mesh*)resManager.getResource(rIt->first);
+            TerrainMesh* pTerrainMesh = (TerrainMesh*)resManager.getResource(rIt->first);
 
-            const Buffer* pIndexBuffer = pMesh->getIndexBuffer();;
-            Buffer* pVertexBuffer = pMesh->accessVertexBuffer_DANGER(0);
+            const Buffer* pIndexBuffer = pTerrainMesh->getIndexBuffer();;
+            Buffer* pVertexBuffer = pTerrainMesh->accessVertexBuffer();
 
             size_t indexBufLen = pIndexBuffer->getDataLength();
             IndexType indexType = IndexType::INDEX_TYPE_NONE;
@@ -297,14 +298,14 @@ namespace pk
     {
         Application* pApp = Application::get();
         ResourceManager& resManager = pApp->getResourceManager();
-        const Material* pMaterial = (const Material*)resManager.getResource(pRenderable->materialID);
-        const Texture* pTex0 = pMaterial->getDiffuseTexture(0);
-        const Texture* pTex1 = pMaterial->getDiffuseTexture(1);
-        const Texture* pTex2 = pMaterial->getDiffuseTexture(2);
-        const Texture* pTex3 = pMaterial->getDiffuseTexture(3);
-        const Texture* pTex4 = pMaterial->getDiffuseTexture(4);
-        const Texture* pTex5 = pMaterial->getDiffuseTexture(5);
-        const Texture* pBlendmapTex = pMaterial->getBlendmapTexture();
+        const TerrainMaterial* pMaterial = (const TerrainMaterial*)resManager.getResource(
+            pRenderable->terrainMaterialID
+        );
+        std::vector<const Texture*> textures(TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS + 1);
+        for (int i = 0; i < TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS; ++i)
+            textures[i] = pMaterial->getChannelTexture(i);
+
+        textures[TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS] = pMaterial->getBlendmapTexture();
 
         const Swapchain* pSwapchain = pApp->getWindow()->getSwapchain();
         uint32_t swapchainImages = pSwapchain->getImageCount();
@@ -314,15 +315,7 @@ namespace pk
             target.materialDescriptorSet[i] = new DescriptorSet(
                 _materialDescSetLayout,
                 1,
-                {
-                    pTex0,
-                    pTex1,
-                    pTex2,
-                    pTex3,
-                    pTex4,
-                    pTex5,
-                    pBlendmapTex
-                }
+                textures
             );
         }
     }

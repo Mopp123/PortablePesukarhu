@@ -1,4 +1,3 @@
-
 #include "WebContext.h"
 
 #include <emscripten.h>
@@ -40,9 +39,18 @@ namespace pk
 
 				GLenum glewInitStatus = glewInit();
 				if (glewInitStatus == GLEW_OK)
-					Debug::log("Context(Web) created successfully");
+				{
+					// Query some limits...
+					glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &_maxTextureUnits);
+					Debug::log(
+						"Context(Web) created successfully! "
+						"Available texture units: " + std::to_string(_maxTextureUnits)
+					);
+				}
 				else
+				{
 					Debug::log("Failed to init glew", Debug::MessageType::PK_FATAL_ERROR);
+				}
 			}
 			else
 			{

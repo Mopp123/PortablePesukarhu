@@ -6,16 +6,18 @@
 #include "WebBuffers.h"
 #include "graphics/platform/opengl/shaders/OpenglShader.h"
 #include "graphics/platform/opengl/OpenglContext.h"
-
 #include "resources/platform/opengl/OpenglTexture.h"
+#include "core/Application.h"
+#include "WebContext.h"
 
 
 namespace pk
 {
     namespace web
     {
-        static GLenum binding_to_gl_texture_slot(uint32_t binding)
+        static GLenum binding_to_gl_texture_unit(uint32_t binding)
         {
+            const WebContext * const pContext = (WebContext*)Application::get()->getGraphicsContext();
             switch (binding)
             {
                 case 0:
@@ -32,9 +34,17 @@ namespace pk
                     return GL_TEXTURE5;
                 case 6:
                     return GL_TEXTURE6;
+                case 7:
+                    return GL_TEXTURE7;
+                case 8:
+                    return GL_TEXTURE8;
+                case 9:
+                    return GL_TEXTURE9;
                 default:
                     Debug::log(
-                        "@binding_to_gl_texture_slot Max binding number exceeded",
+                        "@binding_to_gl_texture_unit "
+                        "Max texture units(" + std::to_string(pContext->getMaxTextureUnits()) + ") exceeded!"
+                        "Requested unit: " + std::to_string(binding),
                         Debug::MessageType::PK_FATAL_ERROR
                     );
                     return 0;
@@ -498,7 +508,7 @@ namespace pk
                             #endif
                             glUniform1i(shaderUniformLocations[layoutInfo.locationIndex], binding.getBinding());
                             // well following is quite fucking dumb.. dunno how could do this better
-                            glActiveTexture(binding_to_gl_texture_slot(binding.getBinding()));
+                            glActiveTexture(binding_to_gl_texture_unit(binding.getBinding()));
                             glBindTexture(
                                 GL_TEXTURE_2D,
                                 ((opengl::OpenglTexture*)textures[textureBindingIndex])->getGLTexID()

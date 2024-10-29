@@ -9,9 +9,14 @@ namespace pk
     {
         class WebContext : public Context
         {
+        private:
+            int32_t _maxTextureUnits = 0;
+
         public:
             WebContext();
             ~WebContext();
+
+            inline int32_t getMaxTextureUnits() const { return _maxTextureUnits; }
         };
     }
 }

@@ -109,10 +109,12 @@ namespace pk
             PK_id modelID,
             PK_id meshID
         );
+        // NOTE: TerrainRenderable's mesh and material switched to TerrainMesh and TerrainMaterial
+        // from their reqular counterparts recently!
         TerrainRenderable* createTerrainRenderable(
             entityID_t target,
-            PK_id meshID,
-            PK_id materialID,
+            PK_id terrainMeshID,
+            PK_id terrainMaterialID,
             const std::vector<float>& heightmap,
             float tileWidth
         );

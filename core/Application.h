@@ -58,6 +58,8 @@ namespace pk
         static uint32_t get_platform();
         static Application* get();
 
+        inline const Context * const getGraphicsContext() const { return _pGraphicsContext; }
+
         inline InputManager* accessInputManager() { return _pInputManager; }
         inline Scene* accessCurrentScene() { return _sceneManager.accessCurrentScene(); }
 

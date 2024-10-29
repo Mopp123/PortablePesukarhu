@@ -211,6 +211,64 @@ namespace pk
         return pMaterial;
     }
 
+    TerrainMaterial* ResourceManager::createTerrainMaterial(
+        const std::vector<uint32_t>& pChannelTextureIDs,
+        uint32_t blendmapTextureID,
+        bool persistent
+    )
+    {
+        std::vector<Texture*> textures(pChannelTextureIDs.size());
+        for (int i = 0; i < pChannelTextureIDs.size(); ++i)
+        {
+            Texture* pTexture = (Texture*)getResource(pChannelTextureIDs[i]);
+            if (pTexture)
+            {
+                textures[i] = pTexture;
+            }
+            else
+            {
+                Debug::log(
+                    "@ResourceManager::createTerrainMaterial "
+                    "No textures given for channel: " + std::to_string(i) + " "
+                    "Using black as default",
+                    Debug::MessageType::PK_WARNING
+                );
+                textures[i] = _pBlackTexture;
+            }
+        }
+
+        Texture* pBlendmapTexture = nullptr;
+        if (!blendmapTextureID)
+        {
+            Debug::log(
+                "@ResourceManager::createTerrainMaterial "
+                "blendmap texture resource ID required!",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
+
+        pBlendmapTexture = (Texture*)getResource(blendmapTextureID);
+        if (!pBlendmapTexture)
+        {
+            Debug::log(
+                "@ResourceManager::createTerrainMaterial "
+                "Failed to find blendmap texture with id: " + std::to_string(blendmapTextureID),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
+
+        TerrainMaterial* pTerrainMaterial = new TerrainMaterial(
+            textures,
+            pBlendmapTexture
+        );
+        _resources[pTerrainMaterial->getResourceID()] = pTerrainMaterial;
+        if (persistent)
+            _persistentResources[pTerrainMaterial->getResourceID()] = pTerrainMaterial;
+        return pTerrainMaterial;
+    }
+
     Mesh* ResourceManager::createMesh(
         const std::vector<Buffer*>& vertexBuffers,
         Buffer* pIndexBuffer,
@@ -230,27 +288,27 @@ namespace pk
         return pMesh;
     }
 
-    Mesh* ResourceManager::createTerrainMesh(
+    TerrainMesh* ResourceManager::createTerrainMesh(
         const std::vector<float>& heightmap,
         float tileWidth,
         uint32_t materialResourceID,
         BufferUpdateFrequency updateFrequency
     )
     {
-        Material* pMaterial = (Material*)getResource(materialResourceID);
+        TerrainMaterial* pTerrainMaterial = (TerrainMaterial*)getResource(materialResourceID);
         std::pair<Buffer*, Buffer*> buffers = generate_terrain_mesh_data(
             heightmap,
             tileWidth,
             updateFrequency
         );
 
-        Mesh* pMesh = new Mesh(
-            { buffers.first },
+        TerrainMesh* pTerrainMesh = new TerrainMesh(
+            buffers.first,
             buffers.second,
-            pMaterial
+            pTerrainMaterial
         );
-        _resources[pMesh->getResourceID()] = pMesh;
-        return pMesh;
+        _resources[pTerrainMesh->getResourceID()] = pTerrainMesh;
+        return pTerrainMesh;
     }
 
     // TODO: Validate resource ids when adding new resource to _resources!

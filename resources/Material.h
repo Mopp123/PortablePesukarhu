@@ -6,7 +6,7 @@
 
 // For each color channel + "blackness channel"
 // possible channels = black, red, green, blue and alpha
-#define MATERIAL_MAX_DIFFUSE_TEXTURES (5 + 1)
+#define MATERIAL_MAX_DIFFUSE_TEXTURES 5
 
 namespace pk
 {

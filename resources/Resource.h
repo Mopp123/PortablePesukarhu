@@ -7,14 +7,16 @@
 #define MAX_FILEPATH_SIZE 64
 
 // TODO: some better way of dealing with this..
-#define PK_RESOURCE_NAME_NONE       "None"
-#define PK_RESOURCE_NAME_IMAGE      "Image"
-#define PK_RESOURCE_NAME_TEXTURE    "Texture"
-#define PK_RESOURCE_NAME_FONT       "Font"
-#define PK_RESOURCE_NAME_MATERIAL   "Material"
-#define PK_RESOURCE_NAME_MESH       "Mesh"
-#define PK_RESOURCE_NAME_MODEL      "Model"
-#define PK_RESOURCE_NAME_ANIMATION  "Animation"
+#define PK_RESOURCE_NAME_NONE               "None"
+#define PK_RESOURCE_NAME_IMAGE              "Image"
+#define PK_RESOURCE_NAME_TEXTURE            "Texture"
+#define PK_RESOURCE_NAME_FONT               "Font"
+#define PK_RESOURCE_NAME_MATERIAL           "Material"
+#define PK_RESOURCE_NAME_TERRAIN_MATERIAL   "Terrain Material"
+#define PK_RESOURCE_NAME_MESH               "Mesh"
+#define PK_RESOURCE_NAME_TERRAIN_MESH       "Terrain Mesh"
+#define PK_RESOURCE_NAME_MODEL              "Model"
+#define PK_RESOURCE_NAME_ANIMATION          "Animation"
 
 
 namespace pk
@@ -26,7 +28,9 @@ namespace pk
         RESOURCE_TEXTURE,
         RESOURCE_FONT,
         RESOURCE_MATERIAL,
+        RESOURCE_TERRAIN_MATERIAL,
         RESOURCE_MESH,
+        RESOURCE_TERRAIN_MESH,
         RESOURCE_MODEL,
         RESOURCE_ANIMATION
     };

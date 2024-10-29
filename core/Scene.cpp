@@ -451,8 +451,8 @@ namespace pk
 
     TerrainRenderable* Scene::createTerrainRenderable(
         entityID_t target,
-        PK_id meshID,
-        PK_id materialID,
+        PK_id terrainMeshID,
+        PK_id terrainMaterialID,
         const std::vector<float>& heightmap,
         float tileWidth
     )
@@ -469,8 +469,8 @@ namespace pk
 
         TerrainRenderable* pRenderable = (TerrainRenderable*)componentPools[ComponentType::PK_RENDERABLE_TERRAIN].allocComponent(target);
         *pRenderable = TerrainRenderable(
-            meshID,
-            materialID,
+            terrainMeshID,
+            terrainMaterialID,
             heightmap,
             tileWidth
         );

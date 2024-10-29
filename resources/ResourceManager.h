@@ -4,7 +4,9 @@
 #include "Image.h"
 #include "Texture.h"
 #include "Material.h"
+#include "TerrainMaterial.h"
 #include "Mesh.h"
+#include "TerrainMesh.h"
 #include "Model.h"
 #include "Animation.h"
 #include "Font.h"
@@ -81,6 +83,12 @@ namespace pk
             bool persistent = false
         );
 
+        TerrainMaterial* createTerrainMaterial(
+            const std::vector<uint32_t>& pChannelTextureIDs,
+            uint32_t blendmapTextureID,
+            bool persistent = false
+        );
+
         Mesh* createMesh(
             const std::vector<Buffer*>& vertexBuffers,
             Buffer* pIndexBuffer,
@@ -88,10 +96,11 @@ namespace pk
             bool persistent = false
         );
 
-        Mesh* createTerrainMesh(
+        // NOTE: "Material" here changed to "TerrainMaterial" type recently!
+        TerrainMesh* createTerrainMesh(
             const std::vector<float>& heightmap,
             float tileWidth,
-            uint32_t materialResourceID,
+            uint32_t terrainMaterialResourceID,
             BufferUpdateFrequency updateFrequency = BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STATIC
         );
 
@@ -118,7 +127,9 @@ namespace pk
 
         void deleteResource(uint32_t id);
 
+        // TODO: Resource type checking!
         Resource* accessResource(uint32_t id);
+        // TODO: Resource type checking!
         const Resource* getResource(uint32_t id) const;
 
         // Just for testing atm!!!

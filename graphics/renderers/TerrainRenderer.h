@@ -13,9 +13,6 @@
 #include "ecs/components/renderable/TerrainRenderable.h"
 
 
-#define TERRAIN_MATERIAL_MAX_CHANNEL_TEXTURES (5 + 1)
-
-
 namespace pk
 {
     struct TerrainRenderData
@@ -38,7 +35,7 @@ namespace pk
         // std::vector<Buffer*> _materialPropsUniformBuffers;
         DescriptorSetLayout _materialDescSetLayout;
 
-        // *Using renderable's mesh id as kind of like "batch identifier"
+        // *Using renderable's terrain mesh resource id as kind of like "batch identifier"
         std::unordered_map<PK_id, TerrainRenderData> _toRender;
         // "identifiers" of terrains submitted on current frame
         // *Used to determine if terrain was deleted and dont want to render it anymore
