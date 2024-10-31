@@ -1,6 +1,7 @@
 #include "MeshGenerator.h"
 #include "utils/pkmath.h"
 
+
 namespace pk
 {
 	std::pair<Buffer*, Buffer*> generate_terrain_mesh_data(
@@ -12,9 +13,13 @@ namespace pk
 		// expecting heightmap always to be square
 		uint32_t verticesPerRow = sqrt(heightmap.size());
 
+		const size_t vertexComponentCount = 3 + 3 + 2 + 2;
 		std::vector<vec3> vertexPositions;
 		std::vector<vec3> vertexNormals;
 		std::vector<vec2> vertexTexCoords;
+		// atm just zero the vertexUserData initially
+		std::vector<vec2> vertexUserData(verticesPerRow * verticesPerRow, { 0, 0 });
+
 
 		uint32_t vertexCount = 0;
 
@@ -67,7 +72,7 @@ namespace pk
 
 		// Combine all into 1 buffer
 		std::vector<float> vertexData;
-		vertexData.reserve((3 + 3 + 2) * vertexCount);
+		vertexData.reserve(vertexComponentCount * vertexCount);
 		for (int i = 0; i < vertexCount; i++)
 		{
 			vertexData.emplace_back(vertexPositions[i].x);
@@ -80,6 +85,9 @@ namespace pk
 
 			vertexData.emplace_back(vertexTexCoords[i].x);
 			vertexData.emplace_back(vertexTexCoords[i].y);
+
+			vertexData.emplace_back(vertexUserData[i].x);
+			vertexData.emplace_back(vertexUserData[i].y);
 		}
 
 		std::vector<uint32_t> indices;

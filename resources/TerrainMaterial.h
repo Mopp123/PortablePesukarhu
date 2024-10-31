@@ -5,9 +5,13 @@
 #include "Texture.h"
 #include "utils/pkmath.h"
 
-// For each color channel + "blackness channel"
-// possible channels = black, red, green, blue and alpha + cyan, magenta and yellow
-#define TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS (5 + 3)
+// Possible color channels for blending:
+// *black
+// *red
+// *green
+// *blue
+// *alpha
+#define TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS 5
 
 
 namespace pk

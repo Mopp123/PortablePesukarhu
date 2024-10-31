@@ -11,9 +11,10 @@ namespace pk
     TerrainRenderer::TerrainRenderer() :
         _vertexBufferLayout(
             {
-                { 0, ShaderDataType::Float3 },
-                { 1, ShaderDataType::Float3 },
-                { 2, ShaderDataType::Float2 }
+                { 0, ShaderDataType::Float3 }, // position
+                { 1, ShaderDataType::Float3 }, // normal
+                { 2, ShaderDataType::Float2 }, // uv
+                { 3, ShaderDataType::Float2 }  // custom user data
             },
             VertexInputRate::VERTEX_INPUT_RATE_VERTEX
         ),
