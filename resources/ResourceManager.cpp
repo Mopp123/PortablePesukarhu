@@ -214,6 +214,7 @@ namespace pk
     TerrainMaterial* ResourceManager::createTerrainMaterial(
         const std::vector<uint32_t>& pChannelTextureIDs,
         uint32_t blendmapTextureID,
+        uint32_t customDataTextureID,
         bool persistent
     )
     {
@@ -247,7 +248,6 @@ namespace pk
             );
             return nullptr;
         }
-
         pBlendmapTexture = (Texture*)getResource(blendmapTextureID);
         if (!pBlendmapTexture)
         {
@@ -259,9 +259,29 @@ namespace pk
             return nullptr;
         }
 
+        Texture* pCustomDataTexture = nullptr;
+        if (customDataTextureID)
+        {
+            pCustomDataTexture = (Texture*)getResource(customDataTextureID);
+            if (!pCustomDataTexture)
+            {
+                Debug::log(
+                    "@ResourceManager::createTerrainMaterial "
+                    "Provided custom data buffer(texture) ID not found: " + std::to_string(customDataTextureID),
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return nullptr;
+            }
+        }
+        else
+        {
+            pCustomDataTexture = getBlackTexture();
+        }
+
         TerrainMaterial* pTerrainMaterial = new TerrainMaterial(
             textures,
-            pBlendmapTexture
+            pBlendmapTexture,
+            pCustomDataTexture
         );
         _resources[pTerrainMaterial->getResourceID()] = pTerrainMaterial;
         if (persistent)

@@ -6,10 +6,12 @@ namespace pk
 {
     TerrainMaterial::TerrainMaterial(
         std::vector<Texture*> pChannelTextures,
-        Texture* pBlendmapTexture
+        Texture* pBlendmapTexture,
+        Texture* pCustomDataTexture
     ) :
         Resource(ResourceType::RESOURCE_TERRAIN_MATERIAL),
-        _pBlendmapTexture(pBlendmapTexture)
+        _pBlendmapTexture(pBlendmapTexture),
+        _pCustomDataTexture(pCustomDataTexture)
     {
         if (pChannelTextures.size() > TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS)
         {

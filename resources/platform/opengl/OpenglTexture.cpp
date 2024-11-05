@@ -65,6 +65,8 @@ namespace pk
                 case 3: glFormat = GL_RGB; break;
                 case 4: glFormat = GL_RGBA; break;
                 // NOTE: Noticed that atm only rgba works on web..
+                // UPDATE TO ABOVE COMMENT -> u were just fucking dumb
+                // -> if using internal format as alpha.. the texture gets values only for alpha channel...
                 default:
                     Debug::log(
                         "Invalid color channel count: " + std::to_string(channels) + " "
@@ -180,7 +182,7 @@ namespace pk
             _width = width;
             _height = height;
 
-            GLint glFormat;
+            GLint glFormat = 0;
             switch (_channels)
             {
                 case 1: glFormat = GL_ALPHA; break;

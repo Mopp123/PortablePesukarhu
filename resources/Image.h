@@ -36,6 +36,9 @@ namespace pk
         void setColorAt(int x, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
         void setColorAt_UNSAFE(int x, int y, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
         void setColorAt_UNSAFE(int pixelIndex, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+        // For single channel images
+        // NOTE: No range checking! USE AT YOUR OWN RISK!
+        void setColorAt_UNSAFE(int x, int y, unsigned char val);
 
         inline const unsigned char* getData() const { return _pData; }
         inline int getWidth() const { return _width; }

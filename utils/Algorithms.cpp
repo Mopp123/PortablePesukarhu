@@ -1,5 +1,3 @@
-
-
 #include "Algorithms.h"
 #include "../core/Application.h"
 

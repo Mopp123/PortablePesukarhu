@@ -154,4 +154,9 @@ namespace pk
         _pData[index_b] = b;
         _pData[index_a] = a;
     }
+
+    void ImageData::setColorAt_UNSAFE(int x, int y, unsigned char val)
+    {
+        _pData[x + y * _width] = val;
+    }
 }

@@ -86,6 +86,7 @@ namespace pk
         TerrainMaterial* createTerrainMaterial(
             const std::vector<uint32_t>& pChannelTextureIDs,
             uint32_t blendmapTextureID,
+            uint32_t customDataTextureID = 0,
             bool persistent = false
         );
 

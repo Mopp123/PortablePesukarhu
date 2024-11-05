@@ -13,13 +13,10 @@ namespace pk
 		// expecting heightmap always to be square
 		uint32_t verticesPerRow = sqrt(heightmap.size());
 
-		const size_t vertexComponentCount = 3 + 3 + 2 + 2;
+		const size_t vertexComponentCount = 3 + 3 + 2;
 		std::vector<vec3> vertexPositions;
 		std::vector<vec3> vertexNormals;
 		std::vector<vec2> vertexTexCoords;
-		// atm just zero the vertexUserData initially
-		std::vector<vec2> vertexUserData(verticesPerRow * verticesPerRow, { 0, 0 });
-
 
 		uint32_t vertexCount = 0;
 
@@ -85,9 +82,6 @@ namespace pk
 
 			vertexData.emplace_back(vertexTexCoords[i].x);
 			vertexData.emplace_back(vertexTexCoords[i].y);
-
-			vertexData.emplace_back(vertexUserData[i].x);
-			vertexData.emplace_back(vertexUserData[i].y);
 		}
 
 		std::vector<uint32_t> indices;

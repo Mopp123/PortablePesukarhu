@@ -13,8 +13,7 @@ namespace pk
             {
                 { 0, ShaderDataType::Float3 }, // position
                 { 1, ShaderDataType::Float3 }, // normal
-                { 2, ShaderDataType::Float2 }, // uv
-                { 3, ShaderDataType::Float2 }  // custom user data
+                { 2, ShaderDataType::Float2 } // uv
             },
             VertexInputRate::VERTEX_INPUT_RATE_VERTEX
         ),
@@ -57,6 +56,16 @@ namespace pk
             {{ 7 + TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS }} // TODO: some way to find out "common desc sets count"
         );
         descSetBindings.push_back(blendmapDescSetBinding);
+
+        // Atm also experimenting with "custom data buffer" used as texture
+        DescriptorSetLayoutBinding customDataDescSetBinding(
+            TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS + 1,
+            1,
+            DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
+            {{ 7 + TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS + 1 }} // TODO: some way to find out "common desc sets count"
+        );
+        descSetBindings.push_back(customDataDescSetBinding);
 
         _materialDescSetLayout = DescriptorSetLayout(
             descSetBindings
@@ -302,11 +311,12 @@ namespace pk
         const TerrainMaterial* pMaterial = (const TerrainMaterial*)resManager.getResource(
             pRenderable->terrainMaterialID
         );
-        std::vector<const Texture*> textures(TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS + 1);
+        std::vector<const Texture*> textures(TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS + 1 + 1); // first +1 is the blendmap texture, second +1 is "custom data texture"
         for (int i = 0; i < TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS; ++i)
             textures[i] = pMaterial->getChannelTexture(i);
 
         textures[TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS] = pMaterial->getBlendmapTexture();
+        textures[TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS + 1] = pMaterial->getCustomDataTexture();
 
         const Swapchain* pSwapchain = pApp->getWindow()->getSwapchain();
         uint32_t swapchainImages = pSwapchain->getImageCount();
