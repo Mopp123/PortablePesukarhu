@@ -77,7 +77,6 @@ namespace pk
             uint32_t specularTextureID = 0,
             float specularStrength = 0.0f,
             float shininess = 1.0f,
-            uint32_t blendmapTextureID = 0,
             vec4 color = vec4(1, 1, 1, 1),
             bool shadeless = false,
             bool persistent = false

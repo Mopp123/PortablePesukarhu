@@ -66,7 +66,6 @@ namespace pk
             0,
             0.0f,
             1.0f,
-            0,
             { 1, 1, 1, 1 },
             true,
             true
@@ -113,8 +112,22 @@ namespace pk
         bool persistent
     )
     {
-        Debug::notify_unimplemented("ResourceManager::loadTexture#1");
-        return nullptr;
+        ImageData* pImgData = loadImage(filepath, false, persistent);
+        if (!pImgData)
+        {
+            Debug::log(
+                "@ResourceManager::loadTexture "
+                "Failed to load image from: " + filepath,
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
+
+        Texture* pTexture = Texture::create(pImgData->getResourceID(), sampler);
+        _resources[pTexture->getResourceID()] = pTexture;
+        if (persistent)
+            _persistentResources[pTexture->getResourceID()] = pTexture;
+        return pTexture;
     }
 
     Texture* ResourceManager::createTexture(
@@ -144,7 +157,6 @@ namespace pk
         uint32_t specularTextureID,
         float specularStrength,
         float shininess,
-        uint32_t blendmapTextureID,
         vec4 color,
         bool shadeless,
         bool persistent
@@ -182,26 +194,11 @@ namespace pk
                 pSpecularTexture = _pWhiteTexture;
         }
 
-        Texture* pBlendmapTexture = nullptr;
-        if (blendmapTextureID)
-        {
-            pBlendmapTexture = (Texture*)getResource(blendmapTextureID);
-            if (!pBlendmapTexture)
-            {
-                Debug::log(
-                    "@ResourceManager::createMaterial "
-                    "Failed to find blendmap texture with id: " + std::to_string(blendmapTextureID),
-                    Debug::MessageType::PK_FATAL_ERROR
-                );
-                return nullptr;
-            }
-        }
         Material* pMaterial = new Material(
             textures,
             pSpecularTexture,
             specularStrength,
             shininess,
-            pBlendmapTexture,
             color,
             shadeless
         );

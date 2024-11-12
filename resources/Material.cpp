@@ -9,13 +9,11 @@ namespace pk
         Texture* pSpecularTexture,
         float specularStrength,
         float specularShininess,
-        Texture* pBlendmapTexture,
         vec4 color,
         bool shadeless
     ) :
         Resource(ResourceType::RESOURCE_MATERIAL),
         _pSpecularTexture(pSpecularTexture),
-        _pBlendmapTexture(pBlendmapTexture),
         _specularStrength(specularStrength),
         _specularShininess(specularShininess),
         _color(color),
