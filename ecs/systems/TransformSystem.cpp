@@ -46,18 +46,22 @@ namespace pk
     {
         for (entityID_t child : _pScene->entityChildMapping[parent])
         {
-            Transform* pChildTransform = (Transform*)((*_pTransformPool)[child]);
-            // NOTE: wasnt used anymore?
-            // TODO: delete below..
-            pChildTransform->_hasParent = true;
+            //Transform* pChildTransform = (Transform*)((*_pTransformPool)[child]);
+            Transform* pChildTransform = (Transform*)_pScene->getComponent(child, ComponentType::PK_TRANSFORM);
+            if (pChildTransform)
+            {
+                // NOTE: wasnt used anymore?
+                // TODO: delete below..
+                pChildTransform->_hasParent = true;
 
-            mat4& childLocalMat = pChildTransform->accessLocalTransformationMatrix();
-            mat4& childMat = pChildTransform->accessTransformationMatrix();
+                mat4& childLocalMat = pChildTransform->accessLocalTransformationMatrix();
+                mat4& childMat = pChildTransform->accessTransformationMatrix();
 
-            childMat = pParentTransform->getTransformationMatrix() * childLocalMat;
+                childMat = pParentTransform->getTransformationMatrix() * childLocalMat;
 
-            if (_pScene->entityChildMapping.find(child) != _pScene->entityChildMapping.end())
-                applyTransforms(child, pChildTransform);
+                if (_pScene->entityChildMapping.find(child) != _pScene->entityChildMapping.end())
+                    applyTransforms(child, pChildTransform);
+            }
         }
     }
 }

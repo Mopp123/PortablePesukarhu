@@ -631,7 +631,7 @@ namespace pk
         std::unordered_map<ComponentType, ComponentPool>::iterator it;;
         for (it = componentPools.begin(); it != componentPools.end(); ++it)
         {
-            if (entity.componentMask & it->first)
+            if ((entity.componentMask & it->first) == it->first)
                 foundComponents.push_back((Component*)it->second.getComponent_DANGER(entityID));
         }
         return foundComponents;
