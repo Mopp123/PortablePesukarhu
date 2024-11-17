@@ -18,6 +18,18 @@ namespace pk
         PIXEL_CENTER_VERTICAL = 5
     };
 
+    struct HorizontalConstraintProperties
+    {
+        HorizontalConstraintType type;
+        float value;
+    };
+
+    struct VerticalConstraintProperties
+    {
+        VerticalConstraintType type;
+        float value;
+    };
+
     class ConstraintData : public Component
     {
     public:

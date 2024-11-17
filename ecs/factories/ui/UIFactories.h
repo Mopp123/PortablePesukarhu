@@ -39,6 +39,12 @@ namespace pk
             virtual ~InputFieldOnSubmitEvent() {}
         };
 
+        struct UIFactoryButton
+        {
+            entityID_t rootEntity = 0;
+            entityID_t imgEntity = 0;
+            entityID_t txtEntity = 0;
+        };
 
         entityID_t create_image(
             HorizontalConstraintType horizontalType, float horizontalVal,
@@ -61,7 +67,8 @@ namespace pk
         );
 
 
-        entityID_t create_button(
+        // first = button img entity, second = button text entity
+        UIFactoryButton create_button(
             std::string txt, const Font& font,
             HorizontalConstraintType horizontalType, float horizontalVal,
             VerticalConstraintType verticalType, float verticalVal,

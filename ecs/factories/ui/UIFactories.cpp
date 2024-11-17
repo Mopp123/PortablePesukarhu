@@ -357,7 +357,7 @@ namespace pk
         }
 
 
-        entityID_t create_button(
+        UIFactoryButton create_button(
             std::string txt, const Font& font,
             HorizontalConstraintType horizontalType, float horizontalVal,
             VerticalConstraintType verticalType, float verticalVal,
@@ -447,7 +447,7 @@ namespace pk
                     backgroundHighlightColor
                 )
             );
-            return buttonEntity;
+            return { buttonEntity, imgEntity, txtEntity };
         }
 
 
@@ -503,7 +503,7 @@ namespace pk
             }
 
             // Create button (*Override the button's UIElemState)
-            entityID_t buttonEntity = create_button(
+            UIFactoryButton button = create_button(
                 "", // txt
                 font,
                 horizontalType, horizontalVal + buttonDisplacement, // horiz. constraint
@@ -529,32 +529,33 @@ namespace pk
                 textColor
             ).first;
 
-            currentScene->addChild(inputFieldEntity, buttonEntity);
+            currentScene->addChild(inputFieldEntity, button.rootEntity);
             currentScene->addChild(inputFieldEntity, infoTxtEntity);
 
             // NOTE: button's text component is used as the InputField's "content text"
-            TextRenderable* contentText = (TextRenderable*)currentScene->getComponentInChildren(
-                buttonEntity,
+            TextRenderable* contentText = (TextRenderable*)currentScene->getComponent(
+                button.txtEntity,
                 ComponentType::PK_RENDERABLE_TEXT
             );
 
             // TESTING
+            // NOTE: This should have not worked before... refers to non existent transform...
             Transform* buttonTransform = (Transform*)currentScene->getComponent(
-                buttonEntity,
+                button.imgEntity,
                 ComponentType::PK_TRANSFORM
             );
             buttonTransform->accessTransformationMatrix()[1 + 3 * 4] -= 4;
 
             inputManager->addKeyEvent(
                 new InputFieldKeyEvent(
-                    buttonEntity,
+                    button.rootEntity,
                     inputFieldEntity,
                     onSubmitEvent
                 )
             );
             inputManager->addCharInputEvent(
                 new InputFieldCharInputEvent(
-                    buttonEntity
+                    button.rootEntity
                 )
             );
 
