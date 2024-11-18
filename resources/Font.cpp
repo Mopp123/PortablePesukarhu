@@ -5,6 +5,11 @@
 #include <vector>
 
 
+// For some reason this is bitching with vim+Ycm
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+
 namespace pk
 {
     Font::Font(const std::string& filepath, unsigned int pixelSize) :
