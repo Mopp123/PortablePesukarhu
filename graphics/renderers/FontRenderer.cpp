@@ -9,7 +9,7 @@
 
 namespace pk
 {
-    static const size_t s_instanceBufferComponents = 2 * 3 + 4;
+    static const size_t s_instanceBufferComponents = 3 + 2 + 2 + 4;
     static const size_t s_maxInstanceCount = 1000; // per batch, not total max count!
     FontRenderer::FontRenderer() :
         _vertexBufferLayout(
@@ -20,7 +20,7 @@ namespace pk
         ),
         _instanceBufferLayout(
             {
-                { 1, ShaderDataType::Float2 }, // pos
+                { 1, ShaderDataType::Float3 }, // pos
                 { 2, ShaderDataType::Float2 }, // scale
                 { 3, ShaderDataType::Float2 }, // texture offset
                 { 4, ShaderDataType::Float4 } // color
@@ -119,7 +119,7 @@ namespace pk
             CullMode::CULL_MODE_NONE,
             FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
             true,
-            DepthCompareOperation::COMPARE_OP_ALWAYS,
+            DepthCompareOperation::COMPARE_OP_LESS_OR_EQUAL,
             true, // enable color blend
             sizeof(FontPushConstants), ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
         );
@@ -187,6 +187,7 @@ namespace pk
         const float originalX = position.x;
         float posX = originalX;
         float posY = position.y;
+        const float posZ = (float)pRenderable->getLayer();
 
         float charWidth = pFont->getTilePixelWidth() * scaleFactorX;
         float charHeight = pFont->getTilePixelWidth() * scaleFactorY;
@@ -219,7 +220,7 @@ namespace pk
             float y = posY + (float)glyphData.bearingY - charHeight;
 
             float renderableData[s_instanceBufferComponents] = {
-                (float)(int)x, (float)(int)y,
+                (float)(int)x, (float)(int)y, posZ,
                 (float)(int)charWidth, (float)(int)charHeight,
                 (float)glyphData.texOffsetX, (float)glyphData.texOffsetY,
                 color.x, color.y, color.z, 1.0f

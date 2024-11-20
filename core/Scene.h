@@ -152,7 +152,7 @@ namespace pk
         //std::vector<Component*> getComponentsInChildren(uint32_t entity);
 
         // Returns all components of entity and its' children all the way down the hierarchy
-        //std::vector<Component*> getAllComponents(uint32_t entity);
+        std::vector<Component*> getAllComponents(entityID_t entity);
 
         // Returns all components in scene of specific type
         //std::vector<Component*> getComponentsOfTypeInScene(ComponentType type);
