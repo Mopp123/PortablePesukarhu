@@ -159,6 +159,11 @@ namespace pk
         if (_pNextScene != nullptr)
         {
             Debug::log("Attempting to switch scene...");
+            // Need to reset some UI states here... a bit convoluted shit atm...
+            // TODO: That canvas/ui system shit which deals with this
+            UIElemState::s_pickedLayers.clear();
+            UIRenderableComponent::set_current_selected_layer(0);
+
             Application* pApp = Application::get();
             pApp->getMasterRenderer().handleSceneSwitch();
             pApp->accessInputManager()->destroyEvents();

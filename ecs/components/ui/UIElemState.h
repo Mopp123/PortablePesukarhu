@@ -1,6 +1,9 @@
 #pragma once
 
 #include "ecs/components/Component.h"
+#include <unordered_map>
+#include "ecs/Entity.h"
+
 
 namespace pk
 {
@@ -13,6 +16,8 @@ namespace pk
         int state = 0;
         // InputField specific
         bool clearOnSubmit = true;
+
+        static std::unordered_map<entityID_t, int> s_pickedLayers;
 
         UIElemState() : Component(PK_UIELEM_STATE) {}
     	~UIElemState() {}

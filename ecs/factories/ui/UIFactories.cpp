@@ -2,6 +2,7 @@
 #include "../../../core/Application.h"
 #include "../../components/renderable/GUIRenderable.h"
 #include "../../components/renderable/UIRenderableComponent.h"
+#include <unordered_map>
 
 
 namespace pk
@@ -131,27 +132,34 @@ namespace pk
 
                 float xPos = tMat[0 + 3 * 4];
                 float yPos = tMat[1 + 3 * 4];
+
+                const int imgLayer = pImg->getLayer();
                 // *ignore highlight coloring if selected
                 // set or remove highlight coloring
                 if (pUIState->isActive() && x >= xPos && x <= xPos + width && y <= yPos && y >= yPos - height)
                 {
-                    // TODO: that layer stuff which is fucked atm...
                     // Make sure theres no overlap with other ui (layer vals check)
-                    /*
-                    int imgLayer = _pImg->getLayerVal();
-                    int currentLayer = UIRenderableComponent::get_current_selected_layer();
+                    UIElemState::s_pickedLayers[_buttonEntity] = imgLayer;
 
-                    if (UIRenderableComponent::get_current_selected_layer() > _pImg->getLayerVal())
+                    // find highest layer value and make it selected
+                    int highest = 0;
+                    std::unordered_map<entityID_t, int>::const_iterator it;
+                    for (it = UIElemState::s_pickedLayers.begin(); it != UIElemState::s_pickedLayers.end(); ++it)
+                    {
+                        highest = std::max(highest, it->second);
+                    }
+                    UIRenderableComponent::set_current_selected_layer(highest);
+
+                    if (UIRenderableComponent::get_current_selected_layer() > pImg->getLayer())
                     {
                         // Reset mouseover to false if "layer switch"
-                        if (!_stateRef.selected)
-                            _pImg->color = _originalColor;
+                        if (!pUIState->selected)
+                            pImg->color = _imgOriginalColor;
 
-                        _stateRef.mouseOver = false;
+                        pUIState->mouseOver = false;
                         return;
                     }
-                    UIRenderableComponent::set_current_selected_layer(_pImg->getLayerVal());
-                    */
+                    UIRenderableComponent::set_current_selected_layer(pImg->getLayer());
 
                     if (!pUIState->selected)
                     {
@@ -162,11 +170,8 @@ namespace pk
                 }
                 else
                 {
-                    // Reset current selected layer if needed to..
-                    /*
-                    if (UIRenderableComponent::get_current_selected_layer() == _pImg->getLayerVal())
-                        UIRenderableComponent::set_current_selected_layer(0);
-                    */
+                    if (UIElemState::s_pickedLayers.find(_buttonEntity) != UIElemState::s_pickedLayers.end())
+                        UIElemState::s_pickedLayers.erase(_buttonEntity);
 
                     if (!pUIState->selected)
                     {

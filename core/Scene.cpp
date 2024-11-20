@@ -492,7 +492,8 @@ namespace pk
         const float windowHeight = (float)window->getHeight();
 
         const float aspectRatio = windowWidth / windowHeight;
-        mat4 orthographicProjMat = create_proj_mat_ortho(0, windowWidth, windowHeight, 0, 0.0f, 100.0f);
+        float nearPlane = -((float)(UIRenderableComponent::get_max_layers() + 1));
+        mat4 orthographicProjMat = create_proj_mat_ortho(0, windowWidth, windowHeight, 0, nearPlane, 1.0f);
         mat4 perspectivaProjMat = create_perspective_projection_matrix(aspectRatio, 1.3f, 0.1f, 1000.0f);
 
         Camera* pCamera = (Camera*)componentPools[ComponentType::PK_CAMERA].allocComponent(target);
@@ -661,17 +662,17 @@ namespace pk
     //}
 
     // Returns all components of entity and its' children all the way down the hierarchy
-    //std::vector<Component*> Scene::getAllComponents(uint32_t entity)
-    //{
-    //    std::vector<Component*> ownComponents = getComponents(entity);
-    //    for (uint32_t e : _entityChildMapping[entity])
-    //    {
-    //        std::vector<Component*> childComponents = getAllComponents(e);
-    //        for (Component* c : childComponents)
-    //            ownComponents.push_back(c);
-    //    }
-    //    return ownComponents;
-    //}
+    std::vector<Component*> Scene::getAllComponents(entityID_t entity)
+    {
+        std::vector<Component*> ownComponents = getComponents(entity);
+        for (uint32_t e : entityChildMapping[entity])
+        {
+            std::vector<Component*> childComponents = getAllComponents(e);
+            for (Component* c : childComponents)
+                ownComponents.push_back(c);
+        }
+        return ownComponents;
+    }
 
     // Returns all components in scene of specific type
     //std::vector<Component*> Scene::getComponentsOfTypeInScene(ComponentType type)

@@ -17,7 +17,7 @@ namespace pk
         Float  : border thickness
         Float4 : texture cropping
     */
-    static const size_t s_instanceBufferComponents = 2 + 2 + 4 + 4 + 1 + 4;
+    static const size_t s_instanceBufferComponents = 3 + 2 + 4 + 4 + 1 + 4;
     static const size_t s_maxInstanceCount = 400; // per batch, not total max count!
     GUIRenderer::GUIRenderer() :
         _vertexBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
@@ -44,7 +44,7 @@ namespace pk
         );
         _instanceBufferLayout = VertexBufferLayout(
             {
-                { 2, ShaderDataType::Float2 }, // pos
+                { 2, ShaderDataType::Float3 }, // pos
                 { 3, ShaderDataType::Float2 }, // scale
                 { 4, ShaderDataType::Float4 }, // color
                 { 5, ShaderDataType::Float4 }, // border color
@@ -66,11 +66,12 @@ namespace pk
 
         // Atm creating these only for quick testing here!!!
         // Static vertex buffer
-        float vbData[16] = {
-            0, 0, 0, 1,
-            0, -1, 0, 0,
-            1, -1, 1, 0,
-            1, 0, 1, 1
+        const size_t vertexCount = 16;
+        float vbData[vertexCount] = {
+            0,  0,  0, 1,
+            0, -1,  0, 0,
+            1, -1,  1, 0,
+            1,  0,  1, 1
         };
         unsigned short indices[6] =
         {
@@ -80,7 +81,7 @@ namespace pk
         _pVertexBuffer = Buffer::create(
             vbData,
             sizeof(float),
-            16,
+            vertexCount,
             BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT,
             BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STATIC
         );
@@ -119,7 +120,7 @@ namespace pk
             CullMode::CULL_MODE_BACK,
             FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
             true,
-            DepthCompareOperation::COMPARE_OP_ALWAYS,
+            DepthCompareOperation::COMPARE_OP_LESS_OR_EQUAL,
             false,
             0, ShaderStageFlagBits::SHADER_STAGE_NONE
         );
@@ -139,7 +140,7 @@ namespace pk
             pTexture = pGuiRenderable->pTexture;
         PK_id batchIdentifier = pTexture->getResourceID();
 
-        vec2 pos(transformation[0 + 3 * 4], transformation[1 + 3 * 4]);
+        vec3 pos(transformation[0 + 3 * 4], transformation[1 + 3 * 4], (float)pGuiRenderable->getLayer());
         vec2 scale(transformation[0 + 0 * 4], transformation[1 + 1 * 4]);
 
         const vec4 color = vec4(pGuiRenderable->color, 1.0f);
@@ -147,7 +148,7 @@ namespace pk
         const vec4& textureCropping = pGuiRenderable->textureCropping;
 
         float renderableData[s_instanceBufferComponents] = {
-            pos.x, pos.y,
+            pos.x, pos.y, pos.z,
             scale.x, scale.y ,
             color.x, color.y, color.z, color.w,
             borderColor.x, borderColor.y, borderColor.z, borderColor.w,
