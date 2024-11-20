@@ -140,7 +140,8 @@ namespace pk
             pTexture = pGuiRenderable->pTexture;
         PK_id batchIdentifier = pTexture->getResourceID();
 
-        vec3 pos(transformation[0 + 3 * 4], transformation[1 + 3 * 4], (float)pGuiRenderable->getLayer());
+        float posZ = -((UIRenderableComponent::get_max_layers() - (float)pGuiRenderable->getLayer()) * 0.1f);
+        vec3 pos(transformation[0 + 3 * 4], transformation[1 + 3 * 4], posZ);
         vec2 scale(transformation[0 + 0 * 4], transformation[1 + 1 * 4]);
 
         const vec4 color = vec4(pGuiRenderable->color, 1.0f);
