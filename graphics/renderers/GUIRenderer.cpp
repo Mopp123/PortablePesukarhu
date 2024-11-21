@@ -140,7 +140,25 @@ namespace pk
             pTexture = pGuiRenderable->pTexture;
         PK_id batchIdentifier = pTexture->getResourceID();
 
-        float posZ = -((UIRenderableComponent::get_max_layers() - (float)pGuiRenderable->getLayer()) * 0.1f);
+        // Figure out z pos depending on layer and camera config
+        // TODO: Some more clever way of dealing with this
+        const float maxLayers = (const float)UIRenderableComponent::get_max_layers();
+        Scene* pScene = Application::get()->accessCurrentScene();
+        entityID_t camEntity = pScene->activeCamera;
+        Camera* pCamera = (Camera*)pScene->getComponent(camEntity, ComponentType::PK_CAMERA);
+        if (!pCamera)
+        {
+            Debug::log(
+                "@GUIRenderer::submit "
+                "No camera component found from active camera entity: " + std::to_string(camEntity),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return;
+        }
+
+        float posZ = (-maxLayers + (float)pGuiRenderable->getLayer()) * pCamera->getGUILayerMultiplier();
+        //float posZ = -((maxLayers + 1 - (float)pGuiRenderable->getLayer()) * pCamera->getGUILayerMultiplier());
+
         vec3 pos(transformation[0 + 3 * 4], transformation[1 + 3 * 4], posZ);
         vec2 scale(transformation[0 + 0 * 4], transformation[1 + 1 * 4]);
 

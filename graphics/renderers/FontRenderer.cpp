@@ -187,7 +187,23 @@ namespace pk
         const float originalX = position.x;
         float posX = originalX;
         float posY = position.y;
-        const float posZ = (float)pRenderable->getLayer();
+
+        // Figure out z pos depending on layer and camera config
+        // TODO: Some more clever way of dealing with this
+        const float maxLayers = (const float)UIRenderableComponent::get_max_layers();
+        Scene* pScene = Application::get()->accessCurrentScene();
+        entityID_t camEntity = pScene->activeCamera;
+        Camera* pCamera = (Camera*)pScene->getComponent(camEntity, ComponentType::PK_CAMERA);
+        if (!pCamera)
+        {
+            Debug::log(
+                "@FontRenderer::submit "
+                "No camera component found from active camera entity: " + std::to_string(camEntity),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return;
+        }
+        float posZ = (-maxLayers + (float)pRenderable->getLayer()) * pCamera->getGUILayerMultiplier();
 
         float charWidth = pFont->getTilePixelWidth() * scaleFactorX;
         float charHeight = pFont->getTilePixelWidth() * scaleFactorY;

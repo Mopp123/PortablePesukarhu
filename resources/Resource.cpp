@@ -40,9 +40,11 @@ namespace pk
             case RESOURCE_TEXTURE :     return PK_RESOURCE_NAME_TEXTURE;
             case RESOURCE_FONT :        return PK_RESOURCE_NAME_FONT;
             case RESOURCE_MATERIAL :    return PK_RESOURCE_NAME_MATERIAL;
-            case RESOURCE_MESH :        return PK_RESOURCE_NAME_MESH;
-            case RESOURCE_MODEL :       return PK_RESOURCE_NAME_MODEL;
-            case RESOURCE_ANIMATION :   return PK_RESOURCE_NAME_ANIMATION;
+            case RESOURCE_TERRAIN_MATERIAL : return PK_RESOURCE_NAME_TERRAIN_MATERIAL;
+            case RESOURCE_MESH :            return PK_RESOURCE_NAME_MESH;
+            case RESOURCE_TERRAIN_MESH :    return PK_RESOURCE_NAME_TERRAIN_MESH;
+            case RESOURCE_MODEL :           return PK_RESOURCE_NAME_MODEL;
+            case RESOURCE_ANIMATION :       return PK_RESOURCE_NAME_ANIMATION;
             default:
                 Debug::log(
                     "@get_resource_type_name "

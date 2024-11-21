@@ -5,7 +5,7 @@ namespace pk
 {
     int UIRenderableComponent::s_totLayerValCount = 0;
     int UIRenderableComponent::s_currentSelectedLayer = 0;
-    int UIRenderableComponent::s_maxLayers = 99;
+    int UIRenderableComponent::s_maxLayers = 50;
 
 
     UIRenderableComponent::UIRenderableComponent(ComponentType type) :
@@ -36,7 +36,7 @@ namespace pk
             Debug::log(
                 "@UIRenderableComponent::setLayer "
                 "Layer out of bounds: " + std::to_string(layer) + " "
-                "Max layer count is " + std::to_string(s_maxLayers + 1),
+                "Max layer count is " + std::to_string(s_maxLayers),
                 Debug::MessageType::PK_ERROR
             );
             return;
