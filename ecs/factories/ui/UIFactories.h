@@ -46,6 +46,21 @@ namespace pk
             entityID_t txtEntity = 0;
         };
 
+        struct ImgCreationProperties
+        {
+            ConstraintProperties constraintProperties;
+            float width;
+            float height;
+            vec3 color = { 1, 1, 1 };
+            vec3 highlightColor = { 1, 1, 1 };
+            bool useHighlightColor = false;
+            vec4 borderColor = { 1, 1, 1, 1 };
+            float borderThickness = 0.0f;
+            Texture* pTexture = nullptr;
+            vec4 textureCropping = vec4(0, 0, 1, 1);
+        };
+
+        // TODO: Replace this func with below version using only the creation properties
         entityID_t create_image(
             HorizontalConstraintType horizontalType, float horizontalVal,
             VerticalConstraintType verticalType, float verticalVal,
@@ -56,6 +71,8 @@ namespace pk
             Texture* pTexture = nullptr,
             vec4 textureCropping = vec4(0, 0, 1, 1)
         );
+
+        entityID_t create_image(ImgCreationProperties creationProperties);
 
 
         std::pair<entityID_t, TextRenderable*> create_text(
