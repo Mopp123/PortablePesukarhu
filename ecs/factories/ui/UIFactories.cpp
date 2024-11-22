@@ -12,7 +12,6 @@ namespace pk
         class ButtonMouseButtonEvent : public MouseButtonEvent
         {
         private:
-            entityID_t _buttonEntity = NULL_ENTITY_ID;
             entityID_t _imgEntity = NULL_ENTITY_ID;
 
             vec3 _originalColor = vec3(0, 0, 0);
@@ -20,12 +19,10 @@ namespace pk
             OnClickEvent* _onClick = nullptr;
         public:
             ButtonMouseButtonEvent(
-                entityID_t buttonEntity,
                 entityID_t imgEntity,
                 vec3 highlightColor,
                 OnClickEvent* onClick
             ) :
-                _buttonEntity(buttonEntity),
                 _imgEntity(imgEntity),
                 _highlightColor(highlightColor),
                 _onClick(onClick)
@@ -43,8 +40,14 @@ namespace pk
             virtual void func(InputMouseButtonName button, InputAction action, int mods)
             {
                 Scene* pScene = Application::get()->accessCurrentScene();
-                UIElemState* pUIState = (UIElemState*)pScene->getComponent(_buttonEntity, ComponentType::PK_UIELEM_STATE);
-                GUIRenderable* pImg = (GUIRenderable*)pScene->getComponent(_imgEntity, ComponentType::PK_RENDERABLE_GUI);
+                UIElemState* pUIState = (UIElemState*)pScene->getComponent(
+                    _imgEntity,
+                    ComponentType::PK_UIELEM_STATE
+                );
+                GUIRenderable* pImg = (GUIRenderable*)pScene->getComponent(
+                    _imgEntity,
+                    ComponentType::PK_RENDERABLE_GUI
+                );
 
                 if (!pUIState->isActive())
                     return;
@@ -85,45 +88,32 @@ namespace pk
 
         // TODO: Make cursor pos event for ALL GUI IMAGES
         // (and maybe txt as well) to track if cursor is on ui
-        class ButtonMouseCursorPosEvent : public CursorPosEvent
+        class ImageMouseCursorPosEvent : public CursorPosEvent
         {
         private:
-            entityID_t _buttonEntity = NULL_ENTITY_ID;
-            entityID_t _txtEntity = NULL_ENTITY_ID;
-            entityID_t _imgEntity = NULL_ENTITY_ID;
-            vec3 _txtOriginalColor = vec3(0, 0, 0);
-            vec3 _txtHighlightColor = vec3(1, 1, 1);
-            vec3 _imgOriginalColor = vec3(0, 0, 0);
-            vec3 _imgHighlightColor = vec3(1, 1, 1);
+            entityID_t _entity = NULL_ENTITY_ID;
+            vec3 _originalColor = vec3(0, 0, 0);
+            vec3 _highlightColor = vec3(1, 1, 1);
 
         public:
-            ButtonMouseCursorPosEvent(
-                entityID_t buttonEntity,
-                entityID_t textEntity,
-                entityID_t imgEntity,
-                vec3 txtHighlightColor,
-                vec3 imgHighlightColor
+            ImageMouseCursorPosEvent(
+                entityID_t entity,
+                vec3 highlightColor
             ) :
-                _buttonEntity(buttonEntity),
-                _txtEntity(textEntity),
-                _imgEntity(imgEntity),
-                _txtHighlightColor(txtHighlightColor),
-                _imgHighlightColor(imgHighlightColor)
+                _entity(entity),
+                _highlightColor(highlightColor)
             {
                 const Scene* pScene = Application::get()->getCurrentScene();
-                const TextRenderable* pTxt = (const TextRenderable*)pScene->getComponent(_txtEntity, ComponentType::PK_RENDERABLE_TEXT);
-                const GUIRenderable* pImg = (const GUIRenderable*)pScene->getComponent(_imgEntity, ComponentType::PK_RENDERABLE_GUI);
-                _txtOriginalColor = pTxt->color;
-                _imgOriginalColor = pImg->color;
+                const GUIRenderable* pImg = (const GUIRenderable*)pScene->getComponent(_entity, ComponentType::PK_RENDERABLE_GUI);
+                _originalColor = pImg->color;
             }
 
             virtual void func(int x, int y)
             {
                 Scene* pScene = Application::get()->accessCurrentScene();
-                TextRenderable* pTxt = (TextRenderable*)pScene->getComponent(_txtEntity, ComponentType::PK_RENDERABLE_TEXT);
-                GUIRenderable* pImg = (GUIRenderable*)pScene->getComponent(_imgEntity, ComponentType::PK_RENDERABLE_GUI);
-                const Transform* pTransform = (const Transform*)pScene->getComponent(_imgEntity, ComponentType::PK_TRANSFORM);
-                UIElemState* pUIState = (UIElemState*)pScene->getComponent(_buttonEntity, ComponentType::PK_UIELEM_STATE);
+                GUIRenderable* pImg = (GUIRenderable*)pScene->getComponent(_entity, ComponentType::PK_RENDERABLE_GUI);
+                const Transform* pTransform = (const Transform*)pScene->getComponent(_entity, ComponentType::PK_TRANSFORM);
+                UIElemState* pUIState = (UIElemState*)pScene->getComponent(_entity, ComponentType::PK_UIELEM_STATE);
 
                 const mat4& tMat = pTransform->getTransformationMatrix();
 
@@ -139,7 +129,7 @@ namespace pk
                 if (pUIState->isActive() && x >= xPos && x <= xPos + width && y <= yPos && y >= yPos - height)
                 {
                     // Make sure theres no overlap with other ui (layer vals check)
-                    UIElemState::s_pickedLayers[_buttonEntity] = imgLayer;
+                    UIElemState::s_pickedLayers[_entity] = imgLayer;
 
                     // find highest layer value and make it selected
                     int highest = 0;
@@ -154,7 +144,7 @@ namespace pk
                     {
                         // Reset mouseover to false if "layer switch"
                         if (!pUIState->selected)
-                            pImg->color = _imgOriginalColor;
+                            pImg->color = _originalColor;
 
                         pUIState->mouseOver = false;
                         return;
@@ -162,24 +152,60 @@ namespace pk
                     UIRenderableComponent::set_current_selected_layer(pImg->getLayer());
 
                     if (!pUIState->selected)
-                    {
-                        pTxt->color = _txtHighlightColor;
-                        pImg->color = _imgHighlightColor;
-                    }
+                        pImg->color = _highlightColor;
+
                     pUIState->mouseOver = true;
                 }
                 else
                 {
-                    if (UIElemState::s_pickedLayers.find(_buttonEntity) != UIElemState::s_pickedLayers.end())
-                        UIElemState::s_pickedLayers.erase(_buttonEntity);
+                    if (UIElemState::s_pickedLayers.find(_entity) != UIElemState::s_pickedLayers.end())
+                        UIElemState::s_pickedLayers.erase(_entity);
 
                     if (!pUIState->selected)
-                    {
-                        pTxt->color = _txtOriginalColor;
-                        pImg->color = _imgOriginalColor;
-                    }
+                        pImg->color = _originalColor;
+
                     pUIState->mouseOver = false;
                 }
+            }
+        };
+
+        // TODO: Make cursor pos event for ALL GUI IMAGES
+        // (and maybe txt as well) to track if cursor is on ui
+        class ButtonMouseCursorPosEvent : public CursorPosEvent
+        {
+        private:
+            entityID_t _txtEntity = NULL_ENTITY_ID;
+            entityID_t _imgEntity = NULL_ENTITY_ID;
+            vec3 _txtOriginalColor = vec3(0, 0, 0);
+            vec3 _txtHighlightColor = vec3(1, 1, 1);
+
+        public:
+            ButtonMouseCursorPosEvent(
+                entityID_t textEntity,
+                entityID_t imgEntity,
+                vec3 txtHighlightColor
+            ) :
+                _txtEntity(textEntity),
+                _imgEntity(imgEntity),
+                _txtHighlightColor(txtHighlightColor)
+            {
+                const Scene* pScene = Application::get()->getCurrentScene();
+                const TextRenderable* pTxt = (const TextRenderable*)pScene->getComponent(_txtEntity, ComponentType::PK_RENDERABLE_TEXT);
+                _txtOriginalColor = pTxt->color;
+            }
+
+            virtual void func(int x, int y)
+            {
+                Scene* pScene = Application::get()->accessCurrentScene();
+                TextRenderable* pTxt = (TextRenderable*)pScene->getComponent(_txtEntity, ComponentType::PK_RENDERABLE_TEXT);
+                UIElemState* pUIState = (UIElemState*)pScene->getComponent(_imgEntity, ComponentType::PK_UIELEM_STATE);
+
+                if (pUIState->mouseOver || pUIState->selected)
+                {
+                    pTxt->color = _txtHighlightColor;
+                }
+                else
+                    pTxt->color = _txtOriginalColor;
             }
         };
 
@@ -188,28 +214,44 @@ namespace pk
         {
         private:
             entityID_t _buttonEntity = NULL_ENTITY_ID;
+            entityID_t _txtContentEntity = NULL_ENTITY_ID;
             entityID_t _inputFieldEntity = NULL_ENTITY_ID;
+
+            vec3 _buttonOriginalColor;
+            vec4 _buttonOriginalBorderColor;
 
             InputFieldOnSubmitEvent* _onSubmit = nullptr;
         public:
             InputFieldKeyEvent(
                 entityID_t buttonEntity,
+                entityID_t txtContentEntity,
                 entityID_t inputFieldEntity,
+                vec3 buttonOriginalColor,
+                vec4 buttonOriginalBorderColor,
                 InputFieldOnSubmitEvent* onSubmit
             ) :
                 _buttonEntity(buttonEntity),
+                _txtContentEntity(txtContentEntity),
                 _inputFieldEntity(inputFieldEntity),
+                _buttonOriginalColor(buttonOriginalColor),
+                _buttonOriginalBorderColor(buttonOriginalBorderColor),
                 _onSubmit(onSubmit)
             {}
 
             void func(InputKeyName key, int scancode, InputAction action, int mods)
             {
                 Scene* pScene = Application::get()->accessCurrentScene();
-                UIElemState* pButtonUIState = (UIElemState*)pScene->getComponent(_buttonEntity, ComponentType::PK_UIELEM_STATE);
-                UIElemState* pInputFieldUIState = (UIElemState*)pScene->getComponent(_inputFieldEntity, ComponentType::PK_UIELEM_STATE);
-                TextRenderable* pContentText = (TextRenderable*)pScene->getComponentInChildren(
+                UIElemState* pButtonUIState = (UIElemState*)pScene->getComponent(
                     _buttonEntity,
+                    ComponentType::PK_UIELEM_STATE
+                );
+                TextRenderable* pContentText = (TextRenderable*)pScene->getComponent(
+                    _txtContentEntity,
                     ComponentType::PK_RENDERABLE_TEXT
+                );
+                UIElemState* pInputFieldUIState = (UIElemState*)pScene->getComponent(
+                    _inputFieldEntity,
+                    ComponentType::PK_UIELEM_STATE
                 );
 
                 if (!(pButtonUIState->isActive() && pInputFieldUIState->isActive()))
@@ -239,6 +281,14 @@ namespace pk
                                 txt.clear();
 
                             pButtonUIState->selected = false;
+
+                            // test resetting to original color
+                            GUIRenderable* pImg = (GUIRenderable*)pScene->getComponent(
+                                _buttonEntity,
+                                ComponentType::PK_RENDERABLE_GUI
+                            );
+                            pImg->color = _buttonOriginalColor;
+                            pImg->borderColor = _buttonOriginalBorderColor;
                         }
                     }
                 }
@@ -250,20 +300,26 @@ namespace pk
         {
         private:
             entityID_t _buttonEntity = NULL_ENTITY_ID;
+            entityID_t _txtContentEntity = NULL_ENTITY_ID;
 
         public:
             InputFieldCharInputEvent(
-                entityID_t buttonEntity
+                entityID_t buttonEntity,
+                entityID_t txtContentEntity
             ) :
-                _buttonEntity(buttonEntity)
+                _buttonEntity(buttonEntity),
+                _txtContentEntity(txtContentEntity)
             {}
 
             void func(unsigned int codepoint)
             {
                 Scene* pScene = Application::get()->accessCurrentScene();
-                UIElemState* pButtonUIState = (UIElemState*)pScene->getComponent(_buttonEntity, ComponentType::PK_UIELEM_STATE);
-                TextRenderable* pContentText = (TextRenderable*)pScene->getComponentInChildren(
+                UIElemState* pButtonUIState = (UIElemState*)pScene->getComponent(
                     _buttonEntity,
+                    ComponentType::PK_UIELEM_STATE
+                );
+                TextRenderable* pContentText = (TextRenderable*)pScene->getComponent(
+                    _txtContentEntity,
                     ComponentType::PK_RENDERABLE_TEXT
                 );
 
@@ -293,10 +349,10 @@ namespace pk
             vec4 textureCropping
         )
         {
-	    Application* app = Application::get();
-	    Scene* currentScene = app->accessCurrentScene();
+	        Application* app = Application::get();
+	        Scene* currentScene = app->accessCurrentScene();
 
-	    entityID_t entityID = currentScene->createEntity();
+	        entityID_t entityID = currentScene->createEntity();
             currentScene->createTransform(entityID, { 0,0 }, { width, height });
             currentScene->createGUIRenderable(
                 entityID,
@@ -312,6 +368,60 @@ namespace pk
                 horizontalVal,
                 verticalType,
                 verticalVal
+            );
+
+            UIElemState* pUIElemState = currentScene->createUIElemState(entityID);
+            pUIElemState->selectable = false;
+
+            InputManager* pInputManager = Application::get()->accessInputManager();
+            pInputManager->addCursorPosEvent(
+                new ImageMouseCursorPosEvent(
+                    entityID,
+                    color // Highlight color
+                )
+            );
+
+            return entityID;
+        }
+
+
+        entityID_t create_image(ImgCreationProperties creationProperties)
+        {
+	        Application* app = Application::get();
+	        Scene* currentScene = app->accessCurrentScene();
+
+	        entityID_t entityID = currentScene->createEntity();
+            currentScene->createTransform(
+                entityID,
+                { 0,0 },
+                { creationProperties.width, creationProperties.height }
+            );
+            currentScene->createGUIRenderable(
+                entityID,
+                creationProperties.pTexture,
+                creationProperties.color,
+                creationProperties.borderColor,
+                creationProperties.borderThickness,
+                creationProperties.textureCropping
+            );
+            currentScene->createUIConstraint(
+                entityID,
+                creationProperties.constraintProperties.horizontalType,
+                creationProperties.constraintProperties.horizontalValue,
+                creationProperties.constraintProperties.verticalType,
+                creationProperties.constraintProperties.verticalValue
+            );
+
+            UIElemState* pUIElemState = currentScene->createUIElemState(entityID);
+            pUIElemState->selectable = false;
+
+            vec3 highlightColor = creationProperties.useHighlightColor ? creationProperties.highlightColor : creationProperties.color;
+            InputManager* pInputManager = Application::get()->accessInputManager();
+            pInputManager->addCursorPosEvent(
+                new ImageMouseCursorPosEvent(
+                    entityID,
+                    highlightColor
+                )
             );
 
             return entityID;
@@ -383,16 +493,24 @@ namespace pk
             InputManager* inputManager = Application::get()->accessInputManager();
 
             entityID_t buttonEntity = currentScene->createEntity();
-            entityID_t imgEntity = create_image(
-                horizontalType, horizontalVal,
-                verticalType, verticalVal,
-                width, height,
+
+            ImgCreationProperties imgProperties =
+            {
+                {
+                    horizontalType, horizontalVal,
+                    verticalType, verticalVal
+                },
+                width,
+                height,
                 color,
+                backgroundHighlightColor,
+                true,
                 borderColor,
                 borderThickness,
                 pTexture,
                 textureCropping
-            );
+            };
+            entityID_t imgEntity = create_image(imgProperties);
 
             // Add txt displacement
             const int padding = 4;
@@ -430,14 +548,15 @@ namespace pk
             txtTransform->accessTransformationMatrix()[0 + 0 * 4] = width;
             txtTransform->accessTransformationMatrix()[1 + 1 * 4] = height;
 
-            // Create new UIElem state if not explicitly specified already
-            UIElemState* pUIElemState = currentScene->createUIElemState(buttonEntity);
+            UIElemState* pUIElemState = (UIElemState*)currentScene->getComponent(
+                imgEntity,
+                ComponentType::PK_UIELEM_STATE
+            );
             pUIElemState->selectable = selectable;
 
             vec3 selectedColor(0.3f, 0.3f, 0.3f);
             inputManager->addMouseButtonEvent(
                 new ButtonMouseButtonEvent(
-                    buttonEntity,
                     imgEntity,
                     selectedColor,
                     onClick
@@ -445,11 +564,9 @@ namespace pk
             );
             inputManager->addCursorPosEvent(
                 new ButtonMouseCursorPosEvent(
-                    buttonEntity,
                     txtEntity,
                     imgEntity,
-                    textHighlightColor,
-                    backgroundHighlightColor
+                    textHighlightColor
                 )
             );
             return { buttonEntity, imgEntity, txtEntity };
@@ -479,7 +596,6 @@ namespace pk
             pUIElemState->selectable = true;
             pUIElemState->clearOnSubmit = clearOnSubmit;
 
-
             // figure out text's size
             float infoTxtWidth = 0.0f;//font.getPixelSize();
             float pos = 0.0f;
@@ -507,7 +623,8 @@ namespace pk
                 buttonDisplacement += ((float)font.getPixelSize()) - 4;
             }
 
-            // Create button (*Override the button's UIElemState)
+            // Create button
+            vec4 borderColor(color.x, color.y, color.z, 1.0f);
             UIFactoryButton button = create_button(
                 "", // txt
                 font,
@@ -520,7 +637,7 @@ namespace pk
                 textColor,
                 textHighlightColor,
                 backgroundHighlightColor,
-                { color.x, color.y, color.z, 1.0f }, // border color
+                borderColor,
                 2, // border thickness
                 nullptr, // texture
                 {0, 0, 1, 1} // cropping
@@ -553,14 +670,18 @@ namespace pk
 
             inputManager->addKeyEvent(
                 new InputFieldKeyEvent(
-                    button.rootEntity,
+                    button.imgEntity,
+                    button.txtEntity,
                     inputFieldEntity,
+                    color,
+                    borderColor,
                     onSubmitEvent
                 )
             );
             inputManager->addCharInputEvent(
                 new InputFieldCharInputEvent(
-                    button.rootEntity
+                    button.imgEntity,
+                    button.txtEntity
                 )
             );
 

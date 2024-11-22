@@ -30,6 +30,14 @@ namespace pk
         float value;
     };
 
+    struct ConstraintProperties
+    {
+        HorizontalConstraintType horizontalType;
+        float horizontalValue;
+        VerticalConstraintType verticalType;
+        float verticalValue;
+    };
+
     class ConstraintData : public Component
     {
     public:
