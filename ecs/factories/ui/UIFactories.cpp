@@ -574,7 +574,7 @@ namespace pk
 
 
         #define PK_INPUTFIELD_DEFAULT_HEIGHT 21
-        std::pair<entityID_t, TextRenderable*> create_input_field(
+        UIFactoryInputField create_input_field(
             std::string infoTxt, const Font& font,
             HorizontalConstraintType horizontalType, float horizontalVal,
             VerticalConstraintType verticalType, float verticalVal,
@@ -685,7 +685,7 @@ namespace pk
                 )
             );
 
-            return std::make_pair(inputFieldEntity, contentText);
+            return { inputFieldEntity, button.txtEntity };
         }
     }
 }

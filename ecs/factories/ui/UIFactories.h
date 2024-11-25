@@ -46,6 +46,12 @@ namespace pk
             entityID_t txtEntity = 0;
         };
 
+        struct UIFactoryInputField
+        {
+            entityID_t rootEntity = 0;
+            entityID_t contentEntity = 0;
+        };
+
         struct ImgCreationProperties
         {
             ConstraintProperties constraintProperties;
@@ -103,7 +109,7 @@ namespace pk
         );
 
         // return pair of InputField-entity and TextRenderable ptr of its' content
-        std::pair<entityID_t, TextRenderable*> create_input_field(
+        UIFactoryInputField create_input_field(
             std::string infoTxt, const Font& font,
             HorizontalConstraintType horizontalType, float horizontalVal,
             VerticalConstraintType verticalType, float verticalVal,
