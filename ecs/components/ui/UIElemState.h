@@ -16,6 +16,7 @@ namespace pk
         int state = 0;
         // InputField specific
         bool clearOnSubmit = true;
+        std::string content;
 
         static std::unordered_map<entityID_t, int> s_pickedLayers;
 

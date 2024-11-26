@@ -14,6 +14,7 @@
 #include "ecs/components/renderable/TerrainRenderable.h"
 #include "ecs/components/lighting/Lights.h"
 #include "ecs/components/AnimationData.h"
+#include "ecs/components/ui/Blinker.h"
 #include "graphics/Environment.h"
 #include "graphics/animation/Pose.h"
 
@@ -136,9 +137,15 @@ namespace pk
             float speed,
             std::vector<uint32_t> keyframes = {}
         );
+        Blinker* createBlinker(entityID_t target);
 
         // TODO: all getComponent things could be optimized?
-        Component* getComponent(entityID_t entityID, ComponentType type, bool nestedSearch = false);
+        Component* getComponent(
+            entityID_t entityID,
+            ComponentType type,
+            bool nestedSearch = false,
+            bool enableWarning = true
+        );
         const Component * const getComponent(entityID_t entityID, ComponentType type, bool nestedSearch = false) const;
         // Returns first component of "type" found in "entity"'s child entities
         Component* getComponentInChildren(entityID_t entityID, ComponentType type);

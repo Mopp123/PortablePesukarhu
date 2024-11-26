@@ -45,9 +45,11 @@ namespace pk
 			if (inputManager->isCharacter(keyEvent->key))
 			{
 				unsigned char b1 = keyEvent->key[0];
-				unsigned char b2 = keyEvent->key[1];
+				//unsigned char b2 = keyEvent->key[1];
+				//unsigned int codepoint = inputManager->parseSpecialCharCodepoint(b2 == 0 ? (unsigned int)b1 : (unsigned int)b2);
 
-				unsigned int codepoint = inputManager->parseSpecialCharCodepoint(b2 == 0 ? (unsigned int)b1 : (unsigned int)b2);
+				// Extended chars are disabled atm!
+				unsigned int codepoint = b1;
 
 				inputManager->processCharInputEvents(codepoint);
 			}

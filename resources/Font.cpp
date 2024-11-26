@@ -24,7 +24,7 @@ namespace pk
     void Font::load()
     {
         createFont(
-            " qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890.,:;?!&_'+-*^/()[]{}|äåöÄÅÖ"
+            " qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890.,:;?!&_'+-*^/()[]{}<>|äåöÄÅÖ"
         );
     }
 

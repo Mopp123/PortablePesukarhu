@@ -1,4 +1,5 @@
 #include "FontRenderer.h"
+#include <stdexcept>
 #include <string>
 #include "core/Application.h"
 #include "ecs/components/renderable/GUIRenderable.h"
@@ -166,7 +167,10 @@ namespace pk
             return;
         }
 
-        const std::string& str = pRenderable->getStr();
+        // Atm just for testing blinking effect
+        const std::string& visualStr = pRenderable->getVisualStr();
+        const std::string& contentStr = pRenderable->getStr();
+        std::string str = visualStr.empty() ? contentStr : visualStr;
         if (str.size() >= s_maxInstanceCount)
         {
             Debug::log(
@@ -229,33 +233,44 @@ namespace pk
                 break;
             }
 
-            const FontGlyphData& glyphData = glyphMapping.at(c);
-
-            float x = (posX + (float)glyphData.bearingX);
-            // - ch because we want origin to be at 0,0 but we also need to add the bearingY so.. gets fucked without this..
-            float y = posY + (float)glyphData.bearingY - charHeight;
-
-            float renderableData[s_instanceBufferComponents] = {
-                (float)(int)x, (float)(int)y, posZ,
-                (float)(int)charWidth, (float)(int)charHeight,
-                (float)glyphData.texOffsetX, (float)glyphData.texOffsetY,
-                color.x, color.y, color.z, 1.0f
-            };
-
-            // Create descriptor sets if necessary BUT ONLY if added to batch successfully
-            if (_batchContainer.addData(renderableData, sizeof(float) * s_instanceBufferComponents, batchIdentifier))
+            try
             {
-                if (!_batchContainer.hasDescriptorSets(batchIdentifier))
+                const FontGlyphData& glyphData = glyphMapping.at(c);
+
+                float x = (posX + (float)glyphData.bearingX);
+                // - ch because we want origin to be at 0,0 but we also need to add the bearingY so.. gets fucked without this..
+                float y = posY + (float)glyphData.bearingY - charHeight;
+
+                float renderableData[s_instanceBufferComponents] = {
+                    (float)(int)x, (float)(int)y, posZ,
+                    (float)(int)charWidth, (float)(int)charHeight,
+                    (float)glyphData.texOffsetX, (float)glyphData.texOffsetY,
+                    color.x, color.y, color.z, 1.0f
+                };
+
+                // Create descriptor sets if necessary BUT ONLY if added to batch successfully
+                if (_batchContainer.addData(renderableData, sizeof(float) * s_instanceBufferComponents, batchIdentifier))
                 {
-                    _batchContainer.createDescriptorSets(
-                        batchIdentifier,
-                        &_textureDescSetLayout,
-                        { pTexture }
-                    );
+                    if (!_batchContainer.hasDescriptorSets(batchIdentifier))
+                    {
+                        _batchContainer.createDescriptorSets(
+                            batchIdentifier,
+                            &_textureDescSetLayout,
+                            { pTexture }
+                        );
+                    }
                 }
+                // NOTE: Don't quite understand this.. For some reason on some fonts >> 7 works better...
+                posX += ((float)(glyphData.advance >> 6)) * scaleFactorX; // now advance cursors for next glyph (note that advance is number of 1/64 pixels). bitshift by 6 to get value in pixels (2^6 = 64) | OLD COMMENT: 2^5 = 32 (pixel size of the font..)
             }
-            // NOTE: Don't quite understand this.. For some reason on some fonts >> 7 works better...
-            posX += ((float)(glyphData.advance >> 6)) * scaleFactorX; // now advance cursors for next glyph (note that advance is number of 1/64 pixels). bitshift by 6 to get value in pixels (2^6 = 64) | OLD COMMENT: 2^5 = 32 (pixel size of the font..)
+            catch (const std::out_of_range& e)
+            {
+                Debug::log(
+                    "@FontRenderer::submit "
+                    "No glyph data found for character: " + std::string(c, 1) + " (value: " + std::to_string(c) + ")",
+                    Debug::MessageType::PK_ERROR
+                );
+            }
         }
     }
 

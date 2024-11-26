@@ -12,6 +12,8 @@ namespace pk
     {
     private:
         std::string _txt;
+        // Text to display. Used to have separate visual effect from the "actual content text"
+        std::string _visualTxt;
         bool _bold;
 
     public:
@@ -46,8 +48,10 @@ namespace pk
         }
 
         inline std::string& accessStr() { return _txt; }
+        inline std::string& accessVisualStr() { return _visualTxt; }
         inline void setColor(const vec3 color) { this->color = color; }
         inline const std::string& getStr() const { return _txt; }
+        inline const std::string& getVisualStr() const { return _visualTxt; }
         inline bool isBold() const { return _bold; }
         inline PK_id getFontID() const { return fontID; }
     };

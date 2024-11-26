@@ -119,7 +119,8 @@ namespace pk
             vec3 color = { 0.1f, 0.1f, 0.1f },
             vec3 textColor = { 1, 1, 1 },
             vec3 textHighlightColor = { 1, 1, 1 },
-            vec3 backgroundHighlightColor = { 0.2f, 0.2f, 0.2f }
+            vec3 backgroundHighlightColor = { 0.2f, 0.2f, 0.2f },
+            bool password = false
         );
     }
 }

@@ -342,6 +342,8 @@ namespace pk
             Material* pMaterial = (Material*)getResource(materialResourceID);
             pMesh->setMaterial(pMaterial);
             _resources[pMesh->getResourceID()] = pMesh;
+            if (persistent)
+                _persistentResources[pMesh->getResourceID()] = pMesh;
         }
         _resources[pModel->getResourceID()] = pModel;
         if (persistent)

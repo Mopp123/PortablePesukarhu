@@ -29,7 +29,9 @@ namespace pk
 
         PK_CAMERA = 0x400,
 
-        PK_ANIMATION_DATA = 0x800
+        PK_ANIMATION_DATA = 0x800,
+
+        PK_BLINKER = 0x1000
     };
 
 

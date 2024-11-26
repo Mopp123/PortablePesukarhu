@@ -13,6 +13,7 @@ namespace pk
         {
         private:
             entityID_t _imgEntity = NULL_ENTITY_ID;
+            entityID_t _txtEntity = NULL_ENTITY_ID;
 
             vec3 _originalColor = vec3(0, 0, 0);
             vec3 _highlightColor = vec3(1.0f, 1.0f, 1.0f);
@@ -20,10 +21,12 @@ namespace pk
         public:
             ButtonMouseButtonEvent(
                 entityID_t imgEntity,
+                entityID_t txtEntity,
                 vec3 highlightColor,
                 OnClickEvent* onClick
             ) :
                 _imgEntity(imgEntity),
+                _txtEntity(txtEntity),
                 _highlightColor(highlightColor),
                 _onClick(onClick)
             {
@@ -49,6 +52,25 @@ namespace pk
                     ComponentType::PK_RENDERABLE_GUI
                 );
 
+                // If this was used as input field get text blinker...
+                // fucking shit way to deal with this stuff atm...
+                // TODO: Rework this whole fuckery!
+                Blinker* pBlinker = nullptr;
+                TextRenderable* pTxtRenderable = nullptr;
+                if (_txtEntity)
+                {
+                    pBlinker = (Blinker*)pScene->getComponent(
+                        _txtEntity,
+                        ComponentType::PK_BLINKER,
+                        false,
+                        false
+                    );
+                    pTxtRenderable = (TextRenderable*)pScene->getComponent(
+                        _txtEntity,
+                        ComponentType::PK_RENDERABLE_TEXT
+                    );
+                }
+
                 if (!pUIState->isActive())
                     return;
                 if (pUIState->mouseOver)
@@ -68,6 +90,14 @@ namespace pk
                         {
                             pUIState->selected = !pUIState->selected;
                             pImg->color = _highlightColor;
+
+                            if (pBlinker)
+                            {
+                                pBlinker->enable = pUIState->selected;
+                                // Reset txt to original state if disengage blinker
+                                if (!pUIState->selected)
+                                    pTxtRenderable->accessVisualStr() = pTxtRenderable->accessStr();
+                            }
                         }
 
                         if (_onClick)
@@ -82,6 +112,12 @@ namespace pk
                     pImg->color = _originalColor;
 
                     pUIState->state = 0;
+
+                    if (pBlinker)
+                    {
+                        pBlinker->enable = false;
+                        pTxtRenderable->accessVisualStr() = pTxtRenderable->accessStr();
+                    }
                 }
             }
         };
@@ -199,13 +235,14 @@ namespace pk
                 Scene* pScene = Application::get()->accessCurrentScene();
                 TextRenderable* pTxt = (TextRenderable*)pScene->getComponent(_txtEntity, ComponentType::PK_RENDERABLE_TEXT);
                 UIElemState* pUIState = (UIElemState*)pScene->getComponent(_imgEntity, ComponentType::PK_UIELEM_STATE);
-
                 if (pUIState->mouseOver || pUIState->selected)
                 {
                     pTxt->color = _txtHighlightColor;
                 }
                 else
+                {
                     pTxt->color = _txtOriginalColor;
+                }
             }
         };
 
@@ -213,9 +250,9 @@ namespace pk
         class InputFieldKeyEvent : public KeyEvent
         {
         private:
+            entityID_t _inputFieldEntity = NULL_ENTITY_ID;
             entityID_t _buttonEntity = NULL_ENTITY_ID;
             entityID_t _txtContentEntity = NULL_ENTITY_ID;
-            entityID_t _inputFieldEntity = NULL_ENTITY_ID;
 
             vec3 _buttonOriginalColor;
             vec4 _buttonOriginalBorderColor;
@@ -223,16 +260,16 @@ namespace pk
             InputFieldOnSubmitEvent* _onSubmit = nullptr;
         public:
             InputFieldKeyEvent(
+                entityID_t inputFieldEntity,
                 entityID_t buttonEntity,
                 entityID_t txtContentEntity,
-                entityID_t inputFieldEntity,
                 vec3 buttonOriginalColor,
                 vec4 buttonOriginalBorderColor,
                 InputFieldOnSubmitEvent* onSubmit
             ) :
+                _inputFieldEntity(inputFieldEntity),
                 _buttonEntity(buttonEntity),
                 _txtContentEntity(txtContentEntity),
-                _inputFieldEntity(inputFieldEntity),
                 _buttonOriginalColor(buttonOriginalColor),
                 _buttonOriginalBorderColor(buttonOriginalBorderColor),
                 _onSubmit(onSubmit)
@@ -241,17 +278,21 @@ namespace pk
             void func(InputKeyName key, int scancode, InputAction action, int mods)
             {
                 Scene* pScene = Application::get()->accessCurrentScene();
+                UIElemState* pInputFieldUIState = (UIElemState*)pScene->getComponent(
+                    _inputFieldEntity,
+                    ComponentType::PK_UIELEM_STATE
+                );
                 UIElemState* pButtonUIState = (UIElemState*)pScene->getComponent(
                     _buttonEntity,
                     ComponentType::PK_UIELEM_STATE
                 );
-                TextRenderable* pContentText = (TextRenderable*)pScene->getComponent(
+                TextRenderable* pTextRenderable = (TextRenderable*)pScene->getComponent(
                     _txtContentEntity,
                     ComponentType::PK_RENDERABLE_TEXT
                 );
-                UIElemState* pInputFieldUIState = (UIElemState*)pScene->getComponent(
-                    _inputFieldEntity,
-                    ComponentType::PK_UIELEM_STATE
+                Blinker* pBlinker = (Blinker*)pScene->getComponent(
+                    _txtContentEntity,
+                    ComponentType::PK_BLINKER
                 );
 
                 if (!(pButtonUIState->isActive() && pInputFieldUIState->isActive()))
@@ -261,26 +302,35 @@ namespace pk
                 if (inputModeActive)
                 {
                     // <#M_DANGER> Not sure how badly this 'll end up fucking something...
-                    std::string& txt = pContentText->accessStr();
+                    std::string& contentTxt = pInputFieldUIState->content;
+                    std::string& renderableTxt = pTextRenderable->accessStr();
 
                     if (action != PK_INPUT_RELEASE)
                     {
                         // Erasing front text if backspace
                         if (key == PK_INPUT_KEY_BACKSPACE)
                         {
-                            if (!txt.empty())
-                                txt.pop_back();
+                            if (!contentTxt.empty())
+                                contentTxt.pop_back();
+                            if (!renderableTxt.empty())
+                                renderableTxt.pop_back();
                         }
-                        // Default submit behaviour..
+
                         if (key == PK_INPUT_KEY_ENTER)
                         {
                             if (_onSubmit)
-                                _onSubmit->onSubmit(txt);
+                                _onSubmit->onSubmit(pInputFieldUIState->content);
 
                             if (pInputFieldUIState->clearOnSubmit)
-                                txt.clear();
+                            {
+                                contentTxt.clear();
+                                renderableTxt.clear();
+                            }
 
                             pButtonUIState->selected = false;
+                            pBlinker->enable = false;
+                            pTextRenderable->accessVisualStr() = renderableTxt;
+
 
                             // test resetting to original color
                             GUIRenderable* pImg = (GUIRenderable*)pScene->getComponent(
@@ -299,21 +349,31 @@ namespace pk
         class InputFieldCharInputEvent : public CharInputEvent
         {
         private:
+            entityID_t _inputFieldEntity = NULL_ENTITY_ID;
             entityID_t _buttonEntity = NULL_ENTITY_ID;
             entityID_t _txtContentEntity = NULL_ENTITY_ID;
+            bool _isPassword = false;
 
         public:
             InputFieldCharInputEvent(
+                entityID_t inputFieldEntity,
                 entityID_t buttonEntity,
-                entityID_t txtContentEntity
+                entityID_t txtContentEntity,
+                bool isPassword
             ) :
+                _inputFieldEntity(inputFieldEntity),
                 _buttonEntity(buttonEntity),
-                _txtContentEntity(txtContentEntity)
+                _txtContentEntity(txtContentEntity),
+                _isPassword(isPassword)
             {}
 
             void func(unsigned int codepoint)
             {
                 Scene* pScene = Application::get()->accessCurrentScene();
+                UIElemState* pInputFieldState = (UIElemState*)pScene->getComponent(
+                    _inputFieldEntity,
+                    ComponentType::PK_UIELEM_STATE
+                );
                 UIElemState* pButtonUIState = (UIElemState*)pScene->getComponent(
                     _buttonEntity,
                     ComponentType::PK_UIELEM_STATE
@@ -331,8 +391,15 @@ namespace pk
                     // <#M_DANGER>
                     // just for testing atm.. quite dumb way to do it like this..
                     unsigned char typedChar = (unsigned char)codepoint;
+
+                    // Always add the "real content" to UIElemState but
+                    // if password don't put to TextRenderable
+                    pInputFieldState->content.push_back(typedChar);
                     std::string& txt = pContentText->accessStr();
-                    txt.push_back(typedChar);
+                    if (!_isPassword)
+                        txt.push_back(typedChar);
+                    else
+                        txt.push_back('*');
                 }
             }
         };
@@ -558,6 +625,7 @@ namespace pk
             inputManager->addMouseButtonEvent(
                 new ButtonMouseButtonEvent(
                     imgEntity,
+                    txtEntity,
                     selectedColor,
                     onClick
                 )
@@ -584,7 +652,8 @@ namespace pk
             vec3 color,
             vec3 textColor,
             vec3 textHighlightColor,
-            vec3 backgroundHighlightColor
+            vec3 backgroundHighlightColor,
+            bool password
         )
         {
             Scene* currentScene = Application::get()->accessCurrentScene();
@@ -642,6 +711,9 @@ namespace pk
                 nullptr, // texture
                 {0, 0, 1, 1} // cropping
             );
+            // Add blinker to button's text renderable which is concidered the "content string"
+            Blinker* pBlinker = currentScene->createBlinker(button.txtEntity);
+            pBlinker->enable = false;
 
             // Create info txt
             uint32_t infoTxtEntity = create_text(
@@ -670,9 +742,9 @@ namespace pk
 
             inputManager->addKeyEvent(
                 new InputFieldKeyEvent(
+                    inputFieldEntity,
                     button.imgEntity,
                     button.txtEntity,
-                    inputFieldEntity,
                     color,
                     borderColor,
                     onSubmitEvent
@@ -680,8 +752,10 @@ namespace pk
             );
             inputManager->addCharInputEvent(
                 new InputFieldCharInputEvent(
+                    inputFieldEntity,
                     button.imgEntity,
-                    button.txtEntity
+                    button.txtEntity,
+                    password
                 )
             );
 

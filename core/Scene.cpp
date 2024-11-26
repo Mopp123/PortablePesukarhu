@@ -8,6 +8,7 @@
 #include "ecs/systems/ui/ConstraintSystem.h"
 #include "ecs/systems/TransformSystem.h"
 #include "ecs/systems/Animator.h"
+#include "ecs/systems/ui/BlinkerSystem.h"
 #include <unordered_map>
 
 namespace pk
@@ -100,6 +101,9 @@ namespace pk
         componentPools[ComponentType::PK_ANIMATION_DATA] = ComponentPool(
             sizeof(AnimationData), maxEntityCount, true
         );
+        componentPools[ComponentType::PK_BLINKER] = ComponentPool(
+            sizeof(Blinker), maxEntityCount, true
+        );
 
         // NOTE: Only temporarely adding all default systems here!
         // TODO: Some better way of handling this!!
@@ -108,6 +112,7 @@ namespace pk
         systems.push_back(new TransformSystem);
         systems.push_back(new ui::ConstraintSystem);
         systems.push_back(new Animator);
+        systems.push_back(new BlinkerSystem);
     }
 
     Scene::~Scene()
@@ -530,6 +535,15 @@ namespace pk
         // For now figure out joint count here.. maybe in future somewhere else..
         ResourceManager& resManager = Application::get()->getResourceManager();
         const Animation* pAnimResource = (const Animation*)resManager.getResource(animationResourceID);
+        if (!pAnimResource)
+        {
+            Debug::log(
+                "@Scene::createAnimationData "
+                "Failed to find AnimationResource with ID: " + std::to_string(animationResourceID),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
         *pComponent = AnimationData(
             animationResourceID,
             mode,
@@ -541,7 +555,21 @@ namespace pk
         return pComponent;
     }
 
-    Component* Scene::getComponent(entityID_t entityID, ComponentType type, bool nestedSearch)
+    Blinker* Scene::createBlinker(entityID_t target)
+    {
+        Blinker* pComponent = (Blinker*)componentPools[ComponentType::PK_BLINKER].allocComponent(target);
+        Blinker b;
+        *pComponent = b;
+        addComponent(target, pComponent);
+        return pComponent;
+    }
+
+    Component* Scene::getComponent(
+        entityID_t entityID,
+        ComponentType type,
+        bool nestedSearch,
+        bool enableWarning
+    )
     {
         if (!isValidEntity(entityID))
         {
@@ -565,9 +593,11 @@ namespace pk
         {
             return (Component*)componentPools[type].getComponent_DANGER(entityID);
         }
-        if (!nestedSearch)
+        if (!nestedSearch && enableWarning)
             Debug::log(
-                "Couldn't find component of type: " + std::to_string(type) + " from entity: " + std::to_string(entityID)
+                "Couldn't find component of type: " + std::to_string(type) + " "
+                "from entity: " + std::to_string(entityID),
+                Debug::MessageType::PK_WARNING
             );
         return nullptr;
     }
