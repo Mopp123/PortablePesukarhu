@@ -23,11 +23,11 @@ namespace pk
         fseek(pFile, 0, SEEK_SET);
 
         size_t bufferSize = fileLength + 1;
-        char* shaderSource = new char[bufferSize];
-        memset(shaderSource, 0, sizeof(char) * bufferSize);
+        char* pBuffer = new char[bufferSize];
+        memset(pBuffer, 0, sizeof(char) * bufferSize);
 
         size_t readBytes = 0;
-        readBytes = fread(shaderSource, sizeof(char), fileLength, pFile);
+        readBytes = fread(pBuffer, sizeof(char), fileLength, pFile);
 
         if (readBytes != fileLength)
         {
@@ -39,8 +39,8 @@ namespace pk
                 Debug::MessageType::PK_ERROR
             );
         }
-        std::string sourceStr(shaderSource, fileLength);
-        delete[] shaderSource;
+        std::string sourceStr(pBuffer, fileLength-1);
+        delete[] pBuffer;
         return sourceStr;
     }
 }
