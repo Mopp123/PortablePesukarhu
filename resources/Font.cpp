@@ -132,6 +132,8 @@ namespace pk
         // We want each glyph in the texture atlas to have perfect square space, for simplicity's sake..
         // (This results in many unused pixels tho..)
         _textureAtlasTileWidth = std::max(maxGlyphWidth, maxGlyphHeight);
+        // ...but we also need max glyph height to render properly...
+        _charHeight = std::max(maxGlyphHeight, maxGlyphHeight);
 
         // Combine all the loaded glyphs bitmaps into a single large texture atlas
         const unsigned int combinedGlyphBitmapWidth = textureAtlasRowCount * _textureAtlasTileWidth;

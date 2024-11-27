@@ -210,7 +210,7 @@ namespace pk
         float posZ = (-maxLayers + (float)pRenderable->getLayer()) * pCamera->getGUILayerMultiplier();
 
         float charWidth = pFont->getTilePixelWidth() * scaleFactorX;
-        float charHeight = pFont->getTilePixelWidth() * scaleFactorY;
+        float charHeight = pFont->getMaxCharHeight() * scaleFactorY;
 
         const std::unordered_map<char, FontGlyphData>& glyphMapping = pFont->getGlyphMapping();
 

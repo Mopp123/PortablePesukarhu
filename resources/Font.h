@@ -43,6 +43,8 @@ namespace pk
         unsigned int _pixelSize = 1;
         int _textureAtlasRowCount = 1;
         int _textureAtlasTileWidth = 1; // Width in pixels of a single tile inside the font's texture atlas.
+        // Max height of a character
+        int _charHeight = 1;
 
         std::unordered_map<char, FontGlyphData> _glyphMapping;
 
@@ -64,6 +66,7 @@ namespace pk
         inline const std::unordered_map<char, FontGlyphData>& getGlyphMapping() const { return _glyphMapping; }
         inline int getTextureAtlasRowCount() const { return _textureAtlasRowCount; }
         inline int getTilePixelWidth() const { return _textureAtlasTileWidth; }
+        inline int getMaxCharHeight() const { return _charHeight; }
 
     private:
         void createFont(const std::string& charsToLoad);
