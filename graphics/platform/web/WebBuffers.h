@@ -1,42 +1,76 @@
 #pragma once
 
-
 #include "../../Buffers.h"
+
 
 namespace pk
 {
-	namespace web
-	{
+    namespace web
+    {
+        class WebRenderCommand;
 
-		class WebVertexBuffer : public VertexBuffer
-		{
-		private:
+        class WebVertexBuffer : public VertexBuffer
+        {
+        private:
+            uint32_t _id = 0;
 
-			PK_uint _id = 0;
+        public:
+            WebVertexBuffer(const std::vector<float>& data, VertexBufferUsage usage);
+            ~WebVertexBuffer();
 
-		public:
+            virtual void update(const std::vector<float>& newData, int offset, int size) override;
 
-			WebVertexBuffer(const std::vector<PK_float>& data, VertexBufferUsage usage);
-			~WebVertexBuffer();
+            inline uint32_t getID() const { return _id; }
+        };
 
-			virtual void update(const std::vector<PK_float>& newData, int offset, int size) override;
 
-			inline PK_uint getID() const { return _id; }
-		};
+        class WebIndexBuffer : public IndexBuffer
+        {
+        private:
+            uint32_t _id = 0;
 
-		class WebIndexBuffer : public IndexBuffer
-		{
-		private:
+        public:
+            WebIndexBuffer(const std::vector<unsigned short>& data);
+            ~WebIndexBuffer();
 
-			PK_uint _id = 0;
+            inline uint32_t getID() const { return _id; }
+        };
 
-		public:
 
-			WebIndexBuffer(const std::vector<PK_ushort>& data);
-			~WebIndexBuffer();
+        class WebBuffer : public Buffer
+        {
+        private:
+            friend class Buffer;
+            friend class WebRenderCommand;
 
-			inline PK_uint getID() const { return _id; }
+            uint32_t _id = 0;
+            bool _isIndexBuffer = false;
+            // Used to call glBufferSubData on updated internal _data when
+            // the buffer gets bound. This is to use opengl binding and unbinding
+            // calls less frequently
+            bool _shouldUpdate = false;
+            size_t _updateSize = 0;
+            size_t _updateOffset = 0; // Doesn't work atm!
 
-		};
-	}
+        public:
+            WebBuffer(const WebBuffer&) = delete;
+            ~WebBuffer();
+            virtual void update(const void* data, size_t dataSize);
+            virtual void update(const void* data, size_t offset, size_t dataSize);
+            virtual void clearHostSideBuffer();
+
+            inline uint32_t getID() const { return _id; }
+            inline bool shouldUpdate() const { return _shouldUpdate; }
+
+        protected:
+            WebBuffer(
+                void* data,
+                size_t elementSize,
+                size_t dataLength,
+                uint32_t bufferUsageFlags,
+                BufferUpdateFrequency bufferUpdateFrequency,
+                bool saveDataHostSide
+            );
+        };
+    }
 }

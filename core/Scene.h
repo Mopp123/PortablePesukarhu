@@ -1,9 +1,24 @@
 ﻿#pragma once
 
-#include "../ecs/components/Component.h"
-#include "../ecs/components/Camera.h"
-#include "../ecs/systems/System.h"
-#include "../ecs/systems/CameraUtils.h"
+#include "ecs/components/ComponentPool.h"
+#include "ecs/Entity.h"
+
+#include "ecs/components/Component.h"
+#include "ecs/components/Camera.h"
+#include "ecs/components/ui/ConstraintData.h"
+#include "ecs/components/ui/UIElemState.h"
+#include "ecs/components/renderable/GUIRenderable.h"
+#include "ecs/components/renderable/TextRenderable.h"
+#include "ecs/components/renderable/Static3DRenderable.h"
+#include "ecs/components/renderable/SkinnedRenderable.h"
+#include "ecs/components/renderable/TerrainRenderable.h"
+#include "ecs/components/lighting/Lights.h"
+#include "ecs/components/AnimationData.h"
+#include "ecs/components/ui/Blinker.h"
+#include "graphics/Environment.h"
+#include "graphics/animation/Pose.h"
+
+#include "ecs/systems/System.h"
 #include "Debug.h"
 #include <unordered_map>
 #include <vector>
@@ -14,153 +29,145 @@ namespace pk
     class Scene
     {
     private:
-        // key = parent entity : val = all this entity's children
-        std::unordered_map<uint32_t, std::vector<uint32_t>> _entityChildMapping;
 
     public:
-        std::unordered_map<ComponentType, std::vector<Component*>> components;
-        std::unordered_map<SystemType, std::vector<System*>> systems;
-        std::vector<uint32_t> entities;
+        //std::unordered_map<ComponentType, std::vector<Component*>> components;
+        std::vector<System*> systems;
+        std::vector<Entity> entities;
+        std::unordered_map<entityID_t, std::vector<entityID_t>> entityChildMapping;
+        std::vector<entityID_t> freeEntityIDs;
+        std::unordered_map<ComponentType, ComponentPool> componentPools;
 
-        Camera* activeCamera = nullptr;
+        entityID_t activeCamera = NULL_ENTITY_ID;
+        entityID_t directionalLight = NULL_ENTITY_ID;
+        struct EnvironmentProperties environmentProperties;
 
-        Scene() 
-        {
-        }
+        Scene();
+        virtual ~Scene();
 
-        virtual ~Scene() 
-        {
-            for (const std::pair<ComponentType, std::vector<Component*>>& cContainer : components)
-            {
-                Debug::log("Destroying components...");
-                for (Component* c : cContainer.second)
-                    delete c;
-            }
-            components.clear();
-            entities.clear();
-            
-            for (const std::pair<SystemType, std::vector<System*>>& sysContainer : systems)
-            {
-                for (System* system : sysContainer.second)
-                    delete system;
-            }
-            
-            systems.clear();
+        entityID_t createEntity();
+        // TODO: Some better way of dealing with this
+        entityID_t createSkeletonEntity(entityID_t target, const Pose& bindPose);
+        Entity getEntity(entityID_t entity) const;
+        void destroyEntity(entityID_t entityID);
+        void addChild(entityID_t entityID, entityID_t childID);
+        // NOTE: Could be optimized to return just ptr to first child and child count
+        std::vector<entityID_t> getChildren(entityID_t entityID) const;
 
-            _entityChildMapping.clear();
-        }
+        void addComponent(entityID_t entityID, Component* component);
+        bool isValidEntity(entityID_t entityID) const;
+        Transform* createTransform(
+            entityID_t target,
+            vec2 pos,
+            vec2 scale
+        );
+        Transform* createTransform(
+            entityID_t target,
+            vec3 pos,
+            vec3 scale,
+            float pitch = 0.0f,
+            float yaw = 0.0f
+        );
+        Transform* createTransform(
+            entityID_t target,
+            vec3 pos,
+            quat rotation,
+            vec3 scale
+        );
+        Transform* createTransform(
+            entityID_t target,
+            mat4 transformationMatrix
+        );
+        ConstraintData* createUIConstraint(
+            entityID_t target,
+            HorizontalConstraintType horizontalType,
+            float horizontalValue,
+            VerticalConstraintType verticalType,
+            float verticalValue
+        );
+        UIElemState* createUIElemState(entityID_t target);
+        GUIRenderable* createGUIRenderable(
+            entityID_t target,
+            Texture* pTexture = nullptr,
+            vec3 color = { 1, 1, 1 },
+            vec4 borderColor = { 1, 1, 1, 1 },
+            float borderThickness = 0.0f,
+            vec4 textureCropping = vec4(0, 0, 1, 1)
+        );
+        TextRenderable* createTextRenderable(
+            entityID_t target,
+            const std::string& txt,
+            PK_id fontID,
+            vec3 color,
+            bool bold = false
+        );
+        Static3DRenderable* createStatic3DRenderable(
+            entityID_t target,
+            PK_id meshID
+        );
+        SkinnedRenderable* createSkinnedRenderable(
+            entityID_t target,
+            PK_id modelID,
+            PK_id meshID
+        );
+        // NOTE: TerrainRenderable's mesh and material switched to TerrainMesh and TerrainMaterial
+        // from their reqular counterparts recently!
+        TerrainRenderable* createTerrainRenderable(
+            entityID_t target,
+            PK_id terrainMeshID,
+            PK_id terrainMaterialID,
+            const std::vector<float>& heightmap,
+            float tileWidth
+        );
+        Camera* createCamera(
+            entityID_t target,
+            const vec3& position,
+            float pitch,
+            float yaw
+        );
+        DirectionalLight* createDirectionalLight(
+            entityID_t target,
+            const vec3& color,
+            const vec3& direction
+        );
+        AnimationData* createAnimationData(
+            entityID_t target,
+            PK_id animationResourceID,
+            AnimationMode mode,
+            float speed,
+            std::vector<uint32_t> keyframes = {}
+        );
+        Blinker* createBlinker(entityID_t target);
 
-        uint32_t createEntity(std::vector<uint32_t> children = {})
-        {
-            // *Start entity ids from 1 and NOT from 0
-            uint32_t id = entities.size() + 1;
-            entities.push_back(id);
-            _entityChildMapping[id] = children;
-
-            return id;
-        }
-
-        void addChild(uint32_t entity, uint32_t child)
-        {
-            _entityChildMapping[entity].push_back(child);
-        }
-
-        std::vector<uint32_t> getChildren(uint32_t entity)
-        {
-            return _entityChildMapping[entity];
-        }
-
-        void addComponent(uint32_t entity, Component* component)
-        {
-            component->_entity = entity;
-            components[component->getType()].push_back(component);
-        }
-
-        void addSystem(System* system)
-        {
-            systems[system->getType()].push_back(system);
-        }
-
-        // Returns first component of "type" associated with "entity"
-        Component* getComponent(uint32_t entity, ComponentType type, bool nestedSearch = false)
-        {
-            for (Component* c : components[type])
-            {
-                if (c->getEntity() == entity)
-                    return c;
-            }
-            if (!nestedSearch)
-                Debug::log("Couldn't find component of type: " + std::to_string(type) + " from entity: " + std::to_string(entity), Debug::MessageType::PK_MESSAGE);
-            return nullptr;
-        }
-        
+        // TODO: all getComponent things could be optimized?
+        Component* getComponent(
+            entityID_t entityID,
+            ComponentType type,
+            bool nestedSearch = false,
+            bool enableWarning = true
+        );
+        const Component * const getComponent(entityID_t entityID, ComponentType type, bool nestedSearch = false) const;
         // Returns first component of "type" found in "entity"'s child entities
-        Component* getComponentInChildren(uint32_t entity, ComponentType type)
-        {
-            for (const uint32_t& child : _entityChildMapping[entity])
-            {
-                Component* component = getComponent(child, type, true);
-                if (component)
-                    return component;
-            } 
-            Debug::log("Couldn't find component of type: " + std::to_string(type) + " from child entities of entity: " + std::to_string(entity), Debug::MessageType::PK_MESSAGE);
-            return nullptr;
-        }
+        Component* getComponentInChildren(entityID_t entityID, ComponentType type);
 
         // Return all components of entity
-        std::vector<Component*> getComponents(uint32_t entity)
-        {
-            std::vector<Component*> foundComponents;
-            for (const std::pair<ComponentType, std::vector<Component*>>& componentTypes : components)
-            {
-               const  std::vector<Component*>& componentList = componentTypes.second;
-               for (Component* c : componentList)
-               {
-                   if (c->getEntity() == entity)
-                       foundComponents.push_back(c);
-               }
-            }
-            return foundComponents;
-        }
+        std::vector<Component*> getComponents(entityID_t entityID);
 
-        // Returns first found component found of type "type"
-        Component* getComponent(ComponentType type)
-        {
-            auto iter = components.find(type);
-            if (iter != components.end())
-            {
-                if (!iter->second.empty())
-                    return iter->second[0];
-            }
+        // Returns first found component of type "type"
+        //Component* getComponent(ComponentType type);
 
-            return nullptr;
-        }
-
-        std::vector<Component*> getComponentsInChildren(uint32_t entity)
-        {
-            std::vector<Component*> childComponents;
-            for (uint32_t childEntity : getChildren(entity))
-            {
-                for (Component* c : getComponents(childEntity))
-                    childComponents.push_back(c);
-            }
-            return childComponents;
-        }
+        //std::vector<Component*> getComponentsInChildren(uint32_t entity);
 
         // Returns all components of entity and its' children all the way down the hierarchy
-        std::vector<Component*> getAllComponents(uint32_t entity)
-        {
-            std::vector<Component*> ownComponents = getComponents(entity);
-            for (uint32_t e : _entityChildMapping[entity])
-            {
-                std::vector<Component*> childComponents = getAllComponents(e);
-                for (Component* c : childComponents)
-                    ownComponents.push_back(c);
-            }
-            return ownComponents;
-        }
+        std::vector<Component*> getAllComponents(entityID_t entity);
+
+        // Returns all components in scene of specific type
+        //std::vector<Component*> getComponentsOfTypeInScene(ComponentType type);
+
+        entityID_t getActiveCamera() const { return activeCamera; }
 
         virtual void init() = 0;
         virtual void update() = 0;
-    };	
+        virtual void lateUpdate() {};
+    };
 }

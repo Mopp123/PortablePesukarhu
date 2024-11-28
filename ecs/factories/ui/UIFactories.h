@@ -2,10 +2,13 @@
 
 #include <string>
 
-#include "../../systems/ui/Constraints.h"
-#include "../../components/renderable/TextRenderable.h"
-#include "../../components/UIElemState.h"
-#include "../../../core/input/InputEvent.h"
+#include "resources/Font.h"
+#include "resources/Texture.h"
+#include "ecs/Entity.h"
+#include "ecs/components/ui/ConstraintData.h"
+#include "ecs/components/renderable/TextRenderable.h"
+#include "ecs/components/ui/UIElemState.h"
+#include "core/input/InputEvent.h"
 
 
 namespace pk
@@ -36,50 +39,88 @@ namespace pk
             virtual ~InputFieldOnSubmitEvent() {}
         };
 
+        struct UIFactoryButton
+        {
+            entityID_t rootEntity = 0;
+            entityID_t imgEntity = 0;
+            entityID_t txtEntity = 0;
+        };
 
-        uint32_t create_image(
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+        struct UIFactoryInputField
+        {
+            entityID_t rootEntity = 0;
+            entityID_t contentEntity = 0;
+        };
+
+        struct ImgCreationProperties
+        {
+            ConstraintProperties constraintProperties;
+            float width;
+            float height;
+            vec3 color = { 1, 1, 1 };
+            vec3 highlightColor = { 1, 1, 1 };
+            bool useHighlightColor = false;
+            vec4 borderColor = { 1, 1, 1, 1 };
+            float borderThickness = 0.0f;
+            Texture* pTexture = nullptr;
+            vec4 textureCropping = vec4(0, 0, 1, 1);
+        };
+
+        // TODO: Replace this func with below version using only the creation properties
+        entityID_t create_image(
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             float width, float height,
-            bool drawBorder = false,
-            Texture* texture = nullptr,
-            vec4 textureCropping = vec4(0, 0, 1, 1),
-            vec3 color = vec3(0, 0, 0)
+            vec3 color = { 1, 1, 1 },
+            vec4 borderColor = { 1, 1, 1, 1 },
+            float borderThickness = 0.0f,
+            Texture* pTexture = nullptr,
+            vec4 textureCropping = vec4(0, 0, 1, 1)
         );
 
+        entityID_t create_image(ImgCreationProperties creationProperties);
 
-        std::pair<uint32_t, TextRenderable*> create_text(
-            const std::string& str,
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+
+        std::pair<entityID_t, TextRenderable*> create_text(
+            const std::string& str, const Font& font,
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             vec3 color = vec3(1.0f, 1.0f, 1.0f),
             bool bold = false
         );
 
 
-        uint32_t create_button(
-            std::string txt,
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+        // first = button img entity, second = button text entity
+        UIFactoryButton create_button(
+            std::string txt, const Font& font,
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             float width, float height,
             OnClickEvent* onClick,
             bool selectable = false,
-            Texture* texture = nullptr,
-            vec4 textureCropping = vec4(0, 0, 1, 1),
-            vec3 color = vec3(0.1f, 0.1f, 0.1f),
-            int txtDisplacementX = 8,
-            int txtDisplacementY = 4,
-            UIElemState* pUIElemState = nullptr
+            vec3 color = { 0.1f, 0.1f, 0.1f },
+            vec3 textColor = { 1, 1, 1 },
+            vec3 textHighlightColor = { 1, 1, 1 },
+            vec3 backgroundHighlightColor = { 0.2f, 0.2f, 0.2f },
+            vec4 borderColor = { 0.6f, 0.6f, 0.6f, 1.0f },
+            float borderThickness = 2,
+            Texture* pTexture = nullptr,
+            vec4 textureCropping = vec4(0, 0, 1, 1)
         );
 
         // return pair of InputField-entity and TextRenderable ptr of its' content
-        std::pair<uint32_t, TextRenderable*> create_input_field(
-            std::string infoTxt,
-            ConstraintType horizontalType, float horizontalVal,
-            ConstraintType verticalType, float verticalVal,
+        UIFactoryInputField create_input_field(
+            std::string infoTxt, const Font& font,
+            HorizontalConstraintType horizontalType, float horizontalVal,
+            VerticalConstraintType verticalType, float verticalVal,
             int width,
             InputFieldOnSubmitEvent* onSubmitEvent,
-            bool clearOnSubmit = false
+            bool clearOnSubmit = false,
+            vec3 color = { 0.1f, 0.1f, 0.1f },
+            vec3 textColor = { 1, 1, 1 },
+            vec3 textHighlightColor = { 1, 1, 1 },
+            vec3 backgroundHighlightColor = { 0.2f, 0.2f, 0.2f },
+            bool password = false
         );
     }
 }

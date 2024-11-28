@@ -24,7 +24,7 @@ namespace pk
 				{	164, 228 },//	ä
 				{	165, 229 },//	å
 				{	182, 246 },//	ö
-								    
+
 				{	132, 196 },//	Ä
 				{	133, 197 },//	Å
 				{	150, 214 }, //	Ö
@@ -44,6 +44,18 @@ namespace pk
 				{"8", PK_INPUT_KEY_8},
 				{"9", PK_INPUT_KEY_9},
 
+				{"F1", PK_INPUT_KEY_F1},
+				{"F2", PK_INPUT_KEY_F2},
+				{"F3", PK_INPUT_KEY_F3},
+				{"F4", PK_INPUT_KEY_F4},
+				{"F5", PK_INPUT_KEY_F5},
+				{"F6", PK_INPUT_KEY_F6},
+				{"F7", PK_INPUT_KEY_F7},
+				{"F8", PK_INPUT_KEY_F8},
+				{"F9", PK_INPUT_KEY_F9},
+				{"F10", PK_INPUT_KEY_F10},
+				{"F11", PK_INPUT_KEY_F11},
+				{"F12", PK_INPUT_KEY_F12},
 
 				{"q", PK_INPUT_KEY_Q},
 				{"w", PK_INPUT_KEY_W},
@@ -100,13 +112,14 @@ namespace pk
 
 
 			static void query_window_size(int* outWidth, int* outHeight);
+			static void query_window_surface_size(int* outWidth, int* outHeight);
 
 
 			unsigned int parseSpecialCharCodepoint(unsigned int val) const;
 
 			bool isCharacter(const char* keyname) const;
 
-			inline InputKeyName convert_to_keyname(const std::string& key) 
+			inline InputKeyName convert_to_keyname(const std::string& key)
 			{
 				return _mapping_keyboard_emscToPk.find(key)->second;
 			}

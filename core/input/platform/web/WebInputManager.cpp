@@ -15,30 +15,41 @@ namespace pk
 		// *NOTE! We force removing few pixels from these, cuz browser windows dont fit this shit correctly inside it... or smhtn...
 
 		EM_JS(int, webwindow_get_width, (), {
-			return window.innerWidth;
+			return window.width;
 		});
 
 		EM_JS(int, webwindow_get_height, (), {
+			return window.height;
+		});
+
+		EM_JS(int, webwindow_get_inner_width, (), {
+			return window.innerWidth;
+		});
+
+		EM_JS(int, webwindow_get_inner_height, (), {
 			return window.innerHeight;
 		});
 
-		
+
 		EM_BOOL keydown_callback(int eventType, const EmscriptenKeyboardEvent* keyEvent, void* userData)
 		{
 			WebInputManager* inputManager = (WebInputManager*)userData;
 
 			InputKeyName key = inputManager->convert_to_keyname(keyEvent->key);
+			inputManager->keyDown[key] = true;
 			int scancode = 0;
-			
+
 			inputManager->processKeyEvents(key, scancode, PK_INPUT_PRESS, 0);
-			
+
 			// check is this just a 'char'
 			if (inputManager->isCharacter(keyEvent->key))
 			{
 				unsigned char b1 = keyEvent->key[0];
-				unsigned char b2 = keyEvent->key[1];
+				//unsigned char b2 = keyEvent->key[1];
+				//unsigned int codepoint = inputManager->parseSpecialCharCodepoint(b2 == 0 ? (unsigned int)b1 : (unsigned int)b2);
 
-				unsigned int codepoint = inputManager->parseSpecialCharCodepoint(b2 == 0 ? (unsigned int)b1 : (unsigned int)b2);
+				// Extended chars are disabled atm!
+				unsigned int codepoint = b1;
 
 				inputManager->processCharInputEvents(codepoint);
 			}
@@ -50,6 +61,7 @@ namespace pk
 			WebInputManager* inputManager = (WebInputManager*)userData;
 
 			InputKeyName key = inputManager->convert_to_keyname(keyEvent->key);
+			inputManager->keyDown[key] = false;
 			int scancode = 0;
 
 			inputManager->processKeyEvents(key, scancode, PK_INPUT_RELEASE, 0);
@@ -60,9 +72,9 @@ namespace pk
 		// like input char callback?
 		EM_BOOL keypress_callback(int eventType, const EmscriptenKeyboardEvent* keyEvent, void* userData)
 		{
-			
+
 			Debug::log(keyEvent->key);
-			
+
 			return true;
 		}
 
@@ -71,6 +83,7 @@ namespace pk
 			WebInputManager* inputManager = (WebInputManager*)userData;
 
 			InputMouseButtonName button = inputManager->convert_to_buttonname(mouseEvent->button);
+			inputManager->mouseDown[button] = true;
 			inputManager->processMouseButtonEvents(button, PK_INPUT_PRESS, 0);
 
 			return true;
@@ -80,6 +93,7 @@ namespace pk
 			WebInputManager* inputManager = (WebInputManager*)userData;
 
 			InputMouseButtonName button = inputManager->convert_to_buttonname(mouseEvent->button);
+			inputManager->mouseDown[button] = false;
 			inputManager->processMouseButtonEvents(button, PK_INPUT_RELEASE, 0);
 
 			return true;
@@ -117,11 +131,13 @@ namespace pk
 			{
 				int width = webwindow_get_width();
 				int height = webwindow_get_height();
+				int surfaceWidth = webwindow_get_inner_width();
+				int surfaceHeight = webwindow_get_inner_height();
 
-				(Application::get())->resizeWindow(width, height);
+				(Application::get())->resizeWindow(surfaceWidth, surfaceHeight);
 
 				WebInputManager* inputManager = (WebInputManager*)userData;
-				inputManager->processWindowResizeEvents(width, height);
+				inputManager->processWindowResizeEvents(surfaceWidth, surfaceHeight);
 			}
 
 			return true;
@@ -136,7 +152,7 @@ namespace pk
 
 			emscripten_set_mousedown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW,	this, true, mouse_down_callback);
 			emscripten_set_mouseup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW,		this, true, mouse_up_callback);
-			
+
 			emscripten_set_mousemove_callback("canvas",							this, true, cursor_pos_callback);
 			emscripten_set_wheel_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW,		this, true, scroll_callback);
 
@@ -154,6 +170,11 @@ namespace pk
 			*outHeight = webwindow_get_height();
 		}
 
+		void WebInputManager::query_window_surface_size(int* outWidth, int* outHeight)
+		{
+			*outWidth = webwindow_get_inner_width();
+			*outHeight = webwindow_get_inner_height();
+		}
 
 		unsigned int WebInputManager::parseSpecialCharCodepoint(unsigned int val) const
 		{

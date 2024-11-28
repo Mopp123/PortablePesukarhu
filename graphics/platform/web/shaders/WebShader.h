@@ -2,41 +2,34 @@
 
 #include "../../../shaders/Shader.h"
 #include "../../../../Common.h"
-
 #include "../../../../utils/pkmath.h"
+#include <GL/glew.h>
 
 
 namespace pk
 {
-	namespace web
-	{
-		class WebShader : public Shader
-		{
-		public:
+    namespace web
+    {
+        // TODO: SWITCH TO USE: platform/opengl/shaders INSTEAD!
+        class WebShader : public Shader
+        {
+        public:
+            uint32_t _vertexShaderID = 0;
+            uint32_t _fragmentShaderID = 0;
+            uint32_t _programID = 0;
 
-			PK_uint _vertexShaderID = 0;
-			PK_uint _fragmentShaderID = 0;
-			PK_uint _programID = 0;
+        public:
+            WebShader(const std::string& vertexSource, const std::string& fragmentSource);
+            ~WebShader();
 
-		public:
+            int getAttribLocation(const char* name) const;
+            int getUniformLocation(const char* name) const;
+            void setUniform(int location, const mat4& matrix) const;
+            void setUniform(int location, const vec3& v) const;
+            void setUniform(int location, float val) const;
+            void setUniform1i(int location, int val) const;
 
-			WebShader(const std::string& vertexSource, const std::string& fragmentSource);
-			~WebShader();
-
-			PK_int getAttribLocation(const char* name) const;
-			PK_int getUniformLocation(const char* name) const;
-			void setUniform(PK_int location, const mat4& matrix) const;
-			void setUniform(PK_int location, const vec3& v) const;
-			void setUniform(PK_int location, float val) const;
-			void setUniform1i(PK_int location, int val) const;
-
-			inline PK_uint getProgramID() const { return _programID; }
-
-
-		private:
-
-			PK_uint createShaderStage(const std::string& source, GLenum type);
-
-		};
-	}
+            inline uint32_t getProgramID() const { return _programID; }
+        };
+    }
 }
