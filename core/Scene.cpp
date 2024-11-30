@@ -311,35 +311,6 @@ namespace pk
         return entities[entityID].id != NULL_ENTITY_ID;
     }
 
-    TerrainRenderable* Scene::createTerrainRenderable(
-        entityID_t target,
-        PK_id terrainMeshID,
-        PK_id terrainMaterialID,
-        const std::vector<float>& heightmap,
-        float tileWidth
-    )
-    {
-        if ((getEntity(target).componentMask & ComponentType::PK_TRANSFORM) != ComponentType::PK_TRANSFORM)
-        {
-            Debug::log(
-                "@Scene::createTerrainRenderable "
-                "Created terrain renderable component for entity: " + std::to_string(target) + " "
-                "with no Transform component! This prevents rendering if transform not specified!",
-                Debug::MessageType::PK_WARNING
-            );
-        }
-
-        TerrainRenderable* pRenderable = (TerrainRenderable*)componentPools[ComponentType::PK_RENDERABLE_TERRAIN].allocComponent(target);
-        *pRenderable = TerrainRenderable(
-            terrainMeshID,
-            terrainMaterialID,
-            heightmap,
-            tileWidth
-        );
-        addComponent(target, pRenderable);
-        return pRenderable;
-    }
-
     Camera* Scene::createCamera(
         entityID_t target,
         const vec3& position,

@@ -57,15 +57,6 @@ namespace pk
         void addComponent(entityID_t entityID, Component* component);
         bool isValidEntity(entityID_t entityID) const;
 
-        // NOTE: TerrainRenderable's mesh and material switched to TerrainMesh and TerrainMaterial
-        // from their reqular counterparts recently!
-        TerrainRenderable* createTerrainRenderable(
-            entityID_t target,
-            PK_id terrainMeshID,
-            PK_id terrainMaterialID,
-            const std::vector<float>& heightmap,
-            float tileWidth
-        );
         Camera* createCamera(
             entityID_t target,
             const vec3& position,
