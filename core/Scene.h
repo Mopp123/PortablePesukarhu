@@ -57,11 +57,6 @@ namespace pk
         void addComponent(entityID_t entityID, Component* component);
         bool isValidEntity(entityID_t entityID) const;
 
-        SkinnedRenderable* createSkinnedRenderable(
-            entityID_t target,
-            PK_id modelID,
-            PK_id meshID
-        );
         // NOTE: TerrainRenderable's mesh and material switched to TerrainMesh and TerrainMaterial
         // from their reqular counterparts recently!
         TerrainRenderable* createTerrainRenderable(

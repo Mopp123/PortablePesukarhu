@@ -311,28 +311,6 @@ namespace pk
         return entities[entityID].id != NULL_ENTITY_ID;
     }
 
-    SkinnedRenderable* Scene::createSkinnedRenderable(
-        entityID_t target,
-        PK_id modelID,
-        PK_id meshID
-    )
-    {
-        if ((getEntity(target).componentMask & ComponentType::PK_TRANSFORM) != ComponentType::PK_TRANSFORM)
-        {
-            Debug::log(
-                "@Scene::createSkinnedRenderable "
-                "Created renderable component for entity: " + std::to_string(target) + " "
-                "with no Transform component! This prevents rendering if transform not specified!",
-                Debug::MessageType::PK_WARNING
-            );
-        }
-
-        SkinnedRenderable* pRenderable = (SkinnedRenderable*)componentPools[ComponentType::PK_RENDERABLE_SKINNED].allocComponent(target);
-        *pRenderable = SkinnedRenderable(modelID, meshID);
-        addComponent(target, pRenderable);
-        return pRenderable;
-    }
-
     TerrainRenderable* Scene::createTerrainRenderable(
         entityID_t target,
         PK_id terrainMeshID,
