@@ -311,18 +311,6 @@ namespace pk
         return entities[entityID].id != NULL_ENTITY_ID;
     }
 
-    DirectionalLight* Scene::createDirectionalLight(
-        entityID_t target,
-        const vec3& color,
-        const vec3& direction
-    )
-    {
-        DirectionalLight* pDirectionalLight = (DirectionalLight*)componentPools[ComponentType::PK_LIGHT_DIRECTIONAL].allocComponent(target);
-        *pDirectionalLight = DirectionalLight(color, direction);
-        addComponent(target, pDirectionalLight);
-        return pDirectionalLight;
-    }
-
     AnimationData* Scene::createAnimationData(
         entityID_t target,
         PK_id animationResourceID,

@@ -57,11 +57,6 @@ namespace pk
         void addComponent(entityID_t entityID, Component* component);
         bool isValidEntity(entityID_t entityID) const;
 
-        DirectionalLight* createDirectionalLight(
-            entityID_t target,
-            const vec3& color,
-            const vec3& direction
-        );
         AnimationData* createAnimationData(
             entityID_t target,
             PK_id animationResourceID,
