@@ -57,8 +57,6 @@ namespace pk
         void addComponent(entityID_t entityID, Component* component);
         bool isValidEntity(entityID_t entityID) const;
 
-        Blinker* createBlinker(entityID_t target);
-
         // TODO: all getComponent things could be optimized?
         Component* getComponent(
             entityID_t entityID,

@@ -77,7 +77,6 @@ namespace pk
     {
         Scene* pScene = Application::get()->accessCurrentScene();
         AnimationData* pComponent = (AnimationData*)pScene->componentPools[ComponentType::PK_ANIMATION_DATA].allocComponent(target);
-        // For now figure out joint count here.. maybe in future somewhere else..
         ResourceManager& resManager = Application::get()->getResourceManager();
         const Animation* pAnimResource = (const Animation*)resManager.getResource(animationResourceID);
         if (!pAnimResource)

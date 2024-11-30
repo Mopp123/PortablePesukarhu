@@ -311,15 +311,6 @@ namespace pk
         return entities[entityID].id != NULL_ENTITY_ID;
     }
 
-    Blinker* Scene::createBlinker(entityID_t target)
-    {
-        Blinker* pComponent = (Blinker*)componentPools[ComponentType::PK_BLINKER].allocComponent(target);
-        Blinker b;
-        *pComponent = b;
-        addComponent(target, pComponent);
-        return pComponent;
-    }
-
     Component* Scene::getComponent(
         entityID_t entityID,
         ComponentType type,

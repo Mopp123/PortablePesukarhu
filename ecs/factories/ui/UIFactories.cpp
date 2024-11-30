@@ -718,7 +718,7 @@ namespace pk
                 {0, 0, 1, 1} // cropping
             );
             // Add blinker to button's text renderable which is concidered the "content string"
-            Blinker* pBlinker = currentScene->createBlinker(button.txtEntity);
+            Blinker* pBlinker = Blinker::create(button.txtEntity);
             pBlinker->enable = false;
 
             // Create info txt

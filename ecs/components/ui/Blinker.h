@@ -1,9 +1,7 @@
 #pragma once
 
 #include "ecs/components/Component.h"
-#include <unordered_map>
 #include "ecs/Entity.h"
-#include <memory>
 
 // Affects entity's TextRenderable so when active theres added one char
 // which blinks at the end of the text
@@ -20,5 +18,7 @@ namespace pk
         Blinker(const Blinker& other);
         Blinker& operator=(Blinker& other);
     	~Blinker() {}
+
+        static Blinker* create(entityID_t target);
     };
 }
