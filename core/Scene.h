@@ -57,13 +57,6 @@ namespace pk
         void addComponent(entityID_t entityID, Component* component);
         bool isValidEntity(entityID_t entityID) const;
 
-        AnimationData* createAnimationData(
-            entityID_t target,
-            PK_id animationResourceID,
-            AnimationMode mode,
-            float speed,
-            std::vector<uint32_t> keyframes = {}
-        );
         Blinker* createBlinker(entityID_t target);
 
         // TODO: all getComponent things could be optimized?

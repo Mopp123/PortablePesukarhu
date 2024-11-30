@@ -311,38 +311,6 @@ namespace pk
         return entities[entityID].id != NULL_ENTITY_ID;
     }
 
-    AnimationData* Scene::createAnimationData(
-        entityID_t target,
-        PK_id animationResourceID,
-        AnimationMode mode,
-        float speed,
-        std::vector<uint32_t> keyframes
-    )
-    {
-        AnimationData* pComponent = (AnimationData*)componentPools[ComponentType::PK_ANIMATION_DATA].allocComponent(target);
-        // For now figure out joint count here.. maybe in future somewhere else..
-        ResourceManager& resManager = Application::get()->getResourceManager();
-        const Animation* pAnimResource = (const Animation*)resManager.getResource(animationResourceID);
-        if (!pAnimResource)
-        {
-            Debug::log(
-                "@Scene::createAnimationData "
-                "Failed to find AnimationResource with ID: " + std::to_string(animationResourceID),
-                Debug::MessageType::PK_FATAL_ERROR
-            );
-            return nullptr;
-        }
-        *pComponent = AnimationData(
-            animationResourceID,
-            mode,
-            speed,
-            pAnimResource->getBindPose(),
-            keyframes
-        );
-        addComponent(target, pComponent);
-        return pComponent;
-    }
-
     Blinker* Scene::createBlinker(entityID_t target)
     {
         Blinker* pComponent = (Blinker*)componentPools[ComponentType::PK_BLINKER].allocComponent(target);

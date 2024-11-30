@@ -1,4 +1,6 @@
 #include "AnimationData.h"
+#include "core/Application.h"
+
 
 namespace pk
 {
@@ -44,6 +46,9 @@ namespace pk
         _resultPose(other._resultPose)
     {}
 
+    AnimationData::~AnimationData()
+    {}
+
     void AnimationData::reset()
     {
         _progress = 0;
@@ -60,5 +65,38 @@ namespace pk
         _keyframes = keyframes;
         _speed = speed;
         reset();
+    }
+
+    AnimationData* AnimationData::create(
+        entityID_t target,
+        PK_id animationResourceID,
+        AnimationMode mode,
+        float speed,
+        std::vector<uint32_t> keyframes
+    )
+    {
+        Scene* pScene = Application::get()->accessCurrentScene();
+        AnimationData* pComponent = (AnimationData*)pScene->componentPools[ComponentType::PK_ANIMATION_DATA].allocComponent(target);
+        // For now figure out joint count here.. maybe in future somewhere else..
+        ResourceManager& resManager = Application::get()->getResourceManager();
+        const Animation* pAnimResource = (const Animation*)resManager.getResource(animationResourceID);
+        if (!pAnimResource)
+        {
+            Debug::log(
+                "@AnimationData::create "
+                "Failed to find AnimationResource with ID: " + std::to_string(animationResourceID),
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
+        }
+        *pComponent = AnimationData(
+            animationResourceID,
+            mode,
+            speed,
+            pAnimResource->getBindPose(),
+            keyframes
+        );
+        pScene->addComponent(target, pComponent);
+        return pComponent;
     }
 }

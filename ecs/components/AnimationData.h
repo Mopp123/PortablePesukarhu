@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ecs/components/Component.h"
+#include "ecs/Entity.h"
 #include "utils/ID.h"
 #include "graphics/animation/Pose.h"
 
@@ -52,13 +53,21 @@ namespace pk
             std::vector<uint32_t> keyframes
         );
         AnimationData(const AnimationData& other);
-        ~AnimationData() {}
+        ~AnimationData();
 
         void reset();
         void set(
             const std::vector<uint32_t>& keyframes,
             float speed,
             AnimationMode mode
+        );
+
+        static AnimationData* create(
+            entityID_t target,
+            PK_id animationResourceID,
+            AnimationMode mode,
+            float speed,
+            std::vector<uint32_t> keyframes = {}
         );
 
         inline PK_id getResourceID() const { return _animationResourceID; }
