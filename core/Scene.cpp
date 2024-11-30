@@ -311,20 +311,6 @@ namespace pk
         return entities[entityID].id != NULL_ENTITY_ID;
     }
 
-    TextRenderable* Scene::createTextRenderable(
-        entityID_t target,
-        const std::string& txt,
-        PK_id fontID,
-        vec3 color,
-        bool bold
-    )
-    {
-        TextRenderable* pRenderable = (TextRenderable*)componentPools[ComponentType::PK_RENDERABLE_TEXT].allocComponent(target);
-        *pRenderable = TextRenderable(txt, fontID, color, bold);
-        addComponent(target, pRenderable);
-        return pRenderable;
-    }
-
     Static3DRenderable* Scene::createStatic3DRenderable(
         entityID_t target,
         PK_id meshID

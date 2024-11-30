@@ -512,7 +512,7 @@ namespace pk
             entityID_t entityID = currentScene->createEntity();
             Transform* pTransform = Transform::create(entityID, { 0,0 }, { 1, 1 });
 
-            TextRenderable* pRenderable = currentScene->createTextRenderable(
+            TextRenderable* pRenderable = TextRenderable::create(
                 entityID,
                 str,
                 ((const Resource&)font).getResourceID(),

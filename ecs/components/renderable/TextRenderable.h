@@ -1,6 +1,7 @@
 #pragma once
 
 #include "UIRenderableComponent.h"
+#include "ecs/Entity.h"
 #include "utils/pkmath.h"
 #include "utils/ID.h"
 #include <string>
@@ -20,32 +21,17 @@ namespace pk
         vec3 color;
         PK_id fontID = 0;
 
-        TextRenderable(const std::string& txt, PK_id font, bool bold = false) :
-            UIRenderableComponent(ComponentType::PK_RENDERABLE_TEXT),
-            _txt(txt),
-            _bold(bold),
-            color(1, 1, 1),
-            fontID(font)
-        {
-        }
+        TextRenderable(const std::string& txt, PK_id font, bool bold);
+        TextRenderable(const std::string& txt, PK_id font, vec3 color, bool bold);
+        TextRenderable(const TextRenderable& other);
 
-        TextRenderable(const std::string& txt, PK_id font, vec3 color, bool bold = false) :
-            UIRenderableComponent(ComponentType::PK_RENDERABLE_TEXT),
-            _txt(txt),
-            _bold(bold),
-            color(color),
-            fontID(font)
-        {
-        }
-
-        TextRenderable(const TextRenderable& other) :
-            UIRenderableComponent(other._type),
-            _txt(other._txt),
-            _bold(other._bold),
-            color(other.color),
-            fontID(other.fontID)
-        {
-        }
+        static TextRenderable* create(
+            entityID_t target,
+            const std::string& txt,
+            PK_id fontID,
+            vec3 color,
+            bool bold = false
+        );
 
         inline std::string& accessStr() { return _txt; }
         inline std::string& accessVisualStr() { return _visualTxt; }

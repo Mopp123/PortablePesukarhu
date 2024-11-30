@@ -57,13 +57,6 @@ namespace pk
         void addComponent(entityID_t entityID, Component* component);
         bool isValidEntity(entityID_t entityID) const;
 
-        TextRenderable* createTextRenderable(
-            entityID_t target,
-            const std::string& txt,
-            PK_id fontID,
-            vec3 color,
-            bool bold = false
-        );
         Static3DRenderable* createStatic3DRenderable(
             entityID_t target,
             PK_id meshID
