@@ -311,20 +311,6 @@ namespace pk
         return entities[entityID].id != NULL_ENTITY_ID;
     }
 
-    ConstraintData* Scene::createUIConstraint(
-        entityID_t target,
-        HorizontalConstraintType horizontalType,
-        float horizontalValue,
-        VerticalConstraintType verticalType,
-        float verticalValue
-    )
-    {
-        ConstraintData* pConstraint = (ConstraintData*)componentPools[ComponentType::PK_UI_CONSTRAINT].allocComponent(target);
-        *pConstraint = ConstraintData(horizontalType, horizontalValue, verticalType, verticalValue);
-        addComponent(target, pConstraint);
-        return pConstraint;
-    }
-
     UIElemState* Scene::createUIElemState(entityID_t target)
     {
         UIElemState* pElemState = (UIElemState*)componentPools[ComponentType::PK_UIELEM_STATE].allocComponent(target);

@@ -429,12 +429,14 @@ namespace pk
                 borderThickness,
                 textureCropping
             );
-            currentScene->createUIConstraint(
+            ConstraintData::create(
                 entityID,
-                horizontalType,
-                horizontalVal,
-                verticalType,
-                verticalVal
+                {
+                    horizontalType,
+                    horizontalVal,
+                    verticalType,
+                    verticalVal
+                }
             );
 
             UIElemState* pUIElemState = currentScene->createUIElemState(entityID);
@@ -471,12 +473,14 @@ namespace pk
                 creationProperties.borderThickness,
                 creationProperties.textureCropping
             );
-            currentScene->createUIConstraint(
+            ConstraintData::create(
                 entityID,
-                creationProperties.constraintProperties.horizontalType,
-                creationProperties.constraintProperties.horizontalValue,
-                creationProperties.constraintProperties.verticalType,
-                creationProperties.constraintProperties.verticalValue
+                {
+                    creationProperties.constraintProperties.horizontalType,
+                    creationProperties.constraintProperties.horizontalValue,
+                    creationProperties.constraintProperties.verticalType,
+                    creationProperties.constraintProperties.verticalValue
+                }
             );
 
             UIElemState* pUIElemState = currentScene->createUIElemState(entityID);
@@ -515,12 +519,14 @@ namespace pk
                 color,
                 bold
             );
-            currentScene->createUIConstraint(
+            ConstraintData::create(
                 entityID,
-                horizontalType,
-                horizontalVal,
-                verticalType,
-                verticalVal
+                {
+                    horizontalType,
+                    horizontalVal,
+                    verticalType,
+                    verticalVal
+                }
             );
 
 

@@ -57,13 +57,6 @@ namespace pk
         void addComponent(entityID_t entityID, Component* component);
         bool isValidEntity(entityID_t entityID) const;
 
-        ConstraintData* createUIConstraint(
-            entityID_t target,
-            HorizontalConstraintType horizontalType,
-            float horizontalValue,
-            VerticalConstraintType verticalType,
-            float verticalValue
-        );
         UIElemState* createUIElemState(entityID_t target);
         GUIRenderable* createGUIRenderable(
             entityID_t target,
