@@ -57,10 +57,6 @@ namespace pk
         void addComponent(entityID_t entityID, Component* component);
         bool isValidEntity(entityID_t entityID) const;
 
-        Static3DRenderable* createStatic3DRenderable(
-            entityID_t target,
-            PK_id meshID
-        );
         SkinnedRenderable* createSkinnedRenderable(
             entityID_t target,
             PK_id modelID,

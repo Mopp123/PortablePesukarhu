@@ -311,27 +311,6 @@ namespace pk
         return entities[entityID].id != NULL_ENTITY_ID;
     }
 
-    Static3DRenderable* Scene::createStatic3DRenderable(
-        entityID_t target,
-        PK_id meshID
-    )
-    {
-        if ((getEntity(target).componentMask & ComponentType::PK_TRANSFORM) != ComponentType::PK_TRANSFORM)
-        {
-            Debug::log(
-                "@Scene::createStatic3DRenderable "
-                "Created renderable component for entity: " + std::to_string(target) + " "
-                "with no Transform component! This prevents rendering if transform not specified!",
-                Debug::MessageType::PK_WARNING
-            );
-        }
-
-        Static3DRenderable* pRenderable = (Static3DRenderable*)componentPools[ComponentType::PK_RENDERABLE_STATIC3D].allocComponent(target);
-        *pRenderable = Static3DRenderable(meshID);
-        addComponent(target, pRenderable);
-        return pRenderable;
-    }
-
     SkinnedRenderable* Scene::createSkinnedRenderable(
         entityID_t target,
         PK_id modelID,
