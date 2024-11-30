@@ -311,34 +311,6 @@ namespace pk
         return entities[entityID].id != NULL_ENTITY_ID;
     }
 
-    Camera* Scene::createCamera(
-        entityID_t target,
-        const vec3& position,
-        float pitch,
-        float yaw
-    )
-    {
-        Application* pApp = Application::get();
-        const Window* window = pApp->getWindow();
-
-        const float windowWidth = (float)window->getWidth();
-        const float windowHeight = (float)window->getHeight();
-
-        const float aspectRatio = windowWidth / windowHeight;
-        const float farPlane2D = (float)(UIRenderableComponent::get_max_layers() + 1);
-        const float nearPlane3D = 0.1f;
-        mat4 orthographicProjMat = create_proj_mat_ortho(0, windowWidth, windowHeight, 0, 0.0f, farPlane2D);
-        mat4 perspectivaProjMat = create_perspective_projection_matrix(aspectRatio, 1.3f, nearPlane3D, 1000.0f);
-
-        Camera* pCamera = (Camera*)componentPools[ComponentType::PK_CAMERA].allocComponent(target);
-        *pCamera = Camera(orthographicProjMat, perspectivaProjMat, nearPlane3D);
-        addComponent(target, pCamera);
-        Transform::create(target, position, { 1, 1, 1 }, pitch, yaw);
-
-        pApp->accessInputManager()->addWindowResizeEvent(new CameraWindowResizeEvent(*pCamera));
-        return pCamera;
-    }
-
     DirectionalLight* Scene::createDirectionalLight(
         entityID_t target,
         const vec3& color,

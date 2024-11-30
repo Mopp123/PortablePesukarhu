@@ -57,12 +57,6 @@ namespace pk
         void addComponent(entityID_t entityID, Component* component);
         bool isValidEntity(entityID_t entityID) const;
 
-        Camera* createCamera(
-            entityID_t target,
-            const vec3& position,
-            float pitch,
-            float yaw
-        );
         DirectionalLight* createDirectionalLight(
             entityID_t target,
             const vec3& color,
