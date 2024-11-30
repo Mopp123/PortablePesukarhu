@@ -311,24 +311,6 @@ namespace pk
         return entities[entityID].id != NULL_ENTITY_ID;
     }
 
-    GUIRenderable* Scene::createGUIRenderable(
-        entityID_t target,
-        Texture* pTexture,
-        vec3 color,
-        vec4 borderColor,
-        float borderThickness,
-        vec4 textureCropping
-    )
-    {
-        GUIRenderable* pRenderable = (GUIRenderable*)componentPools[ComponentType::PK_RENDERABLE_GUI].allocComponent(target);
-        *pRenderable = GUIRenderable(textureCropping, pTexture);
-        pRenderable->color = color;
-        pRenderable->borderColor = borderColor;
-        pRenderable->borderThickness = borderThickness;
-        addComponent(target, pRenderable);
-        return pRenderable;
-    }
-
     TextRenderable* Scene::createTextRenderable(
         entityID_t target,
         const std::string& txt,

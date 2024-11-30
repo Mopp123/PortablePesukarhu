@@ -57,14 +57,6 @@ namespace pk
         void addComponent(entityID_t entityID, Component* component);
         bool isValidEntity(entityID_t entityID) const;
 
-        GUIRenderable* createGUIRenderable(
-            entityID_t target,
-            Texture* pTexture = nullptr,
-            vec3 color = { 1, 1, 1 },
-            vec4 borderColor = { 1, 1, 1, 1 },
-            float borderThickness = 0.0f,
-            vec4 textureCropping = vec4(0, 0, 1, 1)
-        );
         TextRenderable* createTextRenderable(
             entityID_t target,
             const std::string& txt,

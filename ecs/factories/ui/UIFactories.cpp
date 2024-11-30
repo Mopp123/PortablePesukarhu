@@ -421,7 +421,7 @@ namespace pk
 
 	        entityID_t entityID = currentScene->createEntity();
             Transform::create(entityID, { 0,0 }, { width, height });
-            currentScene->createGUIRenderable(
+            GUIRenderable::create(
                 entityID,
                 pTexture,
                 color,
@@ -465,7 +465,7 @@ namespace pk
                 { 0,0 },
                 { creationProperties.width, creationProperties.height }
             );
-            currentScene->createGUIRenderable(
+            GUIRenderable::create(
                 entityID,
                 creationProperties.pTexture,
                 creationProperties.color,
