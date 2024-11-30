@@ -439,7 +439,7 @@ namespace pk
                 }
             );
 
-            UIElemState* pUIElemState = currentScene->createUIElemState(entityID);
+            UIElemState* pUIElemState = UIElemState::create(entityID);
             pUIElemState->selectable = false;
 
             InputManager* pInputManager = Application::get()->accessInputManager();
@@ -483,7 +483,7 @@ namespace pk
                 }
             );
 
-            UIElemState* pUIElemState = currentScene->createUIElemState(entityID);
+            UIElemState* pUIElemState = UIElemState::create(entityID);
             pUIElemState->selectable = false;
 
             vec3 highlightColor = creationProperties.useHighlightColor ? creationProperties.highlightColor : creationProperties.color;
@@ -667,7 +667,7 @@ namespace pk
 
             entityID_t inputFieldEntity = currentScene->createEntity();
 
-            UIElemState* pUIElemState = currentScene->createUIElemState(inputFieldEntity);
+            UIElemState* pUIElemState = UIElemState::create(inputFieldEntity);
             pUIElemState->selectable = true;
             pUIElemState->clearOnSubmit = clearOnSubmit;
 

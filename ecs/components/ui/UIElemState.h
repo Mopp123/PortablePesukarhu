@@ -20,7 +20,9 @@ namespace pk
 
         static std::unordered_map<entityID_t, int> s_pickedLayers;
 
-        UIElemState() : Component(PK_UIELEM_STATE) {}
-    	~UIElemState() {}
+        UIElemState();
+    	~UIElemState();
+
+        static UIElemState* create(entityID_t target);
     };
 }

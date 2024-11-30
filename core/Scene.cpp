@@ -311,14 +311,6 @@ namespace pk
         return entities[entityID].id != NULL_ENTITY_ID;
     }
 
-    UIElemState* Scene::createUIElemState(entityID_t target)
-    {
-        UIElemState* pElemState = (UIElemState*)componentPools[ComponentType::PK_UIELEM_STATE].allocComponent(target);
-        *pElemState = UIElemState(); // not sure if fukup here?
-        addComponent(target, pElemState);
-        return pElemState;
-    }
-
     GUIRenderable* Scene::createGUIRenderable(
         entityID_t target,
         Texture* pTexture,

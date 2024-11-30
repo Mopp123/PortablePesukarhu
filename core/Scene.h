@@ -57,7 +57,6 @@ namespace pk
         void addComponent(entityID_t entityID, Component* component);
         bool isValidEntity(entityID_t entityID) const;
 
-        UIElemState* createUIElemState(entityID_t target);
         GUIRenderable* createGUIRenderable(
             entityID_t target,
             Texture* pTexture = nullptr,
