@@ -56,28 +56,7 @@ namespace pk
 
         void addComponent(entityID_t entityID, Component* component);
         bool isValidEntity(entityID_t entityID) const;
-        Transform* createTransform(
-            entityID_t target,
-            vec2 pos,
-            vec2 scale
-        );
-        Transform* createTransform(
-            entityID_t target,
-            vec3 pos,
-            vec3 scale,
-            float pitch = 0.0f,
-            float yaw = 0.0f
-        );
-        Transform* createTransform(
-            entityID_t target,
-            vec3 pos,
-            quat rotation,
-            vec3 scale
-        );
-        Transform* createTransform(
-            entityID_t target,
-            mat4 transformationMatrix
-        );
+
         ConstraintData* createUIConstraint(
             entityID_t target,
             HorizontalConstraintType horizontalType,

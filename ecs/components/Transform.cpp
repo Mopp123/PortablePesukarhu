@@ -97,6 +97,51 @@ namespace pk
         _localTransformationMatrix = other._localTransformationMatrix;
     }
 
+    Transform* Transform::create(entityID_t target, vec2 pos, vec2 scale)
+    {
+        Scene* pScene = Application::get()->accessCurrentScene();
+        Transform* pTransform = (Transform*)pScene->componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
+        *pTransform = Transform(pos, scale);
+        pScene->addComponent(target, pTransform);
+        return pTransform;
+    }
+
+    Transform* Transform::create(entityID_t target, vec3 pos, vec3 scale)
+    {
+        Scene* pScene = Application::get()->accessCurrentScene();
+        Transform* pTransform = (Transform*)pScene->componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
+        *pTransform = Transform(pos, scale);
+        pScene->addComponent(target, pTransform);
+        return pTransform;
+    }
+
+    Transform* Transform::create(entityID_t target, vec3 pos, vec3 scale, float pitch, float yaw)
+    {
+        Scene* pScene = Application::get()->accessCurrentScene();
+        Transform* pTransform = (Transform*)pScene->componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
+        *pTransform = Transform(pos, scale, pitch, yaw);
+        pScene->addComponent(target, pTransform);
+        return pTransform;
+    }
+
+    Transform* Transform::create(entityID_t target, vec3 pos, quat rotation, vec3 scale)
+    {
+        Scene* pScene = Application::get()->accessCurrentScene();
+        Transform* pTransform = (Transform*)pScene->componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
+        *pTransform = Transform(pos, rotation, scale);
+        pScene->addComponent(target, pTransform);
+        return pTransform;
+    }
+
+    Transform* Transform::create(entityID_t target, mat4 matrix)
+    {
+        Scene* pScene = Application::get()->accessCurrentScene();
+        Transform* pTransform = (Transform*)pScene->componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
+        *pTransform = Transform(matrix);
+        pScene->addComponent(target, pTransform);
+        return pTransform;
+    }
+
     void Transform::setPos(vec2 pos)
     {
         mat4& mat = _hasParent ? _localTransformationMatrix : _transformationMatrix;

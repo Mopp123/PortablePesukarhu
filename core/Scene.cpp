@@ -40,7 +40,7 @@ namespace pk
         quat jointRotation = currentJoint.rotation;
         // NOTE: Not sure is scale correct here..
         mat4 jointMat = currentJoint.matrix;
-        scene.createTransform(
+        Transform::create(
             entity,
             jointMat
         );
@@ -311,52 +311,6 @@ namespace pk
         return entities[entityID].id != NULL_ENTITY_ID;
     }
 
-    Transform* Scene::createTransform(entityID_t target, vec2 pos, vec2 scale)
-    {
-        Transform* pTransform = (Transform*)componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
-        *pTransform = Transform(pos, scale);
-        addComponent(target, pTransform);
-        return pTransform;
-    }
-
-    Transform* Scene::createTransform(
-        entityID_t target,
-        vec3 pos,
-        vec3 scale,
-        float pitch,
-        float yaw
-    )
-    {
-        Transform* pTransform = (Transform*)componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
-        *pTransform = Transform(pos, scale, pitch, yaw);
-        addComponent(target, pTransform);
-        return pTransform;
-    }
-
-    Transform* Scene::createTransform(
-        entityID_t target,
-        vec3 pos,
-        quat rotation,
-        vec3 scale
-    )
-    {
-        Transform* pTransform = (Transform*)componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
-        *pTransform = Transform(pos, rotation, scale);
-        addComponent(target, pTransform);
-        return pTransform;
-    }
-
-    Transform* Scene::createTransform(
-        entityID_t target,
-        mat4 transformationMatrix
-    )
-    {
-        Transform* pTransform = (Transform*)componentPools[ComponentType::PK_TRANSFORM].allocComponent(target);
-        *pTransform = Transform(transformationMatrix);
-        addComponent(target, pTransform);
-        return pTransform;
-    }
-
     ConstraintData* Scene::createUIConstraint(
         entityID_t target,
         HorizontalConstraintType horizontalType,
@@ -505,7 +459,7 @@ namespace pk
         Camera* pCamera = (Camera*)componentPools[ComponentType::PK_CAMERA].allocComponent(target);
         *pCamera = Camera(orthographicProjMat, perspectivaProjMat, nearPlane3D);
         addComponent(target, pCamera);
-        createTransform(target, position, { 1, 1, 1 }, pitch, yaw);
+        Transform::create(target, position, { 1, 1, 1 }, pitch, yaw);
 
         pApp->accessInputManager()->addWindowResizeEvent(new CameraWindowResizeEvent(*pCamera));
         return pCamera;

@@ -420,7 +420,7 @@ namespace pk
 	        Scene* currentScene = app->accessCurrentScene();
 
 	        entityID_t entityID = currentScene->createEntity();
-            currentScene->createTransform(entityID, { 0,0 }, { width, height });
+            Transform::create(entityID, { 0,0 }, { width, height });
             currentScene->createGUIRenderable(
                 entityID,
                 pTexture,
@@ -458,7 +458,7 @@ namespace pk
 	        Scene* currentScene = app->accessCurrentScene();
 
 	        entityID_t entityID = currentScene->createEntity();
-            currentScene->createTransform(
+            Transform::create(
                 entityID,
                 { 0,0 },
                 { creationProperties.width, creationProperties.height }
@@ -506,7 +506,7 @@ namespace pk
             Scene* currentScene = Application::get()->accessCurrentScene();
 
             entityID_t entityID = currentScene->createEntity();
-            Transform* pTransform = currentScene->createTransform(entityID, { 0,0 }, { 1, 1 });
+            Transform* pTransform = Transform::create(entityID, { 0,0 }, { 1, 1 });
 
             TextRenderable* pRenderable = currentScene->createTextRenderable(
                 entityID,

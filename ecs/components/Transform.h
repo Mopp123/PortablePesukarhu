@@ -26,6 +26,12 @@ namespace pk
         Transform(mat4 matrix);
         Transform(const Transform& other);
 
+        static Transform* create(entityID_t target, vec2 pos, vec2 scale);
+        static Transform* create(entityID_t target, vec3 pos, vec3 scale);
+        static Transform* create(entityID_t target, vec3 pos, vec3 scale, float pitch, float yaw);
+        static Transform* create(entityID_t target, vec3 pos, quat rotation, vec3 scale);
+        static Transform* create(entityID_t target, mat4 matrix);
+
         void setPos(vec2 pos);
         void setPos(vec3 pos);
 
