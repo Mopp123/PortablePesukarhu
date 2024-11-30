@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ecs/components/Component.h"
+#include "ecs/Entity.h"
 #include "utils/ID.h"
 
 
@@ -16,12 +17,21 @@ namespace pk
         std::vector<float> heightmap;
         float tileWidth = 1.0f;
 
-        TerrainRenderable(PK_id terrainMeshID, PK_id terrainMaterialID, const std::vector<float>& heightmap, float tileWidth) :
-            Component(ComponentType::PK_RENDERABLE_TERRAIN),
-            terrainMeshID(terrainMeshID),
-            terrainMaterialID(terrainMaterialID),
-            heightmap(heightmap),
-            tileWidth(tileWidth)
-        {}
+        TerrainRenderable(
+            PK_id terrainMeshID,
+            PK_id terrainMaterialID,
+            const std::vector<float>& heightmap,
+            float tileWidth
+        );
+
+        // NOTE: TerrainRenderable's mesh and material switched to TerrainMesh and TerrainMaterial
+        // from their reqular counterparts recently!
+        static TerrainRenderable* create(
+            entityID_t target,
+            PK_id terrainMeshID,
+            PK_id terrainMaterialID,
+            const std::vector<float>& heightmap,
+            float tileWidth
+        );
     };
 }

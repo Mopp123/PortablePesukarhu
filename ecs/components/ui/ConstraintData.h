@@ -1,6 +1,8 @@
 #pragma once
 
 #include "ecs/components/Component.h"
+#include "ecs/Entity.h"
+
 
 namespace pk
 {
@@ -46,17 +48,7 @@ namespace pk
         VerticalConstraintType verticalType = PIXEL_TOP;
         float verticalValue = 0.0f;
 
-        ConstraintData(
-            HorizontalConstraintType horizontalType,
-            float horizontalVal,
-            VerticalConstraintType verticalType,
-            float verticalVal
-        ) :
-            Component(PK_UI_CONSTRAINT),
-            horizontalType(horizontalType),
-            horizontalValue(horizontalVal),
-            verticalType(verticalType),
-            verticalValue(verticalVal)
-        {}
+        ConstraintData(ConstraintProperties properties);
+        static ConstraintData* create(entityID_t target, ConstraintProperties properties);
     };
 }

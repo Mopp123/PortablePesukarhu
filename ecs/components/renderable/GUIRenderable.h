@@ -1,6 +1,7 @@
 #pragma once
 
 #include "UIRenderableComponent.h"
+#include "ecs/Entity.h"
 #include "resources/Texture.h"
 #include "utils/pkmath.h"
 
@@ -23,26 +24,16 @@ namespace pk
         vec4 borderColor;
         float borderThickness = 0.0f;
 
-        GUIRenderable(
-            vec4 textureCropping = vec4(0, 0, 1, 1),
-            Texture* pTexture = nullptr
-        ) :
-            UIRenderableComponent(ComponentType::PK_RENDERABLE_GUI),
-            color(1, 1, 1),
-            pTexture(pTexture),
-            textureCropping(textureCropping),
-            borderColor(vec4(color, 1.0f)),
-            borderThickness(0.0f)
-        {}
+        GUIRenderable(vec4 textureCropping, Texture* pTexture);
+        GUIRenderable(const GUIRenderable& other);
 
-        GUIRenderable(const GUIRenderable& other) :
-            UIRenderableComponent(other),
-            color(other.color),
-            pTexture(other.pTexture),
-            textureCropping(other.textureCropping),
-            borderColor(other.borderColor),
-            borderThickness(other.borderThickness)
-        {
-        }
+        static GUIRenderable* create(
+            entityID_t target,
+            Texture* pTexture,
+            vec3 color,
+            vec4 borderColor,
+            float borderThickness,
+            vec4 textureCropping
+        );
     };
 }

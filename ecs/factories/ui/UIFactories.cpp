@@ -420,8 +420,8 @@ namespace pk
 	        Scene* currentScene = app->accessCurrentScene();
 
 	        entityID_t entityID = currentScene->createEntity();
-            currentScene->createTransform(entityID, { 0,0 }, { width, height });
-            currentScene->createGUIRenderable(
+            Transform::create(entityID, { 0,0 }, { width, height });
+            GUIRenderable::create(
                 entityID,
                 pTexture,
                 color,
@@ -429,15 +429,17 @@ namespace pk
                 borderThickness,
                 textureCropping
             );
-            currentScene->createUIConstraint(
+            ConstraintData::create(
                 entityID,
-                horizontalType,
-                horizontalVal,
-                verticalType,
-                verticalVal
+                {
+                    horizontalType,
+                    horizontalVal,
+                    verticalType,
+                    verticalVal
+                }
             );
 
-            UIElemState* pUIElemState = currentScene->createUIElemState(entityID);
+            UIElemState* pUIElemState = UIElemState::create(entityID);
             pUIElemState->selectable = false;
 
             InputManager* pInputManager = Application::get()->accessInputManager();
@@ -458,12 +460,12 @@ namespace pk
 	        Scene* currentScene = app->accessCurrentScene();
 
 	        entityID_t entityID = currentScene->createEntity();
-            currentScene->createTransform(
+            Transform::create(
                 entityID,
                 { 0,0 },
                 { creationProperties.width, creationProperties.height }
             );
-            currentScene->createGUIRenderable(
+            GUIRenderable::create(
                 entityID,
                 creationProperties.pTexture,
                 creationProperties.color,
@@ -471,15 +473,17 @@ namespace pk
                 creationProperties.borderThickness,
                 creationProperties.textureCropping
             );
-            currentScene->createUIConstraint(
+            ConstraintData::create(
                 entityID,
-                creationProperties.constraintProperties.horizontalType,
-                creationProperties.constraintProperties.horizontalValue,
-                creationProperties.constraintProperties.verticalType,
-                creationProperties.constraintProperties.verticalValue
+                {
+                    creationProperties.constraintProperties.horizontalType,
+                    creationProperties.constraintProperties.horizontalValue,
+                    creationProperties.constraintProperties.verticalType,
+                    creationProperties.constraintProperties.verticalValue
+                }
             );
 
-            UIElemState* pUIElemState = currentScene->createUIElemState(entityID);
+            UIElemState* pUIElemState = UIElemState::create(entityID);
             pUIElemState->selectable = false;
 
             vec3 highlightColor = creationProperties.useHighlightColor ? creationProperties.highlightColor : creationProperties.color;
@@ -506,21 +510,23 @@ namespace pk
             Scene* currentScene = Application::get()->accessCurrentScene();
 
             entityID_t entityID = currentScene->createEntity();
-            Transform* pTransform = currentScene->createTransform(entityID, { 0,0 }, { 1, 1 });
+            Transform* pTransform = Transform::create(entityID, { 0,0 }, { 1, 1 });
 
-            TextRenderable* pRenderable = currentScene->createTextRenderable(
+            TextRenderable* pRenderable = TextRenderable::create(
                 entityID,
                 str,
                 ((const Resource&)font).getResourceID(),
                 color,
                 bold
             );
-            currentScene->createUIConstraint(
+            ConstraintData::create(
                 entityID,
-                horizontalType,
-                horizontalVal,
-                verticalType,
-                verticalVal
+                {
+                    horizontalType,
+                    horizontalVal,
+                    verticalType,
+                    verticalVal
+                }
             );
 
 
@@ -661,7 +667,7 @@ namespace pk
 
             entityID_t inputFieldEntity = currentScene->createEntity();
 
-            UIElemState* pUIElemState = currentScene->createUIElemState(inputFieldEntity);
+            UIElemState* pUIElemState = UIElemState::create(inputFieldEntity);
             pUIElemState->selectable = true;
             pUIElemState->clearOnSubmit = clearOnSubmit;
 
@@ -712,7 +718,7 @@ namespace pk
                 {0, 0, 1, 1} // cropping
             );
             // Add blinker to button's text renderable which is concidered the "content string"
-            Blinker* pBlinker = currentScene->createBlinker(button.txtEntity);
+            Blinker* pBlinker = Blinker::create(button.txtEntity);
             pBlinker->enable = false;
 
             // Create info txt

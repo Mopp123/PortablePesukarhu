@@ -1,4 +1,6 @@
 #include "Blinker.h"
+#include "core/Application.h"
+#include <memory>
 
 namespace pk
 {
@@ -23,5 +25,15 @@ namespace pk
         std::swap(blinkState, other.blinkState);
         std::swap(enable, other.enable);
         return *this;
+    }
+
+    Blinker* Blinker::create(entityID_t target)
+    {
+        Scene* pScene = Application::get()->accessCurrentScene();
+        Blinker* pComponent = (Blinker*)pScene->componentPools[ComponentType::PK_BLINKER].allocComponent(target);
+        Blinker b;
+        *pComponent = b;
+        pScene->addComponent(target, pComponent);
+        return pComponent;
     }
 }

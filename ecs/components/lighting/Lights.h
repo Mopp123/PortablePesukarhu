@@ -1,15 +1,16 @@
 #pragma once
 
-#include "../Component.h"
-#include "../../../utils/pkmath.h"
+#include "ecs/components/Component.h"
+#include "ecs/Entity.h"
+#include "utils/pkmath.h"
+
 
 namespace pk
 {
-
+	// This isn't supposed to be used by itself but as a base for different kinds of lights!
 	class Light : public Component
 	{
 	public:
-
 		vec3 color;
 
 		Light(const vec3& color, ComponentType lightType) :
@@ -26,12 +27,13 @@ namespace pk
 	public:
 		vec3 direction;
 
-		DirectionalLight(const vec3& color, const vec3& direction) :
-			Light(color, ComponentType::PK_LIGHT_DIRECTIONAL),
-			direction(direction)
-		{
-		}
+		DirectionalLight(const vec3& color, const vec3& direction);
+		~DirectionalLight();
 
-		~DirectionalLight() {}
+		static DirectionalLight* create(
+            entityID_t target,
+            const vec3& color,
+            const vec3& direction
+		);
 	};
 }

@@ -31,6 +31,13 @@ namespace pk
         );
         Camera(const Camera& other);
 
+        static Camera* create(
+            entityID_t target,
+            const vec3& position,
+            float pitch,
+            float yaw
+        );
+
         inline void setProjMat2D(const mat4& mat) { _projMat2D = mat; }
         inline void setProjMat3D(const mat4& mat) { _projMat3D = mat; }
 
