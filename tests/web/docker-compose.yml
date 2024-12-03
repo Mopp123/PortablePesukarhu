@@ -1,0 +1,13 @@
+
+version: "3.7"
+
+services:
+
+  proj8315-client-site:
+    container_name: pesukarhu-test
+    command: bash start-container.sh
+    image: pesukarhu-web-test
+    volumes:
+      - ./build:/usr/src/app
+    ports:
+      - 80:80
