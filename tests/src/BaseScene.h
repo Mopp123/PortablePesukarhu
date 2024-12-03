@@ -1,7 +1,6 @@
 #pragma once
 
-#include "ppk.h"
-#include "ecs/components/ui/ConstraintData.h"
+#include "Pesukarhu/ppk.h"
 
 
 class BaseScene : public pk::Scene

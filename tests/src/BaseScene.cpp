@@ -1,6 +1,4 @@
 #include "BaseScene.h"
-#include "core/Application.h"
-#include "core/Debug.h"
 //#include "ui/Panel.h"
 
 using namespace pk;

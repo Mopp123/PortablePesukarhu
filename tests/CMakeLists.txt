@@ -32,7 +32,7 @@ get_filename_component(PARENT_DIR ../ ABSOLUTE)
 
 include_directories (
     "${PROJECT_SOURCE_DIR}/src"
-    "${PARENT_DIR}/Pesukarhu"
+    "${PARENT_DIR}"
 )
 
 file (
