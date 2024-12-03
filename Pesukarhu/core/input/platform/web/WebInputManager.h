@@ -1,11 +1,12 @@
 ﻿#pragma once
 
-#include "../../InputManager.h"
+#include "Pesukarhu/core/input/InputManager.h"
 #include <emscripten.h>
 #include <emscripten/html5.h>
 
 #include <string>
 #include <unordered_map>
+
 
 namespace pk
 {

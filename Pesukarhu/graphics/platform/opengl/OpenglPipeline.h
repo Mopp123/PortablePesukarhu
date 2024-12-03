@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics/Pipeline.h"
+#include "Pesukarhu/graphics/Pipeline.h"
 #include "shaders/OpenglShader.h"
 
 

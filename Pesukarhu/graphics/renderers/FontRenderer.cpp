@@ -1,8 +1,8 @@
 #include "FontRenderer.h"
 #include <stdexcept>
 #include <string>
-#include "core/Application.h"
-#include "ecs/components/renderable/GUIRenderable.h"
+#include "Pesukarhu/core/Application.h"
+#include "Pesukarhu/ecs/components/renderable/GUIRenderable.h"
 
 // TODO: dont include this here, atm just for getting gl errors..
 #include <GL/glew.h>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/Memory.h"
-#include "ecs/Entity.h"
+#include "Pesukarhu/core/Memory.h"
+#include "Pesukarhu/ecs/Entity.h"
 #include "Component.h"
 #include <vector>
 #include <unordered_map>

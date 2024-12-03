@@ -1,7 +1,7 @@
 #include "Swapchain.h"
 #include "Context.h"
 #include "platform/opengl/OpenglSwapchain.h"
-#include "core/Debug.h"
+#include "Pesukarhu/core/Debug.h"
 #include <string>
 
 

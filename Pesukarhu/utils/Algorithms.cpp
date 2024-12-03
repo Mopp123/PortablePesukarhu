@@ -1,5 +1,5 @@
 #include "Algorithms.h"
-#include "../core/Application.h"
+#include "Pesukarhu/core/Application.h"
 
 #include <iostream>
 

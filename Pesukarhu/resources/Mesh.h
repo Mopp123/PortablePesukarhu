@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Resource.h"
-#include "graphics/Buffers.h"
-#include "graphics/animation/Pose.h"
+#include "Pesukarhu/graphics/Buffers.h"
+#include "Pesukarhu/graphics/animation/Pose.h"
 #include "Material.h"
 #include <vector>
 

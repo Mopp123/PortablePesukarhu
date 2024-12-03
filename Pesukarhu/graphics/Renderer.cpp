@@ -1,6 +1,7 @@
 #include "Renderer.h"
-#include "core/Application.h"
-#include "core/Window.h"
+#include "Pesukarhu/core/Application.h"
+#include "Pesukarhu/core/Window.h"
+#include "Pesukarhu/core/Debug.h"
 
 
 namespace pk

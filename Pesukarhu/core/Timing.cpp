@@ -1,5 +1,5 @@
-
 #include "Timing.h"
+
 
 namespace pk
 {
@@ -9,7 +9,6 @@ namespace pk
 	{
 	}
 
-	
 	void Timing::update()
 	{
 		using namespace std::chrono_literals;

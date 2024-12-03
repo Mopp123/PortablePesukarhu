@@ -1,7 +1,7 @@
 #include <GL/glew.h>
-#include "graphics/platform/opengl/OpenglPipeline.h"
-#include "core/Debug.h"
-#include "graphics/Context.h"
+#include "Pesukarhu/graphics/platform/opengl/OpenglPipeline.h"
+#include "Pesukarhu/core/Debug.h"
+#include "Pesukarhu/graphics/Context.h"
 
 
 namespace pk

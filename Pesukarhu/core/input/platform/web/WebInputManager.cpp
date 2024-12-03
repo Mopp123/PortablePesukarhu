@@ -1,11 +1,12 @@
 
 #include "WebInputManager.h"
 
-#include "../../../Application.h"
-#include "../../../Debug.h"
+#include "Pesukarhu/core/Application.h"
+#include "Pesukarhu/core/Debug.h"
 
 #include <string>
 #include <cstdint>
+
 
 namespace pk
 {

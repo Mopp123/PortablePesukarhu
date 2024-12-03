@@ -1,5 +1,5 @@
 #include "Window.h"
-#include "core/Debug.h"
+#include "Debug.h"
 
 
 namespace pk

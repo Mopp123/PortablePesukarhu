@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Resource.h"
-#include "graphics/animation/Pose.h"
+#include "Pesukarhu/graphics/animation/Pose.h"
 #include <vector>
 
 

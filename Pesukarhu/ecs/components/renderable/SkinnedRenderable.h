@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ecs/Entity.h"
-#include "ecs/components/Component.h"
-#include "utils/ID.h"
+#include "Pesukarhu/ecs/Entity.h"
+#include "Pesukarhu/ecs/components/Component.h"
+#include "Pesukarhu/utils/ID.h"
 
 
 namespace pk

@@ -1,6 +1,6 @@
 
 #include "WebWindow.h"
-#include "../../input/platform/web/WebInputManager.h"
+#include "Pesukarhu/core/input/platform/web/WebInputManager.h"
 #include <emscripten.h>
 #include <emscripten/html5.h>
 

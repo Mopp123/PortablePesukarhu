@@ -2,7 +2,7 @@
 
 #include "Renderer.h"
 
-#include "../core/Debug.h"
+#include "Pesukarhu/core/Debug.h"
 
 #include <vector>
 #include <unordered_map>

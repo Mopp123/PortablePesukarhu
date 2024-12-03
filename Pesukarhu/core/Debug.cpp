@@ -1,8 +1,11 @@
 ﻿#include "Debug.h"
-#include "ecs/components/Component.h"
-#include <emscripten/console.h>
+#include "Pesukarhu/ecs/components/Component.h"
 #include <iostream>
 #include <cassert>
+
+#ifdef PK_PLATFORM_WEB
+#include <emscripten/console.h>
+#endif
 
 // NOTE: Not remembering anymore wtf "LS" stands for here...
 #define LS_DEBUG_MESSAGE_TAG__MESSAGE		""

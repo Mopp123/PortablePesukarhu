@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/components/Component.h"
+#include "Pesukarhu/ecs/components/Component.h"
 #include <unordered_map>
 
 

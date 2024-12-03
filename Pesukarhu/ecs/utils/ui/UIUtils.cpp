@@ -1,6 +1,6 @@
 #include "UIUtils.h"
-#include "core/Application.h"
-#include "core/Debug.h"
+#include "Pesukarhu/core/Application.h"
+#include "Pesukarhu/core/Debug.h"
 
 
 namespace pk

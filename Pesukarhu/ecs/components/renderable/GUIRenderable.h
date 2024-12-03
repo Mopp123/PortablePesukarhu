@@ -1,9 +1,9 @@
 #pragma once
 
 #include "UIRenderableComponent.h"
-#include "ecs/Entity.h"
-#include "resources/Texture.h"
-#include "utils/pkmath.h"
+#include "Pesukarhu/ecs/Entity.h"
+#include "Pesukarhu/resources/Texture.h"
+#include "Pesukarhu/utils/pkmath.h"
 
 
 namespace pk

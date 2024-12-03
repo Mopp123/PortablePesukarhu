@@ -2,11 +2,11 @@
 
 #include "MasterRenderer.h"
 #include "Environment.h"
-#include "../core/Debug.h"
+#include "Pesukarhu/core/Debug.h"
 #include "RenderCommand.h"
 #include "CommandBuffer.h"
-#include "core/Application.h"
-#include "core/Window.h"
+#include "Pesukarhu/core/Application.h"
+#include "Pesukarhu/core/Window.h"
 
 #include "renderers/GUIRenderer.h"
 #include "renderers/FontRenderer.h"

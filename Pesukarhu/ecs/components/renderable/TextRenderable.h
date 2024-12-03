@@ -1,9 +1,9 @@
 #pragma once
 
 #include "UIRenderableComponent.h"
-#include "ecs/Entity.h"
-#include "utils/pkmath.h"
-#include "utils/ID.h"
+#include "Pesukarhu/ecs/Entity.h"
+#include "Pesukarhu/utils/pkmath.h"
+#include "Pesukarhu/utils/ID.h"
 #include <string>
 
 

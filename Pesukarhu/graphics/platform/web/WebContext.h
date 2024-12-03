@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../Context.h"
-#include "graphics/shaders/Shader.h"
+#include "Pesukarhu/graphics/Context.h"
+#include "Pesukarhu/graphics/shaders/Shader.h"
 
 namespace pk
 {

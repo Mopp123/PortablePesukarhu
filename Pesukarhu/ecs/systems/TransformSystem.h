@@ -1,9 +1,9 @@
 #pragma once
 
 #include "System.h"
-#include "ecs/Entity.h"
-#include "ecs/components/ComponentPool.h"
-#include "ecs/components/Transform.h"
+#include "Pesukarhu/ecs/Entity.h"
+#include "Pesukarhu/ecs/components/ComponentPool.h"
+#include "Pesukarhu/ecs/components/Transform.h"
 
 namespace pk
 {

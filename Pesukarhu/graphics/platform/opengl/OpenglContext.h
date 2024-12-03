@@ -1,8 +1,8 @@
 #pragma once
 
 #include <GL/glew.h>
-#include "graphics/shaders/Shader.h"
-#include "graphics/Buffers.h"
+#include "Pesukarhu/graphics/shaders/Shader.h"
+#include "Pesukarhu/graphics/Buffers.h"
 
 
 // NOTE: web platform is also using some opengl stuff declared here!

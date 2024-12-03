@@ -1,6 +1,6 @@
 #include "Pipeline.h"
 #include "Context.h"
-#include "core/Debug.h"
+#include "Pesukarhu/core/Debug.h"
 #include "platform/opengl/OpenglPipeline.h"
 
 namespace pk

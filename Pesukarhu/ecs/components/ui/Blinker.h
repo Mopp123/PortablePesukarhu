@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ecs/components/Component.h"
-#include "ecs/Entity.h"
+#include "Pesukarhu/ecs/components/Component.h"
+#include "Pesukarhu/ecs/Entity.h"
 
 // Affects entity's TextRenderable so when active theres added one char
 // which blinks at the end of the text

@@ -1,7 +1,7 @@
 #include "Texture.h"
-#include "core/Debug.h"
-#include "graphics/Context.h"
-#include "core/Application.h"
+#include "Pesukarhu/core/Debug.h"
+#include "Pesukarhu/graphics/Context.h"
+#include "Pesukarhu/core/Application.h"
 #include "platform/opengl/OpenglTexture.h"
 
 

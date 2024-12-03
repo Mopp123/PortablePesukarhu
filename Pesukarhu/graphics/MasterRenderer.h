@@ -2,7 +2,7 @@
 
 #include <map>
 #include "Renderer.h"
-#include "../ecs/components/Camera.h"
+#include "Pesukarhu/ecs/components/Camera.h"
 #include "Swapchain.h"
 #include "Buffers.h"
 #include "Descriptors.h"

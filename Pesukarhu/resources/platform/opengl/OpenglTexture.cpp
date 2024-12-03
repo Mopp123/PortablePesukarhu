@@ -1,8 +1,8 @@
 #include "GL/glew.h"
 #include "OpenglTexture.h"
-#include "core/Debug.h"
-#include "core/Application.h"
-#include "resources/ResourceManager.h"
+#include "Pesukarhu/core/Debug.h"
+#include "Pesukarhu/core/Application.h"
+#include "Pesukarhu/resources/ResourceManager.h"
 
 
 namespace pk

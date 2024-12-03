@@ -1,5 +1,5 @@
 #include "TerrainMaterial.h"
-#include "core/Debug.h"
+#include "Pesukarhu/core/Debug.h"
 
 
 namespace pk

@@ -1,10 +1,10 @@
 #include "SkinnedRenderer.h"
 #include <string>
-#include "core/Application.h"
-#include "ecs/components/renderable/SkinnedRenderable.h"
+#include "Pesukarhu/core/Application.h"
+#include "Pesukarhu/ecs/components/renderable/SkinnedRenderable.h"
+#include "Pesukarhu/graphics/platform/opengl/OpenglContext.h"
 
 #include <GL/glew.h>
-#include "graphics/platform/opengl/OpenglContext.h"
 
 
 namespace pk

@@ -1,8 +1,8 @@
 #include "Shader.h"
-#include "graphics/Context.h"
-#include "graphics/platform/opengl/shaders/OpenglShader.h"
-#include "core/Debug.h"
-#include "utils/FileUtils.h"
+#include "Pesukarhu/graphics/Context.h"
+#include "Pesukarhu/graphics/platform/opengl/shaders/OpenglShader.h"
+#include "Pesukarhu/core/Debug.h"
+#include "Pesukarhu/utils/FileUtils.h"
 
 
 namespace pk

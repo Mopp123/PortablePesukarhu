@@ -1,16 +1,16 @@
 #pragma once
 
-#include "resources/Texture.h"
-#include "resources/Model.h"
-#include "resources/Mesh.h"
-#include "graphics/Renderer.h"
-#include "graphics/Pipeline.h"
-#include "graphics/Buffers.h"
-#include "graphics/Descriptors.h"
-#include "graphics/CommandBuffer.h"
-#include "graphics/RenderCommand.h"
-#include "graphics/shaders/Shader.h"
-#include "ecs/components/AnimationData.h"
+#include "Pesukarhu/resources/Texture.h"
+#include "Pesukarhu/resources/Model.h"
+#include "Pesukarhu/resources/Mesh.h"
+#include "Pesukarhu/graphics/Renderer.h"
+#include "Pesukarhu/graphics/Pipeline.h"
+#include "Pesukarhu/graphics/Buffers.h"
+#include "Pesukarhu/graphics/Descriptors.h"
+#include "Pesukarhu/graphics/CommandBuffer.h"
+#include "Pesukarhu/graphics/RenderCommand.h"
+#include "Pesukarhu/graphics/shaders/Shader.h"
+#include "Pesukarhu/ecs/components/AnimationData.h"
 
 #include <unordered_map>
 

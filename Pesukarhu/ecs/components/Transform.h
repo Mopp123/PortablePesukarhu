@@ -1,8 +1,9 @@
 #pragma once
 
-#include "ecs//Entity.h"
+#include "Pesukarhu/ecs/Entity.h"
 #include "Component.h"
-#include "../../utils/pkmath.h"
+#include "Pesukarhu/utils/pkmath.h"
+
 
 namespace pk
 {

@@ -2,9 +2,9 @@
 
 #include "Component.h"
 #include "Transform.h"
-#include "utils/pkmath.h"
-#include "core/input/InputEvent.h"
-#include "ecs/components/renderable/UIRenderableComponent.h"
+#include "Pesukarhu/utils/pkmath.h"
+#include "Pesukarhu/core/input/InputEvent.h"
+#include "Pesukarhu/ecs/components/renderable/UIRenderableComponent.h"
 
 
 namespace pk

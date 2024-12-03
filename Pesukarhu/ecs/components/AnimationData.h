@@ -1,9 +1,9 @@
 #pragma once
 
-#include "ecs/components/Component.h"
-#include "ecs/Entity.h"
-#include "utils/ID.h"
-#include "graphics/animation/Pose.h"
+#include "Component.h"
+#include "Pesukarhu/ecs/Entity.h"
+#include "Pesukarhu/utils/ID.h"
+#include "Pesukarhu/graphics/animation/Pose.h"
 
 
 namespace pk

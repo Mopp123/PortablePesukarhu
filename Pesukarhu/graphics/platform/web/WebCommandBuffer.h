@@ -1,7 +1,7 @@
 #pragma once
 
-#include "graphics/CommandBuffer.h"
-#include "graphics/platform/opengl/OpenglPipeline.h"
+#include "Pesukarhu/graphics/CommandBuffer.h"
+#include "Pesukarhu/graphics/platform/opengl/OpenglPipeline.h"
 
 namespace pk
 {

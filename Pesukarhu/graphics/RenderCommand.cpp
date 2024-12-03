@@ -1,6 +1,6 @@
 #include "RenderCommand.h"
 #include "Context.h"
-#include "../core/Debug.h"
+#include "Pesukarhu/core/Debug.h"
 #include "platform/web/WebRenderCommand.h"
 
 namespace pk

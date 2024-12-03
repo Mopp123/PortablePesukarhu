@@ -1,15 +1,15 @@
 #include "Scene.h"
 #include "Application.h"
 
-#include "ecs/components/renderable/Sprite3DRenderable.h"
-#include "ecs/components/lighting/Lights.h"
-
 // NOTE: Only temporarely adding all systems here on Scene's constructor!
-#include "ecs/systems/ui/ConstraintSystem.h"
-#include "ecs/systems/TransformSystem.h"
-#include "ecs/systems/Animator.h"
-#include "ecs/systems/ui/BlinkerSystem.h"
+#include "Pesukarhu/ecs/systems/ui/ConstraintSystem.h"
+#include "Pesukarhu/ecs/systems/TransformSystem.h"
+#include "Pesukarhu/ecs/systems/Animator.h"
+#include "Pesukarhu/ecs/systems/ui/BlinkerSystem.h"
 #include <unordered_map>
+
+#include "Debug.h"
+
 
 namespace pk
 {
@@ -82,9 +82,6 @@ namespace pk
         );
         componentPools[ComponentType::PK_RENDERABLE_TEXT] = ComponentPool(
             sizeof(TextRenderable), 100, true
-        );
-        componentPools[ComponentType::PK_RENDERABLE_SPRITE3D] = ComponentPool(
-            sizeof(Sprite3DRenderable), 100, true
         );
         componentPools[ComponentType::PK_RENDERABLE_STATIC3D] = ComponentPool(
             sizeof(Static3DRenderable), 100, true

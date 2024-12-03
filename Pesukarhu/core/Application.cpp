@@ -1,12 +1,15 @@
 ﻿#include "Application.h"
 #include "Common.h"
-#include "utils/pkmath.h"
+#include "Pesukarhu/utils/pkmath.h"
 
 #include "Debug.h"
 #include <iostream>
-#include <emscripten.h>
 
 #include <chrono>
+
+#ifdef PK_PLATFORM_WEB
+#include <emscripten.h>
+#endif
 
 
 namespace pk

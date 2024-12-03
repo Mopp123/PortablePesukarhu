@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ecs/components/Component.h"
-#include "utils/pkmath.h"
-#include "resources/Texture.h"
+#include "Pesukarhu/ecs/components/Component.h"
+#include "Pesukarhu/utils/pkmath.h"
+#include "Pesukarhu/resources/Texture.h"
 
 
 namespace pk

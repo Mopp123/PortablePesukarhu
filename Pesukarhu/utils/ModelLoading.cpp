@@ -1,8 +1,8 @@
 #include "ModelLoading.h"
-#include "core/Debug.h"
-#include "graphics/Buffers.h"
-#include "graphics/platform/opengl/OpenglContext.h"
-#include "graphics/animation/Pose.h"
+#include "Pesukarhu/core/Debug.h"
+#include "Pesukarhu/graphics/Buffers.h"
+#include "Pesukarhu/graphics/platform/opengl/OpenglContext.h"
+#include "Pesukarhu/graphics/animation/Pose.h"
 #include <string>
 #include <unordered_map>
 #include <algorithm>
@@ -14,7 +14,7 @@
 #define TINYGLTF_NOEXCEPTION
 #define JSON_NOEXCEPTION
 
-#include "tiny_gltf.h"
+#include "Pesukarhu/tiny_gltf.h"
 
 #define GLTF_POINTS         0x0
 #define GLTF_LINES          0x0001

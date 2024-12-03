@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/systems/System.h"
+#include "Pesukarhu/ecs/systems/System.h"
 
 
 namespace pk

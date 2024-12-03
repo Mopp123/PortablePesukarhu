@@ -1,8 +1,8 @@
 #include "SceneManager.h"
 #include "Debug.h"
 #include "Application.h"
-#include "ecs/components/renderable/GUIRenderable.h"
-#include "../ecs/components/Transform.h"
+#include "Pesukarhu/ecs/components/renderable/GUIRenderable.h"
+#include "Pesukarhu/ecs/components/Transform.h"
 
 #include <chrono>
 

@@ -1,6 +1,6 @@
 #include "Font.h"
-#include "core/Debug.h"
-#include "core/Application.h"
+#include "Pesukarhu/core/Debug.h"
+#include "Pesukarhu/core/Application.h"
 #include <cmath>
 #include <vector>
 

@@ -1,8 +1,8 @@
 #include "ResourceManager.h"
-#include "core/Debug.h"
-#include "utils/ID.h"
-#include "utils/ModelLoading.h"
-#include "utils/MeshGenerator.h"
+#include "Pesukarhu/core/Debug.h"
+#include "Pesukarhu/utils/ID.h"
+#include "Pesukarhu/utils/ModelLoading.h"
+#include "Pesukarhu/utils/MeshGenerator.h"
 
 #include <utility>
 

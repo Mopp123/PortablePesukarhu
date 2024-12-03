@@ -1,7 +1,7 @@
 #include "GUIRenderer.h"
 #include <string>
-#include "core/Application.h"
-#include "ecs/components/renderable/GUIRenderable.h"
+#include "Pesukarhu/core/Application.h"
+#include "Pesukarhu/ecs/components/renderable/GUIRenderable.h"
 
 #include <GL/glew.h>
 #include <unordered_map>

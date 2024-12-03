@@ -10,8 +10,8 @@
 #include "Model.h"
 #include "Animation.h"
 #include "Font.h"
-#include "Common.h"
-#include "core/Debug.h"
+#include "Pesukarhu/Common.h"
+#include "Pesukarhu/core/Debug.h"
 #include <vector>
 #include <unordered_map>
 

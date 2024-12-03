@@ -1,7 +1,7 @@
 #include "TerrainRenderer.h"
-#include "core/Application.h"
-#include "ecs/components/renderable/TerrainRenderable.h"
-#include "resources/TerrainMesh.h"
+#include "Pesukarhu/core/Application.h"
+#include "Pesukarhu/ecs/components/renderable/TerrainRenderable.h"
+#include "Pesukarhu/resources/TerrainMesh.h"
 
 #include <GL/glew.h>
 

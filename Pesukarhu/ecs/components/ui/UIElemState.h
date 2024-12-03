@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ecs/components/Component.h"
+#include "Pesukarhu/ecs/components/Component.h"
+#include "Pesukarhu/ecs/Entity.h"
 #include <unordered_map>
-#include "ecs/Entity.h"
 
 
 namespace pk

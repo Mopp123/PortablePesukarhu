@@ -2,7 +2,7 @@
 
 #include "Resource.h"
 #include "Texture.h"
-#include "utils/pkmath.h"
+#include "Pesukarhu/utils/pkmath.h"
 
 // For each color channel + "blackness channel"
 // possible channels = black, red, green, blue and alpha

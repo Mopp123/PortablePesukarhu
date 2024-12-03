@@ -1,5 +1,5 @@
 #include "Buffers.h"
-#include "../core/Debug.h"
+#include "Pesukarhu/core/Debug.h"
 #include "Context.h"
 #include "platform/web/WebBuffers.h"
 #include <cstdlib>

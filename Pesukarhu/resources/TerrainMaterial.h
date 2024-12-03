@@ -3,7 +3,7 @@
 
 #include "Resource.h"
 #include "Texture.h"
-#include "utils/pkmath.h"
+#include "Pesukarhu/utils/pkmath.h"
 
 // Possible color channels for blending:
 // *black

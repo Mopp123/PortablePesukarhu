@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "ecs/Entity.h"
+#include "Pesukarhu/ecs/Entity.h"
 #include <string>
 
 

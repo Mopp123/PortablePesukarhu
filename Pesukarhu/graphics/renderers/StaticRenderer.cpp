@@ -1,7 +1,7 @@
 #include "StaticRenderer.h"
 #include <string>
-#include "core/Application.h"
-#include "ecs/components/renderable/Static3DRenderable.h"
+#include "Pesukarhu/core/Application.h"
+#include "Pesukarhu/ecs/components/renderable/Static3DRenderable.h"
 
 #include <GL/glew.h>
 

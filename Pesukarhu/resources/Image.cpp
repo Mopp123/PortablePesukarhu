@@ -1,13 +1,13 @@
 #include "Image.h"
 #include <cstddef>
 #include <cstring>
-#include "core/Debug.h"
-#include "graphics/Context.h"
-#include "Common.h"
+#include "Pesukarhu/core/Debug.h"
+#include "Pesukarhu/graphics/Context.h"
+#include "Pesukarhu/Common.h"
 
 // Currently STB_IMAGE_IMPLEMENTATION is defined in ModelLoading.cpp since tinygltf requires stb_image
 //#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "Pesukarhu/stb_image.h"
 
 
 namespace pk

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "graphics/shaders/Shader.h"
-#include "utils/pkmath.h"
+#include "Pesukarhu/graphics/shaders/Shader.h"
+#include "Pesukarhu/utils/pkmath.h"
 #include <vector>
 
 

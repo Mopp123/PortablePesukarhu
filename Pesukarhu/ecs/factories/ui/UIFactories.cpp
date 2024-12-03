@@ -1,7 +1,7 @@
 #include "UIFactories.h"
-#include "../../../core/Application.h"
-#include "../../components/renderable/GUIRenderable.h"
-#include "../../components/renderable/UIRenderableComponent.h"
+#include "Pesukarhu/core/Application.h"
+#include "Pesukarhu/ecs/components/renderable/GUIRenderable.h"
+#include "Pesukarhu/ecs/components/renderable/UIRenderableComponent.h"
 #include <unordered_map>
 
 

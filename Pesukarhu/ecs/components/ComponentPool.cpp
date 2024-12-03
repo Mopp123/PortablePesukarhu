@@ -1,6 +1,6 @@
 #include "ComponentPool.h"
-#include "Common.h"
-#include "core/Debug.h"
+#include "Pesukarhu/Common.h"
+#include "Pesukarhu/core/Debug.h"
 
 #include "Transform.h"
 #include "Camera.h"

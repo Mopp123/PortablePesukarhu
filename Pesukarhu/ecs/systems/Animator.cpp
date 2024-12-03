@@ -1,7 +1,7 @@
 #include "Animator.h"
-#include "core/Application.h"
-#include "core/Scene.h"
-#include "ecs/components/ComponentPool.h"
+#include "Pesukarhu/core/Application.h"
+#include "Pesukarhu/core/Scene.h"
+#include "Pesukarhu/ecs/components/ComponentPool.h"
 
 
 namespace pk

@@ -1,16 +1,16 @@
 #pragma once
 
-#include "ecs/components/Component.h"
-#include "ecs/components/Camera.h"
-#include "shaders/Shader.h"
-#include "utils/pkmath.h"
+#include "Pesukarhu/ecs/components/Component.h"
+#include "Pesukarhu/ecs/components/Camera.h"
+#include "Pesukarhu/utils/pkmath.h"
+#include "Pesukarhu/utils/ID.h"
+#include "Pesukarhu/resources/Texture.h"
 
+#include "shaders/Shader.h"
 #include "Swapchain.h"
 #include "Buffers.h"
-#include "resources/Texture.h"
 #include "Pipeline.h"
 #include "CommandBuffer.h"
-#include "utils/ID.h"
 #include <math.h>
 #include <vector>
 #include <unordered_map>

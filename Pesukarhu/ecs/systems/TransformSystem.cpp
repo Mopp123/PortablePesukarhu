@@ -1,5 +1,6 @@
 #include "TransformSystem.h"
-#include "core/Scene.h"
+#include "Pesukarhu/core/Scene.h"
+#include "Pesukarhu/core/Debug.h"
 #include <unordered_map>
 
 

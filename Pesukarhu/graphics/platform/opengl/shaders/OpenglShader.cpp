@@ -1,6 +1,6 @@
 #include "OpenglShader.h"
-#include "core/Debug.h"
-#include "graphics/platform/opengl/OpenglContext.h"
+#include "Pesukarhu/core/Debug.h"
+#include "Pesukarhu/graphics/platform/opengl/OpenglContext.h"
 #include <string>
 #include <vector>
 #include <sstream>

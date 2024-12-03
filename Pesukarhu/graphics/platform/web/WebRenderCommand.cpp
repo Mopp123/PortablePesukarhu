@@ -1,14 +1,15 @@
 #include "WebRenderCommand.h"
 #include <GL/glew.h>
-#include "core/Debug.h"
-#include "graphics/Buffers.h"
-#include "graphics/platform/opengl/OpenglPipeline.h"
-#include "WebBuffers.h"
-#include "graphics/platform/opengl/shaders/OpenglShader.h"
-#include "graphics/platform/opengl/OpenglContext.h"
-#include "resources/platform/opengl/OpenglTexture.h"
-#include "core/Application.h"
+#include "Pesukarhu/core/Debug.h"
+#include "Pesukarhu/graphics/Buffers.h"
+#include "Pesukarhu/graphics/platform/opengl/OpenglPipeline.h"
+#include "Pesukarhu/graphics/platform/opengl/shaders/OpenglShader.h"
+#include "Pesukarhu/graphics/platform/opengl/OpenglContext.h"
+#include "Pesukarhu/resources/platform/opengl/OpenglTexture.h"
+#include "Pesukarhu/core/Application.h"
+
 #include "WebContext.h"
+#include "WebBuffers.h"
 
 
 namespace pk

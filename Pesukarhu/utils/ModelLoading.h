@@ -1,6 +1,6 @@
 #pragma once
 
-#include "resources/Model.h"
+#include "Pesukarhu/resources/Model.h"
 #include <string>
 
 

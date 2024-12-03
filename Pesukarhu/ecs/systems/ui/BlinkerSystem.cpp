@@ -1,7 +1,7 @@
 #include "BlinkerSystem.h"
-#include "core/Scene.h"
-#include "ecs/components/ui/Blinker.h"
-#include "core/Timing.h"
+#include "Pesukarhu/core/Scene.h"
+#include "Pesukarhu/ecs/components/ui/Blinker.h"
+#include "Pesukarhu/core/Timing.h"
 
 
 namespace pk

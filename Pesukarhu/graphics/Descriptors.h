@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Buffers.h"
-#include "resources/Texture.h"
+#include "Pesukarhu/resources/Texture.h"
 #include "shaders/Shader.h"
 #include <vector>
 

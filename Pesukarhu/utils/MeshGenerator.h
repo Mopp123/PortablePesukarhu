@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics/Buffers.h"
+#include "Pesukarhu/graphics/Buffers.h"
 #include <vector>
 #include <utility>
 

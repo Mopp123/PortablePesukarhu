@@ -9,7 +9,7 @@
 // Don't remember why this was included in the first place!?
 // TODO: Delete?
 // #include <GL/glew.h>
-#include "../Common.h"
+#include "Pesukarhu/Common.h"
 
 namespace pk
 {
