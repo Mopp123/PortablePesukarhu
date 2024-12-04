@@ -25,10 +25,11 @@
 #include "ecs/components/ui/ConstraintData.h"
 #include "ecs/components/ui/UIElemState.h"
 #include "ecs/components/AnimationData.h"
-#include "ecs/utils/ui/UIUtils.h"
+
+#include "ui/UIUtils.h"
+#include "ui/UIFactories.h"
 
 #include "ecs/systems/ui/ConstraintSystem.h"
 #include "ecs/systems/Animator.h"
-#include "ecs/factories/ui/UIFactories.h"
 
 #include "graphics/MasterRenderer.h"

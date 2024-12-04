@@ -49,8 +49,8 @@ file (
     "${PARENT_DIR}/Pesukarhu/ecs/components/lighting/*.cpp"
     "${PARENT_DIR}/Pesukarhu/ecs/systems/*.cpp"
     "${PARENT_DIR}/Pesukarhu/ecs/systems/ui/*.cpp"
-    "${PARENT_DIR}/Pesukarhu/ecs/factories/ui/*.cpp"
-    "${PARENT_DIR}/Pesukarhu/ecs/utils/ui/*.cpp"
+
+    "${PARENT_DIR}/Pesukarhu/ui/*.cpp"
 
     "${PARENT_DIR}/Pesukarhu/graphics/*.cpp"
     "${PARENT_DIR}/Pesukarhu/graphics/shaders/*.cpp"
