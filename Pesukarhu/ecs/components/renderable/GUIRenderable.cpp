@@ -11,9 +11,7 @@ namespace pk
         UIRenderableComponent(ComponentType::PK_RENDERABLE_GUI),
         color(1, 1, 1),
         pTexture(pTexture),
-        textureCropping(textureCropping),
-        borderColor(vec4(color, 1.0f)),
-        borderThickness(0.0f)
+        textureCropping(textureCropping)
     {}
 
     GUIRenderable::GUIRenderable(const GUIRenderable& other) :
@@ -21,8 +19,7 @@ namespace pk
         color(other.color),
         pTexture(other.pTexture),
         textureCropping(other.textureCropping),
-        borderColor(other.borderColor),
-        borderThickness(other.borderThickness)
+        filter(other.filter)
     {
     }
 
@@ -30,8 +27,7 @@ namespace pk
         entityID_t target,
         Texture* pTexture,
         vec3 color,
-        vec4 borderColor,
-        float borderThickness,
+        GUIFilterType filter,
         vec4 textureCropping
     )
     {
@@ -39,8 +35,7 @@ namespace pk
         GUIRenderable* pRenderable = (GUIRenderable*)pScene->componentPools[ComponentType::PK_RENDERABLE_GUI].allocComponent(target);
         *pRenderable = GUIRenderable(textureCropping, pTexture);
         pRenderable->color = color;
-        pRenderable->borderColor = borderColor;
-        pRenderable->borderThickness = borderThickness;
+        pRenderable->filter = filter;
         pScene->addComponent(target, pRenderable);
         return pRenderable;
     }

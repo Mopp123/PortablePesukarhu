@@ -8,6 +8,13 @@
 
 namespace pk
 {
+    enum GUIFilterType
+    {
+        GUI_FILTER_TYPE_NONE = 0,
+        GUI_FILTER_TYPE_EMBOSS = 1,
+        GUI_FILTER_TYPE_ENGRAVE = 2
+    };
+
     class GUIRenderable : public UIRenderableComponent
     {
     public:
@@ -21,8 +28,7 @@ namespace pk
         // This is because final uv coord in shader is calculated as:
         //  uvCoord = (uvCoord + croppingPos) * croppingScale;
         vec4 textureCropping;
-        vec4 borderColor;
-        float borderThickness = 0.0f;
+        GUIFilterType filter = GUIFilterType::GUI_FILTER_TYPE_NONE;
 
         GUIRenderable(vec4 textureCropping, Texture* pTexture);
         GUIRenderable(const GUIRenderable& other);
@@ -31,8 +37,7 @@ namespace pk
             entityID_t target,
             Texture* pTexture,
             vec3 color,
-            vec4 borderColor,
-            float borderThickness,
+            GUIFilterType filter,
             vec4 textureCropping
         );
     };

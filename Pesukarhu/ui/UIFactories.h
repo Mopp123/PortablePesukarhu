@@ -6,6 +6,7 @@
 #include "Pesukarhu/resources/Texture.h"
 #include "Pesukarhu/ecs/Entity.h"
 #include "Pesukarhu/ecs/components/ui/ConstraintData.h"
+#include "Pesukarhu/ecs/components/renderable/GUIRenderable.h"
 #include "Pesukarhu/ecs/components/renderable/TextRenderable.h"
 #include "Pesukarhu/ecs/components/ui/UIElemState.h"
 #include "Pesukarhu/core/input/InputEvent.h"
@@ -60,31 +61,18 @@ namespace pk
             vec3 color = { 1, 1, 1 };
             vec3 highlightColor = { 1, 1, 1 };
             bool useHighlightColor = false;
-            vec4 borderColor = { 1, 1, 1, 1 };
-            float borderThickness = 0.0f;
+            GUIFilterType filter = GUIFilterType::GUI_FILTER_TYPE_NONE;
             Texture* pTexture = nullptr;
             vec4 textureCropping = vec4(0, 0, 1, 1);
         };
 
-        // TODO: Replace this func with below version using only the creation properties
-        entityID_t create_image(
-            HorizontalConstraintType horizontalType, float horizontalVal,
-            VerticalConstraintType verticalType, float verticalVal,
-            float width, float height,
-            vec3 color = { 1, 1, 1 },
-            vec4 borderColor = { 1, 1, 1, 1 },
-            float borderThickness = 0.0f,
-            Texture* pTexture = nullptr,
-            vec4 textureCropping = vec4(0, 0, 1, 1)
-        );
 
         entityID_t create_image(ImgCreationProperties creationProperties);
 
 
         std::pair<entityID_t, TextRenderable*> create_text(
             const std::string& str, const Font& font,
-            HorizontalConstraintType horizontalType, float horizontalVal,
-            VerticalConstraintType verticalType, float verticalVal,
+            ConstraintProperties constraintProperties,
             vec3 color = vec3(1.0f, 1.0f, 1.0f),
             bool bold = false
         );
@@ -93,8 +81,7 @@ namespace pk
         // first = button img entity, second = button text entity
         UIFactoryButton create_button(
             std::string txt, const Font& font,
-            HorizontalConstraintType horizontalType, float horizontalVal,
-            VerticalConstraintType verticalType, float verticalVal,
+            ConstraintProperties constraintProperties,
             float width, float height,
             OnClickEvent* onClick,
             bool selectable = false,
@@ -102,8 +89,7 @@ namespace pk
             vec3 textColor = { 1, 1, 1 },
             vec3 textHighlightColor = { 1, 1, 1 },
             vec3 backgroundHighlightColor = { 0.2f, 0.2f, 0.2f },
-            vec4 borderColor = { 0.6f, 0.6f, 0.6f, 1.0f },
-            float borderThickness = 2,
+            GUIFilterType filter = GUIFilterType::GUI_FILTER_TYPE_NONE,
             Texture* pTexture = nullptr,
             vec4 textureCropping = vec4(0, 0, 1, 1)
         );
@@ -111,8 +97,7 @@ namespace pk
         // return pair of InputField-entity and TextRenderable ptr of its' content
         UIFactoryInputField create_input_field(
             std::string infoTxt, const Font& font,
-            HorizontalConstraintType horizontalType, float horizontalVal,
-            VerticalConstraintType verticalType, float verticalVal,
+            ConstraintProperties constraintProperties,
             int width,
             InputFieldOnSubmitEvent* onSubmitEvent,
             bool clearOnSubmit = false,

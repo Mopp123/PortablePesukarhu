@@ -28,6 +28,8 @@
 
 #include "ui/UIUtils.h"
 #include "ui/UIFactories.h"
+#include "ui/Panel.h"
+#include "ui/TopBarPanel.h"
 
 #include "ecs/systems/ui/ConstraintSystem.h"
 #include "ecs/systems/Animator.h"
