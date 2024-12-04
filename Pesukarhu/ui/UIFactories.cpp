@@ -255,7 +255,6 @@ namespace pk
             entityID_t _txtContentEntity = NULL_ENTITY_ID;
 
             vec3 _buttonOriginalColor;
-            vec4 _buttonOriginalBorderColor;
 
             InputFieldOnSubmitEvent* _onSubmit = nullptr;
         public:
@@ -264,14 +263,12 @@ namespace pk
                 entityID_t buttonEntity,
                 entityID_t txtContentEntity,
                 vec3 buttonOriginalColor,
-                vec4 buttonOriginalBorderColor,
                 InputFieldOnSubmitEvent* onSubmit
             ) :
                 _inputFieldEntity(inputFieldEntity),
                 _buttonEntity(buttonEntity),
                 _txtContentEntity(txtContentEntity),
                 _buttonOriginalColor(buttonOriginalColor),
-                _buttonOriginalBorderColor(buttonOriginalBorderColor),
                 _onSubmit(onSubmit)
             {}
 
@@ -338,7 +335,9 @@ namespace pk
                                 ComponentType::PK_RENDERABLE_GUI
                             );
                             pImg->color = _buttonOriginalColor;
-                            pImg->borderColor = _buttonOriginalBorderColor;
+                            // NOTE: previously changed border color here.
+                            //  -> atm could be used to switch from emboss to engrave?
+                            //pImg->borderColor = _buttonOriginalBorderColor;
                         }
                     }
                 }
@@ -405,55 +404,6 @@ namespace pk
         };
 
 
-        entityID_t create_image(
-            HorizontalConstraintType horizontalType, float horizontalVal,
-            VerticalConstraintType verticalType, float verticalVal,
-            float width, float height,
-            vec3 color,
-            vec4 borderColor,
-            float borderThickness,
-            Texture* pTexture,
-            vec4 textureCropping
-        )
-        {
-	        Application* app = Application::get();
-	        Scene* currentScene = app->accessCurrentScene();
-
-	        entityID_t entityID = currentScene->createEntity();
-            Transform::create(entityID, { 0,0 }, { width, height });
-            GUIRenderable::create(
-                entityID,
-                pTexture,
-                color,
-                borderColor,
-                borderThickness,
-                textureCropping
-            );
-            ConstraintData::create(
-                entityID,
-                {
-                    horizontalType,
-                    horizontalVal,
-                    verticalType,
-                    verticalVal
-                }
-            );
-
-            UIElemState* pUIElemState = UIElemState::create(entityID);
-            pUIElemState->selectable = false;
-
-            InputManager* pInputManager = Application::get()->accessInputManager();
-            pInputManager->addCursorPosEvent(
-                new ImageMouseCursorPosEvent(
-                    entityID,
-                    color // Highlight color
-                )
-            );
-
-            return entityID;
-        }
-
-
         entityID_t create_image(ImgCreationProperties creationProperties)
         {
 	        Application* app = Application::get();
@@ -469,8 +419,7 @@ namespace pk
                 entityID,
                 creationProperties.pTexture,
                 creationProperties.color,
-                creationProperties.borderColor,
-                creationProperties.borderThickness,
+                creationProperties.filter,
                 creationProperties.textureCropping
             );
             ConstraintData::create(
@@ -501,8 +450,7 @@ namespace pk
 
         std::pair<entityID_t, TextRenderable*> create_text(
             const std::string& str, const Font& font,
-            HorizontalConstraintType horizontalType, float horizontalVal,
-            VerticalConstraintType verticalType, float verticalVal,
+            ConstraintProperties constraintProperties,
             vec3 color,
             bool bold
         )
@@ -521,12 +469,7 @@ namespace pk
             );
             ConstraintData::create(
                 entityID,
-                {
-                    horizontalType,
-                    horizontalVal,
-                    verticalType,
-                    verticalVal
-                }
+                constraintProperties
             );
 
 
@@ -547,8 +490,7 @@ namespace pk
 
         UIFactoryButton create_button(
             std::string txt, const Font& font,
-            HorizontalConstraintType horizontalType, float horizontalVal,
-            VerticalConstraintType verticalType, float verticalVal,
+            ConstraintProperties constraintProperties,
             float width, float height,
             OnClickEvent* onClick,
             bool selectable,
@@ -556,8 +498,7 @@ namespace pk
             vec3 textColor,
             vec3 textHighlightColor,
             vec3 backgroundHighlightColor,
-            vec4 borderColor,
-            float borderThickness,
+            GUIFilterType filter,
             Texture* pTexture,
             vec4 textureCropping
         )
@@ -569,17 +510,13 @@ namespace pk
 
             ImgCreationProperties imgProperties =
             {
-                {
-                    horizontalType, horizontalVal,
-                    verticalType, verticalVal
-                },
+                constraintProperties,
                 width,
                 height,
                 color,
                 backgroundHighlightColor,
                 true,
-                borderColor,
-                borderThickness,
+                filter,
                 pTexture,
                 textureCropping
             };
@@ -589,16 +526,17 @@ namespace pk
             const int padding = 4;
             const int txtDisplacementX = padding;
 
-            if (horizontalType == HorizontalConstraintType::PIXEL_LEFT ||
-                horizontalType == HorizontalConstraintType::PIXEL_CENTER_HORIZONTAL)
-                horizontalVal += (float)txtDisplacementX;
-            else if (horizontalType == HorizontalConstraintType::PIXEL_RIGHT)
-                horizontalVal -= (float)txtDisplacementX;
+            ConstraintProperties useConstraintProperties = constraintProperties;
+
+            if (constraintProperties.horizontalType == HorizontalConstraintType::PIXEL_LEFT ||
+                constraintProperties.horizontalType == HorizontalConstraintType::PIXEL_CENTER_HORIZONTAL)
+                useConstraintProperties.horizontalValue += (float)txtDisplacementX;
+            else if (constraintProperties.horizontalType == HorizontalConstraintType::PIXEL_RIGHT)
+                useConstraintProperties.horizontalValue -= (float)txtDisplacementX;
 
             entityID_t txtEntity = create_text(
                 txt, font,
-                horizontalType, horizontalVal,
-                verticalType, verticalVal,
+                useConstraintProperties,
                 textColor
             ).first;
 
@@ -650,8 +588,7 @@ namespace pk
         #define PK_INPUTFIELD_DEFAULT_HEIGHT 21
         UIFactoryInputField create_input_field(
             std::string infoTxt, const Font& font,
-            HorizontalConstraintType horizontalType, float horizontalVal,
-            VerticalConstraintType verticalType, float verticalVal,
+            ConstraintProperties constraintProperties,
             int width,
             InputFieldOnSubmitEvent* onSubmitEvent,
             bool clearOnSubmit,
@@ -688,7 +625,7 @@ namespace pk
             //  -> No fucking idea what that magic 4 comes from.. but seems good..
             float buttonDisplacement = infoTxtWidth;
             float infoDisplacement = 0;
-            if (horizontalType == HorizontalConstraintType::PIXEL_RIGHT)
+            if (constraintProperties.horizontalType == HorizontalConstraintType::PIXEL_RIGHT)
             {
                 buttonDisplacement = 0;
                 infoDisplacement = width + 4;
@@ -698,13 +635,14 @@ namespace pk
                 buttonDisplacement += ((float)font.getPixelSize()) - 4;
             }
 
+            ConstraintProperties buttonConstraintProperties = constraintProperties;
+            buttonConstraintProperties.horizontalValue += buttonDisplacement;
+
             // Create button
-            vec4 borderColor(color.x, color.y, color.z, 1.0f);
             UIFactoryButton button = create_button(
                 "", // txt
                 font,
-                horizontalType, horizontalVal + buttonDisplacement, // horiz. constraint
-                verticalType, verticalVal, // vert. constraint
+                buttonConstraintProperties,
                 (float)width, font.getPixelSize(), // scale
                 nullptr, // onclick
                 true, // selectable
@@ -712,8 +650,7 @@ namespace pk
                 textColor,
                 textHighlightColor,
                 backgroundHighlightColor,
-                borderColor,
-                2, // border thickness
+                GUIFilterType::GUI_FILTER_TYPE_ENGRAVE, // filter type
                 nullptr, // texture
                 {0, 0, 1, 1} // cropping
             );
@@ -721,11 +658,12 @@ namespace pk
             Blinker* pBlinker = Blinker::create(button.txtEntity);
             pBlinker->enable = false;
 
+            ConstraintProperties infoTxtConstraintProperties = constraintProperties;
+            infoTxtConstraintProperties.horizontalValue += infoDisplacement;
             // Create info txt
             uint32_t infoTxtEntity = create_text(
                 infoTxt, font,
-                horizontalType, horizontalVal + infoDisplacement, // *Add displacement to info text, so its to the right of the box
-                verticalType, verticalVal,
+                infoTxtConstraintProperties,
                 textColor
             ).first;
 
@@ -752,7 +690,6 @@ namespace pk
                     button.imgEntity,
                     button.txtEntity,
                     color,
-                    borderColor,
                     onSubmitEvent
                 )
             );

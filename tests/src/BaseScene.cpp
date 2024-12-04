@@ -12,11 +12,11 @@ BaseScene::~BaseScene()
 {
 }
 
-void BaseScene::init()
+void BaseScene::initBase()
 {
     // Set clear color
     //Application::get()->getMasterRenderer().setClearColor(Panel::get_base_ui_color(0));
-    Application::get()->getMasterRenderer().setClearColor({ 0, 0, 0, 1 });
+    Application::get()->getMasterRenderer().setClearColor({ 0.25f, 0.25f, 0.25f, 1 });
 
     activeCamera = createEntity();
     Camera::create(activeCamera, { 0, 1.0f, 0 }, 0.0f, 0.0f);
@@ -25,7 +25,7 @@ void BaseScene::init()
     pk::ResourceManager& resourceManager = pApp->getResourceManager();
     _pDefaultFont = resourceManager.createFont(
         "assets/fonts/Matamata-Regular.otf",
-        20
+        18
     );
 
     // Create directional light
@@ -40,15 +40,12 @@ void BaseScene::init()
 
     _infoTextEntity = create_text(
         "", *_pDefaultFont,
-        HorizontalConstraintType::PIXEL_LEFT, 0,
-        VerticalConstraintType::PIXEL_TOP, 0
+        {
+            HorizontalConstraintType::PIXEL_LEFT, 0,
+            VerticalConstraintType::PIXEL_TOP, 0
+        }
     ).first;
-
-    setInfoText("Testing testing!");
 }
-
-void BaseScene::update()
-{}
 
 void BaseScene::setInfoText(
     const std::string& txt,

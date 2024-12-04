@@ -16,9 +16,7 @@ public:
 
     BaseScene();
     virtual ~BaseScene();
-    void init();
-
-    void update();
+    void initBase();
 
     void setInfoText(
         const std::string& txt,

@@ -1,6 +1,6 @@
 #include "Pesukarhu/ppk.h"
 
-#include "BaseScene.h"
+#include "UITestScene.h"
 
 using namespace pk;
 using namespace pk::web;
@@ -24,7 +24,7 @@ int main(int argc, const char** argv)
         pGraphicsContext,
         &inputManager
     );
-    application.switchScene((Scene*)(new BaseScene));
+    application.switchScene((Scene*)(new UITestScene));
     application.run();
 
     return 0;

@@ -13,11 +13,10 @@ namespace pk
         Float2 : pos
         Float2 : scale
         Float4 : color
-        Float4 : border color
-        Float  : border thickness
+        Float  : filter type
         Float4 : texture cropping
     */
-    static const size_t s_instanceBufferComponents = 3 + 2 + 4 + 4 + 1 + 4;
+    static const size_t s_instanceBufferComponents = 3 + 2 + 4 + 1 + 4;
     static const size_t s_maxInstanceCount = 400; // per batch, not total max count!
     GUIRenderer::GUIRenderer() :
         _vertexBufferLayout({}, VertexInputRate::VERTEX_INPUT_RATE_INSTANCE),
@@ -47,9 +46,8 @@ namespace pk
                 { 2, ShaderDataType::Float3 }, // pos
                 { 3, ShaderDataType::Float2 }, // scale
                 { 4, ShaderDataType::Float4 }, // color
-                { 5, ShaderDataType::Float4 }, // border color
-                { 6, ShaderDataType::Float },  // border thickness
-                { 7, ShaderDataType::Float4 }  // texture cropping
+                { 5, ShaderDataType::Float },  // filter type
+                { 6, ShaderDataType::Float4 }  // texture cropping
             },
             VertexInputRate::VERTEX_INPUT_RATE_INSTANCE
         );
@@ -163,15 +161,13 @@ namespace pk
         vec2 scale(transformation[0 + 0 * 4], transformation[1 + 1 * 4]);
 
         const vec4 color = vec4(pGuiRenderable->color, 1.0f);
-        const vec4& borderColor = pGuiRenderable->borderColor;
         const vec4& textureCropping = pGuiRenderable->textureCropping;
 
         float renderableData[s_instanceBufferComponents] = {
             pos.x, pos.y, pos.z,
             scale.x, scale.y ,
             color.x, color.y, color.z, color.w,
-            borderColor.x, borderColor.y, borderColor.z, borderColor.w,
-            pGuiRenderable->borderThickness,
+            (float)pGuiRenderable->filter,
             textureCropping.x, textureCropping.y, textureCropping.z, textureCropping.w
         };
 
@@ -319,7 +315,7 @@ namespace pk
 
         GLenum err = glGetError();
         if (err != GL_NO_ERROR)
-            Debug::log("___TEST___GL ERR: " + std::to_string(err));
+            Debug::log("___TEST___GUIRenderer: GL ERR: " + std::to_string(err));
     }
 
     void GUIRenderer::flush()
