@@ -153,7 +153,6 @@ namespace pk
             ConstraintProperties constraintProperties
         )
         {
-            const vec2 offsetFromPanel(4.0f, 4.0f);
             std::pair<entityID_t, TextRenderable*> text = create_text(
                 txt, *_pDefaultFont,
                 constraintProperties,
@@ -169,14 +168,13 @@ namespace pk
 
         std::pair<entityID_t, TextRenderable*> Panel::addText(std::string txt, vec3 color)
         {
-            const vec2 offsetFromPanel(4.0f, 4.0f);
             vec2 toAdd = calcNewSlotPos();
 
             ConstraintProperties useConstraintProperties = {
                 _constraintProperties.horizontalType,
-                _constraintProperties.horizontalValue + toAdd.x + offsetFromPanel.x,
+                _constraintProperties.horizontalValue + toAdd.x,
                 _constraintProperties.verticalType,
-                _constraintProperties.verticalValue + toAdd.y - offsetFromPanel.y,
+                _constraintProperties.verticalValue + toAdd.y,
             };
 
             std::pair<entityID_t, TextRenderable*> text = create_text(
@@ -206,18 +204,14 @@ namespace pk
             Texture* pTexture = nullptr;
             vec4 textureCropping(0, 0, 1, 1);
 
-            vec2 offsetFromPanel(4.0f, 4.0f);
             vec2 toAdd = calcNewSlotPos();
-            // offsetting depends which constraint type we are using
-            if (_constraintProperties.verticalType == VerticalConstraintType::PIXEL_TOP)
-                offsetFromPanel.y *= -1.0f;
 
             ConstraintProperties useConstraintProperties =
             {
                 _constraintProperties.horizontalType,
-                _constraintProperties.horizontalValue + toAdd.x + offsetFromPanel.x,
+                _constraintProperties.horizontalValue + toAdd.x,
                 _constraintProperties.verticalType,
-                _constraintProperties.verticalValue + toAdd.y - offsetFromPanel.y,
+                _constraintProperties.verticalValue + toAdd.y,
             };
 
             UIFactoryButton button = create_button(
@@ -283,12 +277,11 @@ namespace pk
         )
         {
             vec4 color = get_base_ui_color(2);
-            const vec2 offsetFromPanel(4.0f, 4.0f);
             vec2 toAdd = calcNewSlotPos();
 
             ConstraintProperties useConstraintProperties = _constraintProperties;
-            useConstraintProperties.horizontalValue += toAdd.x + offsetFromPanel.x;
-            useConstraintProperties.verticalValue += toAdd.y - offsetFromPanel.y;
+            useConstraintProperties.horizontalValue += toAdd.x;
+            useConstraintProperties.verticalValue += toAdd.y;
 
             UIFactoryInputField inputField = create_input_field(
                 infoTxt, *_pDefaultFont,
@@ -361,6 +354,29 @@ namespace pk
             return imgEntity;
         }
 
+        UIFactoryCheckbox Panel::addDefaultCheckbox(std::string infoTxt)
+        {
+            vec4 color = get_base_ui_color(2);
+            vec2 toAdd = calcNewSlotPos();
+
+            ConstraintProperties useConstraintProperties = _constraintProperties;
+            useConstraintProperties.horizontalValue += toAdd.x;
+            useConstraintProperties.verticalValue += toAdd.y;
+
+            UIFactoryCheckbox checkbox = create_checkbox(
+                infoTxt,
+                _pDefaultFont,
+                useConstraintProperties,
+                color.toVec3(), // background color
+                get_base_ui_color(1).toVec3(), // background highlight color,
+                get_base_ui_color(3).toVec3(), // checked indicator color
+                get_base_ui_color(3).toVec3() // text color
+            );
+            _pScene->addChild(_entity, checkbox.rootEntity);
+            ++_slotCount;
+            return checkbox;
+        }
+
         void Panel::setActive(bool arg, entityID_t entity)
         {
             if (entity == 0)
@@ -394,16 +410,22 @@ namespace pk
 
         vec2 Panel::calcNewSlotPos()
         {
+            vec2 useOffset = _offsetFromPanel;
+
             vec2 pos(0, 0);
+
             if (_layoutType == LayoutFillType::VERTICAL)
                 pos = { 0.0f,  (_slotScale.y + _slotPadding) * _slotCount};
             else if (_layoutType == LayoutFillType::HORIZONTAL)
                 pos = { (_slotScale.x + _slotPadding) * _slotCount, 0.0f };
 
             if (_constraintProperties.verticalType == VerticalConstraintType::PIXEL_CENTER_VERTICAL)
+            {
                 pos.y *= -1.0f;
+                useOffset.y *= -1.0f;
+            }
 
-            return pos;
+            return useOffset + pos;
         }
 
         void Panel::getRect(float& outX, float& outY, float& outWidth, float& outHeight) const

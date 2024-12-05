@@ -17,6 +17,8 @@ namespace pk
         // InputField specific
         bool clearOnSubmit = true;
         std::string content;
+        // Checkbox specific
+        bool checked = false;
 
         static std::unordered_map<entityID_t, int> s_pickedLayers;
 
