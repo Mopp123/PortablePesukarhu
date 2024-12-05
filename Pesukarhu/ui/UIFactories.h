@@ -16,14 +16,6 @@ namespace pk
 {
     namespace ui
     {
-        // To track if clicked on multiple overlapping ui elems, etc.
-        class EventOverlapResolver
-        {
-        public:
-
-
-        };
-
         // *User defined ui events
         class OnClickEvent
         {
@@ -53,6 +45,12 @@ namespace pk
             entityID_t contentEntity = 0;
         };
 
+        struct UIFactoryCheckbox
+        {
+            entityID_t rootEntity;
+            entityID_t checkedStatusImgEntity;
+        };
+
         struct ImgCreationProperties
         {
             ConstraintProperties constraintProperties;
@@ -78,7 +76,6 @@ namespace pk
         );
 
 
-        // first = button img entity, second = button text entity
         UIFactoryButton create_button(
             std::string txt, const Font& font,
             ConstraintProperties constraintProperties,
@@ -94,9 +91,9 @@ namespace pk
             vec4 textureCropping = vec4(0, 0, 1, 1)
         );
 
-        // return pair of InputField-entity and TextRenderable ptr of its' content
         UIFactoryInputField create_input_field(
-            std::string infoTxt, const Font& font,
+            std::string infoTxt,
+            const Font& font,
             ConstraintProperties constraintProperties,
             int width,
             InputFieldOnSubmitEvent* onSubmitEvent,
@@ -106,6 +103,16 @@ namespace pk
             vec3 textHighlightColor = { 1, 1, 1 },
             vec3 backgroundHighlightColor = { 0.2f, 0.2f, 0.2f },
             bool password = false
+        );
+
+        UIFactoryCheckbox create_checkbox(
+            std::string infoTxt,
+            const Font* pFont,
+            ConstraintProperties constraintProperties,
+            vec3 backgroundColor = { 0.2f, 0.2f, 0.2f },
+            vec3 backgroundHighlightColor = { 0.4f, 0.4f, 0.4f },
+            vec3 checkedColor = { 0.4f, 0.4f, 0.4f }, // The color of the thing indicating checked status
+            vec3 textColor = { 1, 1, 1 }
         );
     }
 }

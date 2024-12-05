@@ -2,6 +2,7 @@
 #include "Pesukarhu/core/Application.h"
 #include "Pesukarhu/ecs/components/renderable/GUIRenderable.h"
 #include "Pesukarhu/ecs/components/renderable/UIRenderableComponent.h"
+#include "UIUtils.h"
 #include <unordered_map>
 
 
@@ -122,6 +123,73 @@ namespace pk
             }
         };
 
+
+        class CheckboxMouseButtonEvent : public MouseButtonEvent
+        {
+        private:
+            entityID_t _checkboxEntity = NULL_ENTITY_ID;
+            entityID_t _checkboxImgEntity = NULL_ENTITY_ID;
+            entityID_t _checkStatusEntity = NULL_ENTITY_ID;
+
+        public:
+            CheckboxMouseButtonEvent(
+                entityID_t checkboxEntity,
+                entityID_t checkboxImgEntity,
+                entityID_t checkStatusEntity
+            ) :
+                _checkboxEntity(checkboxEntity),
+                _checkboxImgEntity(checkboxImgEntity),
+                _checkStatusEntity(checkStatusEntity)
+            {
+            }
+
+            virtual ~CheckboxMouseButtonEvent()
+            {
+            }
+
+            virtual void func(InputMouseButtonName button, InputAction action, int mods)
+            {
+                Scene* pScene = Application::get()->accessCurrentScene();
+                UIElemState* pCheckboxUIState = (UIElemState*)pScene->getComponent(
+                    _checkboxEntity,
+                    ComponentType::PK_UIELEM_STATE
+                );
+                UIElemState* pImgUIState = (UIElemState*)pScene->getComponent(
+                    _checkboxImgEntity,
+                    ComponentType::PK_UIELEM_STATE
+                );
+                GUIRenderable* pCheckedImg = (GUIRenderable*)pScene->getComponent(
+                    _checkStatusEntity,
+                    ComponentType::PK_RENDERABLE_GUI
+                );
+
+                if (!pCheckboxUIState->isActive() || !pImgUIState->isActive())
+                    return;
+                if (pImgUIState->mouseOver)
+                {
+                    if (action == PK_INPUT_PRESS)
+                        pImgUIState->state = 1;
+                    else if (pImgUIState->state == 1 && action == PK_INPUT_RELEASE)
+                        pImgUIState->state = 2;
+
+                    // state: 0 = "nothing"
+                    // state: 1 = pressed inside button
+                    // state: 2 = pressed and released inside button
+
+                    if (pImgUIState->state == 2)
+                    {
+                        pCheckboxUIState->checked = !pCheckboxUIState->checked;
+                        pCheckedImg->setActive(pCheckboxUIState->checked);
+                        pImgUIState->state = 0;
+                    }
+                }
+                else
+                {
+                    pImgUIState->state = 0;
+                }
+            }
+        };
+
         // TODO: Make cursor pos event for ALL GUI IMAGES
         // (and maybe txt as well) to track if cursor is on ui
         class ImageMouseCursorPosEvent : public CursorPosEvent
@@ -205,8 +273,7 @@ namespace pk
             }
         };
 
-        // TODO: Make cursor pos event for ALL GUI IMAGES
-        // (and maybe txt as well) to track if cursor is on ui
+        // NOTE: After all sorts of reworks this actually just sets the button's text's highlight atm!
         class ButtonMouseCursorPosEvent : public CursorPosEvent
         {
         private:
@@ -327,7 +394,6 @@ namespace pk
                             pButtonUIState->selected = false;
                             pBlinker->enable = false;
                             pTextRenderable->accessVisualStr() = renderableTxt;
-
 
                             // test resetting to original color
                             GUIRenderable* pImg = (GUIRenderable*)pScene->getComponent(
@@ -460,6 +526,7 @@ namespace pk
             entityID_t entityID = currentScene->createEntity();
             Transform* pTransform = Transform::create(entityID, { 0,0 }, { 1, 1 });
 
+            ConstraintProperties useConstraintProperties = constraintProperties;
             TextRenderable* pRenderable = TextRenderable::create(
                 entityID,
                 str,
@@ -469,7 +536,7 @@ namespace pk
             );
             ConstraintData::create(
                 entityID,
-                constraintProperties
+                useConstraintProperties
             );
 
 
@@ -623,20 +690,22 @@ namespace pk
             // TODO: Comment wtf happening here!!!!!!!
             // NOTE: Still something fucked about this!!
             //  -> No fucking idea what that magic 4 comes from.. but seems good..
-            float buttonDisplacement = infoTxtWidth;
+            float buttonDisplacementX = infoTxtWidth;
+            float buttonDisplacementY = 0.0f;
             float infoDisplacement = 0;
             if (constraintProperties.horizontalType == HorizontalConstraintType::PIXEL_RIGHT)
             {
-                buttonDisplacement = 0;
+                buttonDisplacementX = 0;
                 infoDisplacement = width + 4;
             }
             else
             {
-                buttonDisplacement += ((float)font.getPixelSize()) - 4;
+                buttonDisplacementX += ((float)font.getPixelSize()) - 4;
             }
 
             ConstraintProperties buttonConstraintProperties = constraintProperties;
-            buttonConstraintProperties.horizontalValue += buttonDisplacement;
+            buttonConstraintProperties.horizontalValue += buttonDisplacementX;
+            buttonConstraintProperties.verticalValue += buttonDisplacementY;
 
             // Create button
             UIFactoryButton button = create_button(
@@ -703,6 +772,121 @@ namespace pk
             );
 
             return { inputFieldEntity, button.txtEntity };
+        }
+
+
+        float get_text_visual_width(const std::string& txt, const Font* pFont)
+        {
+            float txtWidth = 0.0f;
+            float pos = 0.0f;
+            for (char c : txt)
+            {
+                const FontGlyphData * const glyph = pFont->getGlyph(c);
+                if (glyph)
+                {
+                    txtWidth = pos + glyph->bearingX;
+                    pos += ((float)(glyph->advance >> 6));
+                }
+            }
+            return txtWidth;
+        }
+
+        UIFactoryCheckbox create_checkbox(
+            std::string infoTxt,
+            const Font* pFont,
+            ConstraintProperties constraintProperties,
+            vec3 backgroundColor,
+            vec3 backgroundHighlightColor,
+            vec3 checkedColor, // The color of the thing indicating checked status
+            vec3 textColor
+        )
+        {
+            Scene* pScene = Application::get()->accessCurrentScene();
+
+            entityID_t checkboxEntity = pScene->createEntity();
+            UIElemState* pUIElemState = UIElemState::create(checkboxEntity);
+
+            const float defaultWidth = pFont->getPixelSize();
+            const float defaultHeight = pFont->getPixelSize();
+
+            float buttonDisplacement = get_text_visual_width(infoTxt, pFont);
+            float infoDisplacement = 0;
+
+            // -> No fucking idea what that magic 4 comes from.. but seems good..
+            //  ->same as with inputField...
+            if (constraintProperties.horizontalType == HorizontalConstraintType::PIXEL_RIGHT)
+            {
+                buttonDisplacement = 0;
+                infoDisplacement = defaultWidth + 4;
+            }
+            else
+            {
+                buttonDisplacement += ((float)pFont->getPixelSize()) - 4;
+            }
+
+            ConstraintProperties backgroundImgConstraintProperties = constraintProperties;
+            backgroundImgConstraintProperties.horizontalValue += buttonDisplacement;
+            ImgCreationProperties backgroundImgProperties =
+            {
+                backgroundImgConstraintProperties,
+                defaultWidth,
+                defaultHeight,
+                backgroundColor,
+                backgroundHighlightColor,
+                true,
+                GUIFilterType::GUI_FILTER_TYPE_ENGRAVE,
+                nullptr
+            };
+            entityID_t backgroundImgEntity = create_image(backgroundImgProperties);
+
+            const float checkedImgMinification = 8.0f; // how many pixels smaller than outer box
+            ConstraintProperties checkedImgConstraintProperties = backgroundImgConstraintProperties;
+            checkedImgConstraintProperties.horizontalValue = backgroundImgConstraintProperties.horizontalValue + checkedImgMinification * 0.5f;
+
+            float checkedImgDisplacementY = checkedImgMinification * 0.5f;
+            if (backgroundImgConstraintProperties.verticalType == VerticalConstraintType::PIXEL_CENTER_VERTICAL)
+                checkedImgDisplacementY = -checkedImgMinification * 0.5f;
+
+            checkedImgConstraintProperties.verticalValue = backgroundImgConstraintProperties.verticalValue + checkedImgDisplacementY;
+            ImgCreationProperties checkedImgProperties =
+            {
+                checkedImgConstraintProperties,
+                defaultWidth - checkedImgMinification,
+                defaultHeight - checkedImgMinification,
+                checkedColor,
+                checkedColor,
+                true,
+                GUIFilterType::GUI_FILTER_TYPE_EMBOSS,
+                nullptr
+            };
+            entityID_t checkedImgEntity = create_image(checkedImgProperties);
+
+            // Create info txt
+            ConstraintProperties infoTxtConstraintProperties = constraintProperties;
+            infoTxtConstraintProperties.horizontalValue += infoDisplacement;
+            uint32_t infoTxtEntity = create_text(
+                infoTxt, *pFont, // NOTE: DANGER! TODO: make all funcs here take font as ptr instead of ref!
+                infoTxtConstraintProperties,
+                textColor
+            ).first;
+
+            pScene->addChild(checkboxEntity, backgroundImgEntity);
+            pScene->addChild(checkboxEntity, checkedImgEntity);
+            pScene->addChild(checkboxEntity, infoTxtEntity);
+
+            InputManager* pInputManager = Application::get()->accessInputManager();
+            pInputManager->addMouseButtonEvent(
+                new CheckboxMouseButtonEvent(
+                    checkboxEntity,
+                    backgroundImgEntity,
+                    checkedImgEntity
+                )
+            );
+
+            // Set unchecked by default
+            set_checkbox_status(checkboxEntity, checkedImgEntity, false);
+
+            return { checkboxEntity, checkedImgEntity };
         }
     }
 }

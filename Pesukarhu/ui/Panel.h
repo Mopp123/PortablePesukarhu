@@ -52,6 +52,8 @@ namespace pk
             float _slotPadding = 1.0f;
             vec2 _slotScale;
             vec3 _color;
+            // Padding to add from where elements get added
+            vec2 _offsetFromPanel = { 4.0f, 4.0f };
 
             int _slotCount = 0;
 
@@ -131,6 +133,8 @@ namespace pk
                 vec4 textureCropping = vec4(0, 0, 1, 1),
                 GUIFilterType filter = GUIFilterType::GUI_FILTER_TYPE_NONE
             );
+
+            UIFactoryCheckbox addDefaultCheckbox(std::string infoTxt);
 
             void setActive(bool arg, entityID_t entity = 0);
 
