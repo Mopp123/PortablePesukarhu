@@ -1,8 +1,8 @@
 #pragma once
 
 #include "BaseScene.h"
-#include "Pesukarhu/ppk.h"
-#include "Pesukarhu/ui/TopBarPanel.h"
+#include "pesukarhu/ppk.h"
+#include "pesukarhu/ui/TopBarPanel.h"
 
 class UITestScene : public BaseScene
 {
