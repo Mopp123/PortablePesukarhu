@@ -3,6 +3,7 @@
 #include "pesukarhu/ecs/components/renderable/GUIRenderable.h"
 #include "pesukarhu/ecs/components/renderable/UIRenderableComponent.h"
 #include "UIUtils.h"
+#include "GUIImage.h"
 #include <unordered_map>
 
 
@@ -186,89 +187,6 @@ namespace pk
                 else
                 {
                     pImgUIState->state = 0;
-                }
-            }
-        };
-
-        // TODO: Make cursor pos event for ALL GUI IMAGES
-        // (and maybe txt as well) to track if cursor is on ui
-        class ImageMouseCursorPosEvent : public CursorPosEvent
-        {
-        private:
-            entityID_t _entity = NULL_ENTITY_ID;
-            vec3 _originalColor = vec3(0, 0, 0);
-            vec3 _highlightColor = vec3(1, 1, 1);
-
-        public:
-            ImageMouseCursorPosEvent(
-                entityID_t entity,
-                vec3 highlightColor
-            ) :
-                _entity(entity),
-                _highlightColor(highlightColor)
-            {
-                const Scene* pScene = Application::get()->getCurrentScene();
-                const GUIRenderable* pImg = (const GUIRenderable*)pScene->getComponent(_entity, ComponentType::PK_RENDERABLE_GUI);
-                _originalColor = pImg->color;
-            }
-
-            virtual void func(int x, int y)
-            {
-                Scene* pScene = Application::get()->accessCurrentScene();
-                GUIRenderable* pImg = (GUIRenderable*)pScene->getComponent(_entity, ComponentType::PK_RENDERABLE_GUI);
-                const Transform* pTransform = (const Transform*)pScene->getComponent(_entity, ComponentType::PK_TRANSFORM);
-                UIElemState* pUIState = (UIElemState*)pScene->getComponent(_entity, ComponentType::PK_UIELEM_STATE);
-
-                const mat4& tMat = pTransform->getTransformationMatrix();
-
-                float width = tMat[0 + 0 * 4];
-                float height = tMat[1 + 1 * 4];
-
-                float xPos = tMat[0 + 3 * 4];
-                float yPos = tMat[1 + 3 * 4];
-
-                const int imgLayer = pImg->getLayer();
-                // *ignore highlight coloring if selected
-                // set or remove highlight coloring
-                if (pUIState->isActive() && x >= xPos && x <= xPos + width && y <= yPos && y >= yPos - height)
-                {
-                    // Make sure theres no overlap with other ui (layer vals check)
-                    UIElemState::s_pickedLayers[_entity] = imgLayer;
-
-                    // find highest layer value and make it selected
-                    int highest = 0;
-                    std::unordered_map<entityID_t, int>::const_iterator it;
-                    for (it = UIElemState::s_pickedLayers.begin(); it != UIElemState::s_pickedLayers.end(); ++it)
-                    {
-                        highest = std::max(highest, it->second);
-                    }
-                    UIRenderableComponent::set_current_selected_layer(highest);
-
-                    if (UIRenderableComponent::get_current_selected_layer() > pImg->getLayer())
-                    {
-                        // Reset mouseover to false if "layer switch"
-                        if (!pUIState->selected)
-                            pImg->color = _originalColor;
-
-                        pUIState->mouseOver = false;
-                        return;
-                    }
-                    UIRenderableComponent::set_current_selected_layer(pImg->getLayer());
-
-                    if (!pUIState->selected)
-                        pImg->color = _highlightColor;
-
-                    pUIState->mouseOver = true;
-                }
-                else
-                {
-                    if (UIElemState::s_pickedLayers.find(_entity) != UIElemState::s_pickedLayers.end())
-                        UIElemState::s_pickedLayers.erase(_entity);
-
-                    if (!pUIState->selected)
-                        pImg->color = _originalColor;
-
-                    pUIState->mouseOver = false;
                 }
             }
         };
@@ -470,50 +388,6 @@ namespace pk
         };
 
 
-        entityID_t create_image(ImgCreationProperties creationProperties)
-        {
-	        Application* app = Application::get();
-	        Scene* currentScene = app->accessCurrentScene();
-
-	        entityID_t entityID = currentScene->createEntity();
-            Transform::create(
-                entityID,
-                { 0,0 },
-                { creationProperties.width, creationProperties.height }
-            );
-            GUIRenderable::create(
-                entityID,
-                creationProperties.pTexture,
-                creationProperties.color,
-                creationProperties.filter,
-                creationProperties.textureCropping
-            );
-            ConstraintData::create(
-                entityID,
-                {
-                    creationProperties.constraintProperties.horizontalType,
-                    creationProperties.constraintProperties.horizontalValue,
-                    creationProperties.constraintProperties.verticalType,
-                    creationProperties.constraintProperties.verticalValue
-                }
-            );
-
-            UIElemState* pUIElemState = UIElemState::create(entityID);
-            pUIElemState->selectable = false;
-
-            vec3 highlightColor = creationProperties.useHighlightColor ? creationProperties.highlightColor : creationProperties.color;
-            InputManager* pInputManager = Application::get()->accessInputManager();
-            pInputManager->addCursorPosEvent(
-                new ImageMouseCursorPosEvent(
-                    entityID,
-                    highlightColor
-                )
-            );
-
-            return entityID;
-        }
-
-
         entityID_t create_text(
             const std::string& str, const Font& font,
             ConstraintProperties constraintProperties,
@@ -575,7 +449,7 @@ namespace pk
 
             entityID_t buttonEntity = currentScene->createEntity();
 
-            ImgCreationProperties imgProperties =
+            GUIImage::ImgCreationProperties imgProperties =
             {
                 constraintProperties,
                 width,
@@ -587,7 +461,9 @@ namespace pk
                 pTexture,
                 textureCropping
             };
-            entityID_t imgEntity = create_image(imgProperties);
+            GUIImage img;
+            img.create(imgProperties);
+            entityID_t imgEntity = img.getEntity();
 
             // Add txt displacement
             const int padding = 4;
@@ -610,14 +486,6 @@ namespace pk
             currentScene->addChild(buttonEntity, imgEntity);
             currentScene->addChild(buttonEntity, txtEntity);
 
-            GUIRenderable* imgRenderable = (GUIRenderable*)currentScene->getComponent(
-                imgEntity,
-                ComponentType::PK_RENDERABLE_GUI
-            );
-            Transform* imgTransform = (Transform*)currentScene->getComponent(
-                imgEntity,
-                ComponentType::PK_TRANSFORM
-            );
             Transform* txtTransform = (Transform*)currentScene->getComponent(
                 txtEntity,
                 ComponentType::PK_TRANSFORM
@@ -739,12 +607,6 @@ namespace pk
             currentScene->addChild(inputFieldEntity, button.rootEntity);
             currentScene->addChild(inputFieldEntity, infoTxtEntity);
 
-            // NOTE: button's text component is used as the InputField's "content text"
-            TextRenderable* contentText = (TextRenderable*)currentScene->getComponent(
-                button.txtEntity,
-                ComponentType::PK_RENDERABLE_TEXT
-            );
-
             // TESTING
             // NOTE: This should have not worked before... refers to non existent transform...
             Transform* buttonTransform = (Transform*)currentScene->getComponent(
@@ -826,7 +688,7 @@ namespace pk
 
             ConstraintProperties backgroundImgConstraintProperties = constraintProperties;
             backgroundImgConstraintProperties.horizontalValue += buttonDisplacement;
-            ImgCreationProperties backgroundImgProperties =
+            GUIImage::ImgCreationProperties backgroundImgProperties =
             {
                 backgroundImgConstraintProperties,
                 defaultWidth,
@@ -837,7 +699,9 @@ namespace pk
                 GUIFilterType::GUI_FILTER_TYPE_ENGRAVE,
                 nullptr
             };
-            entityID_t backgroundImgEntity = create_image(backgroundImgProperties);
+            GUIImage backgroundImg;
+            backgroundImg.create(backgroundImgProperties);
+            entityID_t backgroundImgEntity = backgroundImg.getEntity();
 
             const float checkedImgMinification = 8.0f; // how many pixels smaller than outer box
             ConstraintProperties checkedImgConstraintProperties = backgroundImgConstraintProperties;
@@ -848,7 +712,7 @@ namespace pk
                 checkedImgDisplacementY = -checkedImgMinification * 0.5f;
 
             checkedImgConstraintProperties.verticalValue = backgroundImgConstraintProperties.verticalValue + checkedImgDisplacementY;
-            ImgCreationProperties checkedImgProperties =
+            GUIImage::ImgCreationProperties checkedImgProperties =
             {
                 checkedImgConstraintProperties,
                 defaultWidth - checkedImgMinification,
@@ -859,7 +723,9 @@ namespace pk
                 GUIFilterType::GUI_FILTER_TYPE_EMBOSS,
                 nullptr
             };
-            entityID_t checkedImgEntity = create_image(checkedImgProperties);
+            GUIImage checkedImg;
+            checkedImg.create(checkedImgProperties);
+            entityID_t checkedImgEntity = checkedImg.getEntity();
 
             // Create info txt
             ConstraintProperties infoTxtConstraintProperties = constraintProperties;

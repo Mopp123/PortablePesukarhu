@@ -3,6 +3,7 @@
 #include "pesukarhu/ecs/components/ui/ConstraintData.h"
 #include "pesukarhu/utils/pkmath.h"
 #include "pesukarhu/ecs/components/renderable/GUIRenderable.h"
+#include "pesukarhu/ecs/components/Transform.h"
 
 
 namespace pk
@@ -34,6 +35,7 @@ namespace pk
             void create(ImgCreationProperties creationProperties);
 
             GUIRenderable* getGUIRenderable();
+            Transform* getTransform();
             inline entityID_t getEntity() const { return _entity; }
         };
     }

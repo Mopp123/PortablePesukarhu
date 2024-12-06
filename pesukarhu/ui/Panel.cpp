@@ -1,6 +1,7 @@
 #include "Panel.h"
 #include "pesukarhu/core/Application.h"
 #include "pesukarhu/core/input/InputManager.h"
+#include "GUIImage.h"
 
 
 namespace pk
@@ -110,16 +111,19 @@ namespace pk
             vec4 textureCropping(0, 0, 1, 1); // unused since no even texure atm?
 
             // Create panel image
-            ImgCreationProperties imgCreationProperties;
+            GUIImage::ImgCreationProperties imgCreationProperties;
             imgCreationProperties.constraintProperties = _constraintProperties;
-
             imgCreationProperties.width = _scale.x;
             imgCreationProperties.height = _scale.y;
             imgCreationProperties.color = _color;
             imgCreationProperties.filter = filter;
             imgCreationProperties.textureCropping = textureCropping;
 
-            _entity = create_image(imgCreationProperties);
+            // Not sure should we actually keep the handle for the GUIImage... could be useful...
+            GUIImage panelImg;
+            panelImg.create(imgCreationProperties);
+
+            _entity = panelImg.getEntity();
 
             InputManager* pInputManager = Application::get()->accessInputManager();
             pInputManager->addCursorPosEvent(new PanelCursorPosEvent(pScene, this));
@@ -337,7 +341,7 @@ namespace pk
             GUIFilterType filter
         )
         {
-            ImgCreationProperties imgProperties;
+            GUIImage::ImgCreationProperties imgProperties;
             imgProperties.constraintProperties = constraintProperties;
             imgProperties.width = width;
             imgProperties.height = height;
@@ -346,7 +350,9 @@ namespace pk
             imgProperties.pTexture = pTexture;
             imgProperties.textureCropping = textureCropping;
 
-            entityID_t imgEntity = create_image(imgProperties);
+            GUIImage img;
+            img.create(imgProperties);
+            entityID_t imgEntity = img.getEntity();
             // NOTE: Earlier this img wasn't added as child... don't remember was there
             // a reason for it...
             _pScene->addChild(_entity, imgEntity);
