@@ -86,6 +86,24 @@ namespace pk
             );
         }
 
+        TextRenderable* GUIText::getRenderable()
+        {
+            if (_entity == NULL_ENTITY_ID)
+            {
+                Debug::log(
+                    "@GUIText::getRenderable "
+                    "GUIText's entity was null. Make sure GUIText was created successfully using GUIText::create!",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return nullptr;
+            }
+            Scene* pScene = Application::get()->accessCurrentScene();
+            return (TextRenderable*)pScene->getComponent(
+                _entity,
+                ComponentType::PK_RENDERABLE_TEXT
+            );
+        }
+
         void GUIText::setActive(bool arg)
         {
             if (_entity == NULL_ENTITY_ID)

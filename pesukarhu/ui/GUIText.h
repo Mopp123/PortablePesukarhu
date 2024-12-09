@@ -3,6 +3,7 @@
 #include "pesukarhu/ecs/Entity.h"
 #include "pesukarhu/ecs/components/ui/ConstraintData.h"
 #include "pesukarhu/ecs/components/Transform.h"
+#include "pesukarhu/ecs/components/renderable/TextRenderable.h"
 #include "pesukarhu/utils/pkmath.h"
 #include "pesukarhu/resources/Font.h"
 
@@ -33,6 +34,7 @@ namespace pk
             void setVisualStr(const std::string& str);
 
             Transform* getTransform();
+            TextRenderable* getRenderable();
 
             void setActive(bool arg);
 

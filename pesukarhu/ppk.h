@@ -33,6 +33,8 @@
 #include "ui/GUIImage.h"
 #include "ui/GUIText.h"
 #include "ui/GUIButton.h"
+#include "ui/InputField.h"
+#include "ui/Checkbox.h"
 
 #include "ecs/systems/ui/ConstraintSystem.h"
 #include "ecs/systems/Animator.h"

@@ -135,7 +135,7 @@ namespace pk
             );
         }
 
-        GUIRenderable* GUIImage::getGUIRenderable()
+        GUIRenderable* GUIImage::getRenderable()
         {
             if (_entity == NULL_ENTITY_ID)
             {

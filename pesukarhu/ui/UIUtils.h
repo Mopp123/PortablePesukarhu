@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pesukarhu/ecs/Entity.h"
+#include "pesukarhu/resources/Font.h"
 #include <string>
 
 
@@ -8,18 +9,6 @@ namespace pk
 {
     namespace ui
     {
-        std::string get_input_field_content(entityID_t inputFieldEntity);
-        void set_input_field_content(
-            const std::string& str,
-            entityID_t inputFieldEntity,
-            entityID_t txtRenderableEntity
-        );
-
-        bool get_checkbox_status(entityID_t checkboxEntity);
-        void set_checkbox_status(
-            entityID_t checkboxEntity,
-            entityID_t checkedStatusImgEntity,
-            bool checked
-        );
+        float get_text_visual_width(const std::string& txt, const Font* pFont);
     }
 }

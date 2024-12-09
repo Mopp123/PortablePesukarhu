@@ -33,17 +33,6 @@ void UITestScene::init()
     _testPanel.addDefaultInputField("Input", 100, nullptr);
     _testPanel.addDefaultCheckbox("Checking1");
 
-    create_input_field(
-        "Input",
-        *_pDefaultFont,
-        {
-            HorizontalConstraintType::PIXEL_LEFT, 50.0f,
-            VerticalConstraintType::PIXEL_BOTTOM, 0.0f
-        },
-        100,
-        nullptr
-    );
-
     _testPanel2.createDefault(
         this,
         _pDefaultFont,

@@ -278,10 +278,10 @@ namespace pk
             return button;
         }
 
-        UIFactoryInputField Panel::addDefaultInputField(
+        InputField Panel::addDefaultInputField(
             std::string infoTxt,
             int width,
-            InputFieldOnSubmitEvent* onSubmitEvent,
+            InputField::OnSubmitEvent* onSubmitEvent,
             bool clearOnSubmit,
             bool password
         )
@@ -293,7 +293,8 @@ namespace pk
             useConstraintProperties.horizontalValue += toAdd.x;
             useConstraintProperties.verticalValue += toAdd.y;
 
-            UIFactoryInputField inputField = create_input_field(
+            InputField inputField;
+            inputField.create(
                 infoTxt, *_pDefaultFont,
                 useConstraintProperties,
                 width,
@@ -305,23 +306,24 @@ namespace pk
                 get_base_ui_color(1).toVec3(), // background highlight color,
                 password
             );
-            _pScene->addChild(_entity, inputField.rootEntity);
+            _pScene->addChild(_entity, inputField.getEntity());
             ++_slotCount;
 
             return inputField;
         }
 
-        UIFactoryInputField Panel::addInputField(
+        InputField Panel::addInputField(
             std::string infoTxt,
             ConstraintProperties constraintProperties,
             int width,
-            InputFieldOnSubmitEvent* onSubmitEvent,
+            InputField::OnSubmitEvent* onSubmitEvent,
             bool clearOnSubmit,
             bool password
         )
         {
             vec4 color = get_base_ui_color(2);
-            UIFactoryInputField inputField = create_input_field(
+            InputField inputField;
+            inputField.create(
                 infoTxt, *_pDefaultFont,
                 constraintProperties,
                 width,
@@ -333,7 +335,7 @@ namespace pk
                 get_base_ui_color(1).toVec3(), // background highlight color
                 password
             );
-            _pScene->addChild(_entity, inputField.rootEntity);
+            _pScene->addChild(_entity, inputField.getEntity());
 
             return inputField;
         }
@@ -366,7 +368,7 @@ namespace pk
             return imgEntity;
         }
 
-        UIFactoryCheckbox Panel::addDefaultCheckbox(std::string infoTxt)
+        Checkbox Panel::addDefaultCheckbox(std::string infoTxt)
         {
             vec4 color = get_base_ui_color(2);
             vec2 toAdd = calcNewSlotPos();
@@ -375,7 +377,8 @@ namespace pk
             useConstraintProperties.horizontalValue += toAdd.x;
             useConstraintProperties.verticalValue += toAdd.y;
 
-            UIFactoryCheckbox checkbox = create_checkbox(
+            Checkbox checkbox;
+            checkbox.create(
                 infoTxt,
                 _pDefaultFont,
                 useConstraintProperties,
@@ -384,7 +387,7 @@ namespace pk
                 get_base_ui_color(3).toVec3(), // checked indicator color
                 get_base_ui_color(3).toVec3() // text color
             );
-            _pScene->addChild(_entity, checkbox.rootEntity);
+            _pScene->addChild(_entity, checkbox.getEntity());
             ++_slotCount;
             return checkbox;
         }

@@ -5,6 +5,8 @@
 
 #include "UIFactories.h"
 #include "GUIButton.h"
+#include "InputField.h"
+#include "Checkbox.h"
 
 #include "pesukarhu/resources/Font.h"
 
@@ -110,18 +112,18 @@ namespace pk
                 vec2 scale
             );
 
-            UIFactoryInputField addDefaultInputField(
+            InputField addDefaultInputField(
                 std::string infoTxt,
                 int width,
-                InputFieldOnSubmitEvent* onSubmitEvent,
+                InputField::OnSubmitEvent* onSubmitEvent,
                 bool clearOnSubmit = false,
                 bool password = false
             );
-            UIFactoryInputField addInputField(
+            InputField addInputField(
                 std::string infoTxt,
                 ConstraintProperties constraintProperties,
                 int width,
-                InputFieldOnSubmitEvent* onSubmitEvent,
+                InputField::OnSubmitEvent* onSubmitEvent,
                 bool clearOnSubmit = false,
                 bool password = false
             );
@@ -135,7 +137,7 @@ namespace pk
                 GUIFilterType filter = GUIFilterType::GUI_FILTER_TYPE_NONE
             );
 
-            UIFactoryCheckbox addDefaultCheckbox(std::string infoTxt);
+            pk::ui::Checkbox addDefaultCheckbox(std::string infoTxt);
 
             void setActive(bool arg, entityID_t entity = 0);
 

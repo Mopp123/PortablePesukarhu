@@ -34,7 +34,7 @@ namespace pk
             GUIImage(const GUIImage& other);
             void create(ImgCreationProperties creationProperties);
 
-            GUIRenderable* getGUIRenderable();
+            GUIRenderable* getRenderable();
             Transform* getTransform();
 
             void setActive(bool arg);
