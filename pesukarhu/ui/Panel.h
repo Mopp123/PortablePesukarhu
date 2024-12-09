@@ -4,6 +4,7 @@
 #include "pesukarhu/core/input/InputEvent.h"
 
 #include "UIFactories.h"
+#include "GUIButton.h"
 
 #include "pesukarhu/resources/Font.h"
 
@@ -96,15 +97,15 @@ namespace pk
             entityID_t addText(std::string txt, vec3 color);
             entityID_t addDefaultText(std::string txt);
 
-            UIFactoryButton addDefaultButton(
+            GUIButton addDefaultButton(
                 std::string txt,
-                OnClickEvent* onClick,
+                GUIButton::OnClickEvent* onClick,
                 float width
             );
 
-            UIFactoryButton addButton(
+            GUIButton addButton(
                 std::string txt,
-                OnClickEvent* onClick,
+                GUIButton::OnClickEvent* onClick,
                 ConstraintProperties constraintProperties,
                 vec2 scale
             );

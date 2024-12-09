@@ -2,6 +2,7 @@
 #include "pesukarhu/core/Application.h"
 #include "pesukarhu/core/input/InputManager.h"
 #include "GUIImage.h"
+#include "GUIText.h"
 
 
 namespace pk
@@ -157,17 +158,19 @@ namespace pk
             ConstraintProperties constraintProperties
         )
         {
-            entityID_t text = create_text(
+            GUIText text;
+            text.create(
                 txt, *_pDefaultFont,
                 constraintProperties,
                 get_base_ui_color(3).toVec3(),
                 false // bold
             );
-            _pScene->addChild(_entity, text);
+            entityID_t textEntity = text.getEntity();
+            _pScene->addChild(_entity, textEntity);
             // NOTE: Not sure should we actually increase slots here since explicit pos(constraint)
             ++_slotCount;
 
-            return text;
+            return textEntity;
         }
 
         entityID_t Panel::addText(std::string txt, vec3 color)
@@ -181,16 +184,18 @@ namespace pk
                 _constraintProperties.verticalValue + toAdd.y,
             };
 
-            entityID_t text = create_text(
+            GUIText text;
+            text.create(
                 txt, *_pDefaultFont,
                 useConstraintProperties,
                 color,
                 false // bold
             );
-            _pScene->addChild(_entity, text);
+            entityID_t textEntity = text.getEntity();
+            _pScene->addChild(_entity, textEntity);
             ++_slotCount;
 
-            return text;
+            return textEntity;
         }
 
         entityID_t Panel::addDefaultText(std::string txt)
@@ -198,9 +203,9 @@ namespace pk
             return addText(txt, get_base_ui_color(3).toVec3());
         }
 
-        UIFactoryButton Panel::addDefaultButton(
+        GUIButton Panel::addDefaultButton(
             std::string txt,
-            OnClickEvent* onClick,
+            GUIButton::OnClickEvent* onClick,
             float width
         )
         {
@@ -217,8 +222,8 @@ namespace pk
                 _constraintProperties.verticalType,
                 _constraintProperties.verticalValue + toAdd.y,
             };
-
-            UIFactoryButton button = create_button(
+            GUIButton button;
+            button.create(
                 txt,
                 *_pDefaultFont,
                 useConstraintProperties,
@@ -234,14 +239,14 @@ namespace pk
                 textureCropping
             );
             // atm fucks up because constraint and transform systems are in conflict?
-            _pScene->addChild(_entity, button.rootEntity);
+            _pScene->addChild(_entity, button.getEntity());
             ++_slotCount;
             return button;
         }
 
-        UIFactoryButton Panel::addButton(
+        GUIButton Panel::addButton(
             std::string txt,
-            OnClickEvent* onClick,
+            GUIButton::OnClickEvent* onClick,
             ConstraintProperties constraintProperties,
             vec2 scale
         )
@@ -250,7 +255,8 @@ namespace pk
             Texture* pTexture = nullptr;
             vec4 textureCropping(0, 0, 1, 1);
 
-            UIFactoryButton button = create_button(
+            GUIButton button;
+            button.create(
                 txt,
                 *_pDefaultFont,
                 constraintProperties,
@@ -266,7 +272,7 @@ namespace pk
                 textureCropping
             );
             // atm fucks up because constraint and transform systems are in conflict?
-            _pScene->addChild(_entity, button.rootEntity);
+            _pScene->addChild(_entity, button.getEntity());
             // Atm disabling adding to slot count since this overrides the "slot" thing completely...
             //++_slotCount;
             return button;

@@ -36,6 +36,9 @@ namespace pk
 
             GUIRenderable* getGUIRenderable();
             Transform* getTransform();
+
+            void setActive(bool arg);
+
             inline entityID_t getEntity() const { return _entity; }
         };
     }

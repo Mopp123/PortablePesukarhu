@@ -30,6 +30,9 @@
 #include "ui/UIFactories.h"
 #include "ui/Panel.h"
 #include "ui/TopBarPanel.h"
+#include "ui/GUIImage.h"
+#include "ui/GUIText.h"
+#include "ui/GUIButton.h"
 
 #include "ecs/systems/ui/ConstraintSystem.h"
 #include "ecs/systems/Animator.h"

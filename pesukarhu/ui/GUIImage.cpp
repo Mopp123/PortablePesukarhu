@@ -164,5 +164,22 @@ namespace pk
             Scene* pScene = Application::get()->accessCurrentScene();
             return (Transform*)pScene->getComponent(_entity, ComponentType::PK_TRANSFORM);
         }
+
+        void GUIImage::setActive(bool arg)
+        {
+            if (_entity == NULL_ENTITY_ID)
+            {
+                Debug::log(
+                    "@GUIImage::setActive "
+                    "GUIImage's entity was null. Make sure GUIImage was created successfully using GUIImage::create!",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return;
+            }
+            Scene* pScene = Application::get()->accessCurrentScene();
+            std::vector<Component*> components = pScene->getComponents(_entity);
+            for (Component* pComponent : components)
+                pComponent->setActive(arg);
+        }
     }
 }

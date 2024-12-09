@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Panel.h"
+#include "GUIButton.h"
 
 
 namespace pk
@@ -10,7 +11,7 @@ namespace pk
         class TopBarPanel : public Panel
         {
         protected:
-            class OnClickClose : public OnClickEvent
+            class OnClickClose : public GUIButton::OnClickEvent
             {
             private:
                 TopBarPanel* _pPanel = nullptr;
@@ -21,7 +22,7 @@ namespace pk
 
             entityID_t _topBarImgEntity = 0;
             entityID_t _topBarTitleEntity = 0;
-            UIFactoryButton _topBarCloseButton;
+            GUIButton _topBarCloseButton;
 
         public:
             void initBase(

@@ -4,6 +4,8 @@
 #include "pesukarhu/ecs/components/renderable/UIRenderableComponent.h"
 #include "UIUtils.h"
 #include "GUIImage.h"
+#include "GUIText.h"
+#include "GUIButton.h"
 #include <unordered_map>
 
 
@@ -11,120 +13,6 @@ namespace pk
 {
     namespace ui
     {
-        class ButtonMouseButtonEvent : public MouseButtonEvent
-        {
-        private:
-            entityID_t _imgEntity = NULL_ENTITY_ID;
-            entityID_t _txtEntity = NULL_ENTITY_ID;
-
-            vec3 _originalColor = vec3(0, 0, 0);
-            vec3 _highlightColor = vec3(1.0f, 1.0f, 1.0f);
-            OnClickEvent* _onClick = nullptr;
-        public:
-            ButtonMouseButtonEvent(
-                entityID_t imgEntity,
-                entityID_t txtEntity,
-                vec3 highlightColor,
-                OnClickEvent* onClick
-            ) :
-                _imgEntity(imgEntity),
-                _txtEntity(txtEntity),
-                _highlightColor(highlightColor),
-                _onClick(onClick)
-            {
-                Scene* pScene = Application::get()->accessCurrentScene();
-                GUIRenderable* pImg = (GUIRenderable*)pScene->getComponent(_imgEntity, ComponentType::PK_RENDERABLE_GUI);
-                _originalColor = pImg->color;
-            }
-            // NOTE: ONLY TESTING THIS ATM!!!
-            virtual ~ButtonMouseButtonEvent()
-            {
-                if (_onClick)
-                    delete _onClick;
-            }
-            virtual void func(InputMouseButtonName button, InputAction action, int mods)
-            {
-                Scene* pScene = Application::get()->accessCurrentScene();
-                UIElemState* pUIState = (UIElemState*)pScene->getComponent(
-                    _imgEntity,
-                    ComponentType::PK_UIELEM_STATE
-                );
-                GUIRenderable* pImg = (GUIRenderable*)pScene->getComponent(
-                    _imgEntity,
-                    ComponentType::PK_RENDERABLE_GUI
-                );
-
-                // If this was used as input field get text blinker...
-                // fucking shit way to deal with this stuff atm...
-                // TODO: Rework this whole fuckery!
-                Blinker* pBlinker = nullptr;
-                TextRenderable* pTxtRenderable = nullptr;
-                if (_txtEntity)
-                {
-                    pBlinker = (Blinker*)pScene->getComponent(
-                        _txtEntity,
-                        ComponentType::PK_BLINKER,
-                        false,
-                        false
-                    );
-                    pTxtRenderable = (TextRenderable*)pScene->getComponent(
-                        _txtEntity,
-                        ComponentType::PK_RENDERABLE_TEXT
-                    );
-                }
-
-                if (!pUIState->isActive())
-                    return;
-                if (pUIState->mouseOver)
-                {
-                    if (action == PK_INPUT_PRESS)
-                        pUIState->state = 1;
-                    else if (pUIState->state == 1 && action == PK_INPUT_RELEASE)
-                        pUIState->state = 2;
-
-                    // state: 0 = "nothing"
-                    // state: 1 = pressed inside button
-                    // state: 2 = pressed and released inside button
-
-                    if (pUIState->state == 2)
-                    {
-                        if (pUIState->selectable)
-                        {
-                            pUIState->selected = !pUIState->selected;
-                            pImg->color = _highlightColor;
-
-                            if (pBlinker)
-                            {
-                                pBlinker->enable = pUIState->selected;
-                                // Reset txt to original state if disengage blinker
-                                if (!pUIState->selected)
-                                    pTxtRenderable->accessVisualStr() = pTxtRenderable->accessStr();
-                            }
-                        }
-
-                        if (_onClick)
-                            _onClick->onClick(button);
-
-                        pUIState->state = 0;
-                    }
-                }
-                else
-                {
-                    pUIState->selected = false;
-                    pImg->color = _originalColor;
-
-                    pUIState->state = 0;
-
-                    if (pBlinker)
-                    {
-                        pBlinker->enable = false;
-                        pTxtRenderable->accessVisualStr() = pTxtRenderable->accessStr();
-                    }
-                }
-            }
-        };
-
-
         class CheckboxMouseButtonEvent : public MouseButtonEvent
         {
         private:
@@ -187,46 +75,6 @@ namespace pk
                 else
                 {
                     pImgUIState->state = 0;
-                }
-            }
-        };
-
-        // NOTE: After all sorts of reworks this actually just sets the button's text's highlight atm!
-        class ButtonMouseCursorPosEvent : public CursorPosEvent
-        {
-        private:
-            entityID_t _txtEntity = NULL_ENTITY_ID;
-            entityID_t _imgEntity = NULL_ENTITY_ID;
-            vec3 _txtOriginalColor = vec3(0, 0, 0);
-            vec3 _txtHighlightColor = vec3(1, 1, 1);
-
-        public:
-            ButtonMouseCursorPosEvent(
-                entityID_t textEntity,
-                entityID_t imgEntity,
-                vec3 txtHighlightColor
-            ) :
-                _txtEntity(textEntity),
-                _imgEntity(imgEntity),
-                _txtHighlightColor(txtHighlightColor)
-            {
-                const Scene* pScene = Application::get()->getCurrentScene();
-                const TextRenderable* pTxt = (const TextRenderable*)pScene->getComponent(_txtEntity, ComponentType::PK_RENDERABLE_TEXT);
-                _txtOriginalColor = pTxt->color;
-            }
-
-            virtual void func(int x, int y)
-            {
-                Scene* pScene = Application::get()->accessCurrentScene();
-                TextRenderable* pTxt = (TextRenderable*)pScene->getComponent(_txtEntity, ComponentType::PK_RENDERABLE_TEXT);
-                UIElemState* pUIState = (UIElemState*)pScene->getComponent(_imgEntity, ComponentType::PK_UIELEM_STATE);
-                if (pUIState->mouseOver || pUIState->selected)
-                {
-                    pTxt->color = _txtHighlightColor;
-                }
-                else
-                {
-                    pTxt->color = _txtOriginalColor;
                 }
             }
         };
@@ -388,138 +236,6 @@ namespace pk
         };
 
 
-        entityID_t create_text(
-            const std::string& str, const Font& font,
-            ConstraintProperties constraintProperties,
-            vec3 color,
-            bool bold
-        )
-        {
-            Scene* currentScene = Application::get()->accessCurrentScene();
-
-            entityID_t entityID = currentScene->createEntity();
-            Transform* pTransform = Transform::create(entityID, { 0,0 }, { 1, 1 });
-
-            ConstraintProperties useConstraintProperties = constraintProperties;
-            TextRenderable* pRenderable = TextRenderable::create(
-                entityID,
-                str,
-                ((const Resource&)font).getResourceID(),
-                color,
-                bold
-            );
-            ConstraintData::create(
-                entityID,
-                useConstraintProperties
-            );
-
-
-            float width = 0.0f;
-            for (char c : str)
-            {
-                const FontGlyphData * const glyph = font.getGlyph(c);
-                if (glyph)
-                    width += ((float)(glyph->advance >> 6)) + glyph->bearingX;
-            }
-            // Need to set correct scale to transform for ui constraint system to work properly!
-            pTransform->accessTransformationMatrix()[0 + 0 * 4] = width;
-            pTransform->accessTransformationMatrix()[1 + 1 * 4] = font.getPixelSize();
-
-            return entityID;
-        }
-
-
-        UIFactoryButton create_button(
-            std::string txt, const Font& font,
-            ConstraintProperties constraintProperties,
-            float width, float height,
-            OnClickEvent* onClick,
-            bool selectable,
-            vec3 color,
-            vec3 textColor,
-            vec3 textHighlightColor,
-            vec3 backgroundHighlightColor,
-            GUIFilterType filter,
-            Texture* pTexture,
-            vec4 textureCropping
-        )
-        {
-            Scene* currentScene = Application::get()->accessCurrentScene();
-            InputManager* inputManager = Application::get()->accessInputManager();
-
-            entityID_t buttonEntity = currentScene->createEntity();
-
-            GUIImage::ImgCreationProperties imgProperties =
-            {
-                constraintProperties,
-                width,
-                height,
-                color,
-                backgroundHighlightColor,
-                true,
-                filter,
-                pTexture,
-                textureCropping
-            };
-            GUIImage img;
-            img.create(imgProperties);
-            entityID_t imgEntity = img.getEntity();
-
-            // Add txt displacement
-            const int padding = 4;
-            const int txtDisplacementX = padding;
-
-            ConstraintProperties useConstraintProperties = constraintProperties;
-
-            if (constraintProperties.horizontalType == HorizontalConstraintType::PIXEL_LEFT ||
-                constraintProperties.horizontalType == HorizontalConstraintType::PIXEL_CENTER_HORIZONTAL)
-                useConstraintProperties.horizontalValue += (float)txtDisplacementX;
-            else if (constraintProperties.horizontalType == HorizontalConstraintType::PIXEL_RIGHT)
-                useConstraintProperties.horizontalValue -= (float)txtDisplacementX;
-
-            entityID_t txtEntity = create_text(
-                txt, font,
-                useConstraintProperties,
-                textColor
-            );
-
-            currentScene->addChild(buttonEntity, imgEntity);
-            currentScene->addChild(buttonEntity, txtEntity);
-
-            Transform* txtTransform = (Transform*)currentScene->getComponent(
-                txtEntity,
-                ComponentType::PK_TRANSFORM
-            );
-            // alter transform's scale to make work properly with constraint system
-            txtTransform->accessTransformationMatrix()[0 + 0 * 4] = width;
-            txtTransform->accessTransformationMatrix()[1 + 1 * 4] = height;
-
-            UIElemState* pUIElemState = (UIElemState*)currentScene->getComponent(
-                imgEntity,
-                ComponentType::PK_UIELEM_STATE
-            );
-            pUIElemState->selectable = selectable;
-
-            vec3 selectedColor(0.3f, 0.3f, 0.3f);
-            inputManager->addMouseButtonEvent(
-                new ButtonMouseButtonEvent(
-                    imgEntity,
-                    txtEntity,
-                    selectedColor,
-                    onClick
-                )
-            );
-            inputManager->addCursorPosEvent(
-                new ButtonMouseCursorPosEvent(
-                    txtEntity,
-                    imgEntity,
-                    textHighlightColor
-                )
-            );
-            return { buttonEntity, imgEntity, txtEntity };
-        }
-
-
         #define PK_INPUTFIELD_DEFAULT_HEIGHT 21
         UIFactoryInputField create_input_field(
             std::string infoTxt, const Font& font,
@@ -576,7 +292,8 @@ namespace pk
             buttonConstraintProperties.verticalValue += buttonDisplacementY;
 
             // Create button
-            UIFactoryButton button = create_button(
+            GUIButton button;
+            button.create(
                 "", // txt
                 font,
                 buttonConstraintProperties,
@@ -591,26 +308,31 @@ namespace pk
                 nullptr, // texture
                 {0, 0, 1, 1} // cropping
             );
+            entityID_t buttonRootEntity = button.getEntity();
+            entityID_t buttonImgEntity = button.getImage().getEntity();
+            entityID_t buttonTxtEntity = button.getText().getEntity();
             // Add blinker to button's text renderable which is concidered the "content string"
-            Blinker* pBlinker = Blinker::create(button.txtEntity);
+            Blinker* pBlinker = Blinker::create(buttonTxtEntity);
             pBlinker->enable = false;
 
             ConstraintProperties infoTxtConstraintProperties = constraintProperties;
             infoTxtConstraintProperties.horizontalValue += infoDisplacement;
             // Create info txt
-            uint32_t infoTxtEntity = create_text(
+            GUIText infoText;
+            infoText.create(
                 infoTxt, font,
                 infoTxtConstraintProperties,
                 textColor
             );
+            entityID_t infoTextEntity = infoText.getEntity();
 
-            currentScene->addChild(inputFieldEntity, button.rootEntity);
-            currentScene->addChild(inputFieldEntity, infoTxtEntity);
+            currentScene->addChild(inputFieldEntity, buttonRootEntity);
+            currentScene->addChild(inputFieldEntity, infoTextEntity);
 
             // TESTING
             // NOTE: This should have not worked before... refers to non existent transform...
             Transform* buttonTransform = (Transform*)currentScene->getComponent(
-                button.imgEntity,
+                buttonImgEntity,
                 ComponentType::PK_TRANSFORM
             );
             buttonTransform->accessTransformationMatrix()[1 + 3 * 4] -= 4;
@@ -618,8 +340,8 @@ namespace pk
             inputManager->addKeyEvent(
                 new InputFieldKeyEvent(
                     inputFieldEntity,
-                    button.imgEntity,
-                    button.txtEntity,
+                    buttonImgEntity,
+                    buttonTxtEntity,
                     color,
                     onSubmitEvent
                 )
@@ -627,13 +349,13 @@ namespace pk
             inputManager->addCharInputEvent(
                 new InputFieldCharInputEvent(
                     inputFieldEntity,
-                    button.imgEntity,
-                    button.txtEntity,
+                    buttonImgEntity,
+                    buttonTxtEntity,
                     password
                 )
             );
 
-            return { inputFieldEntity, button.txtEntity };
+            return { inputFieldEntity, buttonTxtEntity };
         }
 
 
@@ -730,15 +452,17 @@ namespace pk
             // Create info txt
             ConstraintProperties infoTxtConstraintProperties = constraintProperties;
             infoTxtConstraintProperties.horizontalValue += infoDisplacement;
-            uint32_t infoTxtEntity = create_text(
+            GUIText infoText;
+            infoText.create(
                 infoTxt, *pFont, // NOTE: DANGER! TODO: make all funcs here take font as ptr instead of ref!
                 infoTxtConstraintProperties,
                 textColor
             );
+            entityID_t infoTextEntity = infoText.getEntity();
 
             pScene->addChild(checkboxEntity, backgroundImgEntity);
             pScene->addChild(checkboxEntity, checkedImgEntity);
-            pScene->addChild(checkboxEntity, infoTxtEntity);
+            pScene->addChild(checkboxEntity, infoTextEntity);
 
             InputManager* pInputManager = Application::get()->accessInputManager();
             pInputManager->addMouseButtonEvent(
