@@ -27,7 +27,6 @@
 #include "ecs/components/AnimationData.h"
 
 #include "ui/UIUtils.h"
-#include "ui/UIFactories.h"
 #include "ui/Panel.h"
 #include "ui/TopBarPanel.h"
 #include "ui/GUIImage.h"

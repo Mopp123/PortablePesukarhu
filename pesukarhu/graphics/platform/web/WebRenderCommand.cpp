@@ -120,7 +120,7 @@ namespace pk
             float maxDepth
         )
         {
-            glViewport(0, 0, (int)width, (int)height);
+            glViewport(x, y, (int)width, (int)height);
             FrontFace frontFace = ((WebCommandBuffer*)pCmdBuf)->_pPipeline->getFrontFace();
             glFrontFace(frontFace == FrontFace::FRONT_FACE_COUNTER_CLOCKWISE ? GL_CCW : GL_CW);
         }

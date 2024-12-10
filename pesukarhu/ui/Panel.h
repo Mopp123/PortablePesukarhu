@@ -3,7 +3,6 @@
 #include "pesukarhu/core/Scene.h"
 #include "pesukarhu/core/input/InputEvent.h"
 
-#include "UIFactories.h"
 #include "GUIButton.h"
 #include "InputField.h"
 #include "Checkbox.h"
