@@ -1,15 +1,15 @@
 #pragma once
 
 #include "BaseScene.h"
-#include "Pesukarhu/ppk.h"
-#include "Pesukarhu/ui/TopBarPanel.h"
+#include "pesukarhu/ppk.h"
+#include "pesukarhu/ui/TopBarPanel.h"
 
 class UITestScene : public BaseScene
 {
 private:
     pk::ui::Panel _testPanel;
-    pk::ui::Panel _testPanel2;
     pk::ui::TopBarPanel _topBarPanelTest;
+    pk::ui::Panel _scrollablePanel;
 
 public:
     UITestScene();

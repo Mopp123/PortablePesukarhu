@@ -38,32 +38,32 @@ include_directories (
 file (
     GLOB source_files
     # Engine files ---
-    "${PARENT_DIR}/Pesukarhu/core/*.cpp"
-    "${PARENT_DIR}/Pesukarhu/core/input/*.cpp"
-    "${PARENT_DIR}/Pesukarhu/core/input/platform/web/*.cpp"
-    "${PARENT_DIR}/Pesukarhu/core/platform/web/*.cpp"
+    "${PARENT_DIR}/pesukarhu/core/*.cpp"
+    "${PARENT_DIR}/pesukarhu/core/input/*.cpp"
+    "${PARENT_DIR}/pesukarhu/core/input/platform/web/*.cpp"
+    "${PARENT_DIR}/pesukarhu/core/platform/web/*.cpp"
 
-    "${PARENT_DIR}/Pesukarhu/ecs/components/*.cpp"
-    "${PARENT_DIR}/Pesukarhu/ecs/components/ui/*.cpp"
-    "${PARENT_DIR}/Pesukarhu/ecs/components/renderable/*.cpp"
-    "${PARENT_DIR}/Pesukarhu/ecs/components/lighting/*.cpp"
-    "${PARENT_DIR}/Pesukarhu/ecs/systems/*.cpp"
-    "${PARENT_DIR}/Pesukarhu/ecs/systems/ui/*.cpp"
+    "${PARENT_DIR}/pesukarhu/ecs/components/*.cpp"
+    "${PARENT_DIR}/pesukarhu/ecs/components/ui/*.cpp"
+    "${PARENT_DIR}/pesukarhu/ecs/components/renderable/*.cpp"
+    "${PARENT_DIR}/pesukarhu/ecs/components/lighting/*.cpp"
+    "${PARENT_DIR}/pesukarhu/ecs/systems/*.cpp"
+    "${PARENT_DIR}/pesukarhu/ecs/systems/ui/*.cpp"
 
-    "${PARENT_DIR}/Pesukarhu/ui/*.cpp"
+    "${PARENT_DIR}/pesukarhu/ui/*.cpp"
 
-    "${PARENT_DIR}/Pesukarhu/graphics/*.cpp"
-    "${PARENT_DIR}/Pesukarhu/graphics/shaders/*.cpp"
-    "${PARENT_DIR}/Pesukarhu/graphics/renderers/*.cpp"
-    "${PARENT_DIR}/Pesukarhu/graphics/platform/web/*.cpp"
-    "${PARENT_DIR}/Pesukarhu/graphics/platform/web/shaders/*.cpp"
-    "${PARENT_DIR}/Pesukarhu/graphics/platform/opengl/*.cpp"
-    "${PARENT_DIR}/Pesukarhu/graphics/platform/opengl/shaders/*.cpp"
+    "${PARENT_DIR}/pesukarhu/graphics/*.cpp"
+    "${PARENT_DIR}/pesukarhu/graphics/shaders/*.cpp"
+    "${PARENT_DIR}/pesukarhu/graphics/renderers/*.cpp"
+    "${PARENT_DIR}/pesukarhu/graphics/platform/web/*.cpp"
+    "${PARENT_DIR}/pesukarhu/graphics/platform/web/shaders/*.cpp"
+    "${PARENT_DIR}/pesukarhu/graphics/platform/opengl/*.cpp"
+    "${PARENT_DIR}/pesukarhu/graphics/platform/opengl/shaders/*.cpp"
 
-    "${PARENT_DIR}/Pesukarhu/resources/*.cpp"
-    "${PARENT_DIR}/Pesukarhu/resources/platform/opengl/*.cpp"
+    "${PARENT_DIR}/pesukarhu/resources/*.cpp"
+    "${PARENT_DIR}/pesukarhu/resources/platform/opengl/*.cpp"
 
-    "${PARENT_DIR}/Pesukarhu/utils/*.cpp"
+    "${PARENT_DIR}/pesukarhu/utils/*.cpp"
 
     # Game client files ---
     "${PROJECT_SOURCE_DIR}/src/*.cpp"

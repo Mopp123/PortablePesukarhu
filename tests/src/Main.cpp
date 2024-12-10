@@ -1,4 +1,4 @@
-#include "Pesukarhu/ppk.h"
+#include "pesukarhu/ppk.h"
 
 #include "UITestScene.h"
 
@@ -19,7 +19,7 @@ int main(int argc, const char** argv)
 
     Application application(
         PK_PLATFORM_ID_WEB,
-        "PesukarhuWebTest",
+        "pesukarhuWebTest",
         &window,
         pGraphicsContext,
         &inputManager
