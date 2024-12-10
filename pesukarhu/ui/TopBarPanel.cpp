@@ -13,6 +13,9 @@ namespace pk
 
         TopBarPanel::~TopBarPanel()
         {
+            delete _pTopBarImg;
+            delete _pTopBarTitle;
+            delete _pCloseButton;
         }
 
         void TopBarPanel::initBase(
@@ -21,35 +24,34 @@ namespace pk
             const std::string title,
             ConstraintProperties constraintProperties,
             const vec2& scale,
-            LayoutFillType fillType
+            LayoutFillType fillType,
+            vec2 slotScale,
+            bool scrollable
         )
         {
-            vec2 slotScale(200, 24);
             createDefault(
                 pScene,
                 pFont,
                 constraintProperties,
                 scale,
                 slotScale,
-                fillType
+                fillType,
+                false
             );
 
             const float topBarHeight = 20.0f;
             // Create top bar (atm just an img)
             // TODO: Maybe in the future make top bar as "button" which u can drag the panel around
-            _pTopBarImg = addImage(
-                constraintProperties,
-                scale.x, topBarHeight,
-                nullptr, // texture
-                Panel::get_base_ui_color(2).toVec3(),
-                { 0, 0, 1, 1 }, // texture cropping
-                GUIFilterType::GUI_FILTER_TYPE_EMBOSS
-            );
+            GUIImage::ImgCreationProperties topBarCreationProperties;
+            topBarCreationProperties.constraintProperties = constraintProperties;
+            topBarCreationProperties.width = scale.x;
+            topBarCreationProperties.height = topBarHeight;
+            topBarCreationProperties.color = Panel::get_base_ui_color(2).toVec3();
+            topBarCreationProperties.filter = GUIFilterType::GUI_FILTER_TYPE_EMBOSS;
+            _pTopBarImg = new GUIImage(topBarCreationProperties);
+
             // Add title text
-            _pTopBarTitle = addText(
-                title,
-                constraintProperties
-            );
+            _pTopBarTitle = new GUIText(title, *pFont, constraintProperties);
 
             pScene->addChild(_entity, _pTopBarImg->getEntity());
             pScene->addChild(_entity, _pTopBarTitle->getEntity());
@@ -63,12 +65,25 @@ namespace pk
 
             };
             // Add close button
-            addButton(
+            _pCloseButton = new GUIButton(
                 "X",
-                new OnClickClose(this),
+                *pFont,
                 closeButtonConstraintProperties,
-                { topBarHeight - 1, topBarHeight - 2 } // scale
+                topBarHeight - 1,
+                topBarHeight - 2,
+                new OnClickClose(this),
+                false,
+                get_base_ui_color(2).toVec3(), // color
+                get_base_ui_color(3).toVec3(), // text color
+                get_base_ui_color(1).toVec3(), // text highlight color
+                get_base_ui_color(3).toVec3(), // background highlight color
+                GUIFilterType::GUI_FILTER_TYPE_EMBOSS // filter type
             );
+
+            // Make elements start after the top bar...
+             _offsetFromPanel.y += topBarHeight;
+            if (scrollable)
+                _pScrollbar = new Scrollbar(this, _pDefaultFont);
         }
 
         void TopBarPanel::setComponentsActive(bool arg)

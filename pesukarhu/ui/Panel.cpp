@@ -88,6 +88,10 @@ namespace pk
         {
             for (GUIElement* pElement : _elements)
                 delete pElement;
+            if (_pScrollbar)
+                delete _pScrollbar;
+
+            delete _pBackgroundImg;
         }
 
         void Panel::create(
@@ -99,7 +103,8 @@ namespace pk
             vec3 color,
             GUIFilterType filter,
             float slotPadding,
-            vec2 slotScale
+            vec2 slotScale,
+            bool scrollable
         )
         {
             _pScene = pScene;
@@ -126,13 +131,15 @@ namespace pk
             imgCreationProperties.filter = filter;
             imgCreationProperties.textureCropping = textureCropping;
 
-            GUIImage* pPanelImg = new GUIImage(imgCreationProperties);
-            _elements.push_back(pPanelImg);
-
-            _entity = pPanelImg->getEntity();
+            _pBackgroundImg = new GUIImage(imgCreationProperties);
+            _entity = _pBackgroundImg->getEntity();
 
             InputManager* pInputManager = Application::get()->accessInputManager();
             pInputManager->addCursorPosEvent(new PanelCursorPosEvent(pScene, this));
+
+            // If scrollable -> create the scrollbar
+            if (scrollable)
+                _pScrollbar = new Scrollbar(this, _pDefaultFont);
         }
 
         void Panel::createDefault(
@@ -142,6 +149,7 @@ namespace pk
             vec2 scale,
             vec2 slotScale,
             LayoutFillType fillType,
+            bool scrollable,
             int useColorIndex
         )
         {
@@ -154,7 +162,8 @@ namespace pk
                 get_base_ui_color(useColorIndex).toVec3(),
                 GUIFilterType::GUI_FILTER_TYPE_EMBOSS, // filter type
                 4.0f, // slot padding;
-                slotScale
+                slotScale,
+                scrollable
             );
         }
 
@@ -197,6 +206,10 @@ namespace pk
             _pScene->addChild(_entity, pText->getEntity());
             _elements.push_back(pText);
             ++_slotCount;
+
+            // If scrollbar -> hide if out of panel bounds
+            if (_pScrollbar && _elements.size() > getVisibleVerticalSlots())
+                pText->setActive(false);
 
             return pText;
         }
@@ -244,6 +257,11 @@ namespace pk
             _pScene->addChild(_entity, pButton->getEntity());
             _elements.push_back(pButton);
             ++_slotCount;
+
+            // If scrollbar -> hide if out of panel bounds
+            if (_pScrollbar && _elements.size() > getVisibleVerticalSlots())
+                pButton->setActive(false);
+
             return pButton;
         }
 
@@ -312,6 +330,10 @@ namespace pk
             _elements.push_back(pInputField);
             ++_slotCount;
 
+            // If scrollbar -> hide if out of panel bounds
+            if (_pScrollbar && _elements.size() > getVisibleVerticalSlots())
+                pInputField->setActive(false);
+
             return pInputField;
         }
 
@@ -362,11 +384,21 @@ namespace pk
             imgProperties.textureCropping = textureCropping;
 
             GUIImage* pImg = new GUIImage(imgProperties);
-            entityID_t imgEntity = pImg->getEntity();
             _elements.push_back(pImg);
             // NOTE: Earlier this img wasn't added as child... don't remember was there
             // a reason for it...
-            _pScene->addChild(_entity, imgEntity);
+            _pScene->addChild(_entity, pImg->getEntity());
+            // NOTE: Not sure should _slotCount increase when adding img...
+            return pImg;
+        }
+
+        GUIImage* Panel::addImage(GUIImage::ImgCreationProperties properties)
+        {
+            GUIImage* pImg = new GUIImage(properties);
+            _elements.push_back(pImg);
+            // NOTE: Earlier this img wasn't added as child... don't remember was there
+            // a reason for it...
+            _pScene->addChild(_entity, pImg->getEntity());
             // NOTE: Not sure should _slotCount increase when adding img...
             return pImg;
         }
@@ -392,6 +424,11 @@ namespace pk
             _pScene->addChild(_entity, pCheckbox->getEntity());
             _elements.push_back(pCheckbox);
             ++_slotCount;
+
+            // If scrollbar -> hide if out of panel bounds
+            if (_pScrollbar && _elements.size() > getVisibleVerticalSlots())
+                pCheckbox->setActive(false);
+
             return pCheckbox;
         }
 
@@ -498,6 +535,11 @@ namespace pk
         bool Panel::is_mouse_over_ui()
         {
             return s_pickedPanels > 0;
+        }
+
+        int Panel::getVisibleVerticalSlots()
+        {
+            return (_scale.y - _offsetFromPanel.y) / (_slotScale.y + _slotPadding);
         }
     }
 }

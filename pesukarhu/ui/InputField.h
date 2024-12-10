@@ -98,7 +98,7 @@ namespace pk
             void setContent(const std::string& str);
 
             inline GUIButton* getButton() { return _pButton; }
-            //inline GUIText* getText() { return _pInfoText; }
+            inline GUIText* getInfoText() { return _pInfoText; }
         };
     }
 }

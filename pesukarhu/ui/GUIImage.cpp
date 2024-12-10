@@ -150,6 +150,24 @@ namespace pk
             return (GUIRenderable*)pScene->getComponent(_entity, ComponentType::PK_RENDERABLE_GUI);
         }
 
+        ConstraintData* GUIImage::getConstraint()
+        {
+            if (_entity == NULL_ENTITY_ID)
+            {
+                Debug::log(
+                    "@GUIImage::getConstraint "
+                    "GUIImage's entity was null. Make sure GUIImage was created successfully using GUIImage::create!",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return nullptr;
+            }
+            Scene* pScene = Application::get()->accessCurrentScene();
+            return (ConstraintData*)pScene->getComponent(
+                _entity,
+                ComponentType::PK_UI_CONSTRAINT
+            );
+        }
+
         Transform* GUIImage::getTransform()
         {
             if (_entity == NULL_ENTITY_ID)

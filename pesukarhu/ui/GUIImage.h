@@ -33,6 +33,7 @@ namespace pk
             ~GUIImage();
 
             GUIRenderable* getRenderable();
+            ConstraintData* getConstraint();
             Transform* getTransform();
 
             void setActive(bool arg);

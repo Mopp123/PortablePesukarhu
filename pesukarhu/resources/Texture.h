@@ -76,6 +76,7 @@ namespace pk
         // TODO: ?
         // virtual void update(void* data, int slot = 0) = 0;
         inline const TextureSampler& getSampler() const { return _sampler; }
+        inline uint32_t getImgResourceID() const { return _imgResourceID; }
 
     protected:
         Texture(TextureSampler sampler, uint32_t imgResourceID);

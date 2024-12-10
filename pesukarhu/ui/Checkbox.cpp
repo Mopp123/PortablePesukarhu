@@ -180,8 +180,25 @@ namespace pk
         void Checkbox::setActive(bool arg)
         {
             _pBackground->setActive(arg);
-            _pCheckedStatusIndicator->setActive(arg);
             _pInfoText->setActive(arg);
+
+            // If setting active
+            // -> make sure checked indicator matches the UIElemState
+            //  -> don't just set it active so its' visual state doesn't get out of sync of the
+            //  UIElemState
+            if (arg)
+            {
+                Scene* pScene = Application::get()->accessCurrentScene();
+                const UIElemState* pState = (const UIElemState*)pScene->getComponent(
+                    _entity,
+                    ComponentType::PK_UIELEM_STATE
+                );
+                _pCheckedStatusIndicator->setActive(pState->checked);
+            }
+            else
+            {
+                _pCheckedStatusIndicator->setActive(arg);
+            }
         }
 
         bool Checkbox::isChecked() const

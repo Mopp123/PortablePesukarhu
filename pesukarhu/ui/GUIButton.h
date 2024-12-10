@@ -70,7 +70,8 @@ namespace pk
 
         public:
             GUIButton(
-                std::string txt, const Font& font,
+                std::string txt,
+                const Font& font,
                 ConstraintProperties constraintProperties,
                 float width, float height,
                 OnClickEvent* onClick,

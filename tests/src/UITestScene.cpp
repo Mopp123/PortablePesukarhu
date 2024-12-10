@@ -22,7 +22,7 @@ void UITestScene::init()
         this,
         _pDefaultFont,
         {
-            HorizontalConstraintType::PIXEL_CENTER_HORIZONTAL, 100.0f,
+            HorizontalConstraintType::PIXEL_RIGHT, 100.0f,
             VerticalConstraintType::PIXEL_BOTTOM, 0
         },
         testPanelScale,
@@ -42,7 +42,7 @@ void UITestScene::init()
         "Top bar testing",
         {
             HorizontalConstraintType::PIXEL_CENTER_HORIZONTAL, 0.0f,
-            VerticalConstraintType::PIXEL_TOP, 0.0f
+            VerticalConstraintType::PIXEL_CENTER_VERTICAL, 0.0f
         },
         testTopBarPanelScale,
         Panel::LayoutFillType::VERTICAL
@@ -50,19 +50,25 @@ void UITestScene::init()
     _topBarPanelTest.addDefaultButton("Button", nullptr, 100);
 
     // Testing scrollable panel
-    _scrollablePanel.createDefault(
+    _scrollablePanel.initBase(
         this,
         _pDefaultFont,
+        "Scrollable test",
         {
-            HorizontalConstraintType::PIXEL_CENTER_HORIZONTAL, 350.0f,
-            VerticalConstraintType::PIXEL_CENTER_VERTICAL, 0.0f
+            HorizontalConstraintType::PIXEL_LEFT, 300.0f,
+            VerticalConstraintType::PIXEL_TOP, 0.0f
         },
         testPanelScale,
+        Panel::LayoutFillType::VERTICAL,
         testPanelSlotScale,
-        Panel::LayoutFillType::HORIZONTAL
+        true
     );
-    _scrollablePanel.addDefaultText("Testing2");
-    _scrollablePanel.addDefaultButton("Testing2", nullptr, 100);
+    for (int i = 0; i < 8; ++i)
+        _scrollablePanel.addDefaultButton("Testing" + std::to_string(i), nullptr, 100);
+    _scrollablePanel.addDefaultText("Scroll panel test");
+    _scrollablePanel.addDefaultInputField("Input", 100, nullptr);
+    _scrollablePanel.addDefaultCheckbox("Checking1");
+    _scrollablePanel.addDefaultButton("Button", nullptr, 100);
 }
 
 void UITestScene::update()

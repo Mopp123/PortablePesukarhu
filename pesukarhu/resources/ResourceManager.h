@@ -32,6 +32,7 @@ namespace pk
         std::unordered_map<uint32_t, Resource*> _persistentResources;
         Texture* _pWhiteTexture = nullptr;
         Texture* _pBlackTexture = nullptr;
+        Texture* _pDefaultUITexture = nullptr;
 
         Material* _pDefaultMaterial = nullptr;
 
@@ -141,6 +142,9 @@ namespace pk
 
         inline Texture* getBlackTexture() { return _pBlackTexture; }
         inline const Texture* getBlackTexture() const { return _pBlackTexture; }
+
+        inline Texture* getDefaultUITexture() { return _pDefaultUITexture; }
+        inline const Texture* getDefaultUITexture() const { return _pDefaultUITexture; }
 
         inline const Material* getDefaultMaterial() const { return _pDefaultMaterial; }
     };

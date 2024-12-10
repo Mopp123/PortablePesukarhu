@@ -53,6 +53,10 @@ namespace pk
             virtual void setActive(bool arg);
             bool isChecked() const;
             void setChecked(bool arg);
+
+            inline GUIImage* getBackgroundImage() { return _pBackground; }
+            inline GUIImage* getStatusImage() { return _pCheckedStatusIndicator; }
+            inline GUIText* getInfoText() { return _pInfoText; }
         };
     }
 }
