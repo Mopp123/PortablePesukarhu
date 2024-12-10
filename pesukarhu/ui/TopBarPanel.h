@@ -20,11 +20,11 @@ namespace pk
                 virtual void onClick(InputMouseButtonName button);
             };
 
-            entityID_t _topBarImgEntity = 0;
-            entityID_t _topBarTitleEntity = 0;
-            GUIButton _topBarCloseButton;
+            GUIImage* _pTopBarImg = nullptr;
+            GUIText* _pTopBarTitle = nullptr;
 
         public:
+            ~TopBarPanel();
             void initBase(
                 Scene* pScene,
                 Font* pFont,

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GUIElement.h"
 #include "pesukarhu/ecs/Entity.h"
 #include "pesukarhu/ecs/components/ui/ConstraintData.h"
 #include "pesukarhu/ecs/components/Transform.h"
@@ -12,21 +13,17 @@ namespace pk
 {
     namespace ui
     {
-        class GUIText
+        class GUIText : public GUIElement
         {
-        private:
-            entityID_t _entity = NULL_ENTITY_ID;
-
         public:
-            GUIText() {}
-            GUIText(const GUIText& other);
-            void create(
+            GUIText(
                 const std::string& str,
                 const Font& font,
                 ConstraintProperties constraintProperties,
                 vec3 color = vec3(1.0f, 1.0f, 1.0f),
                 bool bold = false
             );
+            GUIText(const GUIText& other) = delete;
 
             std::string getInternalStr() const;
             std::string getVisualStr() const;
@@ -34,11 +31,12 @@ namespace pk
             void setVisualStr(const std::string& str);
 
             Transform* getTransform();
+            ConstraintData* getConstraint();
             TextRenderable* getRenderable();
 
-            void setActive(bool arg);
+            void setStr(const std::string& str);
 
-            inline entityID_t getEntity() const { return _entity; }
+            void setActive(bool arg);
 
         private:
             std::string getStr(bool getInternal) const;

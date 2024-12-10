@@ -1,13 +1,14 @@
 #pragma once
 
+#include "GUIElement.h"
+#include "GUIButton.h"
+#include "GUIText.h"
 #include "pesukarhu/ecs/Entity.h"
 #include "pesukarhu/ecs/components/ui/ConstraintData.h"
 #include "pesukarhu/ecs/components/Transform.h"
 #include "pesukarhu/utils/pkmath.h"
 #include "pesukarhu/resources/Font.h"
 #include "pesukarhu/core/input/InputEvent.h"
-#include "GUIButton.h"
-#include "GUIText.h"
 
 #define PK_INPUTFIELD_DEFAULT_HEIGHT 21
 
@@ -16,7 +17,7 @@ namespace pk
 {
     namespace ui
     {
-        class InputField
+        class InputField : public GUIElement
         {
         public:
             class OnSubmitEvent
@@ -66,15 +67,11 @@ namespace pk
                 void func(unsigned int codepoint);
             };
 
-            entityID_t _entity = NULL_ENTITY_ID;
-            GUIButton _button;
-            GUIText _contentText;
-            GUIText _infoText;
+            GUIButton* _pButton = nullptr;
+            GUIText* _pInfoText = nullptr;
 
         public:
-            InputField() {}
-            InputField(const InputField& other);
-            void create(
+            InputField(
                 std::string infoTxt,
                 const Font& font,
                 ConstraintProperties constraintProperties,
@@ -87,17 +84,21 @@ namespace pk
                 vec3 backgroundHighlightColor = { 0.2f, 0.2f, 0.2f },
                 bool password = false
             );
+            InputField(const InputField& other) = delete;
+            ~InputField();
 
             void setActive(bool arg);
+
+            // *Button's text element is used as content text
+            GUIText* getContentText();
 
             std::string getContent() const;
             // NOTE: atm theres only way to set "internal content"
             // If using "password" and want to set content requires changing this!
             void setContent(const std::string& str);
 
-            inline entityID_t getEntity() const { return _entity; }
-            inline GUIButton& getButton() { return _button; }
-            inline GUIText& getText() { return _infoText; }
+            inline GUIButton* getButton() { return _pButton; }
+            //inline GUIText* getText() { return _pInfoText; }
         };
     }
 }

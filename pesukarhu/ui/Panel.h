@@ -3,6 +3,7 @@
 #include "pesukarhu/core/Scene.h"
 #include "pesukarhu/core/input/InputEvent.h"
 
+#include "GUIElement.h"
 #include "GUIButton.h"
 #include "InputField.h"
 #include "Checkbox.h"
@@ -63,11 +64,13 @@ namespace pk
 
             static std::vector<vec4> s_uiColor;
 
+            std::vector<GUIElement*> _elements;
+
             static int s_pickedPanels;
 
         public:
             Panel() {};
-            virtual ~Panel() {};
+            virtual ~Panel();
 
             void create(
                 Scene* pScene,
@@ -91,34 +94,34 @@ namespace pk
                 int useColorIndex = 1
             );
 
-            entityID_t addText(
+            GUIText* addText(
                 std::string txt,
                 ConstraintProperties constraintProperties
             );
-            entityID_t addText(std::string txt, vec3 color);
-            entityID_t addDefaultText(std::string txt);
+            GUIText* addText(std::string txt, vec3 color);
+            GUIText* addDefaultText(std::string txt);
 
-            GUIButton addDefaultButton(
+            GUIButton* addDefaultButton(
                 std::string txt,
                 GUIButton::OnClickEvent* onClick,
                 float width
             );
 
-            GUIButton addButton(
+            GUIButton* addButton(
                 std::string txt,
                 GUIButton::OnClickEvent* onClick,
                 ConstraintProperties constraintProperties,
                 vec2 scale
             );
 
-            InputField addDefaultInputField(
+            InputField* addDefaultInputField(
                 std::string infoTxt,
                 int width,
                 InputField::OnSubmitEvent* onSubmitEvent,
                 bool clearOnSubmit = false,
                 bool password = false
             );
-            InputField addInputField(
+            InputField* addInputField(
                 std::string infoTxt,
                 ConstraintProperties constraintProperties,
                 int width,
@@ -127,7 +130,7 @@ namespace pk
                 bool password = false
             );
 
-            entityID_t addImage(
+            GUIImage* addImage(
                 ConstraintProperties constraintProperties,
                 float width, float height,
                 Texture* pTexture,
@@ -136,7 +139,7 @@ namespace pk
                 GUIFilterType filter = GUIFilterType::GUI_FILTER_TYPE_NONE
             );
 
-            pk::ui::Checkbox addDefaultCheckbox(std::string infoTxt);
+            pk::ui::Checkbox* addDefaultCheckbox(std::string infoTxt);
 
             void setActive(bool arg, entityID_t entity = 0);
 

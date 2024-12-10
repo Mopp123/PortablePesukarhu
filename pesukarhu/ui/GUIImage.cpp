@@ -89,12 +89,9 @@ namespace pk
             }
         };
 
-        GUIImage::GUIImage(const GUIImage& other) :
-            _entity(other._entity)
-        {
-        }
 
-        void GUIImage::create(ImgCreationProperties creationProperties)
+        GUIImage::GUIImage(ImgCreationProperties creationProperties) :
+            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_IMAGE)
         {
 	        Application* app = Application::get();
 	        Scene* currentScene = app->accessCurrentScene();
@@ -134,6 +131,9 @@ namespace pk
                 )
             );
         }
+
+        GUIImage::~GUIImage()
+        {}
 
         GUIRenderable* GUIImage::getRenderable()
         {

@@ -149,15 +149,7 @@ namespace pk
             }
         }
 
-
-        GUIButton::GUIButton(const GUIButton& other) :
-            _entity(other._entity),
-            _image(other._image),
-            _text(other._text)
-        {
-        }
-
-        void GUIButton::create(
+        GUIButton::GUIButton(
             std::string txt, const Font& font,
             ConstraintProperties constraintProperties,
             float width, float height,
@@ -170,7 +162,8 @@ namespace pk
             GUIFilterType filter,
             Texture* pTexture,
             vec4 textureCropping
-        )
+        ) :
+            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_BUTTON)
         {
             Scene* pScene = Application::get()->accessCurrentScene();
             InputManager* inputManager = Application::get()->accessInputManager();
@@ -190,8 +183,8 @@ namespace pk
                 textureCropping
             };
 
-            _image.create(imgProperties);
-            entityID_t imgEntity = _image.getEntity();
+            _pImage = new GUIImage(imgProperties);
+            entityID_t imgEntity = _pImage->getEntity();
 
             // Add txt displacement
             const int padding = 4;
@@ -205,17 +198,17 @@ namespace pk
             else if (constraintProperties.horizontalType == HorizontalConstraintType::PIXEL_RIGHT)
                 useConstraintProperties.horizontalValue -= (float)txtDisplacementX;
 
-            _text.create(
+            _pText = new GUIText(
                 txt, font,
                 useConstraintProperties,
                 textColor
             );
-            entityID_t txtEntity = _text.getEntity();
+            entityID_t txtEntity = _pText->getEntity();
 
             pScene->addChild(_entity, imgEntity);
             pScene->addChild(_entity, txtEntity);
 
-            Transform* txtTransform = _text.getTransform();
+            Transform* txtTransform = _pText->getTransform();
             // alter transform's scale to make work properly with constraint system
             txtTransform->accessTransformationMatrix()[0 + 0 * 4] = width;
             txtTransform->accessTransformationMatrix()[1 + 1 * 4] = height;
@@ -244,10 +237,18 @@ namespace pk
             );
         }
 
+        GUIButton::~GUIButton()
+        {
+            if (_pImage)
+                delete _pImage;
+            if (_pText)
+                delete _pText;
+        }
+
         void GUIButton::setActive(bool arg)
         {
-            _image.setActive(arg);
-            _text.setActive(arg);
+            _pImage->setActive(arg);
+            _pText->setActive(arg);
             Scene* pScene = Application::get()->accessCurrentScene();
             std::vector<Component*> components = pScene->getComponents(_entity);
             for (Component* pComponent : components)

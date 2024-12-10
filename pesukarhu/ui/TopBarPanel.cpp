@@ -11,6 +11,10 @@ namespace pk
         }
 
 
+        TopBarPanel::~TopBarPanel()
+        {
+        }
+
         void TopBarPanel::initBase(
             Scene* pScene,
             Font* pFont,
@@ -33,7 +37,7 @@ namespace pk
             const float topBarHeight = 20.0f;
             // Create top bar (atm just an img)
             // TODO: Maybe in the future make top bar as "button" which u can drag the panel around
-            _topBarImgEntity = addImage(
+            _pTopBarImg = addImage(
                 constraintProperties,
                 scale.x, topBarHeight,
                 nullptr, // texture
@@ -42,13 +46,13 @@ namespace pk
                 GUIFilterType::GUI_FILTER_TYPE_EMBOSS
             );
             // Add title text
-            _topBarTitleEntity = addText(
+            _pTopBarTitle = addText(
                 title,
                 constraintProperties
             );
 
-            pScene->addChild(_entity, _topBarImgEntity);
-            pScene->addChild(_entity, _topBarTitleEntity);
+            pScene->addChild(_entity, _pTopBarImg->getEntity());
+            pScene->addChild(_entity, _pTopBarTitle->getEntity());
 
             ConstraintProperties closeButtonConstraintProperties =
             {
@@ -59,7 +63,7 @@ namespace pk
 
             };
             // Add close button
-            _topBarCloseButton = addButton(
+            addButton(
                 "X",
                 new OnClickClose(this),
                 closeButtonConstraintProperties,

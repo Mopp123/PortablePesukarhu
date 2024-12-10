@@ -84,6 +84,12 @@ namespace pk
         }
 
 
+        Panel::~Panel()
+        {
+            for (GUIElement* pElement : _elements)
+                delete pElement;
+        }
+
         void Panel::create(
             Scene* pScene,
             Font* pDefaultFont,
@@ -120,11 +126,10 @@ namespace pk
             imgCreationProperties.filter = filter;
             imgCreationProperties.textureCropping = textureCropping;
 
-            // Not sure should we actually keep the handle for the GUIImage... could be useful...
-            GUIImage panelImg;
-            panelImg.create(imgCreationProperties);
+            GUIImage* pPanelImg = new GUIImage(imgCreationProperties);
+            _elements.push_back(pPanelImg);
 
-            _entity = panelImg.getEntity();
+            _entity = pPanelImg->getEntity();
 
             InputManager* pInputManager = Application::get()->accessInputManager();
             pInputManager->addCursorPosEvent(new PanelCursorPosEvent(pScene, this));
@@ -153,27 +158,26 @@ namespace pk
             );
         }
 
-        entityID_t Panel::addText(
+        GUIText* Panel::addText(
             std::string txt,
             ConstraintProperties constraintProperties
         )
         {
-            GUIText text;
-            text.create(
+            GUIText* pText = new GUIText(
                 txt, *_pDefaultFont,
                 constraintProperties,
                 get_base_ui_color(3).toVec3(),
                 false // bold
             );
-            entityID_t textEntity = text.getEntity();
-            _pScene->addChild(_entity, textEntity);
+            _pScene->addChild(_entity, pText->getEntity());
+            _elements.push_back(pText);
             // NOTE: Not sure should we actually increase slots here since explicit pos(constraint)
             ++_slotCount;
 
-            return textEntity;
+            return pText;
         }
 
-        entityID_t Panel::addText(std::string txt, vec3 color)
+        GUIText* Panel::addText(std::string txt, vec3 color)
         {
             vec2 toAdd = calcNewSlotPos();
 
@@ -184,26 +188,25 @@ namespace pk
                 _constraintProperties.verticalValue + toAdd.y,
             };
 
-            GUIText text;
-            text.create(
+            GUIText* pText = new GUIText(
                 txt, *_pDefaultFont,
                 useConstraintProperties,
                 color,
                 false // bold
             );
-            entityID_t textEntity = text.getEntity();
-            _pScene->addChild(_entity, textEntity);
+            _pScene->addChild(_entity, pText->getEntity());
+            _elements.push_back(pText);
             ++_slotCount;
 
-            return textEntity;
+            return pText;
         }
 
-        entityID_t Panel::addDefaultText(std::string txt)
+        GUIText* Panel::addDefaultText(std::string txt)
         {
             return addText(txt, get_base_ui_color(3).toVec3());
         }
 
-        GUIButton Panel::addDefaultButton(
+        GUIButton* Panel::addDefaultButton(
             std::string txt,
             GUIButton::OnClickEvent* onClick,
             float width
@@ -222,8 +225,7 @@ namespace pk
                 _constraintProperties.verticalType,
                 _constraintProperties.verticalValue + toAdd.y,
             };
-            GUIButton button;
-            button.create(
+            GUIButton* pButton = new GUIButton(
                 txt,
                 *_pDefaultFont,
                 useConstraintProperties,
@@ -239,12 +241,13 @@ namespace pk
                 textureCropping
             );
             // atm fucks up because constraint and transform systems are in conflict?
-            _pScene->addChild(_entity, button.getEntity());
+            _pScene->addChild(_entity, pButton->getEntity());
+            _elements.push_back(pButton);
             ++_slotCount;
-            return button;
+            return pButton;
         }
 
-        GUIButton Panel::addButton(
+        GUIButton* Panel::addButton(
             std::string txt,
             GUIButton::OnClickEvent* onClick,
             ConstraintProperties constraintProperties,
@@ -255,8 +258,7 @@ namespace pk
             Texture* pTexture = nullptr;
             vec4 textureCropping(0, 0, 1, 1);
 
-            GUIButton button;
-            button.create(
+            GUIButton* pButton = new GUIButton(
                 txt,
                 *_pDefaultFont,
                 constraintProperties,
@@ -272,13 +274,14 @@ namespace pk
                 textureCropping
             );
             // atm fucks up because constraint and transform systems are in conflict?
-            _pScene->addChild(_entity, button.getEntity());
+            _pScene->addChild(_entity, pButton->getEntity());
+            _elements.push_back(pButton);
             // Atm disabling adding to slot count since this overrides the "slot" thing completely...
             //++_slotCount;
-            return button;
+            return pButton;
         }
 
-        InputField Panel::addDefaultInputField(
+        InputField* Panel::addDefaultInputField(
             std::string infoTxt,
             int width,
             InputField::OnSubmitEvent* onSubmitEvent,
@@ -293,8 +296,7 @@ namespace pk
             useConstraintProperties.horizontalValue += toAdd.x;
             useConstraintProperties.verticalValue += toAdd.y;
 
-            InputField inputField;
-            inputField.create(
+            InputField* pInputField = new InputField(
                 infoTxt, *_pDefaultFont,
                 useConstraintProperties,
                 width,
@@ -306,13 +308,14 @@ namespace pk
                 get_base_ui_color(1).toVec3(), // background highlight color,
                 password
             );
-            _pScene->addChild(_entity, inputField.getEntity());
+            _pScene->addChild(_entity, pInputField->getEntity());
+            _elements.push_back(pInputField);
             ++_slotCount;
 
-            return inputField;
+            return pInputField;
         }
 
-        InputField Panel::addInputField(
+        InputField* Panel::addInputField(
             std::string infoTxt,
             ConstraintProperties constraintProperties,
             int width,
@@ -322,8 +325,7 @@ namespace pk
         )
         {
             vec4 color = get_base_ui_color(2);
-            InputField inputField;
-            inputField.create(
+            InputField* pInputField = new InputField(
                 infoTxt, *_pDefaultFont,
                 constraintProperties,
                 width,
@@ -335,12 +337,13 @@ namespace pk
                 get_base_ui_color(1).toVec3(), // background highlight color
                 password
             );
-            _pScene->addChild(_entity, inputField.getEntity());
+            _pScene->addChild(_entity, pInputField->getEntity());
+            _elements.push_back(pInputField);
 
-            return inputField;
+            return pInputField;
         }
 
-        entityID_t Panel::addImage(
+        GUIImage* Panel::addImage(
             ConstraintProperties constraintProperties,
             float width, float height,
             Texture* pTexture,
@@ -358,17 +361,17 @@ namespace pk
             imgProperties.pTexture = pTexture;
             imgProperties.textureCropping = textureCropping;
 
-            GUIImage img;
-            img.create(imgProperties);
-            entityID_t imgEntity = img.getEntity();
+            GUIImage* pImg = new GUIImage(imgProperties);
+            entityID_t imgEntity = pImg->getEntity();
+            _elements.push_back(pImg);
             // NOTE: Earlier this img wasn't added as child... don't remember was there
             // a reason for it...
             _pScene->addChild(_entity, imgEntity);
             // NOTE: Not sure should _slotCount increase when adding img...
-            return imgEntity;
+            return pImg;
         }
 
-        Checkbox Panel::addDefaultCheckbox(std::string infoTxt)
+        Checkbox* Panel::addDefaultCheckbox(std::string infoTxt)
         {
             vec4 color = get_base_ui_color(2);
             vec2 toAdd = calcNewSlotPos();
@@ -377,8 +380,7 @@ namespace pk
             useConstraintProperties.horizontalValue += toAdd.x;
             useConstraintProperties.verticalValue += toAdd.y;
 
-            Checkbox checkbox;
-            checkbox.create(
+            Checkbox* pCheckbox = new Checkbox(
                 infoTxt,
                 _pDefaultFont,
                 useConstraintProperties,
@@ -387,9 +389,10 @@ namespace pk
                 get_base_ui_color(3).toVec3(), // checked indicator color
                 get_base_ui_color(3).toVec3() // text color
             );
-            _pScene->addChild(_entity, checkbox.getEntity());
+            _pScene->addChild(_entity, pCheckbox->getEntity());
+            _elements.push_back(pCheckbox);
             ++_slotCount;
-            return checkbox;
+            return pCheckbox;
         }
 
         void Panel::setActive(bool arg, entityID_t entity)

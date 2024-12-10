@@ -6,18 +6,14 @@ namespace pk
 {
     namespace ui
     {
-        GUIText::GUIText(const GUIText& other) :
-            _entity(other._entity)
-        {
-        }
-
-        void GUIText::create(
+        GUIText::GUIText(
             const std::string& str,
             const Font& font,
             ConstraintProperties constraintProperties,
             vec3 color,
             bool bold
-        )
+        ) :
+            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_TEXT)
         {
             Scene* pScene = Application::get()->accessCurrentScene();
 
@@ -86,6 +82,24 @@ namespace pk
             );
         }
 
+        ConstraintData* GUIText::getConstraint()
+        {
+            if (_entity == NULL_ENTITY_ID)
+            {
+                Debug::log(
+                    "@GUIText::getConstraint "
+                    "GUIText's entity was null. Make sure GUIText was created successfully using GUIText::create!",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return nullptr;
+            }
+            Scene* pScene = Application::get()->accessCurrentScene();
+            return (ConstraintData*)pScene->getComponent(
+                _entity,
+                ComponentType::PK_UI_CONSTRAINT
+            );
+        }
+
         TextRenderable* GUIText::getRenderable()
         {
             if (_entity == NULL_ENTITY_ID)
@@ -102,6 +116,11 @@ namespace pk
                 _entity,
                 ComponentType::PK_RENDERABLE_TEXT
             );
+        }
+
+        void GUIText::setStr(const std::string& str)
+        {
+            getRenderable()->accessStr() = str;
         }
 
         void GUIText::setActive(bool arg)
