@@ -207,10 +207,6 @@ namespace pk
             _pScene->addChild(_entity, pText->getEntity());
             addElement(pText);
 
-            // If scrollbar -> hide if out of panel bounds
-            if (_pScrollbar && _elements.size() > getVisibleVerticalSlots())
-                pText->setActive(false);
-
             return pText;
         }
 
