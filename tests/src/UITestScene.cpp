@@ -56,14 +56,14 @@ void UITestScene::init()
         "Scrollable test",
         {
             HorizontalConstraintType::PIXEL_LEFT, 300.0f,
-            VerticalConstraintType::PIXEL_CENTER_VERTICAL, 300.0f
+            VerticalConstraintType::PIXEL_BOTTOM, 0.0f
         },
-        testPanelScale,
+        { 200, 320 }, // scale
         Panel::LayoutFillType::VERTICAL,
         testPanelSlotScale,
         true
     );
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < 22; ++i)
         _scrollablePanel.addDefaultButton("Testing" + std::to_string(i), nullptr, 100);
     _scrollablePanel.addDefaultText("Scroll panel test");
     _scrollablePanel.addDefaultInputField("Input", 100, nullptr);

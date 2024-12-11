@@ -182,9 +182,7 @@ namespace pk
                 false // bold
             );
             _pScene->addChild(_entity, pText->getEntity());
-            _elements.push_back(pText);
-            // NOTE: Not sure should we actually increase slots here since explicit pos(constraint)
-            ++_slotCount;
+            addElement(pText);
 
             return pText;
         }
@@ -207,8 +205,7 @@ namespace pk
                 false // bold
             );
             _pScene->addChild(_entity, pText->getEntity());
-            _elements.push_back(pText);
-            ++_slotCount;
+            addElement(pText);
 
             // If scrollbar -> hide if out of panel bounds
             if (_pScrollbar && _elements.size() > getVisibleVerticalSlots())
@@ -258,12 +255,7 @@ namespace pk
             );
             // atm fucks up because constraint and transform systems are in conflict?
             _pScene->addChild(_entity, pButton->getEntity());
-            _elements.push_back(pButton);
-            ++_slotCount;
-
-            // If scrollbar -> hide if out of panel bounds
-            if (_pScrollbar && _elements.size() > getVisibleVerticalSlots())
-                pButton->setActive(false);
+            addElement(pButton);
 
             return pButton;
         }
@@ -296,9 +288,8 @@ namespace pk
             );
             // atm fucks up because constraint and transform systems are in conflict?
             _pScene->addChild(_entity, pButton->getEntity());
-            _elements.push_back(pButton);
-            // Atm disabling adding to slot count since this overrides the "slot" thing completely...
-            //++_slotCount;
+            addElement(pButton);
+
             return pButton;
         }
 
@@ -330,12 +321,7 @@ namespace pk
                 password
             );
             _pScene->addChild(_entity, pInputField->getEntity());
-            _elements.push_back(pInputField);
-            ++_slotCount;
-
-            // If scrollbar -> hide if out of panel bounds
-            if (_pScrollbar && _elements.size() > getVisibleVerticalSlots())
-                pInputField->setActive(false);
+            addElement(pInputField);
 
             return pInputField;
         }
@@ -363,7 +349,7 @@ namespace pk
                 password
             );
             _pScene->addChild(_entity, pInputField->getEntity());
-            _elements.push_back(pInputField);
+            addElement(pInputField);
 
             return pInputField;
         }
@@ -387,7 +373,7 @@ namespace pk
             imgProperties.textureCropping = textureCropping;
 
             GUIImage* pImg = new GUIImage(imgProperties);
-            _elements.push_back(pImg);
+            addElement(pImg);
             // NOTE: Earlier this img wasn't added as child... don't remember was there
             // a reason for it...
             _pScene->addChild(_entity, pImg->getEntity());
@@ -398,7 +384,7 @@ namespace pk
         GUIImage* Panel::addImage(GUIImage::ImgCreationProperties properties)
         {
             GUIImage* pImg = new GUIImage(properties);
-            _elements.push_back(pImg);
+            addElement(pImg);
             // NOTE: Earlier this img wasn't added as child... don't remember was there
             // a reason for it...
             _pScene->addChild(_entity, pImg->getEntity());
@@ -425,12 +411,7 @@ namespace pk
                 get_base_ui_color(3).toVec3() // text color
             );
             _pScene->addChild(_entity, pCheckbox->getEntity());
-            _elements.push_back(pCheckbox);
-            ++_slotCount;
-
-            // If scrollbar -> hide if out of panel bounds
-            if (_pScrollbar && _elements.size() > getVisibleVerticalSlots())
-                pCheckbox->setActive(false);
+            addElement(pCheckbox);
 
             return pCheckbox;
         }
@@ -463,6 +444,21 @@ namespace pk
                     TextRenderable* pRenderable = (TextRenderable*)pComponent;
                     pRenderable->setLayer(layer);
                 }
+            }
+        }
+
+        void Panel::addElement(GUIElement* pElement)
+        {
+            _elements.push_back(pElement);
+            // TODO: maybe get rid of the _slot count since we got the _elements...
+            ++_slotCount;
+            if (_pScrollbar)
+            {
+                // Hide if out of panel bounds if having scrollbar
+                if (_elements.size() > getVisibleVerticalSlots())
+                    pElement->setActive(false);
+
+                _pScrollbar->updateScrollIndicator();
             }
         }
 

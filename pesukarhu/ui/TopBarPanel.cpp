@@ -101,23 +101,6 @@ namespace pk
         {
             for(Component* pComponent : _pScene->getAllComponents(_entity))
                 pComponent->setActive(arg);
-
-            /*
-            for(Component* pComponent : _pScene->getComponents(_topBarImgEntity))
-                pComponent->setActive(arg);
-            for(Component* pComponent : _pScene->getComponents(_topBarTitleEntity))
-                pComponent->setActive(arg);
-
-            entityID_t closeButtonEntity = _topBarCloseButton.rootEntity;
-            entityID_t closeButtonImgEntity = _topBarCloseButton.imgEntity;
-            entityID_t closeButtonTxtEntity = _topBarCloseButton.txtEntity;
-            for(Component* pComponent : _pScene->getComponents(closeButtonEntity))
-                pComponent->setActive(arg);
-            for(Component* pComponent : _pScene->getComponents(closeButtonImgEntity))
-                pComponent->setActive(arg);
-            for(Component* pComponent : _pScene->getComponents(closeButtonTxtEntity))
-                pComponent->setActive(arg);
-                */
         }
     }
 }

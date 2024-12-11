@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GUIButton.h"
+#include "pesukarhu/core/input/InputEvent.h"
 
 
 namespace pk
@@ -16,8 +17,7 @@ namespace pk
             {
             public:
                 Scrollbar* _pScrollbar = nullptr;
-                Panel* _pPanel = nullptr;
-                OnClickUp(Scrollbar* pScrollbar, Panel* pPanel);
+                OnClickUp(Scrollbar* pScrollbar) : _pScrollbar(pScrollbar) {}
                 virtual void onClick(InputMouseButtonName button);
             };
 
@@ -25,22 +25,56 @@ namespace pk
             {
             public:
                 Scrollbar* _pScrollbar = nullptr;
-                Panel* _pPanel = nullptr;
-                OnClickDown(Scrollbar* pScrollbar, Panel* pPanel);
+                OnClickDown(Scrollbar* pScrollbar) : _pScrollbar(pScrollbar) {}
                 virtual void onClick(InputMouseButtonName button);
+            };
+
+            class IndicatorMouseButtonEvent : public MouseButtonEvent
+            {
+            public:
+                Scrollbar* _pScrollbar = nullptr;
+                IndicatorMouseButtonEvent(Scrollbar* pScrollbar) : _pScrollbar(pScrollbar) {}
+		        virtual void func(InputMouseButtonName button, InputAction action, int mods);
+            };
+
+            class IndicatorCursorPosEvent : public CursorPosEvent
+            {
+            public:
+                Scrollbar* _pScrollbar = nullptr;
+                int _prevY = 0;
+                IndicatorCursorPosEvent(Scrollbar* pScrollbar) : _pScrollbar(pScrollbar) {}
+		        virtual void func(int x, int y);
+            };
+
+            class ScrollbarScrollEvent : public ScrollEvent
+            {
+            public:
+                Scrollbar* _pScrollbar = nullptr;
+                ScrollbarScrollEvent(Scrollbar* pScrollbar) : _pScrollbar(pScrollbar) {}
+		        virtual void func(double xOffset, double yOffset);
             };
 
             Panel* _pPanel = nullptr;
 
             GUIImage* _pBackgroundImg = nullptr;
+            GUIImage* _pScrollPosImg = nullptr;
             GUIButton* _pUpButton = nullptr;
             GUIButton* _pDownButton = nullptr;
 
             int _scrollPos = 0;
+            bool _enableCursorScroll = false;
+
+            float _dragAmount = 0.0f;
 
         public:
             Scrollbar(Panel* pPanel, Font* pFont, float topBarHeight);
             ~Scrollbar();
+            void updateScrollIndicator();
+
+        private:
+            void scrollCursor(int dragBeginY, int cursorY);
+            void scrollElement(GUIElement* pElement, bool up);
+            void scrollElements(bool up);
         };
     }
 }

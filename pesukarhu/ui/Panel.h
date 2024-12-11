@@ -164,8 +164,10 @@ namespace pk
 
             inline bool isMouseOver() const { return _isMouseOver; }
             inline entityID_t getEntity() const { return _entity; }
+            inline Scrollbar* getScrollbar() { return _pScrollbar; }
 
         private:
+            void addElement(GUIElement* pElement);
             vec2 calcNewSlotPos();
 
             // If scrollable
