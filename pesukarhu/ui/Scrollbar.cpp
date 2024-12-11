@@ -61,6 +61,10 @@ namespace pk
             if (verticalConstraintType == VerticalConstraintType::PIXEL_CENTER_VERTICAL)
                 scrollAmount = slotScale.y + slotPadding;
 
+            // Since the fucked up vertical constraint thing
+            //  -> flip in case of bottom constraint...
+            if (verticalConstraintType == VerticalConstraintType::PIXEL_BOTTOM)
+                scrollAmount *= -1.0f;
             if (up)
                 scrollAmount *= -1.0f;
 
@@ -150,7 +154,7 @@ namespace pk
         }
 
 
-        Scrollbar::Scrollbar(Panel* pPanel, Font* pFont) :
+        Scrollbar::Scrollbar(Panel* pPanel, Font* pFont, float topBarHeight) :
             _pPanel(pPanel)
         {
             const float defaultScrollbarWidth = 20.0f;
@@ -159,9 +163,13 @@ namespace pk
 
             GUIImage::ImgCreationProperties scrollbarBackgroundProperties;
             scrollbarBackgroundProperties.constraintProperties = _pPanel->_constraintProperties;
+            VerticalConstraintType verticalConstraintType = _pPanel->_constraintProperties.verticalType;
             float backgroundVerticalConstraintVal = _pPanel->_offsetFromPanel.y + buttonScale.y;
-            if (_pPanel->_constraintProperties.verticalType == VerticalConstraintType::PIXEL_CENTER_VERTICAL)
+            if (verticalConstraintType == VerticalConstraintType::PIXEL_CENTER_VERTICAL)
                 backgroundVerticalConstraintVal = -(_pPanel->_offsetFromPanel.y + buttonScale.y);
+            else if (verticalConstraintType == VerticalConstraintType::PIXEL_BOTTOM)
+                backgroundVerticalConstraintVal = _pPanel->_offsetFromPanel.y + buttonScale.y - topBarHeight;
+
 
             scrollbarBackgroundProperties.constraintProperties.horizontalValue += _pPanel->_scale.x - defaultScrollbarWidth - _pPanel->_offsetFromPanel.x;
             scrollbarBackgroundProperties.constraintProperties.verticalValue += backgroundVerticalConstraintVal;
@@ -223,10 +231,10 @@ namespace pk
             // make the down button not be exactly on the bottom line...
             const float offsetFromBottom = 4.0f;
             float downVerticalConstraintVal = _pPanel->_scale.y - buttonScale.y - offsetFromBottom;
-            if (upButtonConstraintProperties.verticalType == VerticalConstraintType::PIXEL_CENTER_VERTICAL)
+            if (downButtonConstraintProperties.verticalType == VerticalConstraintType::PIXEL_CENTER_VERTICAL)
                 downVerticalConstraintVal = -_pPanel->_scale.y + buttonScale.y + offsetFromBottom;
-            else if (upButtonConstraintProperties.verticalType == VerticalConstraintType::PIXEL_BOTTOM)
-                downVerticalConstraintVal = _pPanel->_offsetFromPanel.y;
+            else if (downButtonConstraintProperties.verticalType == VerticalConstraintType::PIXEL_BOTTOM)
+                downVerticalConstraintVal = offsetFromBottom;
 
             downButtonConstraintProperties.horizontalValue += _pPanel->_scale.x - defaultScrollbarWidth - _pPanel->_offsetFromPanel.x;
             downButtonConstraintProperties.verticalValue += downVerticalConstraintVal;

@@ -29,6 +29,7 @@ namespace pk
             bool scrollable
         )
         {
+            const float topBarHeight = 20.0f;
             createDefault(
                 pScene,
                 pFont,
@@ -36,14 +37,22 @@ namespace pk
                 scale,
                 slotScale,
                 fillType,
-                false
+                false, // We create the scrollbar here differently instead of inside the inherited Panel
+                topBarHeight
             );
 
-            const float topBarHeight = 20.0f;
-            // Create top bar (atm just an img)
-            // TODO: Maybe in the future make top bar as "button" which u can drag the panel around
+            // Create top bar
+            // If bottom constraint make this actually be on top
+            // (with bottom constraint positive values go from bottom to top)
+            float topBarConstraintValY = constraintProperties.verticalValue;
+            if (constraintProperties.verticalType == VerticalConstraintType::PIXEL_BOTTOM)
+            {
+                topBarConstraintValY += _scale.y - topBarHeight;
+            }
+
             GUIImage::ImgCreationProperties topBarCreationProperties;
             topBarCreationProperties.constraintProperties = constraintProperties;
+            topBarCreationProperties.constraintProperties.verticalValue = topBarConstraintValY;
             topBarCreationProperties.width = scale.x;
             topBarCreationProperties.height = topBarHeight;
             topBarCreationProperties.color = Panel::get_base_ui_color(2).toVec3();
@@ -51,7 +60,9 @@ namespace pk
             _pTopBarImg = new GUIImage(topBarCreationProperties);
 
             // Add title text
-            _pTopBarTitle = new GUIText(title, *pFont, constraintProperties);
+            ConstraintProperties titleConstraintProperties = constraintProperties;
+            titleConstraintProperties.verticalValue = topBarConstraintValY;
+            _pTopBarTitle = new GUIText(title, *pFont, titleConstraintProperties);
 
             pScene->addChild(_entity, _pTopBarImg->getEntity());
             pScene->addChild(_entity, _pTopBarTitle->getEntity());
@@ -61,8 +72,7 @@ namespace pk
                 constraintProperties.horizontalType,
                 constraintProperties.horizontalValue + scale.x - topBarHeight,
                 constraintProperties.verticalType,
-                constraintProperties.verticalValue
-
+                topBarConstraintValY
             };
             // Add close button
             _pCloseButton = new GUIButton(
@@ -81,9 +91,10 @@ namespace pk
             );
 
             // Make elements start after the top bar...
-             _offsetFromPanel.y += topBarHeight;
+            _offsetFromPanel.y += topBarHeight;
+
             if (scrollable)
-                _pScrollbar = new Scrollbar(this, _pDefaultFont);
+                _pScrollbar = new Scrollbar(this, _pDefaultFont, topBarHeight);
         }
 
         void TopBarPanel::setComponentsActive(bool arg)

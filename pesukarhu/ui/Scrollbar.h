@@ -39,7 +39,7 @@ namespace pk
             int _scrollPos = 0;
 
         public:
-            Scrollbar(Panel* pPanel, Font* pFont);
+            Scrollbar(Panel* pPanel, Font* pFont, float topBarHeight);
             ~Scrollbar();
         };
     }

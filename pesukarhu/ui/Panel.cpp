@@ -104,7 +104,8 @@ namespace pk
             GUIFilterType filter,
             float slotPadding,
             vec2 slotScale,
-            bool scrollable
+            bool scrollable,
+            float topBarHeight
         )
         {
             _pScene = pScene;
@@ -139,7 +140,7 @@ namespace pk
 
             // If scrollable -> create the scrollbar
             if (scrollable)
-                _pScrollbar = new Scrollbar(this, _pDefaultFont);
+                _pScrollbar = new Scrollbar(this, _pDefaultFont, topBarHeight);
         }
 
         void Panel::createDefault(
@@ -150,6 +151,7 @@ namespace pk
             vec2 slotScale,
             LayoutFillType fillType,
             bool scrollable,
+            float topBarHeight,
             int useColorIndex
         )
         {
@@ -163,7 +165,8 @@ namespace pk
                 GUIFilterType::GUI_FILTER_TYPE_EMBOSS, // filter type
                 4.0f, // slot padding;
                 slotScale,
-                scrollable
+                scrollable,
+                topBarHeight
             );
         }
 
@@ -470,14 +473,24 @@ namespace pk
             vec2 pos(0, 0);
 
             if (_layoutType == LayoutFillType::VERTICAL)
-                pos = { 0.0f,  (_slotScale.y + _slotPadding) * _slotCount};
+            {
+                pos.y = (_slotScale.y + _slotPadding) * _elements.size();
+            }
             else if (_layoutType == LayoutFillType::HORIZONTAL)
-                pos = { (_slotScale.x + _slotPadding) * _slotCount, 0.0f };
+            {
+                pos = { (_slotScale.x + _slotPadding) * _elements.size(), 0.0f };
+            }
 
             if (_constraintProperties.verticalType == VerticalConstraintType::PIXEL_CENTER_VERTICAL)
             {
                 pos.y *= -1.0f;
                 useOffset.y *= -1.0f;
+            }
+            else if (_constraintProperties.verticalType == VerticalConstraintType::PIXEL_BOTTOM)
+            {
+                pos.y *= -1.0f;
+                // -_slotScale.y since with bottom constraint the origin of element is its' bottom left corner
+                useOffset.y = _scale.y - useOffset.y - _slotScale.y;
             }
 
             return useOffset + pos;

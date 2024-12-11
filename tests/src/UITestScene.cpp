@@ -56,7 +56,7 @@ void UITestScene::init()
         "Scrollable test",
         {
             HorizontalConstraintType::PIXEL_LEFT, 300.0f,
-            VerticalConstraintType::PIXEL_TOP, 0.0f
+            VerticalConstraintType::PIXEL_CENTER_VERTICAL, 300.0f
         },
         testPanelScale,
         Panel::LayoutFillType::VERTICAL,

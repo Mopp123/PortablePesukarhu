@@ -84,7 +84,8 @@ namespace pk
                 GUIFilterType filter = GUIFilterType::GUI_FILTER_TYPE_NONE,
                 float slotPadding = 1.0f,
                 vec2 slotScale = vec2(200.0f, 24.0f),
-                bool scrollable = false
+                bool scrollable = false,
+                float topBarHeight = 0.0f
             );
 
             void createDefault(
@@ -95,6 +96,7 @@ namespace pk
                 vec2 slotScale,
                 LayoutFillType fillType = LayoutFillType::VERTICAL,
                 bool scrollable = false,
+                float topBarHeight = 0.0f,
                 int useColorIndex = 1
             );
 
