@@ -3,9 +3,11 @@
 #include "pesukarhu/core/Scene.h"
 #include "pesukarhu/core/input/InputEvent.h"
 
+#include "GUIElement.h"
 #include "GUIButton.h"
 #include "InputField.h"
 #include "Checkbox.h"
+#include "Scrollbar.h"
 
 #include "pesukarhu/resources/Font.h"
 
@@ -41,10 +43,13 @@ namespace pk
 
         protected:
             friend class PanelCursorPosEvent;
+            friend class Scrollbar;
 
             Scene* _pScene = nullptr;
             Font* _pDefaultFont = nullptr;
+            GUIImage* _pBackgroundImg = nullptr;
             entityID_t _entity;
+            std::vector<GUIElement*> _elements;
 
             ConstraintProperties _constraintProperties;
 
@@ -56,18 +61,18 @@ namespace pk
             vec3 _color;
             // Padding to add from where elements get added
             vec2 _offsetFromPanel = { 4.0f, 4.0f };
-
             int _slotCount = 0;
+
+            Scrollbar* _pScrollbar = nullptr;
 
             bool _isMouseOver = false;
 
             static std::vector<vec4> s_uiColor;
-
             static int s_pickedPanels;
 
         public:
             Panel() {};
-            virtual ~Panel() {};
+            virtual ~Panel();
 
             void create(
                 Scene* pScene,
@@ -78,7 +83,9 @@ namespace pk
                 vec3 color,
                 GUIFilterType filter = GUIFilterType::GUI_FILTER_TYPE_NONE,
                 float slotPadding = 1.0f,
-                vec2 slotScale = vec2(200.0f, 24.0f)
+                vec2 slotScale = vec2(200.0f, 24.0f),
+                bool scrollable = false,
+                float topBarHeight = 0.0f
             );
 
             void createDefault(
@@ -88,37 +95,39 @@ namespace pk
                 vec2 scale,
                 vec2 slotScale,
                 LayoutFillType fillType = LayoutFillType::VERTICAL,
+                bool scrollable = false,
+                float topBarHeight = 0.0f,
                 int useColorIndex = 1
             );
 
-            entityID_t addText(
+            GUIText* addText(
                 std::string txt,
                 ConstraintProperties constraintProperties
             );
-            entityID_t addText(std::string txt, vec3 color);
-            entityID_t addDefaultText(std::string txt);
+            GUIText* addText(std::string txt, vec3 color);
+            GUIText* addDefaultText(std::string txt);
 
-            GUIButton addDefaultButton(
+            GUIButton* addDefaultButton(
                 std::string txt,
                 GUIButton::OnClickEvent* onClick,
                 float width
             );
 
-            GUIButton addButton(
+            GUIButton* addButton(
                 std::string txt,
                 GUIButton::OnClickEvent* onClick,
                 ConstraintProperties constraintProperties,
                 vec2 scale
             );
 
-            InputField addDefaultInputField(
+            InputField* addDefaultInputField(
                 std::string infoTxt,
                 int width,
                 InputField::OnSubmitEvent* onSubmitEvent,
                 bool clearOnSubmit = false,
                 bool password = false
             );
-            InputField addInputField(
+            InputField* addInputField(
                 std::string infoTxt,
                 ConstraintProperties constraintProperties,
                 int width,
@@ -127,7 +136,7 @@ namespace pk
                 bool password = false
             );
 
-            entityID_t addImage(
+            GUIImage* addImage(
                 ConstraintProperties constraintProperties,
                 float width, float height,
                 Texture* pTexture,
@@ -136,7 +145,9 @@ namespace pk
                 GUIFilterType filter = GUIFilterType::GUI_FILTER_TYPE_NONE
             );
 
-            pk::ui::Checkbox addDefaultCheckbox(std::string infoTxt);
+            GUIImage* addImage(GUIImage::ImgCreationProperties properties);
+
+            pk::ui::Checkbox* addDefaultCheckbox(std::string infoTxt);
 
             void setActive(bool arg, entityID_t entity = 0);
 
@@ -153,9 +164,16 @@ namespace pk
 
             inline bool isMouseOver() const { return _isMouseOver; }
             inline entityID_t getEntity() const { return _entity; }
+            inline Scrollbar* getScrollbar() { return _pScrollbar; }
 
         private:
+            void addElement(GUIElement* pElement);
             vec2 calcNewSlotPos();
+
+            // If scrollable
+            //  -> returns max number of possibly visible slots that fits on the panel depending
+            //  on slot scale and panel scale
+            int getVisibleVerticalSlots();
         };
     }
 }

@@ -66,13 +66,7 @@ namespace pk
         }
 
 
-        Checkbox::Checkbox(const Checkbox& other) :
-            _entity(other._entity),
-            _checkedStatusIndicator(other._checkedStatusIndicator)
-        {
-        }
-
-        void Checkbox::create(
+        Checkbox::Checkbox(
             std::string infoTxt,
             const Font* pFont,
             ConstraintProperties constraintProperties,
@@ -80,7 +74,8 @@ namespace pk
             vec3 backgroundHighlightColor,
             vec3 checkedColor, // The color of the thing indicating checked status
             vec3 textColor
-        )
+        ) :
+            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_CHECKBOX)
         {
             Scene* pScene = Application::get()->accessCurrentScene();
 
@@ -118,8 +113,9 @@ namespace pk
                 GUIFilterType::GUI_FILTER_TYPE_ENGRAVE,
                 nullptr
             };
-            _background.create(backgroundImgProperties);
-            entityID_t backgroundImgEntity = _background.getEntity();
+
+            _pBackground = new GUIImage(backgroundImgProperties);
+            entityID_t backgroundImgEntity = _pBackground->getEntity();
 
             const float checkedImgMinification = 8.0f; // how many pixels smaller than outer box
             ConstraintProperties checkedImgConstraintProperties = backgroundImgConstraintProperties;
@@ -141,18 +137,18 @@ namespace pk
                 GUIFilterType::GUI_FILTER_TYPE_EMBOSS,
                 nullptr
             };
-            _checkedStatusIndicator.create(checkedImgProperties);
-            entityID_t checkedImgEntity = _checkedStatusIndicator.getEntity();
+            _pCheckedStatusIndicator = new GUIImage(checkedImgProperties);
+            entityID_t checkedImgEntity = _pCheckedStatusIndicator->getEntity();
 
             // Create info txt
             ConstraintProperties infoTxtConstraintProperties = constraintProperties;
             infoTxtConstraintProperties.horizontalValue += infoDisplacement;
-            _infoText.create(
+            _pInfoText = new GUIText(
                 infoTxt, *pFont, // NOTE: DANGER! TODO: make all funcs here take font as ptr instead of ref!
                 infoTxtConstraintProperties,
                 textColor
             );
-            entityID_t infoTextEntity = _infoText.getEntity();
+            entityID_t infoTextEntity = _pInfoText->getEntity();
 
             pScene->addChild(_entity, backgroundImgEntity);
             pScene->addChild(_entity, checkedImgEntity);
@@ -171,11 +167,38 @@ namespace pk
             setChecked(false);
         }
 
+        Checkbox::~Checkbox()
+        {
+            if (_pBackground)
+                delete _pBackground;
+            if (_pCheckedStatusIndicator)
+                delete _pCheckedStatusIndicator;
+            if (_pInfoText)
+                delete _pInfoText;
+        }
+
         void Checkbox::setActive(bool arg)
         {
-            _background.setActive(arg);
-            _checkedStatusIndicator.setActive(arg);
-            _infoText.setActive(arg);
+            _pBackground->setActive(arg);
+            _pInfoText->setActive(arg);
+
+            // If setting active
+            // -> make sure checked indicator matches the UIElemState
+            //  -> don't just set it active so its' visual state doesn't get out of sync of the
+            //  UIElemState
+            if (arg)
+            {
+                Scene* pScene = Application::get()->accessCurrentScene();
+                const UIElemState* pState = (const UIElemState*)pScene->getComponent(
+                    _entity,
+                    ComponentType::PK_UIELEM_STATE
+                );
+                _pCheckedStatusIndicator->setActive(pState->checked);
+            }
+            else
+            {
+                _pCheckedStatusIndicator->setActive(arg);
+            }
         }
 
         bool Checkbox::isChecked() const
@@ -204,7 +227,7 @@ namespace pk
                 _entity,
                 ComponentType::PK_UIELEM_STATE
             );
-            GUIRenderable* pCheckedStatusRenderable = _checkedStatusIndicator.getRenderable();
+            GUIRenderable* pCheckedStatusRenderable = _pCheckedStatusIndicator->getRenderable();
             if (!pCheckboxState)
             {
                 Debug::log(
@@ -218,7 +241,7 @@ namespace pk
             {
                 Debug::log(
                     "@Checkbox::setChecked "
-                    "No valid GUIRenderable found for checkbox checked status img entity: " + std::to_string(_checkedStatusIndicator.getEntity()),
+                    "No valid GUIRenderable found for checkbox checked status img entity: " + std::to_string(_pCheckedStatusIndicator->getEntity()),
                     Debug::MessageType::PK_FATAL_ERROR
                 );
                 return;

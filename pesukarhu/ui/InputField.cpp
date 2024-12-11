@@ -144,16 +144,9 @@ namespace pk
             }
         }
 
-
-        InputField::InputField(const InputField& other) :
-            _entity(other._entity),
-            _button(other._button),
-            _infoText(other._infoText)
-        {
-        }
-
-        void InputField::create(
-            std::string infoTxt, const Font& font,
+        InputField::InputField(
+            std::string infoTxt,
+            const Font& font,
             ConstraintProperties constraintProperties,
             int width,
             OnSubmitEvent* onSubmitEvent,
@@ -163,7 +156,8 @@ namespace pk
             vec3 textHighlightColor,
             vec3 backgroundHighlightColor,
             bool password
-        )
+        ) :
+            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_INPUT_FIELD)
         {
             Scene* currentScene = Application::get()->accessCurrentScene();
             InputManager* inputManager = Application::get()->accessInputManager();
@@ -207,7 +201,7 @@ namespace pk
             buttonConstraintProperties.verticalValue += buttonDisplacementY;
 
             // Create button
-            _button.create(
+            _pButton = new GUIButton(
                 "", // txt
                 font,
                 buttonConstraintProperties,
@@ -222,10 +216,9 @@ namespace pk
                 nullptr, // texture
                 {0, 0, 1, 1} // cropping
             );
-            entityID_t buttonRootEntity = _button.getEntity();
-            entityID_t buttonImgEntity = _button.getImage().getEntity();
-            _contentText = _button.getText();
-            entityID_t contentTextEntity = _contentText.getEntity();
+            entityID_t buttonRootEntity = _pButton->getEntity();
+            entityID_t buttonImgEntity = _pButton->getImage()->getEntity();
+            entityID_t contentTextEntity = _pButton->getText()->getEntity();
             // Add blinker to button's text renderable which is concidered the "content string"
             Blinker* pBlinker = Blinker::create(contentTextEntity);
             pBlinker->enable = false;
@@ -233,12 +226,12 @@ namespace pk
             ConstraintProperties infoTxtConstraintProperties = constraintProperties;
             infoTxtConstraintProperties.horizontalValue += infoDisplacement;
             // Create info txt
-            _infoText.create(
+            _pInfoText = new GUIText(
                 infoTxt, font,
                 infoTxtConstraintProperties,
                 textColor
             );
-            entityID_t infoTextEntity = _infoText.getEntity();
+            entityID_t infoTextEntity = _pInfoText->getEntity();
 
             currentScene->addChild(_entity, buttonRootEntity);
             currentScene->addChild(_entity, infoTextEntity);
@@ -270,6 +263,14 @@ namespace pk
             );
         }
 
+        InputField::~InputField()
+        {
+            if (_pButton)
+                delete _pButton;
+            if (_pInfoText)
+                delete _pInfoText;
+        }
+
         void InputField::setActive(bool arg)
         {
             if (_entity == NULL_ENTITY_ID)
@@ -282,11 +283,16 @@ namespace pk
                 );
                 return;
             }
-            _button.setActive(arg);
-            _infoText.setActive(arg);
+            _pButton->setActive(arg);
+            _pInfoText->setActive(arg);
             Scene* pScene = Application::get()->accessCurrentScene();
             for (Component* pComponent : pScene->getComponents(_entity))
                 pComponent->setActive(arg);
+        }
+
+        GUIText* InputField::getContentText()
+        {
+            return _pButton->getText();
         }
 
         std::string InputField::getContent() const
@@ -315,7 +321,7 @@ namespace pk
                 _entity,
                 ComponentType::PK_UIELEM_STATE
             );
-            TextRenderable* pContentTextRenderable = _contentText.getRenderable();
+            TextRenderable* pContentTextRenderable = getContentText()->getRenderable();
             if (!pUIElemState)
             {
                 Debug::log(
@@ -329,7 +335,7 @@ namespace pk
             {
                 Debug::log(
                     "@InputField::setContent "
-                    "No valid TextRenderable found for input field's content entity: " + std::to_string(_contentText.getEntity()),
+                    "No valid TextRenderable found for input field's content entity: " + std::to_string(getContentText()->getEntity()),
                     Debug::MessageType::PK_FATAL_ERROR
                 );
                 return;

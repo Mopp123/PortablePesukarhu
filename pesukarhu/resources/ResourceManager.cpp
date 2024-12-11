@@ -3,6 +3,7 @@
 #include "pesukarhu/utils/ID.h"
 #include "pesukarhu/utils/ModelLoading.h"
 #include "pesukarhu/utils/MeshGenerator.h"
+#include "pesukarhu/graphics/Context.h"
 
 #include <utility>
 
@@ -70,6 +71,11 @@ namespace pk
             true,
             true
         );
+
+        bool flipVertically = Context::get_api_type() == GRAPHICS_API_WEBGL;
+        // TODO: Some default place for required default assets
+        ImageData* pDefaultUIImg = loadImage("assets/textures/GUI.png", flipVertically, true);
+        _pDefaultUITexture = createTexture(pDefaultUIImg->getResourceID(), defaultTextureSampler, true);
     }
 
     ImageData* ResourceManager::loadImage(

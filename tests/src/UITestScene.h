@@ -9,7 +9,7 @@ class UITestScene : public BaseScene
 private:
     pk::ui::Panel _testPanel;
     pk::ui::TopBarPanel _topBarPanelTest;
-    pk::ui::Panel _scrollablePanel;
+    pk::ui::TopBarPanel _scrollablePanel;
 
 public:
     UITestScene();

@@ -89,12 +89,9 @@ namespace pk
             }
         };
 
-        GUIImage::GUIImage(const GUIImage& other) :
-            _entity(other._entity)
-        {
-        }
 
-        void GUIImage::create(ImgCreationProperties creationProperties)
+        GUIImage::GUIImage(ImgCreationProperties creationProperties) :
+            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_IMAGE)
         {
 	        Application* app = Application::get();
 	        Scene* currentScene = app->accessCurrentScene();
@@ -135,6 +132,9 @@ namespace pk
             );
         }
 
+        GUIImage::~GUIImage()
+        {}
+
         GUIRenderable* GUIImage::getRenderable()
         {
             if (_entity == NULL_ENTITY_ID)
@@ -148,6 +148,24 @@ namespace pk
             }
             Scene* pScene = Application::get()->accessCurrentScene();
             return (GUIRenderable*)pScene->getComponent(_entity, ComponentType::PK_RENDERABLE_GUI);
+        }
+
+        ConstraintData* GUIImage::getConstraint()
+        {
+            if (_entity == NULL_ENTITY_ID)
+            {
+                Debug::log(
+                    "@GUIImage::getConstraint "
+                    "GUIImage's entity was null. Make sure GUIImage was created successfully using GUIImage::create!",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return nullptr;
+            }
+            Scene* pScene = Application::get()->accessCurrentScene();
+            return (ConstraintData*)pScene->getComponent(
+                _entity,
+                ComponentType::PK_UI_CONSTRAINT
+            );
         }
 
         Transform* GUIImage::getTransform()

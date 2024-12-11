@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GUIElement.h"
 #include "pesukarhu/ecs/components/ui/ConstraintData.h"
 #include "pesukarhu/utils/pkmath.h"
 #include "pesukarhu/ecs/components/renderable/GUIRenderable.h"
@@ -10,11 +11,8 @@ namespace pk
 {
     namespace ui
     {
-        class GUIImage
+        class GUIImage : public GUIElement
         {
-        private:
-            entityID_t _entity = NULL_ENTITY_ID;
-
         public:
             struct ImgCreationProperties
             {
@@ -30,16 +28,15 @@ namespace pk
             };
 
         public:
-            GUIImage() {}
-            GUIImage(const GUIImage& other);
-            void create(ImgCreationProperties creationProperties);
+            GUIImage(ImgCreationProperties creationProperties);
+            GUIImage(const GUIImage& other) = delete;
+            ~GUIImage();
 
             GUIRenderable* getRenderable();
+            ConstraintData* getConstraint();
             Transform* getTransform();
 
             void setActive(bool arg);
-
-            inline entityID_t getEntity() const { return _entity; }
         };
     }
 }

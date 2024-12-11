@@ -7,9 +7,7 @@ class BaseScene : public pk::Scene
 {
 protected:
     pk::Font* _pDefaultFont = nullptr;
-    pk::TextRenderable* _pInfoTxt = nullptr;
-
-    entityID_t _infoTextEntity = NULL_ENTITY_ID;
+    pk::ui::GUIText* _pInfoText = nullptr;
 
 public:
     bool loggingOut = false;

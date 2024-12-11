@@ -1,21 +1,21 @@
 #pragma once
 
-#include "pesukarhu/ecs/Entity.h"
+#include "GUIElement.h"
+#include "GUIImage.h"
+#include "GUIText.h"
 #include "pesukarhu/ecs/components/ui/ConstraintData.h"
 #include "pesukarhu/ecs/components/Transform.h"
 #include "pesukarhu/ecs/components/renderable/GUIRenderable.h"
 #include "pesukarhu/utils/pkmath.h"
 #include "pesukarhu/resources/Font.h"
 #include "pesukarhu/core/input/InputEvent.h"
-#include "GUIImage.h"
-#include "GUIText.h"
 
 
 namespace pk
 {
     namespace ui
     {
-        class GUIButton
+        class GUIButton : public GUIElement
         {
         public:
             // *User defined ui events
@@ -65,15 +65,13 @@ namespace pk
                 virtual void func(int x, int y);
             };
 
-            entityID_t _entity = NULL_ENTITY_ID;
-            GUIImage _image;
-            GUIText _text;
+            GUIImage* _pImage = nullptr;
+            GUIText* _pText = nullptr;
 
         public:
-            GUIButton() {}
-            GUIButton(const GUIButton& other);
-            void create(
-                std::string txt, const Font& font,
+            GUIButton(
+                std::string txt,
+                const Font& font,
                 ConstraintProperties constraintProperties,
                 float width, float height,
                 OnClickEvent* onClick,
@@ -86,12 +84,13 @@ namespace pk
                 Texture* pTexture = nullptr,
                 vec4 textureCropping = vec4(0, 0, 1, 1)
             );
+            GUIButton(const GUIButton& other) = delete;
+            ~GUIButton();
 
             void setActive(bool arg);
 
-            inline entityID_t getEntity() const { return _entity; }
-            inline GUIImage& getImage() { return _image; }
-            inline GUIText& getText() { return _text; }
+            inline GUIImage* getImage() { return _pImage; }
+            inline GUIText* getText() { return _pText; }
         };
     }
 }

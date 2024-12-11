@@ -20,18 +20,21 @@ namespace pk
                 virtual void onClick(InputMouseButtonName button);
             };
 
-            entityID_t _topBarImgEntity = 0;
-            entityID_t _topBarTitleEntity = 0;
-            GUIButton _topBarCloseButton;
+            GUIImage* _pTopBarImg = nullptr;
+            GUIText* _pTopBarTitle = nullptr;
+            GUIButton* _pCloseButton = nullptr;
 
         public:
+            ~TopBarPanel();
             void initBase(
                 Scene* pScene,
                 Font* pFont,
                 const std::string title,
                 ConstraintProperties constraintProperties,
                 const vec2& scale,
-                LayoutFillType fillType // NOTE: This was previously forced to be HORIZONTAL!
+                LayoutFillType fillType, // NOTE: This was previously forced to be HORIZONTAL!
+                vec2 slotScale = vec2(200.0f, 24.0f),
+                bool scrollable = false
             );
 
             virtual void open() {};
