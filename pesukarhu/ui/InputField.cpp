@@ -180,21 +180,11 @@ namespace pk
                     pos += ((float)(glyph->advance >> 6));
                 }
             }
-            // TODO: Comment wtf happening here!!!!!!!
-            // NOTE: Still something fucked about this!!
-            //  -> No fucking idea what that magic 4 comes from.. but seems good..
+            // No fucking idea what that magic 4 comes from.. but seems good..
             float buttonDisplacementX = infoTxtWidth;
             float buttonDisplacementY = 0.0f;
             float infoDisplacement = 0;
-            if (constraintProperties.horizontalType == HorizontalConstraintType::PIXEL_RIGHT)
-            {
-                buttonDisplacementX = 0;
-                infoDisplacement = width + 4;
-            }
-            else
-            {
-                buttonDisplacementX += ((float)font.getPixelSize()) - 4;
-            }
+            buttonDisplacementX += ((float)font.getPixelSize()) - 4;
 
             ConstraintProperties buttonConstraintProperties = constraintProperties;
             buttonConstraintProperties.horizontalValue += buttonDisplacementX;

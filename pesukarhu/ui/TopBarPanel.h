@@ -37,6 +37,8 @@ namespace pk
                 bool scrollable = false
             );
 
+            void setLayer(int layer);
+
             virtual void open() {};
             virtual void close() {};
 

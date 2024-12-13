@@ -8,6 +8,9 @@ namespace pk
         void TopBarPanel::OnClickClose::onClick(InputMouseButtonName button)
         {
             _pPanel->close();
+            _pPanel->_pCloseButton->setActive(false);
+            _pPanel->_pTopBarImg->setActive(false);
+            _pPanel->_pTopBarTitle->setActive(false);
         }
 
 
@@ -42,17 +45,8 @@ namespace pk
             );
 
             // Create top bar
-            // If bottom constraint make this actually be on top
-            // (with bottom constraint positive values go from bottom to top)
-            float topBarConstraintValY = constraintProperties.verticalValue;
-            if (constraintProperties.verticalType == VerticalConstraintType::PIXEL_BOTTOM)
-            {
-                topBarConstraintValY += _scale.y - topBarHeight;
-            }
-
             GUIImage::ImgCreationProperties topBarCreationProperties;
             topBarCreationProperties.constraintProperties = constraintProperties;
-            topBarCreationProperties.constraintProperties.verticalValue = topBarConstraintValY;
             topBarCreationProperties.width = scale.x;
             topBarCreationProperties.height = topBarHeight;
             topBarCreationProperties.color = Panel::get_base_ui_color(2).toVec3();
@@ -61,7 +55,6 @@ namespace pk
 
             // Add title text
             ConstraintProperties titleConstraintProperties = constraintProperties;
-            titleConstraintProperties.verticalValue = topBarConstraintValY;
             _pTopBarTitle = new GUIText(title, *pFont, titleConstraintProperties);
 
             pScene->addChild(_entity, _pTopBarImg->getEntity());
@@ -72,7 +65,7 @@ namespace pk
                 constraintProperties.horizontalType,
                 constraintProperties.horizontalValue + scale.x - topBarHeight,
                 constraintProperties.verticalType,
-                topBarConstraintValY
+                constraintProperties.verticalValue
             };
             // Add close button
             _pCloseButton = new GUIButton(
@@ -91,16 +84,29 @@ namespace pk
             );
 
             // Make elements start after the top bar...
-            _offsetFromPanel.y += topBarHeight;
+            _offsetFromPanel.y -= topBarHeight;
 
             if (scrollable)
                 _pScrollbar = new Scrollbar(this, _pDefaultFont, topBarHeight);
+        }
+
+        void TopBarPanel::setLayer(int layer)
+        {
+            Panel::setLayer(layer);
+            _pTopBarImg->getRenderable()->setLayer(layer);
+            _pTopBarTitle->getRenderable()->setLayer(layer);
+            _pCloseButton->getImage()->getRenderable()->setLayer(layer);
+            _pCloseButton->getText()->getRenderable()->setLayer(layer);
         }
 
         void TopBarPanel::setComponentsActive(bool arg)
         {
             for(Component* pComponent : _pScene->getAllComponents(_entity))
                 pComponent->setActive(arg);
+
+            _pCloseButton->setActive(arg);
+            _pTopBarImg->setActive(arg);
+            _pTopBarTitle->setActive(arg);
         }
     }
 }

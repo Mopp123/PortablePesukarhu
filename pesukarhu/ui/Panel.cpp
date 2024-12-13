@@ -470,22 +470,13 @@ namespace pk
             }
             else if (_layoutType == LayoutFillType::HORIZONTAL)
             {
-                pos = { (_slotScale.x + _slotPadding) * _elements.size(), 0.0f };
+                // NOTE: since negating pos from offset atm this needs to be negative on x
+                // so the x ends up being positive... quite fucked I know...
+                // TODO: Make this somehow clearer!
+                pos = { -(_slotScale.x + _slotPadding) * _elements.size(), 0.0f };
             }
 
-            if (_constraintProperties.verticalType == VerticalConstraintType::PIXEL_CENTER_VERTICAL)
-            {
-                pos.y *= -1.0f;
-                useOffset.y *= -1.0f;
-            }
-            else if (_constraintProperties.verticalType == VerticalConstraintType::PIXEL_BOTTOM)
-            {
-                pos.y *= -1.0f;
-                // -_slotScale.y since with bottom constraint the origin of element is its' bottom left corner
-                useOffset.y = _scale.y - useOffset.y - _slotScale.y;
-            }
-
-            return useOffset + pos;
+            return useOffset - pos;
         }
 
         void Panel::getRect(float& outX, float& outY, float& outWidth, float& outHeight) const
@@ -544,7 +535,7 @@ namespace pk
 
         int Panel::getVisibleVerticalSlots()
         {
-            return (_scale.y - _offsetFromPanel.y) / (_slotScale.y + _slotPadding);
+            return (_scale.y + _offsetFromPanel.y) / (_slotScale.y + _slotPadding);
         }
     }
 }

@@ -18,12 +18,13 @@ void UITestScene::init()
     // Testing regular panel
     vec2 testPanelScale(300, 200);
     vec2 testPanelSlotScale(100, 24);
+    float verticalVal = testPanelScale.y;
     _testPanel.createDefault(
         this,
         _pDefaultFont,
         {
-            HorizontalConstraintType::PIXEL_RIGHT, 100.0f,
-            VerticalConstraintType::PIXEL_BOTTOM, 0
+            HorizontalConstraintType::PIXEL_RIGHT, -testPanelScale.x,
+            VerticalConstraintType::PIXEL_TOP, -120
         },
         testPanelScale,
         testPanelSlotScale,
@@ -31,8 +32,9 @@ void UITestScene::init()
     );
 
     _testPanel.addDefaultText("Testing");
-    _testPanel.addDefaultInputField("Input", 100, nullptr);
-    _testPanel.addDefaultCheckbox("Checking1");
+    _testPanel.addDefaultButton("Button", nullptr, 150);
+    _testPanel.addDefaultInputField("InputField", 150, nullptr);
+    _testPanel.addDefaultCheckbox("Checkbox");
 
     // Testing top bar panel
     vec2 testTopBarPanelScale(200, 175);
@@ -42,7 +44,7 @@ void UITestScene::init()
         "Top bar testing",
         {
             HorizontalConstraintType::PIXEL_CENTER_HORIZONTAL, 0.0f,
-            VerticalConstraintType::PIXEL_CENTER_VERTICAL, 0.0f
+            VerticalConstraintType::PIXEL_TOP, 0
         },
         testTopBarPanelScale,
         Panel::LayoutFillType::VERTICAL
@@ -50,17 +52,16 @@ void UITestScene::init()
     _topBarPanelTest.addDefaultButton("Button", nullptr, 100);
 
     // Testing scrollable panel
-    _scrollablePanel.initBase(
+    _scrollablePanel.createDefault(
         this,
         _pDefaultFont,
-        "Scrollable test",
         {
-            HorizontalConstraintType::PIXEL_LEFT, 300.0f,
-            VerticalConstraintType::PIXEL_BOTTOM, 0.0f
+            HorizontalConstraintType::PIXEL_RIGHT, -200,
+            VerticalConstraintType::PIXEL_BOTTOM, 320
         },
         { 200, 320 }, // scale
-        Panel::LayoutFillType::VERTICAL,
         testPanelSlotScale,
+        Panel::LayoutFillType::VERTICAL,
         true
     );
     for (int i = 0; i < 22; ++i)

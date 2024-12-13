@@ -90,15 +90,7 @@ namespace pk
 
             // -> No fucking idea what that magic 4 comes from.. but seems good..
             //  ->same as with inputField...
-            if (constraintProperties.horizontalType == HorizontalConstraintType::PIXEL_RIGHT)
-            {
-                buttonDisplacement = 0;
-                infoDisplacement = defaultWidth + 4;
-            }
-            else
-            {
-                buttonDisplacement += ((float)pFont->getPixelSize()) - 4;
-            }
+            buttonDisplacement += ((float)pFont->getPixelSize()) - 4;
 
             ConstraintProperties backgroundImgConstraintProperties = constraintProperties;
             backgroundImgConstraintProperties.horizontalValue += buttonDisplacement;
@@ -122,10 +114,8 @@ namespace pk
             checkedImgConstraintProperties.horizontalValue = backgroundImgConstraintProperties.horizontalValue + checkedImgMinification * 0.5f;
 
             float checkedImgDisplacementY = checkedImgMinification * 0.5f;
-            if (backgroundImgConstraintProperties.verticalType == VerticalConstraintType::PIXEL_CENTER_VERTICAL)
-                checkedImgDisplacementY = -checkedImgMinification * 0.5f;
 
-            checkedImgConstraintProperties.verticalValue = backgroundImgConstraintProperties.verticalValue + checkedImgDisplacementY;
+            checkedImgConstraintProperties.verticalValue = backgroundImgConstraintProperties.verticalValue - checkedImgDisplacementY;
             GUIImage::ImgCreationProperties checkedImgProperties =
             {
                 checkedImgConstraintProperties,
