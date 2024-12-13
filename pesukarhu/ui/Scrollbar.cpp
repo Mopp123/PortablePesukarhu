@@ -71,22 +71,16 @@ namespace pk
             _pPanel(pPanel)
         {
             const float defaultScrollbarWidth = 20.0f;
-            float scrollbarHeight = _pPanel->_scale.y - _pPanel->_offsetFromPanel.y;
+            float scrollbarHeight = _pPanel->_scale.y + _pPanel->_offsetFromPanel.y;
             vec2 buttonScale(defaultScrollbarWidth, defaultScrollbarWidth);
 
             // Create background img
             GUIImage::ImgCreationProperties scrollbarBackgroundProperties;
             scrollbarBackgroundProperties.constraintProperties = _pPanel->_constraintProperties;
-            VerticalConstraintType verticalConstraintType = _pPanel->_constraintProperties.verticalType;
-            float backgroundVerticalConstraintVal = _pPanel->_offsetFromPanel.y + buttonScale.y;
-            if (verticalConstraintType == VerticalConstraintType::PIXEL_CENTER_VERTICAL)
-                backgroundVerticalConstraintVal = -(_pPanel->_offsetFromPanel.y + buttonScale.y);
-            else if (verticalConstraintType == VerticalConstraintType::PIXEL_BOTTOM)
-                backgroundVerticalConstraintVal = _pPanel->_offsetFromPanel.y + buttonScale.y - topBarHeight;
 
-
+            float backgroundVerticalDisplacement = _pPanel->_offsetFromPanel.y - buttonScale.y;
             scrollbarBackgroundProperties.constraintProperties.horizontalValue += _pPanel->_scale.x - defaultScrollbarWidth - _pPanel->_offsetFromPanel.x;
-            scrollbarBackgroundProperties.constraintProperties.verticalValue += backgroundVerticalConstraintVal;
+            scrollbarBackgroundProperties.constraintProperties.verticalValue += backgroundVerticalDisplacement;
 
             scrollbarBackgroundProperties.width = defaultScrollbarWidth;
             scrollbarBackgroundProperties.height = scrollbarHeight - buttonScale.y * 2.0f;
@@ -103,7 +97,7 @@ namespace pk
             scrollPosImgProperties.constraintProperties = _pPanel->_constraintProperties;
 
             scrollPosImgProperties.constraintProperties.horizontalValue += _pPanel->_scale.x - defaultScrollbarWidth - _pPanel->_offsetFromPanel.x;
-            scrollPosImgProperties.constraintProperties.verticalValue  += backgroundVerticalConstraintVal;
+            scrollPosImgProperties.constraintProperties.verticalValue += backgroundVerticalDisplacement;
 
             scrollPosImgProperties.width = defaultScrollbarWidth;
             //scrollPosImgProperties.height = scrollbarHeight - buttonScale.y * 2.0f;
@@ -127,14 +121,8 @@ namespace pk
 
             // Up button
             ConstraintProperties upButtonConstraintProperties = _pPanel->_constraintProperties;
-            float upVerticalConstraintVal = _pPanel->_offsetFromPanel.y;
-            if (upButtonConstraintProperties.verticalType == VerticalConstraintType::PIXEL_CENTER_VERTICAL)
-                upVerticalConstraintVal = -_pPanel->_offsetFromPanel.y;
-            else if (upButtonConstraintProperties.verticalType == VerticalConstraintType::PIXEL_BOTTOM)
-                upVerticalConstraintVal = _pPanel->_scale.y - (_pPanel->_offsetFromPanel.y + buttonScale.y);
-
             upButtonConstraintProperties.horizontalValue += _pPanel->_scale.x - defaultScrollbarWidth - _pPanel->_offsetFromPanel.x;
-            upButtonConstraintProperties.verticalValue += upVerticalConstraintVal;
+            upButtonConstraintProperties.verticalValue += _pPanel->_offsetFromPanel.y;
 
             vec4 upTexCropping;
             upTexCropping.x = 0;
@@ -164,14 +152,9 @@ namespace pk
 
             // make the down button not be exactly on the bottom line...
             const float offsetFromBottom = 4.0f;
-            float downVerticalConstraintVal = _pPanel->_scale.y - buttonScale.y - offsetFromBottom;
-            if (downButtonConstraintProperties.verticalType == VerticalConstraintType::PIXEL_CENTER_VERTICAL)
-                downVerticalConstraintVal = -_pPanel->_scale.y + buttonScale.y + offsetFromBottom;
-            else if (downButtonConstraintProperties.verticalType == VerticalConstraintType::PIXEL_BOTTOM)
-                downVerticalConstraintVal = offsetFromBottom;
-
             downButtonConstraintProperties.horizontalValue += _pPanel->_scale.x - defaultScrollbarWidth - _pPanel->_offsetFromPanel.x;
-            downButtonConstraintProperties.verticalValue += downVerticalConstraintVal;
+            float downVerticalConstraintDisplacement = -_pPanel->_scale.y + buttonScale.y + offsetFromBottom;
+            downButtonConstraintProperties.verticalValue += downVerticalConstraintDisplacement;
 
             vec4 downTexCropping;
             downTexCropping.x = 1;
@@ -225,14 +208,7 @@ namespace pk
             ConstraintData* pBackgroundConstraint = _pBackgroundImg->getConstraint();
             ConstraintData* pIndicatorConstraintData = _pScrollPosImg->getConstraint();
 
-            float indicatorDisplacement = _scrollPos * stepSize;
-            if (pBackgroundConstraint->verticalType == VerticalConstraintType::PIXEL_CENTER_VERTICAL)
-                indicatorDisplacement = -_scrollPos * stepSize;
-
-            float indicatorVerticalVal = pBackgroundConstraint->verticalValue + indicatorDisplacement;
-            if (pBackgroundConstraint->verticalType == VerticalConstraintType::PIXEL_BOTTOM)
-                indicatorVerticalVal =  pBackgroundConstraint->verticalValue + backgroundHeight - indicatorHeight - indicatorDisplacement;
-
+            float indicatorVerticalVal = pBackgroundConstraint->verticalValue - (_scrollPos * stepSize);
             pIndicatorConstraintData->verticalValue = indicatorVerticalVal;
             pIndicatorConstraintData->horizontalValue = pBackgroundConstraint->horizontalValue;
 

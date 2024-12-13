@@ -60,7 +60,7 @@ namespace pk
             vec2 _slotScale;
             vec3 _color;
             // Padding to add from where elements get added
-            vec2 _offsetFromPanel = { 4.0f, 4.0f };
+            vec2 _offsetFromPanel = { 4.0f, -4.0f };
             int _slotCount = 0;
 
             Scrollbar* _pScrollbar = nullptr;
@@ -151,7 +151,7 @@ namespace pk
 
             void setActive(bool arg, entityID_t entity = 0);
 
-            void setLayer(int layer);
+            virtual void setLayer(int layer);
 
             // Returns current up to date pos and scale of the panel
             void getRect(float& outX, float& outY, float& outWidth, float& outHeight) const; // :D

@@ -191,12 +191,7 @@ namespace pk
             const int txtDisplacementX = padding;
 
             ConstraintProperties useConstraintProperties = constraintProperties;
-
-            if (constraintProperties.horizontalType == HorizontalConstraintType::PIXEL_LEFT ||
-                constraintProperties.horizontalType == HorizontalConstraintType::PIXEL_CENTER_HORIZONTAL)
-                useConstraintProperties.horizontalValue += (float)txtDisplacementX;
-            else if (constraintProperties.horizontalType == HorizontalConstraintType::PIXEL_RIGHT)
-                useConstraintProperties.horizontalValue -= (float)txtDisplacementX;
+            useConstraintProperties.horizontalValue += (float)txtDisplacementX;
 
             _pText = new GUIText(
                 txt, font,
