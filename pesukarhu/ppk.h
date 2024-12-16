@@ -35,6 +35,7 @@
 #include "ui/GUIButton.h"
 #include "ui/InputField.h"
 #include "ui/Checkbox.h"
+#include "ui/Select.h"
 
 #include "ecs/systems/ui/ConstraintSystem.h"
 #include "ecs/systems/Animator.h"

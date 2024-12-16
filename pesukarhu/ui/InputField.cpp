@@ -268,7 +268,7 @@ namespace pk
                 Debug::log(
                     "@InputField::setActive "
                     "InputField's entity was null. "
-                    "Make sure InputField was created successfully using InputField::create!",
+                    "Make sure InputField was created successfully!",
                     Debug::MessageType::PK_FATAL_ERROR
                 );
                 return;

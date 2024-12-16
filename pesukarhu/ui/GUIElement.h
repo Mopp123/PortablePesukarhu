@@ -14,7 +14,8 @@ namespace pk
             PK_GUI_ELEMENT_TYPE_TEXT,
             PK_GUI_ELEMENT_TYPE_BUTTON,
             PK_GUI_ELEMENT_TYPE_INPUT_FIELD,
-            PK_GUI_ELEMENT_TYPE_CHECKBOX
+            PK_GUI_ELEMENT_TYPE_CHECKBOX,
+            PK_GUI_ELEMENT_TYPE_SELECt
         };
 
         class GUIElement

@@ -71,10 +71,15 @@ namespace pk
             ~Scrollbar();
             void updateScrollIndicator();
 
+            void setActive(bool arg);
+
+            void reset();
+
         private:
             void scrollCursor(int dragBeginY, int cursorY);
             void scrollElement(GUIElement* pElement, bool up);
-            void scrollElements(bool up);
+            // *On rewind we want to reset all positions but set all inactive to make reset work as expected..
+            void scrollElements(bool up, bool rewind = false);
         };
     }
 }

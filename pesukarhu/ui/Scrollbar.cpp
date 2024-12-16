@@ -218,6 +218,25 @@ namespace pk
             pIndicatorTransform->setScale(indicatorScale);
         }
 
+        void Scrollbar::setActive(bool arg)
+        {
+            _pBackgroundImg->setActive(arg);
+            _pScrollPosImg->setActive(arg);
+            _pUpButton->setActive(arg);
+            _pDownButton->setActive(arg);
+
+            reset();
+        }
+
+        void Scrollbar::reset()
+        {
+            for (int i = 0; i < _scrollPos; ++i)
+                scrollElements(true, true);
+
+            _scrollPos = 0;
+            _enableCursorScroll = false;
+        }
+
         void Scrollbar::scrollCursor(int prevY, int newY)
         {
             if (prevY == newY)
@@ -289,20 +308,10 @@ namespace pk
                 return;
             }
 
-            // Alter scrolling depending on constraint type
-            // *get first constraint since all constraints are required to have same type in panel
-            VerticalConstraintType verticalConstraintType = constraints[0]->verticalType;
-
             const vec2 slotScale = _pPanel->_slotScale;
             const float slotPadding = _pPanel->_slotPadding;
-            float scrollAmount = -(slotScale.y + slotPadding);
-            if (verticalConstraintType == VerticalConstraintType::PIXEL_CENTER_VERTICAL)
-                scrollAmount = slotScale.y + slotPadding;
+            float scrollAmount = slotScale.y + slotPadding;
 
-            // Since the fucked up vertical constraint thing
-            //  -> flip in case of bottom constraint...
-            if (verticalConstraintType == VerticalConstraintType::PIXEL_BOTTOM)
-                scrollAmount *= -1.0f;
             if (up)
                 scrollAmount *= -1.0f;
 
@@ -310,7 +319,7 @@ namespace pk
                 pConstraint->verticalValue += scrollAmount;
         }
 
-        void Scrollbar::scrollElements(bool up)
+        void Scrollbar::scrollElements(bool up, bool rewind)
         {
             int visibleSlotCount = _pPanel->getVisibleVerticalSlots();
             std::vector<GUIElement*> elements = _pPanel->_elements;
@@ -326,7 +335,7 @@ namespace pk
 
             if (showIndex >= 0 && hideIndex >= 0 && showIndex < elemCount && hideIndex < elemCount)
             {
-                elements[showIndex]->setActive(true);
+                elements[showIndex]->setActive(rewind ? false : true);
                 elements[hideIndex]->setActive(false);
 
                 // change all visible element's visual pos

@@ -2,6 +2,7 @@
 
 #include "BaseScene.h"
 #include "pesukarhu/ppk.h"
+#include "pesukarhu/ui/Select.h"
 #include "pesukarhu/ui/TopBarPanel.h"
 
 class UITestScene : public BaseScene
