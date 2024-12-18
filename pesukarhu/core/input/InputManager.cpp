@@ -163,6 +163,7 @@ namespace pk
                     "Failed to create InputManager. Invalid platform: " + std::to_string(platform),
                     Debug::MessageType::PK_FATAL_ERROR
                 );
+                return nullptr;
         }
     }
 }
