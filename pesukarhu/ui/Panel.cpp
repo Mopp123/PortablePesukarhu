@@ -412,6 +412,36 @@ namespace pk
             return pCheckbox;
         }
 
+        Select* Panel::addDefaultSelect(
+            std::string infoTxt,
+            int width,
+            std::vector<std::string> items
+        )
+        {
+            vec2 toAdd = calcNewSlotPos();
+
+            ConstraintProperties useConstraintProperties = _constraintProperties;
+            useConstraintProperties.horizontalValue += toAdd.x;
+            useConstraintProperties.verticalValue += toAdd.y;
+
+            SelectCreationProperties selectProperties = {
+                infoTxt,
+                _pDefaultFont,
+                useConstraintProperties,
+                width,
+                items,
+                get_base_ui_color(2).toVec3(), // color
+                get_base_ui_color(3).toVec3(), // text color
+                get_base_ui_color(3).toVec3(), // text highlight color
+                get_base_ui_color(1).toVec3() // background highlight color,
+            };
+
+            Select* pSelect = new Select(selectProperties);
+            _pScene->addChild(_entity, pSelect->getEntity());
+            addElement(pSelect);
+            return pSelect;
+        }
+
         void Panel::setActive(bool arg, entityID_t entity)
         {
             if (entity == 0)
@@ -420,9 +450,27 @@ namespace pk
             std::vector<Component*> components = _pScene->getComponents(entity);
             for (Component* pComponent : components)
                 pComponent->setActive(arg);
+
             std::vector<entityID_t> children = _pScene->getChildren(entity);
             for (entityID_t child: children)
                 setActive(arg, child);
+
+            if (_pScrollbar)
+            {
+                _pScrollbar->setActive(arg);
+                // If scrollable -> allow setting only the visible range of elements active
+                if (arg)
+                {
+                    const int visibleSlots = getVisibleVerticalSlots();
+                    for (int i = 0; i < _elements.size(); ++i)
+                    {
+                        if (i < visibleSlots)
+                            _elements[i]->setActive(true);
+                        else
+                            _elements[i]->setActive(false);
+                    }
+                }
+            }
         }
 
         void Panel::setLayer(int layer)

@@ -14,6 +14,7 @@ namespace pk
         class GUIImage : public GUIElement
         {
         public:
+            // TODO: Put this outside of GUIImage class
             struct ImgCreationProperties
             {
                 ConstraintProperties constraintProperties;

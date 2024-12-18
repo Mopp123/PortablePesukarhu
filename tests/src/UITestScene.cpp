@@ -35,6 +35,17 @@ void UITestScene::init()
     _testPanel.addDefaultButton("Button", nullptr, 150);
     _testPanel.addDefaultInputField("InputField", 150, nullptr);
     _testPanel.addDefaultCheckbox("Checkbox");
+    _testPanel.addDefaultSelect(
+        "Select test",
+        100,
+        {
+            "Item0",
+            "Item1",
+            "Item2",
+            "Item3",
+            "Item4"
+        }
+    );
 
     // Testing top bar panel
     vec2 testTopBarPanelScale(200, 175);

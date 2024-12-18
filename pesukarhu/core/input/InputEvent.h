@@ -67,7 +67,8 @@ namespace pk
 		PK_INPUT_KEY_ENTER,
 		PK_INPUT_KEY_LCTRL,
 		PK_INPUT_KEY_SHIFT,
-		PK_INPUT_KEY_TAB
+		PK_INPUT_KEY_TAB,
+		PK_INPUT_KEY_ESCAPE
 	};
 
 	enum InputMouseButtonName

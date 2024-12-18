@@ -7,6 +7,7 @@
 #include "GUIButton.h"
 #include "InputField.h"
 #include "Checkbox.h"
+#include "Select.h"
 #include "Scrollbar.h"
 
 #include "pesukarhu/resources/Font.h"
@@ -147,7 +148,12 @@ namespace pk
 
             GUIImage* addImage(GUIImage::ImgCreationProperties properties);
 
-            pk::ui::Checkbox* addDefaultCheckbox(std::string infoTxt);
+            Checkbox* addDefaultCheckbox(std::string infoTxt);
+            Select* addDefaultSelect(
+                std::string infoTxt,
+                int width,
+                std::vector<std::string> items
+            );
 
             void setActive(bool arg, entityID_t entity = 0);
 
@@ -162,6 +168,7 @@ namespace pk
 
             static bool is_mouse_over_ui();
 
+            inline std::vector<GUIElement*>& getElements() { return _elements; }
             inline bool isMouseOver() const { return _isMouseOver; }
             inline entityID_t getEntity() const { return _entity; }
             inline Scrollbar* getScrollbar() { return _pScrollbar; }

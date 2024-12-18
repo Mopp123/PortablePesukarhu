@@ -95,7 +95,8 @@ namespace pk
 				{"Enter", PK_INPUT_KEY_ENTER},
 				{"Control", PK_INPUT_KEY_LCTRL},
 				{"Shift", PK_INPUT_KEY_SHIFT},
-				{"Tab", PK_INPUT_KEY_TAB}
+				{"Tab", PK_INPUT_KEY_TAB},
+				{"Escape", PK_INPUT_KEY_ESCAPE}
 			};
 
 			const std::unordered_map<unsigned short, InputMouseButtonName> _mapping_mouse_emscToPk
