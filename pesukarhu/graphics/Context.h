@@ -1,23 +1,27 @@
 #pragma once
 
-// NOTE: This could cause issues. May require that ugly backtracking: "../../"
 #include "pesukarhu/Common.h"
-
-#define GRAPHICS_API_NONE 0
-#define GRAPHICS_API_WEBGL 1
 
 
 namespace pk
 {
+    enum GraphicsAPI
+    {
+        PK_GRAPHICS_API_NONE = 0,
+        PK_GRAPHICS_API_WEBGL,
+        PK_GRAPHICS_API_GL
+    };
+
+
     class Context
     {
     protected:
-        static PK_byte s_graphicsAPI;
+        static GraphicsAPI s_graphicsAPI;
 
     public:
         virtual ~Context();
-        static Context* create(PK_byte graphicsAPIType);
+        static Context* create(GraphicsAPI graphicsAPI);
 
-        static PK_byte get_api_type();
+        static GraphicsAPI get_graphics_api();
     };
 }

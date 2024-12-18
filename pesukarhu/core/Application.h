@@ -6,6 +6,7 @@
 #include "input/InputManager.h"
 #include "SceneManager.h"
 
+#include "pesukarhu/Common.h"
 #include "pesukarhu/graphics/Context.h"
 #include "pesukarhu/graphics/MasterRenderer.h"
 #include "pesukarhu/resources/ResourceManager.h"
@@ -29,7 +30,7 @@ namespace pk
         Timing _timing;
         SceneManager _sceneManager;
 
-        static uint32_t s_platform;
+        static PlatformName s_platform;
         static Application* s_pApplication;
 
         Window* _pWindow = nullptr;
@@ -42,7 +43,7 @@ namespace pk
 
     public:
         Application(
-            uint32_t platform,
+            PlatformName platform,
             std::string name,
             Window* window,
             Context* graphicsContext,
@@ -55,7 +56,7 @@ namespace pk
         void resizeWindow(int w, int h);
         void switchScene(Scene* newScene);
 
-        static uint32_t get_platform();
+        static PlatformName get_platform();
         static Application* get();
 
         inline const Context * const getGraphicsContext() const { return _pGraphicsContext; }

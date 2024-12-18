@@ -72,7 +72,7 @@ namespace pk
             true
         );
 
-        bool flipVertically = Context::get_api_type() == GRAPHICS_API_WEBGL;
+        bool flipVertically = Context::get_graphics_api() == GraphicsAPI::PK_GRAPHICS_API_WEBGL;
         // TODO: Some default place for required default assets
         ImageData* pDefaultUIImg = loadImage("assets/textures/GUI.png", flipVertically, true);
         _pDefaultUITexture = createTexture(pDefaultUIImg->getResourceID(), defaultTextureSampler, true);

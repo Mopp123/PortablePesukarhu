@@ -1,5 +1,6 @@
 ﻿
 #include "InputManager.h"
+#include "platform/web/WebInputManager.h"
 #include "pesukarhu/core/Debug.h"
 
 
@@ -149,5 +150,19 @@ namespace pk
         if (it != mouseDown.end())
             return it->second;
         return false;
+    }
+
+    InputManager* InputManager::create(PlatformName platform)
+    {
+        switch (platform)
+        {
+            case PlatformName::PK_PLATFORM_WEB:
+                return new web::WebInputManager;
+            default:
+                Debug::log(
+                    "Failed to create InputManager. Invalid platform: " + std::to_string(platform),
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+        }
     }
 }

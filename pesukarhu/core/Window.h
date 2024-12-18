@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pesukarhu/Common.h"
 #include "pesukarhu/graphics/Swapchain.h"
 
 
@@ -19,9 +20,12 @@ namespace pk
 
     public:
         Window(int width, int height);
+        Window(const Window&) = delete;
         virtual ~Window();
 
         virtual void resize(int w, int h) {};
+
+        static Window* create(PlatformName platform, int width, int height);
 
         inline int getWidth() const { return _width; }
         inline int getHeight() const { return _height; }

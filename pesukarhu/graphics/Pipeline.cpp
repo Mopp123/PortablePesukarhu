@@ -7,10 +7,10 @@ namespace pk
 {
     Pipeline* Pipeline::create()
     {
-        const uint32_t api = Context::get_api_type();
+        const GraphicsAPI api = Context::get_graphics_api();
         switch(api)
         {
-            case GRAPHICS_API_WEBGL:
+            case GraphicsAPI::PK_GRAPHICS_API_WEBGL:
                 return new opengl::OpenglPipeline;
             default:
                 Debug::log(

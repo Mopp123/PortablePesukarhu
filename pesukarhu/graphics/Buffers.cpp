@@ -200,13 +200,13 @@ namespace pk
         bool saveDataHostSide
     )
     {
-        const uint32_t api = Context::get_api_type();
+        const GraphicsAPI api = Context::get_graphics_api();
         // Atm ubos have to be available on host
         // (no stagning buffers for uniform buffers supported)
         bool saveHostSide = bufferUsageFlags & BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT ? true : saveDataHostSide;
         switch(api)
         {
-            case GRAPHICS_API_WEBGL:
+            case GraphicsAPI::PK_GRAPHICS_API_WEBGL:
                 return new web::WebBuffer(
                     data,
                     elementSize,

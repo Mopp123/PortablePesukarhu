@@ -20,13 +20,14 @@ namespace pk
 
     RenderCommand* RenderCommand::create()
     {
-        switch(Context::get_api_type())
+        const GraphicsAPI api = Context::get_graphics_api();
+        switch(api)
         {
-            case GRAPHICS_API_WEBGL:
+            case GraphicsAPI::PK_GRAPHICS_API_WEBGL:
                 return new web::WebRenderCommand;
             default:
                 Debug::log(
-                    "Invalid graphics API(" + std::to_string(Context::get_api_type()) + ") assigned to create RenderCommand instance",
+                    "Invalid graphics API(" + std::to_string(api) + ") assigned to create RenderCommand instance",
                     Debug::MessageType::PK_FATAL_ERROR
                 );
                 return nullptr;

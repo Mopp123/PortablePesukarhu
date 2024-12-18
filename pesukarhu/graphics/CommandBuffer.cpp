@@ -8,12 +8,12 @@ namespace pk
 
     std::vector<CommandBuffer*> CommandBuffer::create(int count)
     {
-        const uint32_t api = Context::get_api_type();
+        const GraphicsAPI api = Context::get_graphics_api();
         std::vector<CommandBuffer*> outBuffers(count);
         memset(outBuffers.data(), 0, sizeof(CommandBuffer*) * count);
         switch(api)
         {
-            case GRAPHICS_API_WEBGL:
+            case GraphicsAPI::PK_GRAPHICS_API_WEBGL:
             {
                 for (int i = 0; i < count; ++i)
                     outBuffers[i] = new web::WebCommandBuffer;

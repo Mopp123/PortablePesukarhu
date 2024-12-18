@@ -49,8 +49,8 @@ namespace pk
                 return;
             }
 
-            PK_byte graphicsAPI = Context::get_api_type();
-            ShaderVersion shaderVersion = graphicsAPI == GRAPHICS_API_WEBGL ? ShaderVersion::ESSL1 : ShaderVersion::GLSL3;
+            GraphicsAPI graphicsAPI = Context::get_graphics_api();
+            ShaderVersion shaderVersion = graphicsAPI == GraphicsAPI::PK_GRAPHICS_API_WEBGL ? ShaderVersion::ESSL1 : ShaderVersion::GLSL3;
             _pShaderProgram = new OpenglShaderProgram(
                 shaderVersion,
                 (const OpenglShader*)pVertexShader,

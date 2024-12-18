@@ -7,7 +7,7 @@
 
 #include <chrono>
 
-#ifdef PK_PLATFORM_WEB
+#ifdef PK_BUILD_WEB
 #include <emscripten.h>
 #endif
 
@@ -70,11 +70,11 @@ namespace pk
         }
     }
 
-    uint32_t Application::s_platform = PK_PLATFORM_ID_NONE;
+    PlatformName Application::s_platform = PlatformName::PK_PLATFORM_NONE;
     Application* Application::s_pApplication = nullptr;
 
     Application::Application(
-        uint32_t platform,
+        PlatformName platform,
         std::string name,
         Window* window,
         Context* graphicsContext,
@@ -116,7 +116,7 @@ namespace pk
 
     void Application::run()
     {
-#ifdef PK_PLATFORM_WEB
+#ifdef PK_BUILD_WEB
         emscripten_set_main_loop(update, 0, 1);
 #else
         while (_running)
@@ -136,7 +136,7 @@ namespace pk
         _sceneManager.assignNextScene(newScene);
     }
 
-    uint32_t Application::get_platform()
+    PlatformName Application::get_platform()
     {
         return s_platform;
     }

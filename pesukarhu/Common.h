@@ -9,11 +9,13 @@
 //#define PK_BUILD_WINDOWS
 //#define PK_BUILD_LINUX
 //#define PK_BUILD_WEB
-
-#define PK_PLATFORM_ID_NONE 0
-#define PK_PLATFORM_ID_LINUX 1
-#define PK_PLATFORM_ID_WINDOWS 2
-#define PK_PLATFORM_ID_WEB 3
+enum PlatformName
+{
+    PK_PLATFORM_NONE = 0,
+    PK_PLATFORM_LINUX,
+    PK_PLATFORM_WINDOWS,
+    PK_PLATFORM_WEB
+};
 
 // Datatypes ---
 #define PK_byte	char

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <cassert>
 
-#ifdef PK_PLATFORM_WEB
+#ifdef PK_BUILD_WEB
 #include <emscripten/console.h>
 #endif
 
@@ -30,7 +30,7 @@ namespace pk
                 break;
         }
 
-    #ifdef PK_PLATFORM_WEB
+    #ifdef PK_BUILD_WEB
         emscripten_console_log(fullMsg.c_str());
     #else
         std::cout << fullMsg << std::endl;

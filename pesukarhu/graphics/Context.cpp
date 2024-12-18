@@ -5,18 +5,18 @@
 
 namespace pk
 {
-    PK_byte Context::s_graphicsAPI = GRAPHICS_API_NONE;
+    GraphicsAPI Context::s_graphicsAPI = GraphicsAPI::PK_GRAPHICS_API_NONE;
 
     Context::~Context()
     {
     }
 
-    Context* Context::create(PK_byte graphicsAPIType)
+    Context* Context::create(GraphicsAPI graphicsAPI)
     {
-        s_graphicsAPI = graphicsAPIType;
+        s_graphicsAPI = graphicsAPI;
         switch (s_graphicsAPI)
         {
-            case GRAPHICS_API_WEBGL:
+            case GraphicsAPI::PK_GRAPHICS_API_WEBGL:
                 return new web::WebContext;
             default:
                 Debug::log(
@@ -27,7 +27,7 @@ namespace pk
         }
     }
 
-    PK_byte Context::get_api_type()
+    GraphicsAPI Context::get_graphics_api()
     {
         return s_graphicsAPI;
     }

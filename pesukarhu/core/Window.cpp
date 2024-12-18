@@ -1,4 +1,5 @@
 #include "Window.h"
+#include "platform/web/WebWindow.h"
 #include "Debug.h"
 
 
@@ -13,6 +14,21 @@ namespace pk
     {
         if (_pSwapchain)
             delete _pSwapchain;
+    }
+
+    Window* Window::create(PlatformName platform, int width, int height)
+    {
+        switch (platform)
+        {
+            case PK_PLATFORM_WEB:
+                return new web::WebWindow(width, height);
+            default:
+                Debug::log(
+                    "Failed to create window. Invalid platform: " + std::to_string(platform),
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return nullptr;
+        }
     }
 
     void Window::createSwapchain()

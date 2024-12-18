@@ -12,7 +12,7 @@ if(${BUILD_TYPE} MATCHES "PesukarhuWeb")
     set(html_shell_location "${PROJECT_SOURCE_DIR}/shell.html")
     # NOTE: This gets converted to camel case for some reason...
     set(html_out "PesukarhuWebTest.html")
-    add_compile_definitions(PK_PLATFORM_WEB=1)
+    add_compile_definitions(PK_BUILD_WEB=1)
 else()
     message(FATAL_ERROR "ERROR: No BUILD_TYPE specified!")
     return()
