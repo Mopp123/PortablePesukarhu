@@ -20,8 +20,7 @@ if(${BUILD_TYPE} MATCHES "web")
     set(html_out "PesukarhuWebTest.html")
     add_compile_definitions(PK_BUILD_WEB=1)
 elseif(${BUILD_TYPE} MATCHES "linux")
-
-
+    list(APPEND proj_includes ${PARENT_DIR}/pesukarhu/glfw/include)
     add_compile_definitions(PK_BUILD_LINUX=1)
 else()
     message(FATAL_ERROR "ERROR: No BUILD_TYPE specified!")
