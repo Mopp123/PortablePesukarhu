@@ -10,29 +10,29 @@
 // the code is about identical...
 namespace pk
 {
-	namespace desktop
-	{
-		class DesktopWindow : public Window
-		{
-		private:
-			GLFWwindow* _pGLFWwindow = nullptr;
+    namespace desktop
+    {
+        class DesktopWindow : public Window
+        {
+        private:
+            GLFWwindow* _pGLFWwindow = nullptr;
 
-		public:
-			DesktopWindow(
-				GraphicsAPI graphicsAPI,
-				const std::string& title,
-				int width,
-				int height,
-				int MSAASamples,
-				bool fullscreen
-			);
-			~DesktopWindow();
-			virtual bool isCloseRequested() const override;
-			virtual void resize(int w, int h);
+        public:
+            DesktopWindow(
+                GraphicsAPI graphicsAPI,
+                const std::string& title,
+                int width,
+                int height,
+                int MSAASamples,
+                bool fullscreen
+            );
+            ~DesktopWindow();
+            virtual bool isCloseRequested() const override;
+            virtual void resize(int w, int h);
 
-			void pollEvents_TEST();
+            void pollEvents_TEST();
 
-			inline GLFWwindow* getGLFWwindow() { return _pGLFWwindow; }
-		};
-	}
+            inline GLFWwindow* getGLFWwindow() { return _pGLFWwindow; }
+        };
+    }
 }
