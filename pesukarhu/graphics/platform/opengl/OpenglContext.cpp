@@ -99,16 +99,16 @@ namespace pk
             // https://github.com/etlegacy/etlegacy/pull/1966
             // https://github.com/nigels-com/glew/issues/172
             GLenum initStatus = glewContextInit();
-			if (initStatus != GLEW_OK)
-			{
+            if (initStatus != GLEW_OK)
+            {
                 std::string glewErrStr = (const char*)glewGetErrorString(initStatus);
-				Debug::log(
+                Debug::log(
                     "@OpenglContext::OpenglContext "
-					"glewInit failed! GLEW error: " + glewErrStr,
-					Debug::MessageType::PK_FATAL_ERROR
-				);
-				glfwTerminate();
-			}
+                    "glewInit failed! GLEW error: " + glewErrStr,
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                glfwTerminate();
+            }
         }
 
         OpenglContext::~OpenglContext()
