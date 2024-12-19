@@ -1,7 +1,9 @@
 #include "WebContext.h"
 
+#ifdef PK_BUILD_WEB
 #include <emscripten.h>
 #include <emscripten/html5.h>
+#endif
 
 #include <GL/glew.h>
 
@@ -13,6 +15,7 @@ namespace pk
 	{
 		WebContext::WebContext()
 		{
+		#ifdef PK_BUILD_WEB
 			EmscriptenWebGLContextAttributes contextAttribs;
 			emscripten_webgl_init_context_attributes(&contextAttribs);
 			// ..propably the most disgusting line ever...
@@ -56,6 +59,7 @@ namespace pk
 			{
 				Debug::log("Failed to create WebGL context", Debug::MessageType::PK_FATAL_ERROR);
 			}
+		#endif
 		}
 
 		WebContext::~WebContext()

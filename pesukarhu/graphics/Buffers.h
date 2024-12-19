@@ -2,13 +2,11 @@
 
 
 #include <vector>
+#include <string>
 // Not sure is it just YCM issues with emscripten why syntax error if not including this
 #include <cstdint>
 #include <cstring>
 
-// Don't remember why this was included in the first place!?
-// TODO: Delete?
-// #include <GL/glew.h>
 #include "pesukarhu/Common.h"
 
 namespace pk

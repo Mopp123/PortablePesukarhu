@@ -4,8 +4,6 @@
 #include "pesukarhu/ecs/components/renderable/SkinnedRenderable.h"
 #include "pesukarhu/graphics/platform/opengl/OpenglContext.h"
 
-#include <GL/glew.h>
-
 
 namespace pk
 {
@@ -655,10 +653,6 @@ namespace pk
         }
 
         pRenderCmd->endCmdBuffer(pCurrentCmdBuf);
-
-        GLenum err = glGetError();
-        if (err != GL_NO_ERROR)
-            Debug::log("___TEST___SKINNED RENDERER GL ERR: " + opengl::gl_error_to_string(err));
     }
 
     void SkinnedRenderer::flush()

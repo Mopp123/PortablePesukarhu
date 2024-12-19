@@ -9,13 +9,23 @@
 //#define PK_BUILD_WINDOWS
 //#define PK_BUILD_LINUX
 //#define PK_BUILD_WEB
-enum PlatformName
+namespace pk
 {
-    PK_PLATFORM_NONE = 0,
-    PK_PLATFORM_LINUX,
-    PK_PLATFORM_WINDOWS,
-    PK_PLATFORM_WEB
-};
+    enum PlatformName
+    {
+        PK_PLATFORM_NONE = 0,
+        PK_PLATFORM_LINUX,
+        PK_PLATFORM_WINDOWS,
+        PK_PLATFORM_WEB
+    };
+
+    enum GraphicsAPI
+    {
+        PK_GRAPHICS_API_NONE = 0,
+        PK_GRAPHICS_API_WEBGL,
+        PK_GRAPHICS_API_OPENGL
+    };
+}
 
 // Datatypes ---
 #define PK_byte	char

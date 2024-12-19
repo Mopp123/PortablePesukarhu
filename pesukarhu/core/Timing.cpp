@@ -11,10 +11,9 @@ namespace pk
 
 	void Timing::update()
 	{
-		using namespace std::chrono_literals;
-
-		s_deltaTime = (std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - _time_startFrame)).count();
-		_time_startFrame = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<float> duration = std::chrono::high_resolution_clock::now() - _startFrameTime;
+		s_deltaTime = duration.count();
+		_startFrameTime = std::chrono::high_resolution_clock::now();
 	}
 
 	float Timing::get_delta_time()

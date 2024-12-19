@@ -7,7 +7,7 @@ namespace pk
 	class Timing
 	{
 	private:
-		std::chrono::time_point<std::chrono::steady_clock> _time_startFrame;
+		std::chrono::time_point<std::chrono::high_resolution_clock> _startFrameTime;
 		static float s_deltaTime;
 
 	public:

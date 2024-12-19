@@ -3,6 +3,7 @@
 #include "pesukarhu/ecs/components/Component.h"
 #include "pesukarhu/ecs/Entity.h"
 #include "pesukarhu/utils/ID.h"
+#include <vector>
 
 
 namespace pk

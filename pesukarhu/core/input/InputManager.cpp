@@ -1,6 +1,7 @@
 ﻿
 #include "InputManager.h"
 #include "platform/web/WebInputManager.h"
+#include "platform/desktop/DesktopInputManager.h"
 #include "pesukarhu/core/Debug.h"
 
 
@@ -152,12 +153,15 @@ namespace pk
         return false;
     }
 
-    InputManager* InputManager::create(PlatformName platform)
+    InputManager* InputManager::create(PlatformName platform, Window* pWindow)
     {
         switch (platform)
         {
             case PlatformName::PK_PLATFORM_WEB:
                 return new web::WebInputManager;
+            case PlatformName::PK_PLATFORM_LINUX:
+                // TODO: Validate that the window casting can actually be done here!
+                return new desktop::DesktopInputManager((desktop::DesktopWindow*)pWindow);
             default:
                 Debug::log(
                     "Failed to create InputManager. Invalid platform: " + std::to_string(platform),

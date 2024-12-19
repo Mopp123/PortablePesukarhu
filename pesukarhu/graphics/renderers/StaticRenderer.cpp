@@ -3,8 +3,6 @@
 #include "pesukarhu/core/Application.h"
 #include "pesukarhu/ecs/components/renderable/Static3DRenderable.h"
 
-#include <GL/glew.h>
-
 
 namespace pk
 {
@@ -331,10 +329,6 @@ namespace pk
         }
 
         pRenderCmd->endCmdBuffer(pCurrentCmdBuf);
-
-        GLenum err = glGetError();
-        if (err != GL_NO_ERROR)
-            Debug::log("___TEST___GL ERR: " + std::to_string(err));
     }
 
     void StaticRenderer::flush()

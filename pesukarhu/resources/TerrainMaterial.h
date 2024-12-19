@@ -4,6 +4,7 @@
 #include "Resource.h"
 #include "Texture.h"
 #include "pesukarhu/utils/pkmath.h"
+#include <vector>
 
 // Possible color channels for blending:
 // *black

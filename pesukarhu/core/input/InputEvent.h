@@ -5,6 +5,8 @@ namespace pk
 {
 	enum InputKeyName
 	{
+		PK_INPUT_KEY_NOT_FOUND,
+
 		PK_INPUT_KEY_0,
 		PK_INPUT_KEY_1,
 		PK_INPUT_KEY_2,
@@ -73,6 +75,7 @@ namespace pk
 
 	enum InputMouseButtonName
 	{
+		PK_INPUT_MOUSE_NOT_FOUND,
 		PK_INPUT_MOUSE_LEFT,
 		PK_INPUT_MOUSE_MIDDLE,
 		PK_INPUT_MOUSE_RIGHT
@@ -80,6 +83,7 @@ namespace pk
 
 	enum InputAction
 	{
+		PK_INPUT_ACTION_NOT_FOUND,
 		PK_INPUT_PRESS,
 		PK_INPUT_RELEASE
 	};

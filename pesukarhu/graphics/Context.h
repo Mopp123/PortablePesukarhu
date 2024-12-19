@@ -1,18 +1,11 @@
 #pragma once
 
 #include "pesukarhu/Common.h"
+#include "pesukarhu/core/Window.h"
 
 
 namespace pk
 {
-    enum GraphicsAPI
-    {
-        PK_GRAPHICS_API_NONE = 0,
-        PK_GRAPHICS_API_WEBGL,
-        PK_GRAPHICS_API_GL
-    };
-
-
     class Context
     {
     protected:
@@ -20,7 +13,7 @@ namespace pk
 
     public:
         virtual ~Context();
-        static Context* create(GraphicsAPI graphicsAPI);
+        static Context* create(PlatformName platform, GraphicsAPI graphicsAPI, Window* pWindow);
 
         static GraphicsAPI get_graphics_api();
     };

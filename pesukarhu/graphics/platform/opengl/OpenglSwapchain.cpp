@@ -2,6 +2,7 @@
 #include "pesukarhu/core/Application.h"
 #include "pesukarhu/core/Window.h"
 #include "pesukarhu/core/Debug.h"
+#include <GLFW/glfw3.h>
 
 
 namespace pk
@@ -10,6 +11,11 @@ namespace pk
     {
         OpenglSwapchain::OpenglSwapchain()
         {
+            #ifndef PK_BUILD_WEB
+            // TODO: Make this configurable
+            glfwSwapInterval(0);
+            #endif
+
             _imgCount = 1;
             init();
         }

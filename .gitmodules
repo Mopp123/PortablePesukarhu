@@ -1,3 +1,12 @@
 [submodule "pesukarhu/glfw"]
 	path = pesukarhu/glfw
 	url = git@github.com:glfw/glfw.git
+[submodule "pesukarhu/glew"]
+	path = pesukarhu/glew
+	url = git@github.com:nigels-com/glew.git
+[submodule "pesukarhu/harfbuzz"]
+	path = pesukarhu/harfbuzz
+	url = git@github.com:harfbuzz/harfbuzz.git
+[submodule "pesukarhu/freetype"]
+	path = pesukarhu/freetype
+	url = git@github.com:freetype/freetype.git

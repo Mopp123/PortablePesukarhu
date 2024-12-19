@@ -4,6 +4,11 @@
 #include "pesukarhu/core/Application.h"
 #include "pesukarhu/core/Debug.h"
 
+#ifdef PK_BUILD_WEB
+#include <emscripten.h>
+#include <emscripten/html5.h>
+#endif
+
 #include <string>
 #include <cstdint>
 
@@ -14,7 +19,7 @@ namespace pk
 	{
 
 		// *NOTE! We force removing few pixels from these, cuz browser windows dont fit this shit correctly inside it... or smhtn...
-
+	#ifdef PK_BUILD_WEB
 		EM_JS(int, webwindow_get_width, (), {
 			return window.width;
 		});
@@ -143,9 +148,11 @@ namespace pk
 
 			return true;
 		}
+	#endif
 
 		WebInputManager::WebInputManager()
 		{
+		#ifdef PK_BUILD_WEB
 			//emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, true, key_callback);
 			emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW,		this, true, keydown_callback);
 			emscripten_set_keyup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW,		this, true, keyup_callback);
@@ -159,6 +166,7 @@ namespace pk
 
 
 			emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW,		this, true, ui_callback);
+		#endif
 		}
 
 		WebInputManager::~WebInputManager()
@@ -167,14 +175,18 @@ namespace pk
 
 		void WebInputManager::query_window_size(int* outWidth, int* outHeight)
 		{
+		#ifdef PK_BUILD_WEB
 			*outWidth = webwindow_get_width();
 			*outHeight = webwindow_get_height();
+		#endif
 		}
 
 		void WebInputManager::query_window_surface_size(int* outWidth, int* outHeight)
 		{
+		#ifdef PK_BUILD_WEB
 			*outWidth = webwindow_get_inner_width();
 			*outHeight = webwindow_get_inner_height();
+		#endif
 		}
 
 		unsigned int WebInputManager::parseSpecialCharCodepoint(unsigned int val) const

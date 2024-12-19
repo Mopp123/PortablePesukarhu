@@ -1,5 +1,3 @@
-#include <GL/glew.h>
-
 #include "MasterRenderer.h"
 #include "Environment.h"
 #include "pesukarhu/core/Debug.h"
@@ -276,8 +274,6 @@ namespace pk
     void MasterRenderer::handleWindowResize()
     {
         const Window* pWindow = Application::get()->getWindow();
-        // TESTING
-        glViewport(0, 0, pWindow->getSurfaceWidth(), pWindow->getSurfaceHeight());
 
         //_pRenderCommand->resizeViewport(w, h);
         if (!pWindow->isMinimized())

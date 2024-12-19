@@ -2,6 +2,7 @@
 
 #include "InputEvent.h"
 #include "pesukarhu/Common.h"
+#include "pesukarhu/core/Window.h"
 #include <unordered_map>
 #include <vector>
 #include <utility>
@@ -52,7 +53,7 @@ namespace pk
         bool isKeyDown(InputKeyName key) const;
         bool isMouseButtonDown(InputMouseButtonName button) const;
 
-        static InputManager* create(PlatformName platform);
+        static InputManager* create(PlatformName platform, Window* pWindow);
 
         inline void setMousePos(int x, int y) { _mouseX = x; _mouseY = y; }
         inline int getMouseX() const { return _mouseX; }

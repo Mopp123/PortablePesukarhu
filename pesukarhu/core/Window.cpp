@@ -1,5 +1,6 @@
 #include "Window.h"
 #include "platform/web/WebWindow.h"
+#include "platform/desktop/DesktopWindow.h"
 #include "Debug.h"
 
 
@@ -16,12 +17,29 @@ namespace pk
             delete _pSwapchain;
     }
 
-    Window* Window::create(PlatformName platform, int width, int height)
+    Window* Window::create(
+        PlatformName platform,
+        GraphicsAPI graphicsAPI,
+        const std::string& title,
+        int width,
+        int height,
+        int MSAASamples,
+        bool fullscreen
+    )
     {
         switch (platform)
         {
             case PK_PLATFORM_WEB:
                 return new web::WebWindow(width, height);
+            case PK_PLATFORM_LINUX:
+                return new desktop::DesktopWindow(
+                    graphicsAPI,
+				    title,
+				    width,
+				    height,
+				    MSAASamples,
+				    fullscreen
+                );
             default:
                 Debug::log(
                     "Failed to create window. Invalid platform: " + std::to_string(platform),

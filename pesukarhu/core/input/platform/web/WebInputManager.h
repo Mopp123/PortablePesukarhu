@@ -1,9 +1,6 @@
 ﻿#pragma once
 
 #include "pesukarhu/core/input/InputManager.h"
-#include <emscripten.h>
-#include <emscripten/html5.h>
-
 #include <string>
 #include <unordered_map>
 

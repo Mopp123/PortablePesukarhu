@@ -2,8 +2,6 @@
 #include <string>
 #include "pesukarhu/core/Application.h"
 #include "pesukarhu/ecs/components/renderable/GUIRenderable.h"
-
-#include <GL/glew.h>
 #include <unordered_map>
 
 
@@ -312,10 +310,6 @@ namespace pk
         }
 
         pRenderCmd->endCmdBuffer(pCurrentCmdBuf);
-
-        GLenum err = glGetError();
-        if (err != GL_NO_ERROR)
-            Debug::log("___TEST___GUIRenderer: GL ERR: " + std::to_string(err));
     }
 
     void GUIRenderer::flush()
