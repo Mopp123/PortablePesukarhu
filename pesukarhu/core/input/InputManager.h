@@ -53,6 +53,8 @@ namespace pk
         bool isKeyDown(InputKeyName key) const;
         bool isMouseButtonDown(InputMouseButtonName button) const;
 
+        virtual void pollEvents() {}
+
         static InputManager* create(PlatformName platform, Window* pWindow);
 
         inline void setMousePos(int x, int y) { _mouseX = x; _mouseY = y; }

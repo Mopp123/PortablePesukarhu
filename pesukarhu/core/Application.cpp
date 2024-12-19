@@ -122,6 +122,7 @@ namespace pk
         while (_running)
         {
             update();
+            _pInputManager->pollEvents();
         }
 #endif
     }

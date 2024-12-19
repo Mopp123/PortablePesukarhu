@@ -1,25 +1,8 @@
 #include "pesukarhu/ppk.h"
 #include "UITestScene.h"
 
-// testing TODO: delete
-#include "pesukarhu/core/platform/desktop/DesktopWindow.h"
-
-#include <iostream>
 
 using namespace pk;
-
-
-class KeyTest : public KeyEvent
-{
-public:
-	virtual void func(InputKeyName key, int scancode, InputAction action, int mods)
-    {
-        if (key == InputKeyName::PK_INPUT_KEY_W && action == InputAction::PK_INPUT_PRESS)
-            std::cout << "pressed w!\n";
-        else if (key == InputKeyName::PK_INPUT_KEY_W && action == InputAction::PK_INPUT_RELEASE)
-            std::cout << "released w!\n";
-    }
-};
 
 
 int main(int argc, const char** argv)
@@ -34,16 +17,18 @@ int main(int argc, const char** argv)
     useGraphicsAPI = GraphicsAPI::PK_GRAPHICS_API_OPENGL;
 
     Window* pWindow = Window::create(usePlatform, useGraphicsAPI, "Testing", 800, 600);
-    desktop::DesktopWindow* pDesktopWindow = (desktop::DesktopWindow*)pWindow;
     Context* pGraphicsContext = Context::create(usePlatform, useGraphicsAPI, pWindow);
     InputManager* pInputManager = InputManager::create(usePlatform, pWindow);
 
-    pInputManager->addKeyEvent(new KeyTest);
-
-    while (!pWindow->isCloseRequested())
-    {
-        pDesktopWindow->pollEvents_TEST();
-    }
+    Application application(
+        usePlatform,
+        "Desktop Test",
+        pWindow,
+        pGraphicsContext,
+        pInputManager
+    );
+    application.switchScene((Scene*)(new UITestScene));
+    application.run();
 
 
     #elif PK_BUILD_WEB

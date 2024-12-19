@@ -239,7 +239,9 @@ namespace pk
             }
 
             pRenderCommand->endRenderPass();
-            // TODO: submit primary command buffer to swapchain
+            // TODO: Vulkanize -> actually record cmd bufs + also have the primary cmd buf
+            //  On Vulkan, this attempts to exec primary cmd buf and vkQueuePresent
+            _pSwapchain->swap(&swapchainImgIndex);
         }
     }
 

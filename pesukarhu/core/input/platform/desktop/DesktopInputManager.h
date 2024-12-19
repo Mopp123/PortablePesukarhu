@@ -98,6 +98,8 @@ namespace pk
             DesktopInputManager(const DesktopInputManager&) = delete;
             ~DesktopInputManager();
 
+            virtual void pollEvents() override;
+
             InputKeyName getKeyName(int glfwKey) const;
             InputMouseButtonName getMouseButtonName(int glfwButton) const;
             InputAction getInputAction(int glfwAction) const;

@@ -86,11 +86,5 @@ namespace pk
         void DesktopWindow::resize(int w, int h)
         {
         }
-
-        void DesktopWindow::pollEvents_TEST()
-        {
-            glfwSwapBuffers(_pGLFWwindow);
-            glfwPollEvents();
-        }
     }
 }

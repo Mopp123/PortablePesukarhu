@@ -81,7 +81,11 @@ namespace pk
 
         DesktopInputManager::~DesktopInputManager()
         {
+        }
 
+        void DesktopInputManager::pollEvents()
+        {
+            glfwPollEvents();
         }
 
         InputKeyName DesktopInputManager::getKeyName(int glfwKey) const

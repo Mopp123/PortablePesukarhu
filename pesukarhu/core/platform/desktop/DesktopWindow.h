@@ -30,8 +30,6 @@ namespace pk
             virtual bool isCloseRequested() const override;
             virtual void resize(int w, int h);
 
-            void pollEvents_TEST();
-
             inline GLFWwindow* getGLFWwindow() { return _pGLFWwindow; }
         };
     }

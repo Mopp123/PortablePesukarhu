@@ -51,7 +51,7 @@ namespace pk
 
     void Window::createSwapchain()
     {
-        _pSwapchain = Swapchain::create();
+        _pSwapchain = Swapchain::create(this);
         if (!_pSwapchain)
             Debug::log(
                 "@Window::createSwapchain Failed to assign window swapchain",
