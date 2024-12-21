@@ -49,8 +49,12 @@ namespace pk
                 return;
             }
 
+
             GraphicsAPI graphicsAPI = Context::get_graphics_api();
-            ShaderVersion shaderVersion = graphicsAPI == GraphicsAPI::PK_GRAPHICS_API_WEBGL ? ShaderVersion::ESSL1 : ShaderVersion::GLSL3;
+            // NOTE: Atm not using layout qualifiers with desktop opengl so can use shaders almost the same way as with web
+            // TODO: Start using more modern glsl with desktop and deal with below!
+            //ShaderVersion shaderVersion = graphicsAPI == GraphicsAPI::PK_GRAPHICS_API_WEBGL ? ShaderVersion::ESSL1 : ShaderVersion::GLSL3;
+            ShaderVersion shaderVersion = ShaderVersion::ESSL1;
             _pShaderProgram = new OpenglShaderProgram(
                 shaderVersion,
                 (const OpenglShader*)pVertexShader,

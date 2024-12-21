@@ -7,6 +7,8 @@
 
 namespace pk
 {
+    // TODO: GET RID OF THIS WHOLE PIECE OF SHIT!
+    // -> Move to handling this stuff exclusively in the different ui classes!
     class UIElemState : public Component
     {
     public:
@@ -24,6 +26,7 @@ namespace pk
 
         UIElemState();
     	~UIElemState();
+        UIElemState& operator=(UIElemState&& other);
 
         static UIElemState* create(entityID_t target);
     };

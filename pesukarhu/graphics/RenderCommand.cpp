@@ -2,6 +2,8 @@
 #include "Context.h"
 #include "pesukarhu/core/Debug.h"
 #include "platform/web/WebRenderCommand.h"
+#include "platform/opengl/OpenglRenderCommand.h"
+
 
 namespace pk
 {
@@ -25,6 +27,8 @@ namespace pk
         {
             case GraphicsAPI::PK_GRAPHICS_API_WEBGL:
                 return new web::WebRenderCommand;
+            case GraphicsAPI::PK_GRAPHICS_API_OPENGL:
+                return new opengl::OpenglRenderCommand;
             default:
                 Debug::log(
                     "Invalid graphics API(" + std::to_string(api) + ") assigned to create RenderCommand instance",

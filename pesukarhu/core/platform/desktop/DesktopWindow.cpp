@@ -38,6 +38,7 @@ namespace pk
                 glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, DEFAULT__OPENGL_VERSION_MAJOR);
                 glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, DEFAULT__OPENGL_VERSION_MINOR);
                 glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+                //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
             }
             else
             {
@@ -58,9 +59,32 @@ namespace pk
 
             if (!_pGLFWwindow)
             {
+                int glfwErrorCode = glfwGetError(NULL);
+                /*
+                    GLFW_NOT_INITIALIZED :
+                    GLFW_INVALID_ENUM :
+                    GLFW_INVALID_VALUE :
+                    GLFW_API_UNAVAILABLE :
+                    GLFW_VERSION_UNAVAILABLE :
+                    GLFW_FORMAT_UNAVAILABLE :
+                    GLFW_NO_WINDOW_CONTEXT :
+                    GLFW_PLATFORM_ERROR :
+                */
+                std::string errStr = "";
+                switch (glfwErrorCode)
+                {
+                    case GLFW_NOT_INITIALIZED :     errStr = "GLFW_NOT_INITIALIZED"; break;
+                    case GLFW_INVALID_ENUM :        errStr = "GLFW_INVALID_ENUM"; break;
+                    case GLFW_INVALID_VALUE :       errStr = "GLFW_INVALID_VALUE"; break;
+                    case GLFW_API_UNAVAILABLE :     errStr = "GLFW_API_UNAVAILABLE"; break;
+                    case GLFW_VERSION_UNAVAILABLE : errStr = "GLFW_VERSION_UNAVAILABLE"; break;
+                    case GLFW_FORMAT_UNAVAILABLE :  errStr = "GLFW_FORMAT_UNAVAILABLE"; break;
+                    case GLFW_NO_WINDOW_CONTEXT :   errStr = "GLFW_NO_WINDOW_CONTEXT"; break;
+                    case GLFW_PLATFORM_ERROR :      errStr = "GLFW_PLATFORM_ERROR"; break;
+                }
                 Debug::log(
                     "@DesktopWindow::DesktopWindow "
-                    "glfwCreateWindow failed!",
+                    "glfwCreateWindow failed! GLFW error: " + errStr,
                     Debug::MessageType::PK_FATAL_ERROR
                 );
                 glfwTerminate();

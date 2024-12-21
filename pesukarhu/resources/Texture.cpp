@@ -26,9 +26,9 @@ namespace pk
         switch(api)
         {
             case GraphicsAPI::PK_GRAPHICS_API_WEBGL:
-            {
                 return new opengl::OpenglTexture(imgResourceID, sampler);
-            }
+            case GraphicsAPI::PK_GRAPHICS_API_OPENGL:
+                return new opengl::OpenglTexture(imgResourceID, sampler);
             default:
                 Debug::log(
                     "Attempted to create Texture but invalid graphics context api(" + std::to_string(api) + ")",

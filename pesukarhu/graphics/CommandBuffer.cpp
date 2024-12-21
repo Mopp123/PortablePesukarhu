@@ -2,6 +2,8 @@
 #include "pesukarhu/core/Debug.h"
 #include "Context.h"
 #include "platform/web/WebCommandBuffer.h"
+#include "platform/opengl/OpenglCommandBuffer.h"
+
 
 namespace pk
 {
@@ -17,6 +19,11 @@ namespace pk
             {
                 for (int i = 0; i < count; ++i)
                     outBuffers[i] = new web::WebCommandBuffer;
+            } break;
+            case GraphicsAPI::PK_GRAPHICS_API_OPENGL:
+            {
+                for (int i = 0; i < count; ++i)
+                    outBuffers[i] = new opengl::OpenglCommandBuffer;
             } break;
             default:
             {

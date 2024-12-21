@@ -109,6 +109,16 @@ namespace pk
                 );
                 glfwTerminate();
             }
+
+            // Query some limits...
+            glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &_maxTextureUnits);
+            std::string glVersionStr((const char*)glGetString(GL_VERSION));
+            Debug::log(
+                "Context(OpenGL) created successfully!\n"
+                "   Using OpenGL version: " + glVersionStr + "\n"
+                "   Available texture units: " + std::to_string(_maxTextureUnits)
+            );
+
         }
 
         OpenglContext::~OpenglContext()

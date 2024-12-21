@@ -12,11 +12,16 @@ namespace pk
     {
         class WebCommandBuffer;
     }
+    namespace opengl
+    {
+        class OpenglCommandBuffer;
+    }
 
     class CommandBuffer
     {
     private:
         friend class web::WebCommandBuffer;
+        friend class opengl::OpenglCommandBuffer;
 
     public:
         CommandBuffer(const CommandBuffer&) = delete;

@@ -22,12 +22,13 @@ namespace pk
         _textureDescSetLayout({}),
         _batchContainer(10, (sizeof(float) * s_instanceBufferComponents) * s_maxInstanceCount)
     {
+
         _pVertexShader = Shader::create_from_file(
-            "assets/shaders/GUIShader.vert",
+            Shader::get_shader_path("GUIShader.vert"),
             ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
         );
         _pFragmentShader = Shader::create_from_file(
-            "assets/shaders/GUIShader.frag",
+            Shader::get_shader_path("GUIShader.frag"),
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT
         );
 
@@ -113,9 +114,9 @@ namespace pk
             _pVertexShader, _pFragmentShader,
             (float)viewportExtent.width, (float)viewportExtent.height,
             { 0, 0, (uint32_t)viewportExtent.width, (uint32_t)viewportExtent.height },
-            CullMode::CULL_MODE_BACK,
+            CullMode::CULL_MODE_NONE,
             FrontFace::FRONT_FACE_COUNTER_CLOCKWISE,
-            true,
+            true, // depth test
             DepthCompareOperation::COMPARE_OP_LESS_OR_EQUAL,
             false,
             0, ShaderStageFlagBits::SHADER_STAGE_NONE
@@ -215,20 +216,20 @@ namespace pk
 
         pRenderCmd->beginCmdBuffer(pCurrentCmdBuf);
 
-        // TODO: get viewport extent from swapchain instead of window
-        const Window * const pWindow = Application::get()->getWindow();
+        pRenderCmd->bindPipeline(
+            pCurrentCmdBuf,
+            PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
+            _pPipeline
+        );
 
+        // TODO: get viewport extent from swapchain instead of window
+        // TODO: specify viewport in pipeline instead by explicit command!
+        const Window * const pWindow = Application::get()->getWindow();
         pRenderCmd->setViewport(
             pCurrentCmdBuf,
             0, 0,
             pWindow->getSurfaceWidth(), pWindow->getSurfaceHeight(),
             0.0f, 1.0f
-        );
-
-        pRenderCmd->bindPipeline(
-            pCurrentCmdBuf,
-            PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
-            _pPipeline
         );
 
         pRenderCmd->bindIndexBuffer(

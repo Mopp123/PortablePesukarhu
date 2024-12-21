@@ -2,6 +2,7 @@
 #include "pesukarhu/core/Debug.h"
 #include "Context.h"
 #include "platform/web/WebBuffers.h"
+#include "platform/opengl/OpenglBuffers.h"
 #include <cstdlib>
 #include <set>
 
@@ -206,8 +207,18 @@ namespace pk
         bool saveHostSide = bufferUsageFlags & BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT ? true : saveDataHostSide;
         switch(api)
         {
+            // TODO: Should start using OpenglBuffer in webgl as well
             case GraphicsAPI::PK_GRAPHICS_API_WEBGL:
                 return new web::WebBuffer(
+                    data,
+                    elementSize,
+                    dataLength,
+                    bufferUsageFlags,
+                    bufferUpdateFrequency,
+                    saveHostSide
+                );
+            case GraphicsAPI::PK_GRAPHICS_API_OPENGL:
+                return new opengl::OpenglBuffer(
                     data,
                     elementSize,
                     dataLength,

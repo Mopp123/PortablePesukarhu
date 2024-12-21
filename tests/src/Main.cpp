@@ -13,8 +13,12 @@ int main(int argc, const char** argv)
     // NOTE: Atm just testing piece by piece to get Linux build working
     // TODO: Unify this shit after works properly!
     #ifdef PK_BUILD_LINUX
-    usePlatform = PlatformName::PK_PLATFORM_LINUX;
-    useGraphicsAPI = GraphicsAPI::PK_GRAPHICS_API_OPENGL;
+        usePlatform = PlatformName::PK_PLATFORM_LINUX;
+        useGraphicsAPI = GraphicsAPI::PK_GRAPHICS_API_OPENGL;
+    #elif PK_BUILD_WEB
+        usePlatform = PlatformName::PK_PLATFORM_WEB;
+        useGraphicsAPI = GraphicsAPI::PK_GRAPHICS_API_WEBGL;
+    #endif
 
     Window* pWindow = Window::create(usePlatform, useGraphicsAPI, "Testing", 800, 600);
     Context* pGraphicsContext = Context::create(usePlatform, useGraphicsAPI, pWindow);
@@ -29,26 +33,6 @@ int main(int argc, const char** argv)
     );
     application.switchScene((Scene*)(new UITestScene));
     application.run();
-
-
-    #elif PK_BUILD_WEB
-    usePlatform = PlatformName::PK_PLATFORM_WEB;
-    useGraphicsAPI = GraphicsAPI::PK_GRAPHICS_API_WEBGL;
-
-    Window* pWindow = Window::create(usePlatform, "Testing", 800, 600);
-    Context* pGraphicsContext = Context::create(usePlatform, useGraphicsAPI, pWindow);
-    InputManager* pInputManager = InputManager::create(usePlatform, pWindow);
-
-    Application application(
-        PlatformName::PK_PLATFORM_WEB,
-        "pesukarhuWebTest",
-        pWindow,
-        pGraphicsContext,
-        pInputManager
-    );
-    application.switchScene((Scene*)(new UITestScene));
-    application.run();
-    #endif
 
     return 0;
 }

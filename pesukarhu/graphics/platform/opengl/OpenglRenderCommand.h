@@ -1,17 +1,16 @@
 #pragma once
 
 #include "pesukarhu/graphics/RenderCommand.h"
-#include "WebCommandBuffer.h"
 
 
 namespace pk
 {
-    namespace web
+    namespace opengl
     {
-        class WebRenderCommand : public RenderCommand
+        class OpenglRenderCommand : public RenderCommand
         {
         public:
-            ~WebRenderCommand() {}
+            ~OpenglRenderCommand() {}
             virtual void beginRenderPass(vec4 clearColor);
             virtual void endRenderPass();
 

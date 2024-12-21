@@ -18,10 +18,15 @@ namespace pk
 
         class OpenglContext : public Context
         {
+        private:
+            int32_t _maxTextureUnits = 0;
+
         public:
             OpenglContext(desktop::DesktopWindow* pWindow);
             OpenglContext(const OpenglContext&) = delete;
             ~OpenglContext();
+
+            inline int32_t getMaxTextureUnits() const { return _maxTextureUnits; }
         };
     }
 }

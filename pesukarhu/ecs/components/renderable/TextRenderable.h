@@ -24,6 +24,7 @@ namespace pk
         TextRenderable(const std::string& txt, PK_id font, bool bold);
         TextRenderable(const std::string& txt, PK_id font, vec3 color, bool bold);
         TextRenderable(const TextRenderable& other);
+        TextRenderable& operator=(TextRenderable&& other);
 
         static TextRenderable* create(
             entityID_t target,
@@ -33,7 +34,7 @@ namespace pk
             bool bold = false
         );
 
-        inline std::string& accessStr() { return _txt; }
+        std::string& accessStr();
         inline std::string& accessVisualStr() { return _visualTxt; }
         inline void setColor(const vec3 color) { this->color = color; }
         inline const std::string& getStr() const { return _txt; }

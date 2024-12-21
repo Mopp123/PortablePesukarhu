@@ -12,6 +12,8 @@ namespace pk
         {
             case GraphicsAPI::PK_GRAPHICS_API_WEBGL:
                 return new opengl::OpenglPipeline;
+            case GraphicsAPI::PK_GRAPHICS_API_OPENGL:
+                return new opengl::OpenglPipeline;
             default:
                 Debug::log(
                     "Attempted to create graphics pipeline but invalid graphics context api(" + std::to_string(api) + ")",

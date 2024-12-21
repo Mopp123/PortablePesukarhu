@@ -16,7 +16,7 @@ namespace pk
     }
 
     UIRenderableComponent::UIRenderableComponent(const UIRenderableComponent& other) :
-        Component(other),
+        Component(other._type),
         _layer(other._layer)
     {
 

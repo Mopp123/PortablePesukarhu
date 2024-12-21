@@ -28,11 +28,11 @@ namespace pk
         _batchContainer(s_maxBatches, sizeof(float) * s_instanceBufferComponents * s_maxBatchInstances)
     {
         _pVertexShader = Shader::create_from_file(
-            "assets/shaders/StaticShader.vert",
+            Shader::get_shader_path("StaticShader.vert"),
             ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
         );
         _pFragmentShader = Shader::create_from_file(
-            "assets/shaders/StaticShader.frag",
+            Shader::get_shader_path("StaticShader.frag"),
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT
         );
 
@@ -221,20 +221,20 @@ namespace pk
 
         pRenderCmd->beginCmdBuffer(pCurrentCmdBuf);
 
-        // TODO: get viewport extent from swapchain instead of window
-        const Window * const pWindow = Application::get()->getWindow();
+        pRenderCmd->bindPipeline(
+            pCurrentCmdBuf,
+            PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
+            _pPipeline
+        );
 
+        // TODO: get viewport extent from swapchain instead of window
+        // TODO: specify viewport in pipeline instead by explicit command!
+        const Window * const pWindow = Application::get()->getWindow();
         pRenderCmd->setViewport(
             pCurrentCmdBuf,
             0, 0,
             pWindow->getSurfaceWidth(), pWindow->getSurfaceHeight(),
             0.0f, 1.0f
-        );
-
-        pRenderCmd->bindPipeline(
-            pCurrentCmdBuf,
-            PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
-            _pPipeline
         );
 
         //std::unordered_map<PK_id, Batch*>::iterator bIt;

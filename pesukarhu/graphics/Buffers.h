@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <vector>
 #include <string>
 // Not sure is it just YCM issues with emscripten why syntax error if not including this
@@ -8,6 +7,7 @@
 #include <cstring>
 
 #include "pesukarhu/Common.h"
+
 
 namespace pk
 {

@@ -64,9 +64,6 @@ namespace pk
                 case 1: glFormat = GL_ALPHA; break;
                 case 3: glFormat = GL_RGB; break;
                 case 4: glFormat = GL_RGBA; break;
-                // NOTE: Noticed that atm only rgba works on web..
-                // UPDATE TO ABOVE COMMENT -> u were just fucking dumb
-                // -> if using internal format as alpha.. the texture gets values only for alpha channel...
                 default:
                     Debug::log(
                         "Invalid color channel count: " + std::to_string(channels) + " "
@@ -99,11 +96,21 @@ namespace pk
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
                     break;
                 case TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER:
-                    // *It appears that webgl 1.0 doesnt have "GL_CLAMP_TO_BORDER"
-                    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-                    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                    // *It appears that webgl 1.0 doesnt have "GL_CLAMP_TO_BORDER"?
+                    #ifdef PK_BUILD_WEB
+                        Debug::log(
+                            "@OpenglTexture::OpenglTexture "
+                            "Using sample address mode PK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER "
+                            "in web build which is not supported(at least webgl 1.0?) switching to "
+                            "PK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE",
+                            Debug::MessageType::PK_WARNING
+                        );
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                    #else
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+                    #endif
                     break;
                 case TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE:
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

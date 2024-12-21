@@ -277,7 +277,6 @@ namespace pk
     {
         const Window* pWindow = Application::get()->getWindow();
 
-        //_pRenderCommand->resizeViewport(w, h);
         if (!pWindow->isMinimized())
         {
             _pSwapchain->update();

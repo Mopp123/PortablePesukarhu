@@ -1,24 +1,23 @@
-#include "WebRenderCommand.h"
+#include "OpenglRenderCommand.h"
 #include <GL/glew.h>
 #include "pesukarhu/core/Debug.h"
 #include "pesukarhu/graphics/Buffers.h"
-#include "pesukarhu/graphics/platform/opengl/OpenglPipeline.h"
-#include "pesukarhu/graphics/platform/opengl/shaders/OpenglShader.h"
-#include "pesukarhu/graphics/platform/opengl/OpenglContext.h"
+#include "OpenglPipeline.h"
+#include "OpenglCommandBuffer.h"
+#include "shaders/OpenglShader.h"
+#include "OpenglContext.h"
+#include "OpenglBuffers.h"
 #include "pesukarhu/resources/platform/opengl/OpenglTexture.h"
 #include "pesukarhu/core/Application.h"
-
-#include "WebContext.h"
-#include "WebBuffers.h"
 
 
 namespace pk
 {
-    namespace web
+    namespace opengl
     {
         static GLenum binding_to_gl_texture_unit(uint32_t binding)
         {
-            const WebContext * const pContext = (WebContext*)Application::get()->getGraphicsContext();
+            const OpenglContext * const pContext = (OpenglContext*)Application::get()->getGraphicsContext();
             switch (binding)
             {
                 case 0:
@@ -76,21 +75,21 @@ namespace pk
             }
         }
 
-        void WebRenderCommand::beginRenderPass(vec4 clearColor)
+        void OpenglRenderCommand::beginRenderPass(vec4 clearColor)
         {
-	        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	        glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
         }
 
-        void WebRenderCommand::endRenderPass()
+        void OpenglRenderCommand::endRenderPass()
         {}
 
         // the new stuff...
-        void WebRenderCommand::beginCmdBuffer(CommandBuffer* pCmdBuf)
+        void OpenglRenderCommand::beginCmdBuffer(CommandBuffer* pCmdBuf)
         {
         }
 
-        void WebRenderCommand::endCmdBuffer(CommandBuffer* pCmdBuf)
+        void OpenglRenderCommand::endCmdBuffer(CommandBuffer* pCmdBuf)
         {
             // unbind all
             glActiveTexture(GL_TEXTURE0);
@@ -98,12 +97,15 @@ namespace pk
             glBindBuffer(GL_ARRAY_BUFFER, 0);
 
             // Make sure this cmd buf is unable to touch any pipeline until calling bindPipeline() again
-            ((WebCommandBuffer*)pCmdBuf)->_pPipeline = nullptr;
-            ((WebCommandBuffer*)pCmdBuf)->_drawIndexedType = IndexType::INDEX_TYPE_NONE;
+            ((OpenglCommandBuffer*)pCmdBuf)->_pPipeline = nullptr;
+            ((OpenglCommandBuffer*)pCmdBuf)->_drawIndexedType = IndexType::INDEX_TYPE_NONE;
         }
 
+        // NOTE: This should be handled by pipeline!
+        // -> not necessary to have separate specific cmd
+        //  -> as in Vulkan you can specify this in Pipeline as well...
         // NOTE: the whole "scissor" thing is ignored atm
-        void WebRenderCommand::setViewport(
+        void OpenglRenderCommand::setViewport(
             CommandBuffer* pCmdBuf,
             float x,
             float y,
@@ -114,11 +116,23 @@ namespace pk
         )
         {
             glViewport(x, y, (int)width, (int)height);
-            FrontFace frontFace = ((WebCommandBuffer*)pCmdBuf)->_pPipeline->getFrontFace();
+            OpenglPipeline* pPipeline = ((OpenglCommandBuffer*)pCmdBuf)->_pPipeline;
+            if (!pPipeline)
+            {
+                Debug::log(
+                    "@OpenglRenderCommand::setViewport "
+                    "No pipeline assigned for command buffer!",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return;
+            }
+
+            // NOTE: Why the fuck is the front face specified here!!??!? Has nothing to do with viewport!?
+            FrontFace frontFace = pPipeline->getFrontFace();
             glFrontFace(frontFace == FrontFace::FRONT_FACE_COUNTER_CLOCKWISE ? GL_CCW : GL_CW);
         }
 
-        void WebRenderCommand::bindPipeline(
+        void OpenglRenderCommand::bindPipeline(
             CommandBuffer* pCmdBuf, // Might cause some problems tho.. figure that out.. bitch..
             PipelineBindPoint pipelineBindPoint,
             Pipeline* pPipeline
@@ -126,7 +140,7 @@ namespace pk
         {
             // TODO: make sure no nullptrs provided?
             opengl::OpenglPipeline* glPipeline = (opengl::OpenglPipeline*)pPipeline;
-            ((WebCommandBuffer*)pCmdBuf)->_pPipeline = glPipeline;
+            ((OpenglCommandBuffer*)pCmdBuf)->_pPipeline = glPipeline;
 
             glUseProgram(glPipeline->getShaderProgram()->getID());
 
@@ -178,7 +192,7 @@ namespace pk
                     break;
                 default:
                     Debug::log(
-                        "@WebRenderCommand::bindPipeline invalid pipeline cull mode",
+                        "@OpenglRenderCommand::bindPipeline invalid pipeline cull mode",
                         Debug::MessageType::PK_FATAL_ERROR
                     );
                     break;
@@ -196,7 +210,7 @@ namespace pk
             }
         }
 
-        void WebRenderCommand::bindIndexBuffer(
+        void OpenglRenderCommand::bindIndexBuffer(
             CommandBuffer* pCmdBuf,
             const Buffer* pBuffer,
             size_t offset,
@@ -206,7 +220,7 @@ namespace pk
             if (indexType != IndexType::INDEX_TYPE_UINT16 && indexType != IndexType::INDEX_TYPE_UINT32)
             {
                 Debug::log(
-                    "@WebRenderCommand::bindIndexBuffer "
+                    "@OpenglRenderCommand::bindIndexBuffer "
                     "invalid indexType: " + std::to_string(indexType) + " "
                     "indexType is required to be either INDEX_TYPE_UINT16 or INDEX_TYPE_UINT32",
                     Debug::MessageType::PK_FATAL_ERROR
@@ -214,20 +228,20 @@ namespace pk
                 return;
             }
             // quite dumb, but we need to be able to pass this to "drawIndexed" func somehow..
-            ((WebCommandBuffer*)pCmdBuf)->_drawIndexedType = indexType;
+            ((OpenglCommandBuffer*)pCmdBuf)->_drawIndexedType = indexType;
 
             // NOTE: DANGER! :D
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ((WebBuffer*)pBuffer)->getID());
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ((OpenglBuffer*)pBuffer)->getID());
         }
 
-        void WebRenderCommand::bindVertexBuffers(
+        void OpenglRenderCommand::bindVertexBuffers(
             CommandBuffer* pCmdBuf,
             uint32_t firstBinding,
             uint32_t bindingCount,
             const std::vector<Buffer*>& buffers
         )
         {
-            opengl::OpenglPipeline* pipeline = ((WebCommandBuffer*)pCmdBuf)->_pPipeline;
+            opengl::OpenglPipeline* pipeline = ((OpenglCommandBuffer*)pCmdBuf)->_pPipeline;
             const opengl::OpenglShaderProgram* pShaderProgram = pipeline->getShaderProgram();
             const std::vector<int32_t>& shaderAttribLocations = pShaderProgram->getAttribLocations();
             const std::vector<VertexBufferLayout>& vbLayouts = pipeline->getVertexBufferLayouts();
@@ -241,22 +255,24 @@ namespace pk
                 // Crash is intended here..
                 if (vbLayoutIt == vbLayouts.end())
                     Debug::log(
-                        "@WebRenderCommand::bindVertexBuffers No layout exists for inputted buffer",
+                        "@OpenglRenderCommand::bindVertexBuffers "
+                        "No layout exists for inputted buffer",
                         Debug::MessageType::PK_FATAL_ERROR
                     );
                 if (buffer->getBufferUsage() != BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT)
                     Debug::log(
-                        "@WebRenderCommand::bindVertexBuffers Invalid buffer usage: " + std::to_string(buffer->getBufferUsage()) + " "
-                        "Web rendering context can only have buffers with single type of usage!",
+                        "@OpenglRenderCommand::bindVertexBuffers "
+                        "Invalid buffer usage: " + std::to_string(buffer->getBufferUsage()) + " "
+                        "OpenGL rendering context can only have buffers with single type of usage!",
                         Debug::MessageType::PK_FATAL_ERROR
                     );
             #endif
                 // NOTE: DANGER! ..again
-                WebBuffer* pWebBuffer = (WebBuffer*)buffer;
-                glBindBuffer(GL_ARRAY_BUFFER, pWebBuffer->getID());
+                OpenglBuffer* pGLBuffer = (OpenglBuffer*)buffer;
+                glBindBuffer(GL_ARRAY_BUFFER, pGLBuffer->getID());
 
                 // Update gl buf immediately if marked
-                if (pWebBuffer->_shouldUpdate)
+                if (pGLBuffer->_shouldUpdate)
                 {
                     // Doesn't work atm because _updateOffset is just the latest offset..
                     // TODO: Some way to call glBufferData and glBufferSubData immediately when buffer::update is called!
@@ -272,13 +288,13 @@ namespace pk
                     }*/
                     glBufferData(
                         GL_ARRAY_BUFFER,
-                        pWebBuffer->getTotalSize(),
-                        pWebBuffer->_data,
-                        pWebBuffer->getUpdateFrequency() == BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STREAM ? GL_STREAM_DRAW : GL_STATIC_DRAW
+                        pGLBuffer->getTotalSize(),
+                        pGLBuffer->_data,
+                        pGLBuffer->getUpdateFrequency() == BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STREAM ? GL_STREAM_DRAW : GL_STATIC_DRAW
                     );
-                    pWebBuffer->_shouldUpdate = false;
-                    pWebBuffer->_updateOffset = 0;
-                    pWebBuffer->_updateSize = 0;
+                    pGLBuffer->_shouldUpdate = false;
+                    pGLBuffer->_updateOffset = 0;
+                    pGLBuffer->_updateSize = 0;
                 }
 
                 // Currently assuming that each pipeline's vb layout's index
@@ -336,7 +352,7 @@ namespace pk
             }
         }
 
-        void WebRenderCommand::bindDescriptorSets(
+        void OpenglRenderCommand::bindDescriptorSets(
             CommandBuffer* pCmdBuf,
             PipelineBindPoint pipelineBindPoint,
             // PipelineLayout pipelineLayout,
@@ -344,7 +360,7 @@ namespace pk
             const std::vector<const DescriptorSet*>& descriptorSets
         )
         {
-            opengl::OpenglPipeline* pipeline = ((WebCommandBuffer*)pCmdBuf)->_pPipeline;
+            opengl::OpenglPipeline* pipeline = ((OpenglCommandBuffer*)pCmdBuf)->_pPipeline;
             const opengl::OpenglShaderProgram* pShaderProgram = pipeline->getShaderProgram();
             const std::vector<int32_t>& shaderUniformLocations = pShaderProgram->getUniformLocations();
 
@@ -356,7 +372,7 @@ namespace pk
                 if (!descriptorSet->isValid(layout))
                 {
                     Debug::log(
-                        "@WebRenderCommand::bindDescriptorSets "
+                        "@OpenglRenderCommand::bindDescriptorSets "
                         "Descriptor set at index: " + std::to_string(descriptorSetIndex) + " "
                         "not layout compliant",
                         Debug::MessageType::PK_FATAL_ERROR
@@ -472,7 +488,7 @@ namespace pk
 
                                 default:
                                     Debug::log(
-                                        "@WebRenderCommand::bindDescriptorSets "
+                                        "@OpenglRenderCommand::bindDescriptorSets "
                                         "Unsupported ShaderDataType: " + std::to_string(uboInfo.type) + " "
                                         "using location index: " + std::to_string(uboInfo.locationIndex) + " "
                                         "Currently implemented types are: "
@@ -494,7 +510,7 @@ namespace pk
                             if (!textures[textureBindingIndex])
                             {
                                 Debug::log(
-                                    "@WebRenderCommand::bindDescriptorSets "
+                                    "@OpenglRenderCommand::bindDescriptorSets "
                                     "Texture at binding index: " + std::to_string(textureBindingIndex) + " was nullptr",
                                     Debug::MessageType::PK_FATAL_ERROR
                                 );
@@ -514,7 +530,7 @@ namespace pk
             }
         }
 
-        void WebRenderCommand::pushConstants(
+        void OpenglRenderCommand::pushConstants(
             CommandBuffer* pCmdBuf,
             //pipelineLayout,
             ShaderStageFlagBits shaderStageFlags,
@@ -524,7 +540,7 @@ namespace pk
             std::vector<UniformInfo> glUniformInfo // Only used on opengl side
         )
         {
-            opengl::OpenglPipeline* pipeline = ((WebCommandBuffer*)pCmdBuf)->_pPipeline;
+            opengl::OpenglPipeline* pipeline = ((OpenglCommandBuffer*)pCmdBuf)->_pPipeline;
             const opengl::OpenglShaderProgram* pShaderProgram = pipeline->getShaderProgram();
             const std::vector<int32_t>& shaderUniformLocations = pShaderProgram->getUniformLocations();
 
@@ -535,7 +551,7 @@ namespace pk
                 if (bufOffset >= size)
                 {
                     Debug::log(
-                        "@WebRenderCommand::pushConstants "
+                        "@OpenglRenderCommand::pushConstants "
                         "Buffer offset out of bounds!",
                         Debug::MessageType::PK_FATAL_ERROR
                     );
@@ -603,7 +619,7 @@ namespace pk
 
                     default:
                         Debug::log(
-                            "@WebRenderCommand::pushConstants "
+                            "@OpenglRenderCommand::pushConstants "
                             "Unsupported ShaderDataType. "
                             "Currently implemented types are: "
                             "Int, Float, Float2, Float3, Float4, Mat4",
@@ -615,7 +631,7 @@ namespace pk
             }
         }
 
-        void WebRenderCommand::draw(
+        void OpenglRenderCommand::draw(
             CommandBuffer* pCmdBuf,
             uint32_t vertexCount,
             uint32_t instanceCount,
@@ -625,13 +641,13 @@ namespace pk
         {
             #ifdef PK_DEBUG_FULL
             Debug::log(
-                "@WebRenderCommand::draw NOT IMPLEMENTED!",
+                "@OpenglRenderCommand::draw NOT IMPLEMENTED!",
                 Debug::MessageType::PK_FATAL_ERROR
             );
             #endif
         }
 
-        void WebRenderCommand::drawIndexed(
+        void OpenglRenderCommand::drawIndexed(
             CommandBuffer* pCmdBuf,
             uint32_t indexCount,
             uint32_t instanceCount,
@@ -640,10 +656,22 @@ namespace pk
             uint32_t firstInstance
         )
         {
-            const IndexType& indexType = ((WebCommandBuffer*)pCmdBuf)->_drawIndexedType;
+            const IndexType& indexType = ((OpenglCommandBuffer*)pCmdBuf)->_drawIndexedType;
             // NOTE: Don't remember why not giving the ptr to the indices here..
             //glDrawElements(GL_TRIANGLES, indexCount, index_type_to_glenum(indexType), 0);
-            glDrawElementsInstanced(GL_TRIANGLES, indexCount, index_type_to_glenum(indexType), 0, instanceCount);
+            glDrawElementsInstanced(
+                GL_TRIANGLES,
+                indexCount,
+                index_type_to_glenum(indexType),
+                0,
+                instanceCount
+            );
+
+            GLenum err = glGetError();
+            if (err != GL_NO_ERROR)
+            {
+                Debug::log("___TEST___GL ERROR: " + gl_error_to_string(err));
+            }
         }
     }
 }
