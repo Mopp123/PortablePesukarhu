@@ -88,6 +88,8 @@ namespace pk
         }
 
 
+        unsigned int OpenglContext::s_VAO = 0;
+
         OpenglContext::OpenglContext(desktop::DesktopWindow* pWindow)
         {
             glfwMakeContextCurrent(pWindow->getGLFWwindow());
@@ -119,10 +121,18 @@ namespace pk
                 "   Available texture units: " + std::to_string(_maxTextureUnits)
             );
 
+            // Create common VAO for everything to use..
+            glGenVertexArrays(1, &s_VAO);
         }
 
         OpenglContext::~OpenglContext()
         {
+            glDeleteVertexArrays(1, &s_VAO);
+        }
+
+        unsigned int OpenglContext::getVAO()
+        {
+            return s_VAO;
         }
     }
 }

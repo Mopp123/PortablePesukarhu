@@ -1,5 +1,6 @@
 #include "OpenglBuffers.h"
 #include <GL/glew.h>
+#include "OpenglContext.h"
 #include "pesukarhu/core/Debug.h"
 
 
@@ -63,25 +64,28 @@ namespace pk
                 return;
             }
 
+            // Need to bind the common VAO
+            GL_FUNC(glBindVertexArray(OpenglContext::getVAO()));
+
             // in gl terms its the glBufferData's "usage"
             GLenum glBufferUpdateFrequency = to_opengl_buffer_update_frequency(bufferUpdateFrequency);
 
             if (bufferUsageFlags & BufferUsageFlagBits::BUFFER_USAGE_VERTEX_BUFFER_BIT)
             {
                 Debug::log("Creating OpenglBuffer<vertex>");
-                glGenBuffers(1, &_id);
-                glBindBuffer(GL_ARRAY_BUFFER, _id);
-                glBufferData(GL_ARRAY_BUFFER, _dataElemSize * _dataLength, _data, glBufferUpdateFrequency);
-                glBindBuffer(GL_ARRAY_BUFFER, 0);
+                GL_FUNC(glGenBuffers(1, &_id));
+                GL_FUNC(glBindBuffer(GL_ARRAY_BUFFER, _id));
+                GL_FUNC(glBufferData(GL_ARRAY_BUFFER, _dataElemSize * _dataLength, _data, glBufferUpdateFrequency));
+                GL_FUNC(glBindBuffer(GL_ARRAY_BUFFER, 0));
             }
             else if (bufferUsageFlags & BufferUsageFlagBits::BUFFER_USAGE_INDEX_BUFFER_BIT)
             {
                 _isIndexBuffer = true;
                 Debug::log("Creating OpenglBuffer<index>");
-                glGenBuffers(1, &_id);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _id);
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, _dataElemSize * _dataLength, _data, GL_STATIC_DRAW);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+                GL_FUNC(glGenBuffers(1, &_id));
+                GL_FUNC(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _id));
+                GL_FUNC(glBufferData(GL_ELEMENT_ARRAY_BUFFER, _dataElemSize * _dataLength, _data, GL_STATIC_DRAW));
+                GL_FUNC(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
             }
             if (!saveDataHostSide)
             {
@@ -109,7 +113,7 @@ namespace pk
             // I recall there may have been some problem with that some time ago.. don't remember
             // TODO: Investigate this!
             if (!_isIndexBuffer)
-                glDeleteBuffers(1, &_id);
+                GL_FUNC(glDeleteBuffers(1, &_id));
             Debug::log("OpenglBuffer deleted");
         }
 

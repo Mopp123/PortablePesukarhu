@@ -40,6 +40,7 @@ namespace pk
         color = other.color;
         fontID = other.fontID;
         _layer = other._layer;
+        _isActive = other._isActive;
 
         // Need to resize _txt here since its' fucked at this point?
         // ...its underlying ptr to chars is nullptr?

@@ -1,4 +1,5 @@
 #include "GL/glew.h"
+#include "pesukarhu/graphics/platform/opengl/OpenglContext.h"
 #include "OpenglTexture.h"
 #include "pesukarhu/core/Debug.h"
 #include "pesukarhu/core/Application.h"
@@ -61,7 +62,14 @@ namespace pk
 
             switch (channels)
             {
-                case 1: glFormat = GL_ALPHA; break;
+                // NOTE: webgl seems to have GL_ALPHA but on modern opengl it doesn't exist
+                // -> "desktop opengl" needs to convert this to single red channel
+                case 1:
+                    if (OpenglContext::get_graphics_api() == GraphicsAPI::PK_GRAPHICS_API_WEBGL)
+                        glFormat = GL_ALPHA;
+                    else if (OpenglContext::get_graphics_api() == GraphicsAPI::PK_GRAPHICS_API_OPENGL)
+                        glFormat = GL_RED;
+                    break;
                 case 3: glFormat = GL_RGB; break;
                 case 4: glFormat = GL_RGBA; break;
                 default:
@@ -74,9 +82,9 @@ namespace pk
                     break;
             }
 
-            glGenTextures(1, &_glTexID);
-            glBindTexture(GL_TEXTURE_2D, _glTexID);
-            glTexImage2D(
+            GL_FUNC(glGenTextures(1, &_glTexID));
+            GL_FUNC(glBindTexture(GL_TEXTURE_2D, _glTexID));
+            GL_FUNC(glTexImage2D(
                 GL_TEXTURE_2D,
                 0,
                 glFormat,
@@ -86,14 +94,14 @@ namespace pk
                 glFormat,
                 GL_UNSIGNED_BYTE,
                 (const void*)pImgData->getData()
-            );
+            ));
 
             // Address mode
             switch (_sampler.getAddressMode())
             {
                 case TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_REPEAT :
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                    GL_FUNC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+                    GL_FUNC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
                     break;
                 case TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER:
                     // *It appears that webgl 1.0 doesnt have "GL_CLAMP_TO_BORDER"?
@@ -105,16 +113,16 @@ namespace pk
                             "PK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE",
                             Debug::MessageType::PK_WARNING
                         );
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                        GL_FUNC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+                        GL_FUNC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
                     #else
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+                        GL_FUNC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER));
+                        GL_FUNC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER));
                     #endif
                     break;
                 case TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE:
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                    GL_FUNC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+                    GL_FUNC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
                     break;
                 default:
                     Debug::log(
@@ -128,33 +136,33 @@ namespace pk
             {
                 if(_sampler.getFilterMode() == TextureSamplerFilterMode::PK_SAMPLER_FILTER_MODE_LINEAR)
                 {
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                    GL_FUNC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
+                    GL_FUNC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
                 }
                 else if (_sampler.getFilterMode() == TextureSamplerFilterMode::PK_SAMPLER_FILTER_MODE_NEAR)
                 {
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                    GL_FUNC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST));
+                    GL_FUNC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
                 }
 
-                glGenerateMipmap(GL_TEXTURE_2D);
+                GL_FUNC(glGenerateMipmap(GL_TEXTURE_2D));
             }
             else
             {
                 if (_sampler.getFilterMode() == TextureSamplerFilterMode::PK_SAMPLER_FILTER_MODE_LINEAR)
                 {
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                    GL_FUNC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+                    GL_FUNC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
                 }
                 else if (_sampler.getFilterMode() == TextureSamplerFilterMode::PK_SAMPLER_FILTER_MODE_NEAR)
                 {
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                    GL_FUNC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+                    GL_FUNC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
                 }
             }
             Debug::log("OpenglTexture texture created successfully");
             // NOTE: Not sure why not previously unbinding the texture here??
-            glBindTexture(GL_TEXTURE_2D, 0);
+            GL_FUNC(glBindTexture(GL_TEXTURE_2D, 0));
         }
 
 
@@ -215,8 +223,8 @@ namespace pk
                 case 5: glActiveTexture(GL_TEXTURE5); break;
                 default: break;
             }
-            glBindTexture(GL_TEXTURE_2D, _glTexID);
-            glTexSubImage2D(
+            GL_FUNC(glBindTexture(GL_TEXTURE_2D, _glTexID));
+            GL_FUNC(glTexSubImage2D(
                 GL_TEXTURE_2D,
                 0,
                 0,
@@ -226,7 +234,7 @@ namespace pk
                 glFormat,
                 GL_UNSIGNED_BYTE,
                 pData
-            );
+            ));
         }
     }
 }
