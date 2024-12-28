@@ -25,9 +25,6 @@ namespace pk
         {
             if ((e.componentMask & requiredComponentMask) == requiredComponentMask)
             {
-                if (requiredComponentMask == (ComponentType::PK_TRANSFORM | ComponentType::PK_RENDERABLE_TEXT))
-                    Debug::log("___TEST___submitting text for rendering");
-
                 Component* pRenderable = (Component*)renderablePool[e.id];
                 Transform* pTransform = (Transform*)transformPool[e.id];
                 if (!pRenderable->isActive())
