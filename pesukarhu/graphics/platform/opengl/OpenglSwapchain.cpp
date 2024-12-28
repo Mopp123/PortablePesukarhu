@@ -85,8 +85,10 @@ namespace pk
 
         void OpenglSwapchain::swap(uint32_t* imgIndex)
         {
-            if (_pGLFWwindow)
-                glfwSwapBuffers(_pGLFWwindow);
+            #ifdef PK_BUILD_DESKTOP
+                if (_pGLFWwindow)
+                    glfwSwapBuffers(_pGLFWwindow);
+            #endif
         }
 
         void OpenglSwapchain::deinit()

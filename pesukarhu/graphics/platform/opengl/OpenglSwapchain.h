@@ -1,7 +1,10 @@
 #pragma once
 
 #include "pesukarhu/graphics/Swapchain.h"
-#include <GLFW/glfw3.h>
+
+#ifdef PK_BUILD_DESKTOP
+    #include <GLFW/glfw3.h>
+#endif
 
 
 namespace pk
@@ -11,7 +14,9 @@ namespace pk
         class OpenglSwapchain : public Swapchain
         {
         private:
-            GLFWwindow* _pGLFWwindow = nullptr;
+            #ifdef PK_BUILD_DESKTOP
+                GLFWwindow* _pGLFWwindow = nullptr;
+            #endif
 
         public:
             virtual AcquireSwapchainImgResult acquireNextImage(uint32_t* pImgIndex);

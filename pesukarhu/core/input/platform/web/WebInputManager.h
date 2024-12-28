@@ -101,7 +101,6 @@ namespace pk
                 { 2, PK_INPUT_MOUSE_RIGHT}
             };
 
-
         public:
             WebInputManager();
             ~WebInputManager();

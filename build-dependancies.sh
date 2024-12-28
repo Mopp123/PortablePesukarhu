@@ -4,7 +4,7 @@
 # looks fucked but necessary to get absolute path... or idk, I'm not shell wizard...
 root_dir=$( dirname "$0" )
 cd $root_dir
-root_dir=$( pwd )/pesukarhu
+root_dir=$( pwd )/dependencies
 cd $root_dir
 
 # build glfw

@@ -1,7 +1,11 @@
 #include "Window.h"
-#include "platform/web/WebWindow.h"
-#include "platform/desktop/DesktopWindow.h"
 #include "Debug.h"
+
+#ifdef PK_BUILD_WEB
+    #include "platform/web/WebWindow.h"
+#elif defined(PK_BUILD_DESKTOP)
+    #include "platform/desktop/DesktopWindow.h"
+#endif
 
 
 namespace pk
@@ -27,26 +31,25 @@ namespace pk
         bool fullscreen
     )
     {
-        switch (platform)
-        {
-            case PK_PLATFORM_WEB:
-                return new web::WebWindow(width, height);
-            case PK_PLATFORM_LINUX:
-                return new desktop::DesktopWindow(
-                    graphicsAPI,
-                    title,
-                    width,
-                    height,
-                    MSAASamples,
-                    fullscreen
-                );
-            default:
-                Debug::log(
-                    "Failed to create window. Invalid platform: " + std::to_string(platform),
-                    Debug::MessageType::PK_FATAL_ERROR
-                );
-                return nullptr;
-        }
+        #ifdef PK_BUILD_WEB
+            return new web::WebWindow(width, height);
+        #elif defined(PK_BUILD_DESKTOP)
+            return new desktop::DesktopWindow(
+                graphicsAPI,
+                title,
+                width,
+                height,
+                MSAASamples,
+                fullscreen
+            );
+        #else
+            Debug::log(
+                "Failed to create Window. Invalid build target! "
+                "Available targets: web, desktop(linux)",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
+        #endif
     }
 
     void Window::createSwapchain()
