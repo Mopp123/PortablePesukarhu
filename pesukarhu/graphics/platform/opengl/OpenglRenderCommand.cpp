@@ -116,20 +116,6 @@ namespace pk
         )
         {
             GL_FUNC(glViewport(x, y, (int)width, (int)height));
-            OpenglPipeline* pPipeline = ((OpenglCommandBuffer*)pCmdBuf)->_pPipeline;
-            if (!pPipeline)
-            {
-                Debug::log(
-                    "@OpenglRenderCommand::setViewport "
-                    "No pipeline assigned for command buffer!",
-                    Debug::MessageType::PK_FATAL_ERROR
-                );
-                return;
-            }
-
-            // NOTE: Why the fuck is the front face specified here!!??!? Has nothing to do with viewport!?
-            FrontFace frontFace = pPipeline->getFrontFace();
-            GL_FUNC(glFrontFace(frontFace == FrontFace::FRONT_FACE_COUNTER_CLOCKWISE ? GL_CCW : GL_CW));
         }
 
         void OpenglRenderCommand::bindPipeline(
@@ -138,9 +124,23 @@ namespace pk
             Pipeline* pPipeline
         )
         {
-            // TODO: make sure no nullptrs provided?
+            #ifdef PK_DEBUG_FULL
+            if (!pPipeline)
+            {
+                Debug::log(
+                    "@OpenglRenderCommand::bindPipeline "
+                    "Pipeline was nullptr!",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return;
+            }
+            #endif
+
             opengl::OpenglPipeline* glPipeline = (opengl::OpenglPipeline*)pPipeline;
             ((OpenglCommandBuffer*)pCmdBuf)->_pPipeline = glPipeline;
+
+            FrontFace frontFace = glPipeline->getFrontFace();
+            GL_FUNC(glFrontFace(frontFace == FrontFace::FRONT_FACE_COUNTER_CLOCKWISE ? GL_CCW : GL_CW));
 
             GL_FUNC(glUseProgram(glPipeline->getShaderProgram()->getID()));
 

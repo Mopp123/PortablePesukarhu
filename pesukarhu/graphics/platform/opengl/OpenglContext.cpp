@@ -92,6 +92,7 @@ namespace pk
 
         OpenglContext::OpenglContext(desktop::DesktopWindow* pWindow)
         {
+            #ifdef PK_BUILD_DESKTOP
             glfwMakeContextCurrent(pWindow->getGLFWwindow());
 
             // NOTE: Below was the "regular" glewInit() before.
@@ -123,6 +124,13 @@ namespace pk
 
             // Create common VAO for everything to use..
             glGenVertexArrays(1, &s_VAO);
+            #else
+            Debug::log(
+                "@OpenglContext::OpenglContext "
+                "Invalid platform for OpenGL context creation!",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            #endif
         }
 
         OpenglContext::~OpenglContext()

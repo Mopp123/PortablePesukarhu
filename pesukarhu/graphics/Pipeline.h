@@ -65,7 +65,6 @@ namespace pk
         // each renderer is required to implement its' own initPipeline()
         // TODO:
         // * RenderPass
-        // * deal with push constants..
         virtual void init(
             const std::vector<VertexBufferLayout>& vertexBufferLayouts,
             const std::vector<DescriptorSetLayout>& descriptorLayouts,
