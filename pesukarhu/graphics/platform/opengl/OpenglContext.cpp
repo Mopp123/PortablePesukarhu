@@ -88,8 +88,11 @@ namespace pk
         }
 
 
+        unsigned int OpenglContext::s_VAO = 0;
+
         OpenglContext::OpenglContext(desktop::DesktopWindow* pWindow)
         {
+            #ifdef PK_BUILD_DESKTOP
             glfwMakeContextCurrent(pWindow->getGLFWwindow());
 
             // NOTE: Below was the "regular" glewInit() before.
@@ -119,10 +122,25 @@ namespace pk
                 "   Available texture units: " + std::to_string(_maxTextureUnits)
             );
 
+            // Create common VAO for everything to use..
+            glGenVertexArrays(1, &s_VAO);
+            #else
+            Debug::log(
+                "@OpenglContext::OpenglContext "
+                "Invalid platform for OpenGL context creation!",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            #endif
         }
 
         OpenglContext::~OpenglContext()
         {
+            glDeleteVertexArrays(1, &s_VAO);
+        }
+
+        unsigned int OpenglContext::getVAO()
+        {
+            return s_VAO;
         }
     }
 }

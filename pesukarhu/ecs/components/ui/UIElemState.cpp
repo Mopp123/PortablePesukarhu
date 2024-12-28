@@ -23,6 +23,7 @@ namespace pk
         state = other.state;
         clearOnSubmit = other.clearOnSubmit;
         checked = other.checked;
+        _isActive = other._isActive;
 
         // Same string issue as in TextRenderable!
         //  -> see explanation in ecs/components/renderable/TextRenderable.cpp move operator

@@ -75,6 +75,7 @@ elseif(${BUILD_TYPE} MATCHES "linux")
         ${PARENT_DIR}/pesukarhu/freetype/include
     )
     add_compile_definitions(PK_BUILD_LINUX=1)
+    add_compile_definitions(PK_BUILD_DESKTOP=1)
     file(
         GLOB SOURCE_FILES
         "${PROJECT_SOURCE_DIR}/src/*.cpp"

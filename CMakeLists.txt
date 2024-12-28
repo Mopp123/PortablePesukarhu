@@ -54,6 +54,7 @@ file(
 
 find_package(OpenGL REQUIRED)
 
+add_compile_definitions(PK_DEBUG_FULL=1)
 add_library(${TARGET_NAME} SHARED ${SOURCE_FILES})
 set_target_properties(${TARGET_NAME} PROPERTIES LINK_FLAGS "-g")
 

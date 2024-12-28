@@ -77,8 +77,8 @@ namespace pk
 
         void OpenglRenderCommand::beginRenderPass(vec4 clearColor)
         {
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+            GL_FUNC(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+            GL_FUNC(glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w));
         }
 
         void OpenglRenderCommand::endRenderPass()
@@ -92,9 +92,9 @@ namespace pk
         void OpenglRenderCommand::endCmdBuffer(CommandBuffer* pCmdBuf)
         {
             // unbind all
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            GL_FUNC(glActiveTexture(GL_TEXTURE0));
+            GL_FUNC(glBindTexture(GL_TEXTURE_2D, 0));
+            GL_FUNC(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
             // Make sure this cmd buf is unable to touch any pipeline until calling bindPipeline() again
             ((OpenglCommandBuffer*)pCmdBuf)->_pPipeline = nullptr;
@@ -115,21 +115,7 @@ namespace pk
             float maxDepth
         )
         {
-            glViewport(x, y, (int)width, (int)height);
-            OpenglPipeline* pPipeline = ((OpenglCommandBuffer*)pCmdBuf)->_pPipeline;
-            if (!pPipeline)
-            {
-                Debug::log(
-                    "@OpenglRenderCommand::setViewport "
-                    "No pipeline assigned for command buffer!",
-                    Debug::MessageType::PK_FATAL_ERROR
-                );
-                return;
-            }
-
-            // NOTE: Why the fuck is the front face specified here!!??!? Has nothing to do with viewport!?
-            FrontFace frontFace = pPipeline->getFrontFace();
-            glFrontFace(frontFace == FrontFace::FRONT_FACE_COUNTER_CLOCKWISE ? GL_CCW : GL_CW);
+            GL_FUNC(glViewport(x, y, (int)width, (int)height));
         }
 
         void OpenglRenderCommand::bindPipeline(
@@ -138,57 +124,75 @@ namespace pk
             Pipeline* pPipeline
         )
         {
-            // TODO: make sure no nullptrs provided?
+            #ifdef PK_DEBUG_FULL
+            if (!pPipeline)
+            {
+                Debug::log(
+                    "@OpenglRenderCommand::bindPipeline "
+                    "Pipeline was nullptr!",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return;
+            }
+            #endif
+
             opengl::OpenglPipeline* glPipeline = (opengl::OpenglPipeline*)pPipeline;
             ((OpenglCommandBuffer*)pCmdBuf)->_pPipeline = glPipeline;
 
-            glUseProgram(glPipeline->getShaderProgram()->getID());
+            FrontFace frontFace = glPipeline->getFrontFace();
+            GL_FUNC(glFrontFace(frontFace == FrontFace::FRONT_FACE_COUNTER_CLOCKWISE ? GL_CCW : GL_CW));
+
+            GL_FUNC(glUseProgram(glPipeline->getShaderProgram()->getID()));
 
             if (glPipeline->getEnableDepthTest())
-                glEnable(GL_DEPTH_TEST);
+            {
+                GL_FUNC(glEnable(GL_DEPTH_TEST));
+            }
             else
-                glDisable(GL_DEPTH_TEST);
+            {
+                GL_FUNC(glDisable(GL_DEPTH_TEST));
+            }
 
             switch(glPipeline->getDepthCompareOperation())
             {
                 case DepthCompareOperation::COMPARE_OP_NEVER:
-                    glDepthFunc(GL_NEVER);
+                    GL_FUNC(glDepthFunc(GL_NEVER));
                     break;
                 case DepthCompareOperation::COMPARE_OP_LESS:
-                    glDepthFunc(GL_LESS);
+                    GL_FUNC(glDepthFunc(GL_LESS));
                     break;
                 case DepthCompareOperation::COMPARE_OP_EQUAL:
-                    glDepthFunc(GL_EQUAL);
+                    GL_FUNC(glDepthFunc(GL_EQUAL));
                     break;
                 case DepthCompareOperation::COMPARE_OP_LESS_OR_EQUAL:
-                    glDepthFunc(GL_LEQUAL);
+                    GL_FUNC(glDepthFunc(GL_LEQUAL));
                     break;
                 case DepthCompareOperation::COMPARE_OP_GREATER:
-                    glDepthFunc(GL_GREATER);
+                    GL_FUNC(glDepthFunc(GL_GREATER));
                     break;
                 case DepthCompareOperation::COMPARE_OP_NOT_EQUAL:
-                    glDepthFunc(GL_NOTEQUAL);
+                    GL_FUNC(glDepthFunc(GL_NOTEQUAL));
                     break;
                 case DepthCompareOperation::COMPARE_OP_GREATER_OR_EQUAL:
-                    glDepthFunc(GL_GEQUAL);
+                    GL_FUNC(glDepthFunc(GL_GEQUAL));
                     break;
                 case DepthCompareOperation::COMPARE_OP_ALWAYS:
-                    glDepthFunc(GL_ALWAYS);
+                    GL_FUNC(glDepthFunc(GL_ALWAYS));
                     break;
             }
 
             switch (glPipeline->getCullMode())
             {
                 case CullMode::CULL_MODE_NONE:
-                    glDisable(GL_CULL_FACE);
+                    GL_FUNC(glDisable(GL_CULL_FACE));
                     break;
                 case CullMode::CULL_MODE_FRONT:
-                    glEnable(GL_CULL_FACE);
-                    glCullFace(GL_FRONT);
+                    GL_FUNC(glEnable(GL_CULL_FACE));
+                    GL_FUNC(glCullFace(GL_FRONT));
                     break;
                 case CullMode::CULL_MODE_BACK:
-                    glEnable(GL_CULL_FACE);
-                    glCullFace(GL_BACK);
+                    GL_FUNC(glEnable(GL_CULL_FACE));
+                    GL_FUNC(glCullFace(GL_BACK));
                     break;
                 default:
                     Debug::log(
@@ -200,13 +204,13 @@ namespace pk
 
             if (glPipeline->getEnableColorBlending())
             {
-                glEnable(GL_BLEND);
+                GL_FUNC(glEnable(GL_BLEND));
                 // TODO: allow specifying this
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                GL_FUNC(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
             }
             else
             {
-                glDisable(GL_BLEND);
+                GL_FUNC(glDisable(GL_BLEND));
             }
         }
 
@@ -231,7 +235,7 @@ namespace pk
             ((OpenglCommandBuffer*)pCmdBuf)->_drawIndexedType = indexType;
 
             // NOTE: DANGER! :D
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ((OpenglBuffer*)pBuffer)->getID());
+            GL_FUNC(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ((OpenglBuffer*)pBuffer)->getID()));
         }
 
         void OpenglRenderCommand::bindVertexBuffers(
@@ -269,7 +273,7 @@ namespace pk
             #endif
                 // NOTE: DANGER! ..again
                 OpenglBuffer* pGLBuffer = (OpenglBuffer*)buffer;
-                glBindBuffer(GL_ARRAY_BUFFER, pGLBuffer->getID());
+                GL_FUNC(glBindBuffer(GL_ARRAY_BUFFER, pGLBuffer->getID()));
 
                 // Update gl buf immediately if marked
                 if (pGLBuffer->_shouldUpdate)
@@ -286,12 +290,12 @@ namespace pk
                             pWebBuffer->_data
                         );
                     }*/
-                    glBufferData(
+                    GL_FUNC(glBufferData(
                         GL_ARRAY_BUFFER,
                         pGLBuffer->getTotalSize(),
                         pGLBuffer->_data,
                         pGLBuffer->getUpdateFrequency() == BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STREAM ? GL_STREAM_DRAW : GL_STATIC_DRAW
-                    );
+                    ));
                     pGLBuffer->_shouldUpdate = false;
                     pGLBuffer->_updateOffset = 0;
                     pGLBuffer->_updateSize = 0;
@@ -311,19 +315,19 @@ namespace pk
 
                     if (elemShaderDataType != ShaderDataType::Mat4)
                     {
-                        glEnableVertexAttribArray(location);
-                        glVertexAttribDivisor(
+                        GL_FUNC(glEnableVertexAttribArray(location));
+                        GL_FUNC(glVertexAttribDivisor(
                             location,
                             vbLayoutIt->getInputRate() == VertexInputRate::VERTEX_INPUT_RATE_INSTANCE ? 1 : 0
-                        );
-                        glVertexAttribPointer(
+                        ));
+                        GL_FUNC(glVertexAttribPointer(
                             location,
                             get_shader_data_type_component_count(elemShaderDataType),
                             opengl::to_gl_data_type(elemShaderDataType),
                             GL_FALSE,
                             stride,
                             (const void*)toNext
-                        );
+                        ));
                         toNext += get_shader_data_type_size(elemShaderDataType);
                     }
                     // Special case on matrices since on opengl those are set as 4 vec4s
@@ -331,19 +335,19 @@ namespace pk
                     {
                         for (int i = 0; i < 4; ++i)
                         {
-                            glEnableVertexAttribArray(location + i);
-                            glVertexAttribDivisor(
+                            GL_FUNC(glEnableVertexAttribArray(location + i));
+                            GL_FUNC(glVertexAttribDivisor(
                                 location + i,
                                 vbLayoutIt->getInputRate() == VertexInputRate::VERTEX_INPUT_RATE_INSTANCE ? 1 : 0
-                            );
-                            glVertexAttribPointer(
+                            ));
+                            GL_FUNC(glVertexAttribPointer(
                                 location + i,
                                 4,
                                 opengl::to_gl_data_type(ShaderDataType::Float4),
                                 GL_FALSE,
                                 stride,
                                 (const void*)toNext
-                            );
+                            ));
                             toNext += get_shader_data_type_size(ShaderDataType::Float4);
                         }
                     }
@@ -415,7 +419,7 @@ namespace pk
                                 {
                                     float val = *(float*)pCurrentData;
                                     valSize = sizeof(float);
-                                    glUniform1f(shaderUniformLocations[uboInfo.locationIndex], val);
+                                    GL_FUNC(glUniform1f(shaderUniformLocations[uboInfo.locationIndex], val));
                                     break;
                                 }
                                 case ShaderDataType::Float2:
@@ -424,11 +428,11 @@ namespace pk
                                     valSize = sizeof(vec2);
                                     memcpy(&vec, pCurrentData, valSize);
 
-                                    glUniform2f(
+                                    GL_FUNC(glUniform2f(
                                         shaderUniformLocations[uboInfo.locationIndex],
                                         vec.x,
                                         vec.y
-                                    );
+                                    ));
                                     break;
                                 }
                                 case ShaderDataType::Float3:
@@ -436,12 +440,12 @@ namespace pk
                                     vec3 vec;
                                     valSize = sizeof(vec3);
                                     memcpy(&vec, pCurrentData, valSize);
-                                    glUniform3f(
+                                    GL_FUNC(glUniform3f(
                                         shaderUniformLocations[uboInfo.locationIndex],
                                         vec.x,
                                         vec.y,
                                         vec.z
-                                    );
+                                    ));
                                     break;
                                 }
                                 case ShaderDataType::Float4:
@@ -450,13 +454,13 @@ namespace pk
                                     valSize = sizeof(vec4);
                                     memcpy(&vec, pCurrentData, valSize);
 
-                                    glUniform4f(
+                                    GL_FUNC(glUniform4f(
                                         shaderUniformLocations[uboInfo.locationIndex],
                                         vec.x,
                                         vec.y,
                                         vec.z,
                                         vec.w
-                                    );
+                                    ));
                                     break;
                                 }
                                 case ShaderDataType::Mat4:
@@ -476,12 +480,12 @@ namespace pk
                                         mat4 test;
                                         memcpy(&test, pData, sizeof(mat4));
                                         //Debug::log("___TEST___sending mat to: " + std::to_string(shaderUniformLocations[uboInfo.locationIndex + i]));
-                                        glUniformMatrix4fv(
+                                        GL_FUNC(glUniformMatrix4fv(
                                             shaderUniformLocations[uboInfo.locationIndex + i],
                                             1,
                                             GL_FALSE,
                                             (const float*)pData
-                                        );
+                                        ));
                                     }
                                     break;
                                 }
@@ -516,13 +520,13 @@ namespace pk
                                 );
                             }
                             #endif
-                            glUniform1i(shaderUniformLocations[layoutInfo.locationIndex], binding.getBinding());
+                            GL_FUNC(glUniform1i(shaderUniformLocations[layoutInfo.locationIndex], binding.getBinding()));
                             // well following is quite fucking dumb.. dunno how could do this better
-                            glActiveTexture(binding_to_gl_texture_unit(binding.getBinding()));
-                            glBindTexture(
+                            GL_FUNC(glActiveTexture(binding_to_gl_texture_unit(binding.getBinding())));
+                            GL_FUNC(glBindTexture(
                                 GL_TEXTURE_2D,
                                 ((opengl::OpenglTexture*)textures[textureBindingIndex])->getGLTexID()
-                            );
+                            ));
                             ++textureBindingIndex;
                         }
                     }
@@ -563,57 +567,57 @@ namespace pk
                     case ShaderDataType::Int:
                     {
                         int val = *(int*)pCurrentData;
-                        glUniform1i(shaderUniformLocations[uInfo.locationIndex], val);
+                        GL_FUNC(glUniform1i(shaderUniformLocations[uInfo.locationIndex], val));
                         break;
                     }
                     case ShaderDataType::Float:
                     {
                         float val = *(float*)pCurrentData;
-                        glUniform1f(shaderUniformLocations[uInfo.locationIndex], val);
+                        GL_FUNC(glUniform1f(shaderUniformLocations[uInfo.locationIndex], val));
                         break;
                     }
                     case ShaderDataType::Float2:
                     {
                         vec2 vec = *(vec2*)pCurrentData;
-                        glUniform2f(
+                        GL_FUNC(glUniform2f(
                             shaderUniformLocations[uInfo.locationIndex],
                             vec.x,
                             vec.y
-                        );
+                        ));
                         break;
                     }
                     case ShaderDataType::Float3:
                     {
                         vec3 vec = *(vec3*)pCurrentData;;
-                        glUniform3f(
+                        GL_FUNC(glUniform3f(
                             shaderUniformLocations[uInfo.locationIndex],
                             vec.x,
                             vec.y,
                             vec.z
-                        );
+                        ));
                         break;
                     }
                     case ShaderDataType::Float4:
                     {
                         vec4 vec = *(vec4*)pCurrentData;
-                        glUniform4f(
+                        GL_FUNC(glUniform4f(
                             shaderUniformLocations[uInfo.locationIndex],
                             vec.x,
                             vec.y,
                             vec.z,
                             vec.w
-                        );
+                        ));
                         break;
                     }
                     case ShaderDataType::Mat4:
                     {
                         mat4 matrix = *(mat4*)pCurrentData;
-                        glUniformMatrix4fv(
+                        GL_FUNC(glUniformMatrix4fv(
                             shaderUniformLocations[uInfo.locationIndex],
                             1,
                             GL_FALSE,
                             (const float*)&matrix
-                        );
+                        ));
                         break;
                     }
 
@@ -659,19 +663,13 @@ namespace pk
             const IndexType& indexType = ((OpenglCommandBuffer*)pCmdBuf)->_drawIndexedType;
             // NOTE: Don't remember why not giving the ptr to the indices here..
             //glDrawElements(GL_TRIANGLES, indexCount, index_type_to_glenum(indexType), 0);
-            glDrawElementsInstanced(
+            GL_FUNC(glDrawElementsInstanced(
                 GL_TRIANGLES,
                 indexCount,
                 index_type_to_glenum(indexType),
                 0,
                 instanceCount
-            );
-
-            GLenum err = glGetError();
-            if (err != GL_NO_ERROR)
-            {
-                Debug::log("___TEST___GL ERROR: " + gl_error_to_string(err));
-            }
+            ));
         }
     }
 }
