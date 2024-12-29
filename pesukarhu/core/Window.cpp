@@ -44,6 +44,7 @@ namespace pk
             );
         #else
             Debug::log(
+                "@Window::create "
                 "Failed to create Window. Invalid build target! "
                 "Available targets: web, desktop(linux)",
                 Debug::MessageType::PK_FATAL_ERROR

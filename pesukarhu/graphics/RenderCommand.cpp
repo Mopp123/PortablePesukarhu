@@ -1,7 +1,7 @@
 #include "RenderCommand.h"
 #include "Context.h"
 #include "pesukarhu/core/Debug.h"
-#include "platform/web/WebRenderCommand.h"
+
 #include "platform/opengl/OpenglRenderCommand.h"
 
 
@@ -22,19 +22,17 @@ namespace pk
 
     RenderCommand* RenderCommand::create()
     {
-        const GraphicsAPI api = Context::get_graphics_api();
-        switch(api)
-        {
-            case GraphicsAPI::PK_GRAPHICS_API_WEBGL:
-                return new web::WebRenderCommand;
-            case GraphicsAPI::PK_GRAPHICS_API_OPENGL:
+        #ifdef PK_BUILD_WEB
                 return new opengl::OpenglRenderCommand;
-            default:
-                Debug::log(
-                    "Invalid graphics API(" + std::to_string(api) + ") assigned to create RenderCommand instance",
-                    Debug::MessageType::PK_FATAL_ERROR
-                );
-                return nullptr;
-        }
+        #elif defined(PK_BUILD_DESKTOP)
+                return new opengl::OpenglRenderCommand;
+        #else
+            Debug::log(
+                "@RenderCommand::create "
+                "Failed to create RenderCommand. Invalid build target! "
+                "Available targets: web, desktop(linux)",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+        #endif
     }
 }

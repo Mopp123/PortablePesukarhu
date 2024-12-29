@@ -48,6 +48,9 @@ namespace pk
         _txt.resize(15);
         _txt = other._txt;
 
+        _visualTxt.resize(15);
+        _visualTxt = other._visualTxt;
+
         return *this;
     }
 

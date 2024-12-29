@@ -9,7 +9,7 @@
 #include "pesukarhu/core/Application.h"
 
 #include "WebContext.h"
-#include "WebBuffers.h"
+#include "pesukarhu/graphics/platform/opengl/OpenglBuffers.h"
 
 
 namespace pk
@@ -217,7 +217,7 @@ namespace pk
             ((WebCommandBuffer*)pCmdBuf)->_drawIndexedType = indexType;
 
             // NOTE: DANGER! :D
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ((WebBuffer*)pBuffer)->getID());
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ((OpenglBuffer*)pBuffer)->getID());
         }
 
         void WebRenderCommand::bindVertexBuffers(
@@ -252,33 +252,33 @@ namespace pk
                     );
             #endif
                 // NOTE: DANGER! ..again
-                WebBuffer* pWebBuffer = (WebBuffer*)buffer;
-                glBindBuffer(GL_ARRAY_BUFFER, pWebBuffer->getID());
+                OpenglBuffer* pOpenglBuffer = (OpenglBuffer*)buffer;
+                glBindBuffer(GL_ARRAY_BUFFER, pOpenglBuffer->getID());
 
                 // Update gl buf immediately if marked
-                if (pWebBuffer->_shouldUpdate)
+                if (pOpenglBuffer->_shouldUpdate)
                 {
                     // Doesn't work atm because _updateOffset is just the latest offset..
                     // TODO: Some way to call glBufferData and glBufferSubData immediately when buffer::update is called!
                     /*
-                    if (pWebBuffer->getUpdateFrequency() == BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_DYNAMIC)
+                    if (pOpenglBuffer->getUpdateFrequency() == BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_DYNAMIC)
                     {
                         glBufferSubData(
                             GL_ARRAY_BUFFER,
-                            pWebBuffer->_updateOffset,
-                            pWebBuffer->_updateSize,
-                            pWebBuffer->_data
+                            pOpenglBuffer->_updateOffset,
+                            pOpenglBuffer->_updateSize,
+                            pOpenglBuffer->_data
                         );
                     }*/
                     glBufferData(
                         GL_ARRAY_BUFFER,
-                        pWebBuffer->getTotalSize(),
-                        pWebBuffer->_data,
-                        pWebBuffer->getUpdateFrequency() == BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STREAM ? GL_STREAM_DRAW : GL_STATIC_DRAW
+                        pOpenglBuffer->getTotalSize(),
+                        pOpenglBuffer->_data,
+                        pOpenglBuffer->getUpdateFrequency() == BufferUpdateFrequency::BUFFER_UPDATE_FREQUENCY_STREAM ? GL_STREAM_DRAW : GL_STATIC_DRAW
                     );
-                    pWebBuffer->_shouldUpdate = false;
-                    pWebBuffer->_updateOffset = 0;
-                    pWebBuffer->_updateSize = 0;
+                    pOpenglBuffer->_shouldUpdate = false;
+                    pOpenglBuffer->_updateOffset = 0;
+                    pOpenglBuffer->_updateSize = 0;
                 }
 
                 // Currently assuming that each pipeline's vb layout's index

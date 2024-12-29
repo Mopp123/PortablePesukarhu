@@ -27,7 +27,7 @@ namespace pk
 
         void mouse_button_callback(GLFWwindow* pGLFWwindow, int button, int action, int mods)
         {
-            Debug::log("PROCESS MOUSE EVENT: NOT TESTED!", Debug::MessageType::PK_WARNING);
+            Debug::log("PROCESS MOUSE EVENT: BUTTON" + std::to_string(button) + " ACTION = " + std::to_string(action), Debug::MessageType::PK_WARNING);
             DesktopInputManager* pInputManager = (DesktopInputManager*)glfwGetWindowUserPointer(pGLFWwindow);
             InputMouseButtonName buttonName = pInputManager->getMouseButtonName(button);
             InputAction inputAction = pInputManager->getInputAction(action);

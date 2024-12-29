@@ -27,6 +27,7 @@ namespace pk
             return new opengl::OpenglContext((desktop::DesktopWindow*)pWindow);
         #else
             Debug::log(
+                "@Context::create "
                 "Failed to create Graphics Context. Invalid build target! "
                 "Available targets: web, desktop(linux)",
                 Debug::MessageType::PK_FATAL_ERROR

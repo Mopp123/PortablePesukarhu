@@ -163,6 +163,7 @@ namespace pk
             return new desktop::DesktopInputManager((desktop::DesktopWindow*)pWindow);
         #else
             Debug::log(
+                "@InputManager::create "
                 "Failed to create InputManager. Invalid build target! "
                 "Available targets: web, desktop(linux)",
                 Debug::MessageType::PK_FATAL_ERROR
