@@ -3,8 +3,6 @@
 #include "pesukarhu/ecs/components/renderable/TerrainRenderable.h"
 #include "pesukarhu/resources/TerrainMesh.h"
 
-#include <GL/glew.h>
-
 
 namespace pk
 {
@@ -20,11 +18,11 @@ namespace pk
         _materialDescSetLayout({})
     {
         _pVertexShader = Shader::create_from_file(
-            "assets/shaders/TerrainShader.vert",
+            Shader::get_shader_path("TerrainShader.vert"),
             ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
         );
         _pFragmentShader = Shader::create_from_file(
-            "assets/shaders/TerrainShader.frag",
+            Shader::get_shader_path("TerrainShader.frag"),
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT
         );
 
@@ -163,22 +161,21 @@ namespace pk
 
         pRenderCmd->beginCmdBuffer(pCurrentCmdBuf);
 
-        // TODO: get viewport extent from swapchain instead of window
-        const Window * const pWindow = Application::get()->getWindow();
-
-        pRenderCmd->setViewport(
-            pCurrentCmdBuf,
-            0, 0,
-            pWindow->getSurfaceWidth(), pWindow->getSurfaceHeight(),
-            0.0f, 1.0f
-        );
-
         pRenderCmd->bindPipeline(
             pCurrentCmdBuf,
             PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
             _pPipeline
         );
 
+        // TODO: get viewport extent from swapchain instead of window
+        // TODO: specify viewport in pipeline instead by explicit command!
+        const Window * const pWindow = Application::get()->getWindow();
+        pRenderCmd->setViewport(
+            pCurrentCmdBuf,
+            0, 0,
+            pWindow->getSurfaceWidth(), pWindow->getSurfaceHeight(),
+            0.0f, 1.0f
+        );
 
         // Get "common descriptor sets" from master renderer
         MasterRenderer& masterRenderer = pApp->getMasterRenderer();
@@ -254,10 +251,6 @@ namespace pk
         }
 
         pRenderCmd->endCmdBuffer(pCurrentCmdBuf);
-
-        GLenum err = glGetError();
-        if (err != GL_NO_ERROR)
-            Debug::log("___TEST___GL ERR: " + std::to_string(err));
     }
 
     void TerrainRenderer::flush()

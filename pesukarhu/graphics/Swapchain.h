@@ -39,6 +39,7 @@ namespace pk
         virtual ~Swapchain() {}
 
         virtual AcquireSwapchainImgResult acquireNextImage(uint32_t* pImgIndex) { return AcquireSwapchainImgResult::ERROR; }
+        virtual void swap(uint32_t* imgIndex) = 0;
         virtual void update() {}
 
         inline uint32_t getImageCount() const { return _imgCount; }
@@ -49,7 +50,7 @@ namespace pk
 
     protected:
         // Allow creation to only happen through Window class
-        static Swapchain* create();
+        static Swapchain* create(Window* pWindow);
         Swapchain() {}
 
         virtual void init() {}

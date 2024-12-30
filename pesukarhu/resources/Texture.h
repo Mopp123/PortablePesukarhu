@@ -31,18 +31,18 @@ namespace pk
 
     public:
         TextureSampler(
-                TextureSamplerFilterMode filterMode = TextureSamplerFilterMode::PK_SAMPLER_FILTER_MODE_LINEAR,
-                TextureSamplerAddressMode addressMode = TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_REPEAT,
-                uint32_t mipLevelCount = 1
-                ) :
+            TextureSamplerFilterMode filterMode = TextureSamplerFilterMode::PK_SAMPLER_FILTER_MODE_LINEAR,
+            TextureSamplerAddressMode addressMode = TextureSamplerAddressMode::PK_SAMPLER_ADDRESS_MODE_REPEAT,
+            uint32_t mipLevelCount = 1
+        ) :
             _filterMode(filterMode), _addressMode(addressMode), _mipLevelCount(mipLevelCount)
         {}
 
         virtual ~TextureSampler() {}
 
-        inline TextureSamplerFilterMode		getFilterMode() const { return _filterMode; }
-        inline TextureSamplerAddressMode	getAddressMode() const { return _addressMode; }
-        inline uint32_t						getMipLevelCount() const { return _mipLevelCount; }
+        inline TextureSamplerFilterMode	getFilterMode() const { return _filterMode; }
+        inline TextureSamplerAddressMode getAddressMode() const { return _addressMode; }
+        inline uint32_t	getMipLevelCount() const { return _mipLevelCount; }
     };
 
 

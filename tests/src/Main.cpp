@@ -1,28 +1,35 @@
 #include "pesukarhu/ppk.h"
-
 #include "UITestScene.h"
 
+
 using namespace pk;
-using namespace pk::web;
 
 
 int main(int argc, const char** argv)
 {
-    // NOTE: ISSUES!
-    // * need to create window and input manager to heap using
-    // some "create func" like the other api/platform agnostic stuff..
+    PlatformName usePlatform = PlatformName::PK_PLATFORM_NONE;
+    GraphicsAPI useGraphicsAPI = GraphicsAPI::PK_GRAPHICS_API_NONE;
 
-    // TODO: platform agnostic window creation
-    WebWindow window;
-    Context* pGraphicsContext = Context::create(GRAPHICS_API_WEBGL);
-    WebInputManager inputManager;
+    // NOTE: Atm just testing piece by piece to get Linux build working
+    // TODO: Unify this shit after works properly!
+    #ifdef PK_BUILD_LINUX
+        usePlatform = PlatformName::PK_PLATFORM_LINUX;
+        useGraphicsAPI = GraphicsAPI::PK_GRAPHICS_API_OPENGL;
+    #elif PK_BUILD_WEB
+        usePlatform = PlatformName::PK_PLATFORM_WEB;
+        useGraphicsAPI = GraphicsAPI::PK_GRAPHICS_API_WEBGL;
+    #endif
+
+    Window* pWindow = Window::create(usePlatform, useGraphicsAPI, "Testing", 800, 600);
+    Context* pGraphicsContext = Context::create(usePlatform, useGraphicsAPI, pWindow);
+    InputManager* pInputManager = InputManager::create(usePlatform, pWindow);
 
     Application application(
-        PK_PLATFORM_ID_WEB,
-        "pesukarhuWebTest",
-        &window,
+        usePlatform,
+        "Desktop Test",
+        pWindow,
         pGraphicsContext,
-        &inputManager
+        pInputManager
     );
     application.switchScene((Scene*)(new UITestScene));
     application.run();

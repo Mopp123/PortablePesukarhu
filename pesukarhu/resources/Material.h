@@ -3,10 +3,12 @@
 #include "Resource.h"
 #include "Texture.h"
 #include "pesukarhu/utils/pkmath.h"
+#include <vector>
 
 // For each color channel + "blackness channel"
 // possible channels = black, red, green, blue and alpha
 #define MATERIAL_MAX_DIFFUSE_TEXTURES 5
+
 
 namespace pk
 {

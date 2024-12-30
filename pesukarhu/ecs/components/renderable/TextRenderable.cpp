@@ -32,6 +32,28 @@ namespace pk
     {
     }
 
+    // NOTE: IMPORTANT: Will be issues if base Component class changes!!!
+    TextRenderable& TextRenderable::operator=(TextRenderable&& other)
+    {
+        _type = other._type;
+        _bold = other._bold;
+        color = other.color;
+        fontID = other.fontID;
+        _layer = other._layer;
+        _isActive = other._isActive;
+
+        // Need to resize _txt here since its' fucked at this point?
+        // ...its underlying ptr to chars is nullptr?
+        // Might cause issues later...
+        _txt.resize(15);
+        _txt = other._txt;
+
+        _visualTxt.resize(15);
+        _visualTxt = other._visualTxt;
+
+        return *this;
+    }
+
     TextRenderable* TextRenderable::create(
         entityID_t target,
         const std::string& txt,
@@ -45,5 +67,10 @@ namespace pk
         *pRenderable = TextRenderable(txt, fontID, color, bold);
         pScene->addComponent(target, pRenderable);
         return pRenderable;
+    }
+
+    std::string& TextRenderable::accessStr()
+    {
+        return _txt;
     }
 }

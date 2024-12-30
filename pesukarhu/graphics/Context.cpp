@@ -1,33 +1,42 @@
 #include "Context.h"
-#include "platform/web/WebContext.h"
+#include "pesukarhu/core/Application.h"
 #include "pesukarhu/core/Debug.h"
+
+#ifdef PK_BUILD_WEB
+    #include "platform/web/WebContext.h"
+#elif defined(PK_BUILD_DESKTOP)
+    #include "pesukarhu/core/platform/desktop/DesktopWindow.h"
+    #include "platform/opengl/OpenglContext.h"
+#endif
 
 
 namespace pk
 {
-    PK_byte Context::s_graphicsAPI = GRAPHICS_API_NONE;
+    GraphicsAPI Context::s_graphicsAPI = GraphicsAPI::PK_GRAPHICS_API_NONE;
 
     Context::~Context()
     {
     }
 
-    Context* Context::create(PK_byte graphicsAPIType)
+    Context* Context::create(PlatformName platform, GraphicsAPI graphicsAPI, Window* pWindow)
     {
-        s_graphicsAPI = graphicsAPIType;
-        switch (s_graphicsAPI)
-        {
-            case GRAPHICS_API_WEBGL:
-                return new web::WebContext;
-            default:
-                Debug::log(
-                    "Failed to create graphics context. Selected invalid graphics api type(" + std::to_string(s_graphicsAPI) + ")",
-                    Debug::MessageType::PK_FATAL_ERROR
-                );
-                return nullptr;
-        }
+        s_graphicsAPI = graphicsAPI;
+        #ifdef PK_BUILD_WEB
+            return new web::WebContext;
+        #elif defined(PK_BUILD_DESKTOP)
+            return new opengl::OpenglContext((desktop::DesktopWindow*)pWindow);
+        #else
+            Debug::log(
+                "@Context::create "
+                "Failed to create Graphics Context. Invalid build target! "
+                "Available targets: web, desktop(linux)",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr;
+        #endif
     }
 
-    PK_byte Context::get_api_type()
+    GraphicsAPI Context::get_graphics_api()
     {
         return s_graphicsAPI;
     }

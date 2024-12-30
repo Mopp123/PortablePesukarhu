@@ -1,5 +1,3 @@
-#include <GL/glew.h>
-
 #include "MasterRenderer.h"
 #include "Environment.h"
 #include "pesukarhu/core/Debug.h"
@@ -241,7 +239,9 @@ namespace pk
             }
 
             pRenderCommand->endRenderPass();
-            // TODO: submit primary command buffer to swapchain
+            // TODO: Vulkanize -> actually record cmd bufs + also have the primary cmd buf
+            //  On Vulkan, this attempts to exec primary cmd buf and vkQueuePresent
+            _pSwapchain->swap(&swapchainImgIndex);
         }
     }
 
@@ -276,10 +276,7 @@ namespace pk
     void MasterRenderer::handleWindowResize()
     {
         const Window* pWindow = Application::get()->getWindow();
-        // TESTING
-        glViewport(0, 0, pWindow->getSurfaceWidth(), pWindow->getSurfaceHeight());
 
-        //_pRenderCommand->resizeViewport(w, h);
         if (!pWindow->isMinimized())
         {
             _pSwapchain->update();

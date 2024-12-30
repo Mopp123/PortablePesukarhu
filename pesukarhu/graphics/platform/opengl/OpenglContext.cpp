@@ -1,12 +1,14 @@
+#include <GL/glew.h>
 #include "OpenglContext.h"
 #include "pesukarhu/core/Debug.h"
+#include <string>
 
 
 namespace pk
 {
     namespace opengl
     {
-        GLenum to_gl_shader(ShaderStageFlagBits stage)
+        unsigned int to_gl_shader(ShaderStageFlagBits stage)
         {
             switch (stage)
             {
@@ -25,7 +27,7 @@ namespace pk
         }
 
 
-        GLenum to_gl_data_type(ShaderDataType shaderDataType)
+        unsigned int to_gl_data_type(ShaderDataType shaderDataType)
         {
             switch (shaderDataType)
             {
@@ -64,7 +66,7 @@ namespace pk
         }
 
 
-        std::string gl_error_to_string(GLenum error)
+        std::string gl_error_to_string(unsigned int error)
         {
             switch (error)
             {
@@ -83,6 +85,62 @@ namespace pk
                     );
             }
             return "<not found>";
+        }
+
+
+        unsigned int OpenglContext::s_VAO = 0;
+
+        OpenglContext::OpenglContext(desktop::DesktopWindow* pWindow)
+        {
+            #ifdef PK_BUILD_DESKTOP
+                glfwMakeContextCurrent(pWindow->getGLFWwindow());
+
+                // NOTE: Below was the "regular" glewInit() before.
+                // Found glewContextInit() after long dig in the glew github repo
+                // which apparently deals with the Wayland/x11 issue...
+                // Not sure tho, might fuck up on some systems...
+                // https://github.com/etlegacy/etlegacy/pull/1966
+                // https://github.com/nigels-com/glew/issues/172
+                GLenum initStatus = glewContextInit();
+                if (initStatus != GLEW_OK)
+                {
+                    std::string glewErrStr = (const char*)glewGetErrorString(initStatus);
+                    Debug::log(
+                        "@OpenglContext::OpenglContext "
+                        "glewInit failed! GLEW error: " + glewErrStr,
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
+                    glfwTerminate();
+                }
+
+                // Query some limits...
+                glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &_maxTextureUnits);
+                std::string glVersionStr((const char*)glGetString(GL_VERSION));
+                Debug::log(
+                    "Context(OpenGL) created successfully!\n"
+                    "   Using OpenGL version: " + glVersionStr + "\n"
+                    "   Available texture units: " + std::to_string(_maxTextureUnits)
+                );
+
+                // Create common VAO for everything to use..
+                glGenVertexArrays(1, &s_VAO);
+            #else
+                Debug::log(
+                    "@OpenglContext::OpenglContext "
+                    "Invalid platform for OpenGL context creation!",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+            #endif
+        }
+
+        OpenglContext::~OpenglContext()
+        {
+            glDeleteVertexArrays(1, &s_VAO);
+        }
+
+        unsigned int OpenglContext::getVAO()
+        {
+            return s_VAO;
         }
     }
 }

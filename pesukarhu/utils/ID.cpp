@@ -14,8 +14,7 @@ namespace pk
     {
         if (!s_initialized)
         {
-            time_t time;
-            std::srand((unsigned int)&time);
+            std::srand((unsigned int)time(nullptr));
             s_initialized = true;
         }
 

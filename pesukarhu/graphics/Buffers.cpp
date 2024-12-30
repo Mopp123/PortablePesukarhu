@@ -1,7 +1,7 @@
 #include "Buffers.h"
 #include "pesukarhu/core/Debug.h"
 #include "Context.h"
-#include "platform/web/WebBuffers.h"
+#include "platform/opengl/OpenglBuffers.h"
 #include <cstdlib>
 #include <set>
 
@@ -200,27 +200,34 @@ namespace pk
         bool saveDataHostSide
     )
     {
-        const uint32_t api = Context::get_api_type();
         // Atm ubos have to be available on host
         // (no stagning buffers for uniform buffers supported)
         bool saveHostSide = bufferUsageFlags & BufferUsageFlagBits::BUFFER_USAGE_UNIFORM_BUFFER_BIT ? true : saveDataHostSide;
-        switch(api)
-        {
-            case GRAPHICS_API_WEBGL:
-                return new web::WebBuffer(
-                    data,
-                    elementSize,
-                    dataLength,
-                    bufferUsageFlags,
-                    bufferUpdateFrequency,
-                    saveHostSide
-                );
-            default:
-                Debug::log(
-                    "Attempted to create Buffer but invalid graphics context api(" + std::to_string(api) + ")",
-                    Debug::MessageType::PK_FATAL_ERROR
-                );
-                return nullptr;
-        }
+        #ifdef PK_BUILD_WEB
+            return new opengl::OpenglBuffer(
+                data,
+                elementSize,
+                dataLength,
+                bufferUsageFlags,
+                bufferUpdateFrequency,
+                saveHostSide
+            );
+        #elif defined(PK_BUILD_DESKTOP)
+            return new opengl::OpenglBuffer(
+                data,
+                elementSize,
+                dataLength,
+                bufferUsageFlags,
+                bufferUpdateFrequency,
+                saveHostSide
+            );
+        #else
+            Debug::log(
+                "@Buffer::create "
+                "Failed to create Buffer. Invalid build target! "
+                "Available targets: web, desktop(linux)",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+        #endif
     }
 }

@@ -7,6 +7,7 @@
 #include "pesukarhu/ecs/components/ui/ConstraintData.h"
 #include "pesukarhu/utils/pkmath.h"
 #include "pesukarhu/resources/Font.h"
+#include <vector>
 
 
 namespace pk

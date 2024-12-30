@@ -2,6 +2,10 @@
 *.swp
 compile_commands.json
 
+build/*
+
+tests/desktop/*
+
 tests/web/build/CMakeFiles
 tests/web/build/*.wasm
 tests/web/build/*.txt

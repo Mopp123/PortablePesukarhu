@@ -22,10 +22,6 @@ namespace pk
         virtual void beginRenderPass(vec4 clearColor) = 0;
         virtual void endRenderPass() = 0;
 
-        // NOTE: atm just quick hack and only opengl specific!!!
-        // TODO: figure out could the setViewport "cmd" replace this?
-        virtual void resizeViewport(int width, int height) = 0;
-
         virtual void beginCmdBuffer(CommandBuffer* pCmdBuf) = 0;
         virtual void endCmdBuffer(CommandBuffer* pCmdBuf) = 0;
 

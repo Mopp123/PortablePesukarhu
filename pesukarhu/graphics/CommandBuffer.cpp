@@ -1,32 +1,31 @@
 #include "CommandBuffer.h"
 #include "pesukarhu/core/Debug.h"
 #include "Context.h"
-#include "platform/web/WebCommandBuffer.h"
+#include "platform/opengl/OpenglCommandBuffer.h"
+
 
 namespace pk
 {
 
     std::vector<CommandBuffer*> CommandBuffer::create(int count)
     {
-        const uint32_t api = Context::get_api_type();
         std::vector<CommandBuffer*> outBuffers(count);
         memset(outBuffers.data(), 0, sizeof(CommandBuffer*) * count);
-        switch(api)
-        {
-            case GRAPHICS_API_WEBGL:
-            {
-                for (int i = 0; i < count; ++i)
-                    outBuffers[i] = new web::WebCommandBuffer;
-            } break;
-            default:
-            {
-                Debug::log(
-                    "Attempted to create command buffer but invalid graphics context api(" + std::to_string(api) + ")",
-                    Debug::MessageType::PK_FATAL_ERROR
-                );
-            } break;
-        }
 
+        #ifdef PK_BUILD_WEB
+            for (int i = 0; i < count; ++i)
+                outBuffers[i] = new opengl::OpenglCommandBuffer;
+        #elif defined(PK_BUILD_DESKTOP)
+            for (int i = 0; i < count; ++i)
+                outBuffers[i] = new opengl::OpenglCommandBuffer;
+        #else
+            Debug::log(
+                "@CommandBuffer::create "
+                "Failed to create Command Buffers. Invalid build target! "
+                "Available targets: web, desktop(linux)",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+        #endif
         return outBuffers;
     }
 }

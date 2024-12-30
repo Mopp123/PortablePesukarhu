@@ -2,11 +2,15 @@
 #include "InputManager.h"
 #include "pesukarhu/core/Debug.h"
 
+#ifdef PK_BUILD_WEB
+    #include "platform/web/WebInputManager.h"
+#elif defined(PK_BUILD_DESKTOP)
+    #include "platform/desktop/DesktopInputManager.h"
+#endif
+
 
 namespace pk
 {
-
-
     InputManager::InputManager()
     {
     }
@@ -149,5 +153,22 @@ namespace pk
         if (it != mouseDown.end())
             return it->second;
         return false;
+    }
+
+    InputManager* InputManager::create(PlatformName platform, Window* pWindow)
+    {
+        #ifdef PK_BUILD_WEB
+            return new web::WebInputManager;
+        #elif defined(PK_BUILD_DESKTOP)
+            return new desktop::DesktopInputManager((desktop::DesktopWindow*)pWindow);
+        #else
+            Debug::log(
+                "@InputManager::create "
+                "Failed to create InputManager. Invalid build target! "
+                "Available targets: web, desktop(linux)",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr
+        #endif
     }
 }

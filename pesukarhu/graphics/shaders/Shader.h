@@ -27,6 +27,9 @@ namespace pk
     protected:
         ShaderStageFlagBits _stage = ShaderStageFlagBits::SHADER_STAGE_NONE;
 
+        static std::string s_shaderRootWeb;
+        static std::string s_shaderRootOpengl;
+
     public:
         // NOTE: need to support old way of using shaders for now!
         // TODO: Switch everythin to use new system eventually..
@@ -35,6 +38,10 @@ namespace pk
 
         static Shader* create_from_source(const std::string& shaderSource, ShaderStageFlagBits stage);
         static Shader* create_from_file(const std::string& filepath, ShaderStageFlagBits stage);
+
+        // shaderFile should be just the name of the shader file
+        // Returns actual full path to the shader file depending on used GraphicsAPI
+        static std::string get_shader_path(const std::string& shaderFile);
 
     protected:
         Shader(const std::string& shaderSource, ShaderStageFlagBits stage) :

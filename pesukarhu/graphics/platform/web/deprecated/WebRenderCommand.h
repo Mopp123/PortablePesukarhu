@@ -15,10 +15,6 @@ namespace pk
             virtual void beginRenderPass(vec4 clearColor);
             virtual void endRenderPass();
 
-            // NOTE: atm just quick hack and only opengl specific!!!
-            virtual void resizeViewport(int width, int height);
-
-
             virtual void beginCmdBuffer(CommandBuffer* pCmdBuf);
             virtual void endCmdBuffer(CommandBuffer* pCmdBuf);
 

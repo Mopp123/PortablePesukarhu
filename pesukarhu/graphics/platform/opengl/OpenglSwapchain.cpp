@@ -1,15 +1,41 @@
 #include "OpenglSwapchain.h"
 #include "pesukarhu/core/Application.h"
 #include "pesukarhu/core/Window.h"
+#include "pesukarhu/core/platform/desktop/DesktopWindow.h"
 #include "pesukarhu/core/Debug.h"
+#include <GLFW/glfw3.h>
 
 
 namespace pk
 {
     namespace opengl
     {
-        OpenglSwapchain::OpenglSwapchain()
+        OpenglSwapchain::OpenglSwapchain(Window* pWindow)
         {
+            #ifndef PK_BUILD_WEB
+            // TODO: Make this configurable
+            glfwSwapInterval(0);
+            // TODO:
+            // *Validate this casting
+            // *Make this work more consistently here
+            //  -> we query for application window in those other funcs as well so why
+            //  the fuck not just storing the window ptr here...
+            //      -> on the other hand it makes sense to require passing
+            //      the window when creating swapchain so it's harder to fuck up things like
+            //      you have before (crashes because expecting Application::get()->someThing
+            //      to exist at certain times...)
+            _pGLFWwindow = ((desktop::DesktopWindow*)pWindow)->getGLFWwindow();
+            if (!_pGLFWwindow)
+            {
+                Debug::log(
+                    "@OpenglSwapchain::OpenglSwapchain "
+                    "Window's GLFWwindow handle was nullptr!",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return;
+            }
+            #endif
+
             _imgCount = 1;
             init();
         }
@@ -55,6 +81,14 @@ namespace pk
             }
             _surfaceExtent.width = pWindow->getSurfaceWidth();
             _surfaceExtent.height = pWindow->getSurfaceHeight();
+        }
+
+        void OpenglSwapchain::swap(uint32_t* imgIndex)
+        {
+            #ifdef PK_BUILD_DESKTOP
+                if (_pGLFWwindow)
+                    glfwSwapBuffers(_pGLFWwindow);
+            #endif
         }
 
         void OpenglSwapchain::deinit()

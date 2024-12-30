@@ -1,6 +1,8 @@
 #pragma once
 
 #include "InputEvent.h"
+#include "pesukarhu/Common.h"
+#include "pesukarhu/core/Window.h"
 #include <unordered_map>
 #include <vector>
 #include <utility>
@@ -30,6 +32,7 @@ namespace pk
     public:
         InputManager();
         virtual ~InputManager();
+        InputManager(const InputManager&) = delete;
 
         void addKeyEvent(KeyEvent* ev);
         void addMouseButtonEvent(MouseButtonEvent* ev);
@@ -49,6 +52,10 @@ namespace pk
 
         bool isKeyDown(InputKeyName key) const;
         bool isMouseButtonDown(InputMouseButtonName button) const;
+
+        virtual void pollEvents() {}
+
+        static InputManager* create(PlatformName platform, Window* pWindow);
 
         inline void setMousePos(int x, int y) { _mouseX = x; _mouseY = y; }
         inline int getMouseX() const { return _mouseX; }

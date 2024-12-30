@@ -1,14 +1,13 @@
-
 #include "WebWindow.h"
 #include "pesukarhu/core/input/platform/web/WebInputManager.h"
 #include <emscripten.h>
 #include <emscripten/html5.h>
 
+
 namespace pk
 {
     namespace web
     {
-
         EM_JS(void, resize_canvas, (int w, int h), {
             var c = document.getElementById('canvas');
             c.width = w;
@@ -22,12 +21,6 @@ namespace pk
             c.height = window.innerHeight;
         });
 
-
-        WebWindow::WebWindow() :
-            Window(0,0)
-        {
-            resize(0, 0);
-        }
 
         WebWindow::WebWindow(int width, int height) :
             Window(width, height)

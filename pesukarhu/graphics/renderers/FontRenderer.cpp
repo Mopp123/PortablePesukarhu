@@ -4,9 +4,6 @@
 #include "pesukarhu/core/Application.h"
 #include "pesukarhu/ecs/components/renderable/GUIRenderable.h"
 
-// TODO: dont include this here, atm just for getting gl errors..
-#include <GL/glew.h>
-
 
 namespace pk
 {
@@ -32,11 +29,11 @@ namespace pk
         _batchContainer(5, (sizeof(float) * s_instanceBufferComponents) * s_maxInstanceCount)
     {
         _pVertexShader = Shader::create_from_file(
-            "assets/shaders/FontShader.vert",
+            Shader::get_shader_path("FontShader.vert"),
             ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
         );
         _pFragmentShader = Shader::create_from_file(
-            "assets/shaders/FontShader.frag",
+            Shader::get_shader_path("FontShader.frag"),
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT
         );
 
@@ -303,20 +300,20 @@ namespace pk
 
         pRenderCmd->beginCmdBuffer(pCurrentCmdBuf);
 
-        // TODO: get viewport extent from swapchain instead of window
-        const Window * const pWindow = Application::get()->getWindow();
-
-        pRenderCmd->setViewport(
-            pCurrentCmdBuf,
-            0, 0,
-            pWindow->getWidth(), pWindow->getHeight(),
-            0.0f, 1.0f
-        );
-
         pRenderCmd->bindPipeline(
             pCurrentCmdBuf,
             PipelineBindPoint::PIPELINE_BIND_POINT_GRAPHICS,
             _pPipeline
+        );
+
+        // TODO: get viewport extent from swapchain instead of window
+        // TODO: specify viewport in pipeline instead by explicit command!
+        const Window * const pWindow = Application::get()->getWindow();
+        pRenderCmd->setViewport(
+            pCurrentCmdBuf,
+            0, 0,
+            pWindow->getSurfaceWidth(), pWindow->getSurfaceHeight(),
+            0.0f, 1.0f
         );
 
         pRenderCmd->bindIndexBuffer(
@@ -325,6 +322,7 @@ namespace pk
             0,
             IndexType::INDEX_TYPE_UINT16
         );
+
 
         for (Batch* pBatch : _batchContainer.getBatches())
         {
@@ -401,10 +399,6 @@ namespace pk
         }
 
         pRenderCmd->endCmdBuffer(pCurrentCmdBuf);
-
-        GLenum err = glGetError();
-        if (err != GL_NO_ERROR)
-            Debug::log("___TEST___GL ERR: " + std::to_string(err));
     }
 
     void FontRenderer::flush()

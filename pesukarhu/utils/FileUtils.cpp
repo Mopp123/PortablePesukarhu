@@ -1,6 +1,7 @@
 #include "FileUtils.h"
 #include "pesukarhu/core/Debug.h"
 #include <cstdio>
+#include <cstring>
 
 
 namespace pk

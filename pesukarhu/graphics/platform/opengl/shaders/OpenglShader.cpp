@@ -1,8 +1,9 @@
+#include <GL/glew.h>
 #include "OpenglShader.h"
 #include "pesukarhu/core/Debug.h"
 #include "pesukarhu/graphics/platform/opengl/OpenglContext.h"
 #include <string>
-#include <vector>
+#include <unordered_map>
 #include <sstream>
 #include <set>
 
