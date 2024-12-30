@@ -1,3 +1,5 @@
+#version 330
+
 precision mediump float;
 
 #define FILTER_TYPE_NONE 0.0
@@ -8,7 +10,7 @@ in vec2 var_uvCoord;
 in vec4 var_color;
 in vec2 var_fragPos;
 in vec2 var_scale;
-in float var_filter;
+in float var_useFilter;
 
 uniform sampler2D texSampler;
 
@@ -23,8 +25,8 @@ void main()
 
     vec4 finalColor = gl_FragColor = texColor * var_color;
 
-    bool emboss = bool(var_filter == FILTER_TYPE_EMBOSS);
-    bool engrave = bool(var_filter == FILTER_TYPE_ENGRAVE);
+    bool emboss = bool(var_useFilter == FILTER_TYPE_EMBOSS);
+    bool engrave = bool(var_useFilter == FILTER_TYPE_ENGRAVE);
 
     if (emboss || engrave)
     {

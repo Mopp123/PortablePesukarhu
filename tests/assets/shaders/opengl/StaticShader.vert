@@ -1,3 +1,5 @@
+#version 330
+
 precision mediump float;
 
 attribute vec3 vertexPos;
@@ -13,7 +15,7 @@ struct Common3D
     mat4 viewMat;
     vec4 camPos;
 };
-uniform Common3D common;
+uniform Common3D commonProperties;
 
 struct Environment
 {
@@ -32,7 +34,7 @@ out float var_distToCam;
 void main()
 {
     vec4 worldPos = transformationMatrix * vec4(vertexPos, 1.0);
-    gl_Position = common.projMat * common.viewMat * worldPos;
+    gl_Position = commonProperties.projMat * commonProperties.viewMat * worldPos;
 
     vec4 rotatedNormal = transformationMatrix * vec4(normal, 0.0);
     var_normal = rotatedNormal.xyz;
@@ -41,6 +43,6 @@ void main()
 
     var_fragPos = worldPos.xyz;
 
-    var_camPos = common.camPos.xyz;
+    var_camPos = commonProperties.camPos.xyz;
     var_distToCam = gl_Position.w;
 }

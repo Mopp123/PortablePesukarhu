@@ -8,7 +8,7 @@
 
 namespace pk
 {
-    std::string Shader::s_shaderRootWeb = "assets/shaders/";
+    std::string Shader::s_shaderRootWeb = "assets/shaders/web/";
     std::string Shader::s_shaderRootOpengl = "assets/shaders/opengl/";
 
     Shader* Shader::create_from_source(const std::string& shaderSource, ShaderStageFlagBits stage)
@@ -31,8 +31,6 @@ namespace pk
 
     Shader* Shader::create_from_file(const std::string& filepath, ShaderStageFlagBits stage)
     {
-        Debug::log("___TEST___creating shader from file: \n" + filepath);
-
         const std::string source = load_text_file(filepath);
         if (source.empty())
         {
