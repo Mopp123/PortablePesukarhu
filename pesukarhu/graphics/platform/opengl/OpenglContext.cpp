@@ -93,43 +93,43 @@ namespace pk
         OpenglContext::OpenglContext(desktop::DesktopWindow* pWindow)
         {
             #ifdef PK_BUILD_DESKTOP
-            glfwMakeContextCurrent(pWindow->getGLFWwindow());
+                glfwMakeContextCurrent(pWindow->getGLFWwindow());
 
-            // NOTE: Below was the "regular" glewInit() before.
-            // Found glewContextInit() after long dig in the glew github repo
-            // which apparently deals with the Wayland/x11 issue...
-            // Not sure tho, might fuck up on some systems...
-            // https://github.com/etlegacy/etlegacy/pull/1966
-            // https://github.com/nigels-com/glew/issues/172
-            GLenum initStatus = glewContextInit();
-            if (initStatus != GLEW_OK)
-            {
-                std::string glewErrStr = (const char*)glewGetErrorString(initStatus);
+                // NOTE: Below was the "regular" glewInit() before.
+                // Found glewContextInit() after long dig in the glew github repo
+                // which apparently deals with the Wayland/x11 issue...
+                // Not sure tho, might fuck up on some systems...
+                // https://github.com/etlegacy/etlegacy/pull/1966
+                // https://github.com/nigels-com/glew/issues/172
+                GLenum initStatus = glewContextInit();
+                if (initStatus != GLEW_OK)
+                {
+                    std::string glewErrStr = (const char*)glewGetErrorString(initStatus);
+                    Debug::log(
+                        "@OpenglContext::OpenglContext "
+                        "glewInit failed! GLEW error: " + glewErrStr,
+                        Debug::MessageType::PK_FATAL_ERROR
+                    );
+                    glfwTerminate();
+                }
+
+                // Query some limits...
+                glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &_maxTextureUnits);
+                std::string glVersionStr((const char*)glGetString(GL_VERSION));
+                Debug::log(
+                    "Context(OpenGL) created successfully!\n"
+                    "   Using OpenGL version: " + glVersionStr + "\n"
+                    "   Available texture units: " + std::to_string(_maxTextureUnits)
+                );
+
+                // Create common VAO for everything to use..
+                glGenVertexArrays(1, &s_VAO);
+            #else
                 Debug::log(
                     "@OpenglContext::OpenglContext "
-                    "glewInit failed! GLEW error: " + glewErrStr,
+                    "Invalid platform for OpenGL context creation!",
                     Debug::MessageType::PK_FATAL_ERROR
                 );
-                glfwTerminate();
-            }
-
-            // Query some limits...
-            glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &_maxTextureUnits);
-            std::string glVersionStr((const char*)glGetString(GL_VERSION));
-            Debug::log(
-                "Context(OpenGL) created successfully!\n"
-                "   Using OpenGL version: " + glVersionStr + "\n"
-                "   Available texture units: " + std::to_string(_maxTextureUnits)
-            );
-
-            // Create common VAO for everything to use..
-            glGenVertexArrays(1, &s_VAO);
-            #else
-            Debug::log(
-                "@OpenglContext::OpenglContext "
-                "Invalid platform for OpenGL context creation!",
-                Debug::MessageType::PK_FATAL_ERROR
-            );
             #endif
         }
 

@@ -1,12 +1,12 @@
 [submodule "pesukarhu/glfw"]
-	path = pesukarhu/glfw
+	path = dependencies/glfw
 	url = git@github.com:glfw/glfw.git
 [submodule "pesukarhu/glew"]
-	path = pesukarhu/glew
+	path = dependencies/glew
 	url = git@github.com:nigels-com/glew.git
 [submodule "pesukarhu/harfbuzz"]
-	path = pesukarhu/harfbuzz
+	path = dependencies/harfbuzz
 	url = git@github.com:harfbuzz/harfbuzz.git
 [submodule "pesukarhu/freetype"]
-	path = pesukarhu/freetype
+	path = dependencies/freetype
 	url = git@github.com:freetype/freetype.git

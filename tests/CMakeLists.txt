@@ -12,8 +12,6 @@ set(PROJ_INCLUDES ${PROJECT_SOURCE_DIR}/src ${PARENT_DIR})
 
 # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -std=c++17")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++17 -g")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS}")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(${BUILD_TYPE} MATCHES "web")
@@ -24,7 +22,7 @@ if(${BUILD_TYPE} MATCHES "web")
     # NOTE: html_out becomes the PROJ_NAME for some reason... was too afraid to delete it from here since
     # Emscripten recommends using the -o out.html
     set(html_out "PesukarhuWebTest.html")
-    add_compile_definitions(PK_BUILD_WEB=1)
+    add_compile_definitions(PK_BUILD_WEB=1 PK_DEBUG_FULL=1)
 
     # TODO: Dealt with this shit better
     file (
@@ -34,7 +32,6 @@ if(${BUILD_TYPE} MATCHES "web")
         "${PARENT_DIR}/pesukarhu/core/input/*.cpp"
         "${PARENT_DIR}/pesukarhu/core/input/platform/web/*.cpp"
         "${PARENT_DIR}/pesukarhu/core/platform/web/*.cpp"
-        "${PARENT_DIR}/pesukarhu/core/platform/desktop/*.cpp"
 
         "${PARENT_DIR}/pesukarhu/ecs/components/*.cpp"
         "${PARENT_DIR}/pesukarhu/ecs/components/ui/*.cpp"
@@ -61,8 +58,10 @@ if(${BUILD_TYPE} MATCHES "web")
         # Game client files ---
         "${PROJECT_SOURCE_DIR}/src/*.cpp"
     )
-    add_compile_definitions(PK_DEBUG_FULL=1)
     include_directories(${PROJ_INCLUDES})
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}")
+
     add_executable(${PROJ_NAME} ${SOURCE_FILES})
     message(STATUS "Starting web build")
     set_target_properties(${PROJ_NAME} PROPERTIES LINK_FLAGS "-fexceptions -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2 -o ${html_out} --shell-file ${html_shell_location} -sFORCE_FILESYSTEM --use-preload-plugins -sFETCH -sALLOW_MEMORY_GROWTH -l websocket.js")
@@ -70,18 +69,20 @@ if(${BUILD_TYPE} MATCHES "web")
 elseif(${BUILD_TYPE} MATCHES "linux")
     list(
         APPEND PROJ_INCLUDES
-        ${PARENT_DIR}/pesukarhu/glfw/include
-        ${PARENT_DIR}/pesukarhu/glew/include
-        ${PARENT_DIR}/pesukarhu/freetype/include
+        ${PARENT_DIR}/dependencies/glfw/include
+        ${PARENT_DIR}/dependencies/glew/include
+        ${PARENT_DIR}/dependencies/freetype/include
     )
-    add_compile_definitions(PK_BUILD_LINUX=1)
-    add_compile_definitions(PK_BUILD_DESKTOP=1)
+    add_compile_definitions(PK_BUILD_LINUX=1 PK_BUILD_DESKTOP=1 PK_DEBUG_FULL=1)
     file(
         GLOB SOURCE_FILES
         "${PROJECT_SOURCE_DIR}/src/*.cpp"
     )
-    add_compile_definitions(PK_DEBUG_FULL=1)
     include_directories(${PROJ_INCLUDES})
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}")
+    # below not necessary...
+    #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS}")
 
     # This is to be able to call some opengl funcs directly for quick debugging
     find_package(OpenGL REQUIRED)

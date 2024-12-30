@@ -1,14 +1,16 @@
 ﻿
 #include "InputManager.h"
-#include "platform/web/WebInputManager.h"
-#include "platform/desktop/DesktopInputManager.h"
 #include "pesukarhu/core/Debug.h"
+
+#ifdef PK_BUILD_WEB
+    #include "platform/web/WebInputManager.h"
+#elif defined(PK_BUILD_DESKTOP)
+    #include "platform/desktop/DesktopInputManager.h"
+#endif
 
 
 namespace pk
 {
-
-
     InputManager::InputManager()
     {
     }
@@ -155,19 +157,18 @@ namespace pk
 
     InputManager* InputManager::create(PlatformName platform, Window* pWindow)
     {
-        switch (platform)
-        {
-            case PlatformName::PK_PLATFORM_WEB:
-                return new web::WebInputManager;
-            case PlatformName::PK_PLATFORM_LINUX:
-                // TODO: Validate that the window casting can actually be done here!
-                return new desktop::DesktopInputManager((desktop::DesktopWindow*)pWindow);
-            default:
-                Debug::log(
-                    "Failed to create InputManager. Invalid platform: " + std::to_string(platform),
-                    Debug::MessageType::PK_FATAL_ERROR
-                );
-                return nullptr;
-        }
+        #ifdef PK_BUILD_WEB
+            return new web::WebInputManager;
+        #elif defined(PK_BUILD_DESKTOP)
+            return new desktop::DesktopInputManager((desktop::DesktopWindow*)pWindow);
+        #else
+            Debug::log(
+                "@InputManager::create "
+                "Failed to create InputManager. Invalid build target! "
+                "Available targets: web, desktop(linux)",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return nullptr
+        #endif
     }
 }

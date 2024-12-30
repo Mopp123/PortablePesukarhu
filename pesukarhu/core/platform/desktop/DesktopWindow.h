@@ -4,7 +4,6 @@
 #include "pesukarhu/graphics/Context.h"
 #include <GLFW/glfw3.h>
 
-
 // EXPLANATION:
 // This "desktop" namespace is used by both windows and linux sicne using glfw and glew
 // the code is about identical...
