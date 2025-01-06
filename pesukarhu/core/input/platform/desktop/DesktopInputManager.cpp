@@ -37,7 +37,6 @@ namespace pk
 
         void cursor_pos_callback(GLFWwindow* pGLFWwindow, double x, double y)
         {
-            Debug::log("PROCESS CURSOR EVENT: NOT TESTED!", Debug::MessageType::PK_WARNING);
             DesktopInputManager* pInputManager = (DesktopInputManager*)glfwGetWindowUserPointer(pGLFWwindow);
 
             // In web gl our coords are flipped -> need to flip mouseY

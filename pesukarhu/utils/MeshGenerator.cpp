@@ -1,4 +1,5 @@
 #include "MeshGenerator.h"
+#include "pesukarhu/core/Debug.h"
 #include "pkmath.h"
 #include <cmath>
 
@@ -22,7 +23,7 @@ namespace pk
 		uint32_t vertexCount = 0;
 
 		// actual "world space width"
-		float totalWidth = tileWidth * verticesPerRow;
+		float totalWidth = tileWidth * (verticesPerRow - 1);
 
 		for (int z = 0; z < verticesPerRow; z++)
 		{
