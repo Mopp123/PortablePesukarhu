@@ -15,14 +15,10 @@ namespace pk
         // than the regular Mesh and Material types!
         PK_id terrainMeshID = 0;
         PK_id terrainMaterialID = 0;
-        std::vector<float> heightmap;
-        float tileWidth = 1.0f;
 
         TerrainRenderable(
             PK_id terrainMeshID,
-            PK_id terrainMaterialID,
-            const std::vector<float>& heightmap,
-            float tileWidth
+            PK_id terrainMaterialID
         );
 
         // NOTE: TerrainRenderable's mesh and material switched to TerrainMesh and TerrainMaterial
@@ -30,9 +26,7 @@ namespace pk
         static TerrainRenderable* create(
             entityID_t target,
             PK_id terrainMeshID,
-            PK_id terrainMaterialID,
-            const std::vector<float>& heightmap,
-            float tileWidth
+            PK_id terrainMaterialID
         );
     };
 }
