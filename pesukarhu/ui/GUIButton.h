@@ -35,6 +35,7 @@ namespace pk
                 float height;
                 OnClickEvent* onClick;
                 bool selectable = false;
+                vec3 selectedColor;
                 vec3 color = { 0.1f, 0.1f, 0.1f };
                 vec3 textColor = { 1, 1, 1 };
                 vec3 textHighlightColor = { 1, 1, 1 };

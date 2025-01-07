@@ -36,11 +36,20 @@ namespace pk
                 const vec2& scale,
                 LayoutFillType fillType, // NOTE: This was previously forced to be HORIZONTAL!
                 vec2 slotScale = vec2(200.0f, 24.0f),
-                bool scrollable = false
+                bool scrollable = false,
+                bool closeable = true // wether or not create close button to the top bar
             );
 
             void setLayer(int layer);
 
+            // NOTE: Below closes and opens panels setting all panel's elements and its' background to correct state.
+            // No clue why the fuck I didn't do this before and required overriding those open and close funcs!
+            virtual void open_NEW();
+            virtual void close_NEW();
+            virtual void onOpen() {};
+            virtual void onClose() {};
+
+            // TODO: Replace these with the NEW above
             virtual void open() {};
             virtual void close() {};
 

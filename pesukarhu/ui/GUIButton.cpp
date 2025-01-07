@@ -106,6 +106,7 @@ namespace pk
             }
             else
             {
+                // NOTE: should be some other mechanic to unselect
                 pUIState->selected = false;
                 pImg->color = _originalColor;
 
@@ -233,23 +234,73 @@ namespace pk
         }
 
         GUIButton::GUIButton(ButtonCreationProperties creationProperties) :
-            GUIButton(
-                creationProperties.txt,
-                *creationProperties.pFont,
+            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_BUTTON)
+        {
+            Scene* pScene = Application::get()->accessCurrentScene();
+            InputManager* inputManager = Application::get()->accessInputManager();
+
+            _entity = pScene->createEntity();
+
+            GUIImage::ImgCreationProperties imgProperties =
+            {
                 creationProperties.constraintProperties,
                 creationProperties.width,
                 creationProperties.height,
-                creationProperties.onClick,
-                creationProperties.selectable,
                 creationProperties.color,
-                creationProperties.textColor,
-                creationProperties.textHighlightColor,
                 creationProperties.backgroundHighlightColor,
+                true, // use highlight color
                 creationProperties.filter,
                 creationProperties.pTexture,
                 creationProperties.textureCropping
-            )
-        {
+            };
+
+            _pImage = new GUIImage(imgProperties);
+            entityID_t imgEntity = _pImage->getEntity();
+
+            // Add txt displacement
+            const int padding = 4;
+            const int txtDisplacementX = padding;
+
+            ConstraintProperties useConstraintProperties = creationProperties.constraintProperties;
+            useConstraintProperties.horizontalValue += (float)txtDisplacementX;
+
+            _pText = new GUIText(
+                creationProperties.txt,
+                *creationProperties.pFont,
+                useConstraintProperties,
+                creationProperties.textColor
+            );
+            entityID_t txtEntity = _pText->getEntity();
+
+            pScene->addChild(_entity, imgEntity);
+            pScene->addChild(_entity, txtEntity);
+
+            Transform* txtTransform = _pText->getTransform();
+            // alter transform's scale to make work properly with constraint system
+            txtTransform->accessTransformationMatrix()[0 + 0 * 4] = creationProperties.width;
+            txtTransform->accessTransformationMatrix()[1 + 1 * 4] = creationProperties.height;
+
+            UIElemState* pUIElemState = (UIElemState*)pScene->getComponent(
+                imgEntity,
+                ComponentType::PK_UIELEM_STATE
+            );
+            pUIElemState->selectable = creationProperties.selectable;
+
+            inputManager->addMouseButtonEvent(
+                new ButtonMouseButtonEvent(
+                    imgEntity,
+                    txtEntity,
+                    creationProperties.selectedColor,
+                    creationProperties.onClick
+                )
+            );
+            inputManager->addCursorPosEvent(
+                new ButtonMouseCursorPosEvent(
+                    txtEntity,
+                    imgEntity,
+                    creationProperties.textHighlightColor
+                )
+            );
         }
 
         GUIButton::~GUIButton()
