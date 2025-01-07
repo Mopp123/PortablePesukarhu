@@ -13,7 +13,8 @@ namespace pk
             vec3 color,
             bool bold
         ) :
-            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_TEXT)
+            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_TEXT),
+            _fontRef(font)
         {
             Scene* pScene = Application::get()->accessCurrentScene();
 
@@ -138,6 +139,26 @@ namespace pk
             std::vector<Component*> components = pScene->getComponents(_entity);
             for (Component* pComponent : components)
                 pComponent->setActive(arg);
+        }
+
+        float GUIText::getVisualWidth() const
+        {
+            std::string str = getVisualStr();
+            if (str.empty())
+                str = getInternalStr();
+            else
+                return 0.0f;
+
+            float width = 0.0f;
+            for (char c : str)
+            {
+                const FontGlyphData * const glyph = _fontRef.getGlyph(c);
+                if (glyph)
+                {
+                    width += ((float)(glyph->advance >> 6));
+                }
+            }
+            return width;
         }
 
         std::string GUIText::getStr(bool getInternal) const

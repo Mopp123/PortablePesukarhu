@@ -376,6 +376,7 @@ namespace pk
             }
             pUIElemState->content = str;
             pContentTextRenderable->accessStr() = str;
+            pContentTextRenderable->accessVisualStr() = str;
         }
     }
 }

@@ -121,11 +121,11 @@ namespace pk
                 pElem->setActive(true);
 
             _pBackgroundImg->setActive(true);
+            onOpen();
         }
 
         void TopBarPanel::close_NEW()
         {
-            onClose();
             _pTopBarImg->setActive(false);
             _pTopBarTitle->setActive(false);
             if (_pCloseButton)
@@ -134,6 +134,7 @@ namespace pk
                 pElem->setActive(false);
 
             _pBackgroundImg->setActive(false);
+            onClose();
         }
 
         void TopBarPanel::setComponentsActive(bool arg)
