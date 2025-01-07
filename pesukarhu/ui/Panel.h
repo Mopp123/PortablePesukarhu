@@ -121,6 +121,10 @@ namespace pk
                 vec2 scale
             );
 
+            GUIButton* addButton(
+                GUIButton::ButtonCreationProperties creationProperties
+            );
+
             InputField* addDefaultInputField(
                 std::string infoTxt,
                 int width,

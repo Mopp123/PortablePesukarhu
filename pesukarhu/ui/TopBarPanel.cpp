@@ -32,7 +32,6 @@ namespace pk
             bool scrollable
         )
         {
-            const float topBarHeight = 20.0f;
             createDefault(
                 pScene,
                 pFont,
@@ -41,14 +40,14 @@ namespace pk
                 slotScale,
                 fillType,
                 false, // We create the scrollbar here differently instead of inside the inherited Panel
-                topBarHeight
+                _topBarHeight
             );
 
             // Create top bar
             GUIImage::ImgCreationProperties topBarCreationProperties;
             topBarCreationProperties.constraintProperties = constraintProperties;
             topBarCreationProperties.width = scale.x;
-            topBarCreationProperties.height = topBarHeight;
+            topBarCreationProperties.height = _topBarHeight;
             topBarCreationProperties.color = Panel::get_base_ui_color(2).toVec3();
             topBarCreationProperties.filter = GUIFilterType::GUI_FILTER_TYPE_EMBOSS;
             _pTopBarImg = new GUIImage(topBarCreationProperties);
@@ -63,7 +62,7 @@ namespace pk
             ConstraintProperties closeButtonConstraintProperties =
             {
                 constraintProperties.horizontalType,
-                constraintProperties.horizontalValue + scale.x - topBarHeight,
+                constraintProperties.horizontalValue + scale.x - _topBarHeight,
                 constraintProperties.verticalType,
                 constraintProperties.verticalValue
             };
@@ -72,8 +71,8 @@ namespace pk
                 "X",
                 *pFont,
                 closeButtonConstraintProperties,
-                topBarHeight - 1,
-                topBarHeight - 2,
+                _topBarHeight - 1,
+                _topBarHeight - 2,
                 new OnClickClose(this),
                 false,
                 get_base_ui_color(2).toVec3(), // color
@@ -84,10 +83,10 @@ namespace pk
             );
 
             // Make elements start after the top bar...
-            _offsetFromPanel.y -= topBarHeight;
+            _offsetFromPanel.y -= _topBarHeight;
 
             if (scrollable)
-                _pScrollbar = new Scrollbar(this, _pDefaultFont, topBarHeight);
+                _pScrollbar = new Scrollbar(this, _pDefaultFont, _topBarHeight);
         }
 
         void TopBarPanel::setLayer(int layer)

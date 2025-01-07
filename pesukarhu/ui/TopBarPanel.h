@@ -20,6 +20,8 @@ namespace pk
                 virtual void onClick(InputMouseButtonName button);
             };
 
+            float _topBarHeight = 20.0f;
+
             GUIImage* _pTopBarImg = nullptr;
             GUIText* _pTopBarTitle = nullptr;
             GUIButton* _pCloseButton = nullptr;
@@ -41,6 +43,8 @@ namespace pk
 
             virtual void open() {};
             virtual void close() {};
+
+            inline float getTopBarHeight() const { return _topBarHeight; }
 
         protected:
             void setComponentsActive(bool arg);

@@ -41,6 +41,7 @@ namespace pk
         void setColorAt_UNSAFE(int x, int y, unsigned char val);
 
         inline const unsigned char* getData() const { return _pData; }
+        inline unsigned char* getData() { return _pData; }
         inline int getWidth() const { return _width; }
         inline int getHeight() const { return _height; }
         inline int getChannels() const { return _channels; }

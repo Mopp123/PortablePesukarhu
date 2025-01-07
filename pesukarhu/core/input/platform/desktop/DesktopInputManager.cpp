@@ -51,7 +51,6 @@ namespace pk
 
         void scroll_callback(GLFWwindow* pGLFWwindow, double xOffset, double yOffset)
         {
-            Debug::log("PROCESS SCROLL EVENT: NOT TESTED!", Debug::MessageType::PK_WARNING);
             DesktopInputManager* pInputManager = (DesktopInputManager*)glfwGetWindowUserPointer(pGLFWwindow);
             pInputManager->processScrollEvents(xOffset, yOffset);
         }

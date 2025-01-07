@@ -289,6 +289,17 @@ namespace pk
             return pButton;
         }
 
+        GUIButton* Panel::addButton(
+            GUIButton::ButtonCreationProperties creationProperties
+        )
+        {
+            GUIButton* pButton = new GUIButton(creationProperties);
+            _pScene->addChild(_entity, pButton->getEntity());
+            addElement(pButton);
+
+            return pButton;
+        }
+
         InputField* Panel::addDefaultInputField(
             std::string infoTxt,
             int width,

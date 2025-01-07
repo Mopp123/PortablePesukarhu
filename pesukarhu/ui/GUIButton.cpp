@@ -232,6 +232,26 @@ namespace pk
             );
         }
 
+        GUIButton::GUIButton(ButtonCreationProperties creationProperties) :
+            GUIButton(
+                creationProperties.txt,
+                *creationProperties.pFont,
+                creationProperties.constraintProperties,
+                creationProperties.width,
+                creationProperties.height,
+                creationProperties.onClick,
+                creationProperties.selectable,
+                creationProperties.color,
+                creationProperties.textColor,
+                creationProperties.textHighlightColor,
+                creationProperties.backgroundHighlightColor,
+                creationProperties.filter,
+                creationProperties.pTexture,
+                creationProperties.textureCropping
+            )
+        {
+        }
+
         GUIButton::~GUIButton()
         {
             if (_pImage)

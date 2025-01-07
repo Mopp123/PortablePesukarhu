@@ -26,6 +26,24 @@ namespace pk
                 virtual ~OnClickEvent(){}
             };
 
+            struct ButtonCreationProperties
+            {
+                std::string txt;
+                const Font* pFont;
+                ConstraintProperties constraintProperties;
+                float width;
+                float height;
+                OnClickEvent* onClick;
+                bool selectable = false;
+                vec3 color = { 0.1f, 0.1f, 0.1f };
+                vec3 textColor = { 1, 1, 1 };
+                vec3 textHighlightColor = { 1, 1, 1 };
+                vec3 backgroundHighlightColor = { 0.2f, 0.2f, 0.2f };
+                GUIFilterType filter = GUIFilterType::GUI_FILTER_TYPE_NONE;
+                Texture* pTexture = nullptr;
+                vec4 textureCropping = vec4(0, 0, 1, 1);
+            };
+
         private:
             class ButtonMouseButtonEvent : public MouseButtonEvent
             {
@@ -84,6 +102,7 @@ namespace pk
                 Texture* pTexture = nullptr,
                 vec4 textureCropping = vec4(0, 0, 1, 1)
             );
+            GUIButton(ButtonCreationProperties creationProperties);
             GUIButton(const GUIButton& other) = delete;
             ~GUIButton();
 
