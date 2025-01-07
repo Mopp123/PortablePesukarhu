@@ -7,11 +7,13 @@ namespace pk
     TerrainMaterial::TerrainMaterial(
         std::vector<Texture*> pChannelTextures,
         Texture* pBlendmapTexture,
-        Texture* pCustomDataTexture
+        Texture* pCustomDataTexture,
+        int textureTiling
     ) :
         Resource(ResourceType::RESOURCE_TERRAIN_MATERIAL),
         _pBlendmapTexture(pBlendmapTexture),
-        _pCustomDataTexture(pCustomDataTexture)
+        _pCustomDataTexture(pCustomDataTexture),
+        _textureTiling(textureTiling)
     {
         if (pChannelTextures.size() > TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS)
         {

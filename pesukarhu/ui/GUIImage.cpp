@@ -183,6 +183,21 @@ namespace pk
             return (Transform*)pScene->getComponent(_entity, ComponentType::PK_TRANSFORM);
         }
 
+        UIElemState* GUIImage::getUIElemState()
+        {
+            if (_entity == NULL_ENTITY_ID)
+            {
+                Debug::log(
+                    "@GUIImage::getUIElemState "
+                    "GUIImage's entity was null!",
+                    Debug::MessageType::PK_FATAL_ERROR
+                );
+                return nullptr;
+            }
+            Scene* pScene = Application::get()->accessCurrentScene();
+            return (UIElemState*)pScene->getComponent(_entity, ComponentType::PK_UIELEM_STATE);
+        }
+
         void GUIImage::setActive(bool arg)
         {
             if (_entity == NULL_ENTITY_ID)

@@ -223,6 +223,7 @@ namespace pk
         const std::vector<uint32_t>& pChannelTextureIDs,
         uint32_t blendmapTextureID,
         uint32_t customDataTextureID,
+        int textureTiling,
         bool persistent
     )
     {
@@ -289,7 +290,8 @@ namespace pk
         TerrainMaterial* pTerrainMaterial = new TerrainMaterial(
             textures,
             pBlendmapTexture,
-            pCustomDataTexture
+            pCustomDataTexture,
+            textureTiling
         );
         _resources[pTerrainMaterial->getResourceID()] = pTerrainMaterial;
         if (persistent)

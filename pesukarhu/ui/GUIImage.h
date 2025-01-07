@@ -5,6 +5,7 @@
 #include "pesukarhu/utils/pkmath.h"
 #include "pesukarhu/ecs/components/renderable/GUIRenderable.h"
 #include "pesukarhu/ecs/components/Transform.h"
+#include "pesukarhu/ecs/components/ui/UIElemState.h"
 
 
 namespace pk
@@ -36,6 +37,7 @@ namespace pk
             GUIRenderable* getRenderable();
             ConstraintData* getConstraint();
             Transform* getTransform();
+            UIElemState* getUIElemState();
 
             void setActive(bool arg);
         };

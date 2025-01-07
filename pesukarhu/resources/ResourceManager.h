@@ -87,6 +87,7 @@ namespace pk
             const std::vector<uint32_t>& pChannelTextureIDs,
             uint32_t blendmapTextureID,
             uint32_t customDataTextureID = 0,
+            int textureTiling = 1,
             bool persistent = false
         );
 

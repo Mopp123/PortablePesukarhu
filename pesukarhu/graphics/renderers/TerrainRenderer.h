@@ -2,6 +2,7 @@
 
 #include "pesukarhu/resources/Texture.h"
 #include "pesukarhu/resources/Mesh.h"
+#include "pesukarhu/resources/TerrainMaterial.h"
 #include "pesukarhu/graphics/Renderer.h"
 #include "pesukarhu/graphics/Pipeline.h"
 #include "pesukarhu/graphics/Buffers.h"
@@ -18,6 +19,7 @@ namespace pk
     struct TerrainRenderData
     {
         mat4 transformationMatrix = mat4(1.0f);
+        float textureTiling = 1.0f;
         std::vector<DescriptorSet*> materialDescriptorSet;
     };
 
@@ -66,11 +68,12 @@ namespace pk
     private:
         TerrainRenderData createTerrainRenderData(
             const TerrainRenderable* pRenderable,
+            const TerrainMaterial * const pMaterial,
             mat4 transformationMatrix
         );
 
         void createRenderDataDescriptorSets(
-            const TerrainRenderable * const pRenderable,
+            const TerrainMaterial * const pMaterial,
             TerrainRenderData& target
         );
     };

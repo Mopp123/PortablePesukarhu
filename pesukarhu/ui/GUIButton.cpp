@@ -84,7 +84,9 @@ namespace pk
 
                 if (pUIState->state == 2)
                 {
-                    if (pUIState->selectable)
+                    // *Allow selecting only with left click.
+                    // BUT process OnClicks with any button tho..
+                    if (pUIState->selectable && button == InputMouseButtonName::PK_INPUT_MOUSE_LEFT)
                     {
                         pUIState->selected = !pUIState->selected;
                         pImg->color = _highlightColor;
@@ -106,16 +108,15 @@ namespace pk
             }
             else
             {
-                // NOTE: should be some other mechanic to unselect
-                pUIState->selected = false;
-                pImg->color = _originalColor;
-
-                pUIState->state = 0;
-
-                if (pBlinker)
+                if (!pUIState->selected)
                 {
-                    pBlinker->enable = false;
-                    pTxtRenderable->accessVisualStr() = pTxtRenderable->accessStr();
+                    pImg->color = _originalColor;
+                    pUIState->state = 0;
+                    if (pBlinker)
+                    {
+                        pBlinker->enable = false;
+                        pTxtRenderable->accessVisualStr() = pTxtRenderable->accessStr();
+                    }
                 }
             }
         }
@@ -164,7 +165,9 @@ namespace pk
             Texture* pTexture,
             vec4 textureCropping
         ) :
-            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_BUTTON)
+            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_BUTTON),
+            _backgroundColor(color),
+            _backgroundHighlightColor(backgroundHighlightColor)
         {
             Scene* pScene = Application::get()->accessCurrentScene();
             InputManager* inputManager = Application::get()->accessInputManager();
@@ -215,12 +218,11 @@ namespace pk
             );
             pUIElemState->selectable = selectable;
 
-            vec3 selectedColor(0.3f, 0.3f, 0.3f);
             inputManager->addMouseButtonEvent(
                 new ButtonMouseButtonEvent(
                     imgEntity,
                     txtEntity,
-                    selectedColor,
+                    _backgroundSelectedColor,
                     onClick
                 )
             );
@@ -234,7 +236,10 @@ namespace pk
         }
 
         GUIButton::GUIButton(ButtonCreationProperties creationProperties) :
-            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_BUTTON)
+            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_BUTTON),
+            _backgroundColor(creationProperties.color),
+            _backgroundHighlightColor(creationProperties.backgroundHighlightColor),
+            _backgroundSelectedColor(creationProperties.selectedColor)
         {
             Scene* pScene = Application::get()->accessCurrentScene();
             InputManager* inputManager = Application::get()->accessInputManager();
@@ -319,6 +324,41 @@ namespace pk
             std::vector<Component*> components = pScene->getComponents(_entity);
             for (Component* pComponent : components)
                 pComponent->setActive(arg);
+        }
+
+        void GUIButton::setSelected(bool arg)
+        {
+            // If this was used as input field get text blinker...
+            // fucking shit way to deal with this stuff atm...
+            // TODO: Rework this whole fuckery!
+            Blinker* pBlinker = nullptr;
+            TextRenderable* pTxtRenderable = nullptr;
+            if (_pText)
+            {
+                pBlinker = (Blinker*)Application::get()->accessCurrentScene()->getComponent(
+                    _pText->getEntity(),
+                    ComponentType::PK_BLINKER,
+                    false,
+                    false
+                );
+                pTxtRenderable = _pText->getRenderable();
+            }
+
+            UIElemState* pUIState = _pImage->getUIElemState();
+            GUIRenderable* pImg = _pImage->getRenderable();
+            if (!pUIState->isActive())
+                return;
+
+            pUIState->selected = arg;
+            pImg->color = arg ? _backgroundSelectedColor : _backgroundColor;
+
+            if (pBlinker)
+            {
+                pBlinker->enable = pUIState->selected;
+                // Reset txt to original state if disengage blinker
+                if (!pUIState->selected)
+                    pTxtRenderable->accessVisualStr() = pTxtRenderable->accessStr();
+            }
         }
     }
 }

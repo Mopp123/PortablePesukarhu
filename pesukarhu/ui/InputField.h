@@ -28,6 +28,19 @@ namespace pk
             };
 
         private:
+            class InputFieldMouseButtonEvent : public MouseButtonEvent
+            {
+            private:
+                GUIButton* _pButton = nullptr;
+                vec3 _originalColor = vec3(0, 0, 0);
+                bool _prevSelected = false;
+
+            public:
+                InputFieldMouseButtonEvent(GUIButton* pButton);
+                virtual ~InputFieldMouseButtonEvent() {}
+                virtual void func(InputMouseButtonName button, InputAction action, int mods);
+            };
+
             class InputFieldKeyEvent : public KeyEvent
             {
             private:
