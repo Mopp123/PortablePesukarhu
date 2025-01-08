@@ -6,6 +6,44 @@ namespace pk
 {
     namespace ui
     {
+        InputField::InputFieldMouseButtonEvent::InputFieldMouseButtonEvent(GUIButton* pButton) :
+            _pButton(pButton)
+        {
+            GUIRenderable* pButtonRenderable = _pButton->getImage()->getRenderable();
+            _originalColor = pButtonRenderable->color;
+        }
+
+        // Deselect the InputField's "button" if clicking outside
+        void InputField::InputFieldMouseButtonEvent::func(InputMouseButtonName button, InputAction action, int mods)
+        {
+            UIElemState* pButtonState = _pButton->getImage()->getUIElemState();
+            GUIRenderable* pButtonRenderable = _pButton->getImage()->getRenderable();
+            TextRenderable* pTextRenderable = _pButton->getText()->getRenderable();
+            // NOTE: DANGER!
+            // ...if theres no blinker on text...
+            Blinker* pBlinker = (Blinker*)Application::get()->accessCurrentScene()->getComponent(
+                _pButton->getText()->getEntity(),
+                ComponentType::PK_BLINKER,
+                false,
+                false
+            );
+
+            if (_prevSelected)
+            {
+                if (pButtonState->mouseOver)
+                    pButtonRenderable->color = _pButton->getBackgroundHighlightColor();
+                else
+                    pButtonRenderable->color = _originalColor;
+
+                pButtonState->state = 0;
+                pButtonState->selected = false;
+                pBlinker->enable = false;
+                pTextRenderable->accessVisualStr() = pTextRenderable->accessStr();
+            }
+            _prevSelected = pButtonState->selected;
+        }
+
+
         InputField::InputFieldKeyEvent::InputFieldKeyEvent(
             entityID_t inputFieldEntity,
             entityID_t buttonEntity,
@@ -160,10 +198,10 @@ namespace pk
             GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_INPUT_FIELD)
         {
             Scene* currentScene = Application::get()->accessCurrentScene();
-            InputManager* inputManager = Application::get()->accessInputManager();
 
             _entity = currentScene->createEntity();
 
+            // TODO: Separate state component for InputFields specifically!
             UIElemState* pUIElemState = UIElemState::create(_entity);
             pUIElemState->selectable = true;
             pUIElemState->clearOnSubmit = clearOnSubmit;
@@ -234,7 +272,13 @@ namespace pk
             );
             buttonTransform->accessTransformationMatrix()[1 + 3 * 4] -= 4;
 
-            inputManager->addKeyEvent(
+            InputManager* pInputManager = Application::get()->accessInputManager();
+            pInputManager->addMouseButtonEvent(
+                new InputFieldMouseButtonEvent(
+                    _pButton
+                )
+            );
+            pInputManager->addKeyEvent(
                 new InputFieldKeyEvent(
                     _entity,
                     buttonImgEntity,
@@ -243,7 +287,7 @@ namespace pk
                     onSubmitEvent
                 )
             );
-            inputManager->addCharInputEvent(
+            pInputManager->addCharInputEvent(
                 new InputFieldCharInputEvent(
                     _entity,
                     buttonImgEntity,
@@ -332,6 +376,7 @@ namespace pk
             }
             pUIElemState->content = str;
             pContentTextRenderable->accessStr() = str;
+            pContentTextRenderable->accessVisualStr() = str;
         }
     }
 }

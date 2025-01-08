@@ -87,6 +87,10 @@ namespace pk
             GUIImage* _pImage = nullptr;
             GUIText* _pText = nullptr;
 
+            vec3 _backgroundColor;
+            vec3 _backgroundHighlightColor;
+            vec3 _backgroundSelectedColor = vec3(0.3f, 0.3f, 0.3f);
+
         public:
             GUIButton(
                 std::string txt,
@@ -108,9 +112,12 @@ namespace pk
             ~GUIButton();
 
             void setActive(bool arg);
+            void setSelected(bool arg);
 
             inline GUIImage* getImage() { return _pImage; }
             inline GUIText* getText() { return _pText; }
+
+            inline vec3 getBackgroundHighlightColor() const { return _backgroundHighlightColor; }
         };
     }
 }

@@ -15,6 +15,10 @@ namespace pk
     {
         class GUIText : public GUIElement
         {
+        private:
+            // TODO: make this ptr instead of ref
+            const Font& _fontRef;
+
         public:
             GUIText(
                 const std::string& str,
@@ -37,6 +41,8 @@ namespace pk
             void setStr(const std::string& str);
 
             void setActive(bool arg);
+
+            float getVisualWidth() const;
 
         private:
             std::string getStr(bool getInternal) const;

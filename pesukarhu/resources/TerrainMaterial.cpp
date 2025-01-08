@@ -7,11 +7,13 @@ namespace pk
     TerrainMaterial::TerrainMaterial(
         std::vector<Texture*> pChannelTextures,
         Texture* pBlendmapTexture,
-        Texture* pCustomDataTexture
+        Texture* pCustomDataTexture,
+        int textureTiling
     ) :
         Resource(ResourceType::RESOURCE_TERRAIN_MATERIAL),
         _pBlendmapTexture(pBlendmapTexture),
-        _pCustomDataTexture(pCustomDataTexture)
+        _pCustomDataTexture(pCustomDataTexture),
+        _textureTiling(textureTiling)
     {
         if (pChannelTextures.size() > TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS)
         {
@@ -41,7 +43,8 @@ namespace pk
         {
             Debug::log(
                  "@TerrainMaterial::getChannelTexture "
-                 "index out of bounds! Max terrain material channel texture index is: " + std::to_string(TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS),
+                 "index: " + std::to_string(index) + " "
+                 "out of bounds! Max terrain material channel texture index is: " + std::to_string(TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS),
                  Debug::MessageType::PK_FATAL_ERROR
             );
             return nullptr;
@@ -79,5 +82,20 @@ namespace pk
             );
         }
         return pTexture;
+    }
+
+    void TerrainMaterial::setChannelTexture(unsigned int index, Texture* pTexture)
+    {
+        if (index >= TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS)
+        {
+            Debug::log(
+                 "@TerrainMaterial::setChannelTexture "
+                 "index: " + std::to_string(index) + " "
+                 "out of bounds! Max terrain material channel texture index is: " + std::to_string(TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS),
+                 Debug::MessageType::PK_FATAL_ERROR
+            );
+            return;
+        }
+        _pChannelTextures[index] = pTexture;
     }
 }

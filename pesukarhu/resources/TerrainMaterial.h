@@ -26,12 +26,14 @@ namespace pk
         // info in addition to blendmap only
         // NOTE: Atm experimenting this being just grayscale texture!
         Texture* _pCustomDataTexture = nullptr;
+        int _textureTiling = 1;
 
     public:
         TerrainMaterial(
             std::vector<Texture*> pChannelTextures,
             Texture* pBlendmapTexture,
-            Texture* pCustomDataTexture = nullptr
+            Texture* pCustomDataTexture = nullptr,
+            int textureTiling = 1
         );
         TerrainMaterial(const TerrainMaterial&) = delete;
 
@@ -42,7 +44,10 @@ namespace pk
 
         const Texture * const getChannelTexture(int index) const;
         Texture* accessChannelTexture(int index);
+        void setChannelTexture(unsigned int index, Texture* pTexture);
         inline const Texture* getBlendmapTexture() const { return _pBlendmapTexture; }
         inline const Texture* getCustomDataTexture() const { return _pCustomDataTexture; }
+
+        inline int getTextureTiling() const { return _textureTiling; }
     };
 }

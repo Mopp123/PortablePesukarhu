@@ -1,6 +1,5 @@
 #include "TerrainRenderer.h"
 #include "pesukarhu/core/Application.h"
-#include "pesukarhu/ecs/components/renderable/TerrainRenderable.h"
 #include "pesukarhu/resources/TerrainMesh.h"
 
 
@@ -29,6 +28,7 @@ namespace pk
         // NOTE: common descriptors uniform locations for 3d stuff from master renderer
         // go from 0 to 5 -> 6 first available
         //  -> 6 used as push constant transformation matrix
+        //  -> 7 used as push constant texture tiling
 
         // Material desc set layout
         // Blendmap channel textures
@@ -41,7 +41,7 @@ namespace pk
                     1,
                     DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                     ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-                    {{ 7 + i }}
+                    {{ 8 + i }}
                 )
             );
         }
@@ -51,7 +51,7 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 7 + TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS }} // TODO: some way to find out "common desc sets count"
+            {{ 8 + TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS }} // TODO: some way to find out "common desc sets count"
         );
         descSetBindings.push_back(blendmapDescSetBinding);
 
@@ -61,14 +61,13 @@ namespace pk
             1,
             DescriptorType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             ShaderStageFlagBits::SHADER_STAGE_FRAGMENT_BIT,
-            {{ 7 + TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS + 1 }} // TODO: some way to find out "common desc sets count"
+            {{ 8 + TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS + 1 }} // TODO: some way to find out "common desc sets count"
         );
         descSetBindings.push_back(customDataDescSetBinding);
 
         _materialDescSetLayout = DescriptorSetLayout(
             descSetBindings
         );
-
     }
 
     TerrainRenderer::~TerrainRenderer()
@@ -105,7 +104,7 @@ namespace pk
             true,
             DepthCompareOperation::COMPARE_OP_LESS_OR_EQUAL,
             false,
-            sizeof(mat4),
+            sizeof(mat4) + sizeof(float), // push constants size. transformation matrix + textureTiling
             ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT
         );
 
@@ -119,15 +118,56 @@ namespace pk
     )
     {
         const TerrainRenderable * const pRenderable = (const TerrainRenderable * const)renderableComponent;
+        ResourceManager& resManager = Application::get()->getResourceManager();
+        const TerrainMaterial* pMaterial = (const TerrainMaterial*)resManager.getResource(
+            pRenderable->terrainMaterialID
+        );
 
         if (_toRender.find(pRenderable->terrainMeshID) == _toRender.end())
-            _toRender[pRenderable->terrainMeshID] = createTerrainRenderData(pRenderable, transformation);
+        {
+            _toRender[pRenderable->terrainMeshID] = createTerrainRenderData(
+                pRenderable,
+                pMaterial,
+                transformation
+            );
+        }
         else
-            _toRender[pRenderable->terrainMeshID].transformationMatrix = transformation;
+        {
+            TerrainRenderData& renderData = _toRender[pRenderable->terrainMeshID];
+            renderData.transformationMatrix = transformation;
+            // Check if textures were changed in material
+            // -> need to recreate descriptor sets if were changed!
+            bool shouldRecreateDescriptorSets = false;
+            for (DescriptorSet* pDescSet : renderData.materialDescriptorSet)
+            {
+                const std::vector<const Texture*>& descSetChannelTextures = pDescSet->getTextures();
+                // test each channel texture
+                for (int i = 0; i < TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS; ++i)
+                {
+                    const Texture* pDescSetChannelTexture = descSetChannelTextures[i];
+                    if (pDescSetChannelTexture != pMaterial->getChannelTexture(i))
+                    {
+                        shouldRecreateDescriptorSets = true;
+                        break;
+                    }
+                }
+                if (shouldRecreateDescriptorSets)
+                    break;
+            }
+            if (shouldRecreateDescriptorSets)
+            {
+                Debug::log(
+                    "@TerrainRenderer::submit "
+                    "TerrainMaterial with ID: " + std::to_string(pMaterial->getResourceID()) + " "
+                    "textures were changed. Recreating descriptor sets..."
+                );
+                freeDescriptorSets(renderData);
+            }
+        }
 
         // recreate descriptor sets if necessary..
         if (_toRender[pRenderable->terrainMeshID].materialDescriptorSet.empty())
-            createRenderDataDescriptorSets(pRenderable, _toRender[pRenderable->terrainMeshID]);
+            createRenderDataDescriptorSets(pMaterial, _toRender[pRenderable->terrainMeshID]);
 
         _submittedTerrains.insert(pRenderable->terrainMeshID);
     }
@@ -222,14 +262,26 @@ namespace pk
                 renderData.materialDescriptorSet[0] // TODO: this should be current swapchain img index
             };
 
+            std::vector<PK_byte> pushConstantsData(sizeof(mat4) + sizeof(float));
+            memcpy(
+                pushConstantsData.data(),
+                renderData.transformationMatrix.getRawArray(),
+                sizeof(mat4)
+            );
+            memcpy(
+                pushConstantsData.data() + sizeof(mat4),
+                &(renderData.textureTiling),
+                sizeof(float)
+            );
             pRenderCmd->pushConstants(
                 pCurrentCmdBuf,
                 ShaderStageFlagBits::SHADER_STAGE_VERTEX_BIT,
                 0,
-                sizeof(mat4),
-                renderData.transformationMatrix.getRawArray(),
+                pushConstantsData.size(),
+                pushConstantsData.data(),
                 {
-                    { 6, ShaderDataType::Mat4 }
+                    { 6, ShaderDataType::Mat4 },
+                    { 7, ShaderDataType::Float }
                 }
             );
 
@@ -277,6 +329,13 @@ namespace pk
         }
     }
 
+    void TerrainRenderer::freeDescriptorSets(TerrainRenderData& target)
+    {
+        for (DescriptorSet* pDescSet : target.materialDescriptorSet)
+            delete pDescSet;
+        target.materialDescriptorSet.clear();
+    }
+
     void TerrainRenderer::onSceneSwitch()
     {
         _toRender.clear();
@@ -284,26 +343,22 @@ namespace pk
 
     TerrainRenderData TerrainRenderer::createTerrainRenderData(
         const TerrainRenderable* pRenderable,
+        const TerrainMaterial * const pMaterial,
         mat4 transformationMatrix
     )
     {
         TerrainRenderData renderData;
         renderData.transformationMatrix = transformationMatrix;
-        createRenderDataDescriptorSets(pRenderable, renderData);
-
+        renderData.textureTiling = (float)pMaterial->getTextureTiling();
+        createRenderDataDescriptorSets(pMaterial, renderData);
         return renderData;
     }
 
     void TerrainRenderer::createRenderDataDescriptorSets(
-        const TerrainRenderable * const pRenderable,
+        const TerrainMaterial * const pMaterial,
         TerrainRenderData& target
     )
     {
-        Application* pApp = Application::get();
-        ResourceManager& resManager = pApp->getResourceManager();
-        const TerrainMaterial* pMaterial = (const TerrainMaterial*)resManager.getResource(
-            pRenderable->terrainMaterialID
-        );
         std::vector<const Texture*> textures(TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS + 1 + 1); // first +1 is the blendmap texture, second +1 is "custom data texture"
         for (int i = 0; i < TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS; ++i)
             textures[i] = pMaterial->getChannelTexture(i);
@@ -311,6 +366,7 @@ namespace pk
         textures[TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS] = pMaterial->getBlendmapTexture();
         textures[TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS + 1] = pMaterial->getCustomDataTexture();
 
+        Application* pApp = Application::get();
         const Swapchain* pSwapchain = pApp->getWindow()->getSwapchain();
         uint32_t swapchainImages = pSwapchain->getImageCount();
         target.materialDescriptorSet.resize(swapchainImages);
