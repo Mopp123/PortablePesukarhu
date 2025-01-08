@@ -133,7 +133,36 @@ namespace pk
         }
         else
         {
-            _toRender[pRenderable->terrainMeshID].transformationMatrix = transformation;
+            TerrainRenderData& renderData = _toRender[pRenderable->terrainMeshID];
+            renderData.transformationMatrix = transformation;
+            // Check if textures were changed in material
+            // -> need to recreate descriptor sets if were changed!
+            bool shouldRecreateDescriptorSets = false;
+            for (DescriptorSet* pDescSet : renderData.materialDescriptorSet)
+            {
+                const std::vector<const Texture*>& descSetChannelTextures = pDescSet->getTextures();
+                // test each channel texture
+                for (int i = 0; i < TERRAIN_MATERIAL_MAX_TEXTURE_CHANNELS; ++i)
+                {
+                    const Texture* pDescSetChannelTexture = descSetChannelTextures[i];
+                    if (pDescSetChannelTexture != pMaterial->getChannelTexture(i))
+                    {
+                        shouldRecreateDescriptorSets = true;
+                        break;
+                    }
+                }
+                if (shouldRecreateDescriptorSets)
+                    break;
+            }
+            if (shouldRecreateDescriptorSets)
+            {
+                Debug::log(
+                    "@TerrainRenderer::submit "
+                    "TerrainMaterial with ID: " + std::to_string(pMaterial->getResourceID()) + " "
+                    "textures were changed. Recreating descriptor sets..."
+                );
+                freeDescriptorSets(renderData);
+            }
         }
 
         // recreate descriptor sets if necessary..
@@ -298,6 +327,13 @@ namespace pk
                 delete pDescSet;
             renderData.materialDescriptorSet.clear();
         }
+    }
+
+    void TerrainRenderer::freeDescriptorSets(TerrainRenderData& target)
+    {
+        for (DescriptorSet* pDescSet : target.materialDescriptorSet)
+            delete pDescSet;
+        target.materialDescriptorSet.clear();
     }
 
     void TerrainRenderer::onSceneSwitch()

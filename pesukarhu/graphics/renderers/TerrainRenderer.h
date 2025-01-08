@@ -59,6 +59,7 @@ namespace pk
         virtual void flush();
 
         virtual void freeDescriptorSets();
+        void freeDescriptorSets(TerrainRenderData& target);
 
         virtual void onSceneSwitch();
 

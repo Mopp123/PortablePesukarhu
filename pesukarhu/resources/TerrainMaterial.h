@@ -44,6 +44,7 @@ namespace pk
 
         const Texture * const getChannelTexture(int index) const;
         Texture* accessChannelTexture(int index);
+        void setChannelTexture(unsigned int index, Texture* pTexture);
         inline const Texture* getBlendmapTexture() const { return _pBlendmapTexture; }
         inline const Texture* getCustomDataTexture() const { return _pCustomDataTexture; }
 

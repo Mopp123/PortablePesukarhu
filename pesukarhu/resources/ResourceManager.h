@@ -44,6 +44,11 @@ namespace pk
         ~ResourceManager();
         ResourceManager(const ResourceManager&) = delete;
         void freeResources();
+        // NOTE: Deleting graphics resources while those are in use with Vulkan especially
+        // probably fucks up.
+        // TODO: Make this work in a way that resource gets requested for deletion by user
+        // and resource manager actually gets deleted when it's not in use!
+        void freeResource(PK_id id);
 
         void createDefaultResources();
 

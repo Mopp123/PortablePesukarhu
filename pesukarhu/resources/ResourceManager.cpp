@@ -38,6 +38,35 @@ namespace pk
         Debug::log("ResourceManager freed all resources!");
     }
 
+    void ResourceManager::freeResource(PK_id id)
+    {
+        std::unordered_map<PK_id, Resource*>::iterator it = _resources.find(id);
+        if (it == _resources.end())
+        {
+            Debug::log(
+                "@ResourceManager::freeResource "
+                "Failed to free resource with ID: " + std::to_string(id) + " "
+                "Failed to find resource!",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
+            return;
+        }
+        std::unordered_map<PK_id, Resource*>::iterator persIt = _persistentResources.find(id);
+        if (persIt == _persistentResources.end())
+        {
+            delete it->second;
+        }
+        else
+        {
+            delete persIt->second;
+            _resources.erase(it);
+        }
+        Debug::log(
+            "@ResourceManager::freeResource "
+            "Freed resource with ID: " + std::to_string(id)
+        );
+    }
+
     void ResourceManager::createDefaultResources()
     {
         // Texture to be used all stuff which uses color instead of texture.
