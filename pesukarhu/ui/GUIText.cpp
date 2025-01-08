@@ -141,6 +141,13 @@ namespace pk
                 pComponent->setActive(arg);
         }
 
+        void GUIText::setConstraintValues(float horizontal, float vertical)
+        {
+            ConstraintData* pConstraint = getConstraint();
+            pConstraint->horizontalValue = horizontal;
+            pConstraint->verticalValue = vertical;
+        }
+
         float GUIText::getVisualWidth() const
         {
             std::string str = getVisualStr();
@@ -149,10 +156,15 @@ namespace pk
             else
                 return 0.0f;
 
+            return get_visual_width(str, _fontRef);
+        }
+
+        float GUIText::get_visual_width(const std::string& str, const Font& font)
+        {
             float width = 0.0f;
             for (char c : str)
             {
-                const FontGlyphData * const glyph = _fontRef.getGlyph(c);
+                const FontGlyphData * const glyph = font.getGlyph(c);
                 if (glyph)
                 {
                     width += ((float)(glyph->advance >> 6));

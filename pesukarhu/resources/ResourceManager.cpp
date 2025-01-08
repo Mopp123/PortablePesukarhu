@@ -59,8 +59,9 @@ namespace pk
         else
         {
             delete persIt->second;
-            _resources.erase(it);
+            _persistentResources.erase(persIt);
         }
+        _resources.erase(it);
         Debug::log(
             "@ResourceManager::freeResource "
             "Freed resource with ID: " + std::to_string(id)
@@ -119,7 +120,16 @@ namespace pk
     )
     {
         ImageData* pImgData = new ImageData(filepath, flip);
-        pImgData->load();
+        if (!pImgData->load())
+        {
+            Debug::log(
+                "@ResourceManager::loadImage "
+                "Failed to load image from: " + filepath,
+                Debug::MessageType::PK_ERROR
+            );
+            delete pImgData;
+            return nullptr;
+        }
         _resources[pImgData->getResourceID()] = (Resource*)pImgData;
         if (persistent)
             _persistentResources[pImgData->getResourceID()] = (Resource*)pImgData;
@@ -158,7 +168,7 @@ namespace pk
             Debug::log(
                 "@ResourceManager::loadTexture "
                 "Failed to load image from: " + filepath,
-                Debug::MessageType::PK_FATAL_ERROR
+                Debug::MessageType::PK_ERROR
             );
             return nullptr;
         }
@@ -422,13 +432,23 @@ namespace pk
         return pAnimation;
     }
 
-    Font* ResourceManager::createFont(
+    Font* ResourceManager::loadFont(
         const std::string& filepath,
         int pixelSize
     )
     {
         Font* pFont = new Font(filepath, pixelSize);
-        pFont->load();
+        if (!pFont->load())
+        {
+            Debug::log(
+                "@ResourceManager::loadFont "
+                "Failed to load font from: " + filepath,
+                Debug::MessageType::PK_ERROR
+            );
+            delete pFont;
+            return nullptr;
+        }
+
         // Ycm fucks up here for some fucking weird reason..
         // gives non existing error? compiles just fine tho..
         _resources[pFont->getResourceID()] = pFont;

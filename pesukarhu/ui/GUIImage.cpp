@@ -214,5 +214,12 @@ namespace pk
             for (Component* pComponent : components)
                 pComponent->setActive(arg);
         }
+
+        void GUIImage::setConstraintValues(float horizontal, float vertical)
+        {
+            ConstraintData* pConstraint = getConstraint();
+            pConstraint->horizontalValue = horizontal;
+            pConstraint->verticalValue = vertical;
+        }
     }
 }

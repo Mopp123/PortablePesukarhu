@@ -127,7 +127,7 @@ namespace pk
             const std::vector<Pose>& poses
         );
 
-        Font* createFont(
+        Font* loadFont(
             const std::string& filepath,
             int pixelSize
         );

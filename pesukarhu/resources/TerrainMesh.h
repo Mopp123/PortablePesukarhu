@@ -28,8 +28,8 @@ namespace pk
 
         // Currently not used until:
         // TODO: "engine internal asset file format"
-        virtual void load() {}
-        virtual void save() {}
+        virtual bool load() { return false; }
+        virtual bool save() { return false; }
 
         inline const Buffer* getVertexBuffer() const { return _pVertexBuffer; }
         inline Buffer* accessVertexBuffer() { return _pVertexBuffer; }

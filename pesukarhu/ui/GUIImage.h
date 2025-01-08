@@ -40,6 +40,8 @@ namespace pk
             UIElemState* getUIElemState();
 
             void setActive(bool arg);
+
+            virtual void setConstraintValues(float horizontal, float vertical);
         };
     }
 }

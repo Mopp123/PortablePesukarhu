@@ -41,7 +41,7 @@ namespace pk
         delete[] _pData;
     }
 
-    void ImageData::load()
+    bool ImageData::load()
     {
         if (_loaded)
         {
@@ -50,7 +50,7 @@ namespace pk
                 "Resource was already loaded. Requires freeing before new load can occur",
                 Debug::MessageType::PK_FATAL_ERROR
             );
-            return;
+            return false;
         }
         int width = 0;
         int height = 0;
@@ -66,10 +66,11 @@ namespace pk
         {
             Debug::log(
                 "@ImageData::load "
-                "Failed to load image from location : " + getFilepathStr(),
-                Debug::MessageType::PK_FATAL_ERROR
+                "stbi_load returned nullptr using filepath: " + getFilepathStr(),
+                Debug::MessageType::PK_ERROR
             );
             stbi_image_free(stbImageData);
+            return false;
         }
 
         _width = width;
@@ -84,11 +85,14 @@ namespace pk
 
         stbi_image_free(stbImageData); // NOTE: Not sure if required?
         _loaded = true;
+
+        return true;
     }
 
-    void ImageData::save()
+    bool ImageData::save()
     {
         Debug::notify_unimplemented("ImageData::save");
+        return false;
     }
 
     float ImageData::getBrightnessAt(int x, int y) const

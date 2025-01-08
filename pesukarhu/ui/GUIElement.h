@@ -33,6 +33,8 @@ namespace pk
             virtual ~GUIElement() {}
 
             virtual void setActive(bool arg) = 0;
+            virtual void setConstraintValues(float horizontal, float vertical) = 0;
+
             inline GUIElementType getType() const { return _type; }
             inline entityID_t getEntity() const { return _entity; }
         };

@@ -49,10 +49,10 @@ namespace pk
         Resource(const Resource&) = delete;
         virtual ~Resource();
 
-        virtual void load() = 0;
-        virtual void save() = 0;
-
         static std::string get_resource_type_name(ResourceType type);
+
+        virtual bool load() = 0;
+        virtual bool save() = 0;
 
         inline uint32_t getResourceID() const { return _resourceID; }
         inline ResourceType getType() const { return _type; }

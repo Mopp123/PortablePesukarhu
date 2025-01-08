@@ -45,7 +45,8 @@ namespace pk
 
 
         Select::Select(SelectCreationProperties creationProperties) :
-            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_SELECt)
+            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_SELECt),
+            _pFont(creationProperties.pFont)
         {
             Scene* pScene = Application::get()->accessCurrentScene();
             _entity = pScene->createEntity();
@@ -64,14 +65,10 @@ namespace pk
                 }
             }
             // No fucking idea what that magic 4 comes from.. but seems good..
-            float buttonDisplacementX = infoTxtWidth;
-            float buttonDisplacementY = 0.0f;
-            float infoDisplacement = 0;
-            buttonDisplacementX += ((float)pFont->getPixelSize()) - 4;
+            float buttonDisplacementX = infoTxtWidth + ((float)pFont->getPixelSize()) - 4;
 
             ConstraintProperties buttonConstraintProperties = creationProperties.constraintProperties;
             buttonConstraintProperties.horizontalValue += buttonDisplacementX;
-            buttonConstraintProperties.verticalValue += buttonDisplacementY;
 
             // Create button
             const float buttonHeight = pFont->getPixelSize();
@@ -95,7 +92,6 @@ namespace pk
             entityID_t buttonImgEntity = _pButton->getImage()->getEntity();
 
             ConstraintProperties infoTxtConstraintProperties = creationProperties.constraintProperties;
-            infoTxtConstraintProperties.horizontalValue += infoDisplacement;
             // Create info txt
             _pInfoText = new GUIText(
                 creationProperties.infoTxt,
@@ -179,6 +175,15 @@ namespace pk
                 pComponent->setActive(arg);
 
             _pSelection->setActive(arg);
+        }
+
+        void Select::setConstraintValues(float horizontal, float vertical)
+        {
+            Debug::log(
+                "@Select::setConstraintValues "
+                "Not implemented!",
+                Debug::MessageType::PK_FATAL_ERROR
+            );
         }
 
         void Select::displaySelection(bool arg)

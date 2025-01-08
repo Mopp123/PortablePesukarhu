@@ -69,6 +69,8 @@ namespace pk
 	        	virtual void func(InputKeyName key, int scancode, InputAction action, int mods);
 	        };
 
+            const Font* _pFont = nullptr;
+
             GUIButton* _pButton = nullptr;
             GUIText* _pInfoText = nullptr;
             Panel* _pSelection = nullptr;
@@ -82,6 +84,7 @@ namespace pk
             ~Select();
 
             void setActive(bool arg);
+            virtual void setConstraintValues(float horizontal, float vertical);
 
             void displaySelection(bool arg);
             void setSelectedItem(unsigned int itemIndex);

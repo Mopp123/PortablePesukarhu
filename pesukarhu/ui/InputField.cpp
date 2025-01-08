@@ -195,7 +195,8 @@ namespace pk
             vec3 backgroundHighlightColor,
             bool password
         ) :
-            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_INPUT_FIELD)
+            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_INPUT_FIELD),
+            _fontRef(font)
         {
             Scene* currentScene = Application::get()->accessCurrentScene();
 
@@ -219,14 +220,10 @@ namespace pk
                 }
             }
             // No fucking idea what that magic 4 comes from.. but seems good..
-            float buttonDisplacementX = infoTxtWidth;
-            float buttonDisplacementY = 0.0f;
-            float infoDisplacement = 0;
-            buttonDisplacementX += ((float)font.getPixelSize()) - 4;
+            float buttonDisplacementX = infoTxtWidth + ((float)font.getPixelSize()) - 4;
 
             ConstraintProperties buttonConstraintProperties = constraintProperties;
             buttonConstraintProperties.horizontalValue += buttonDisplacementX;
-            buttonConstraintProperties.verticalValue += buttonDisplacementY;
 
             // Create button
             _pButton = new GUIButton(
@@ -252,7 +249,6 @@ namespace pk
             pBlinker->enable = false;
 
             ConstraintProperties infoTxtConstraintProperties = constraintProperties;
-            infoTxtConstraintProperties.horizontalValue += infoDisplacement;
             // Create info txt
             _pInfoText = new GUIText(
                 infoTxt, font,
@@ -322,6 +318,14 @@ namespace pk
             Scene* pScene = Application::get()->accessCurrentScene();
             for (Component* pComponent : pScene->getComponents(_entity))
                 pComponent->setActive(arg);
+        }
+
+        void InputField::setConstraintValues(float horizontal, float vertical)
+        {
+            float infoTxtVisualWidth = _pInfoText->getVisualWidth();
+            float buttonDisplacementX = infoTxtVisualWidth + ((float)_fontRef.getPixelSize()) - 4;
+            _pButton->setConstraintValues(horizontal + buttonDisplacementX, vertical);
+            _pInfoText->setConstraintValues(horizontal, vertical);
         }
 
         GUIText* InputField::getContentText()

@@ -80,6 +80,8 @@ namespace pk
                 void func(unsigned int codepoint);
             };
 
+            const Font& _fontRef;
+
             GUIButton* _pButton = nullptr;
             GUIText* _pInfoText = nullptr;
 
@@ -101,6 +103,7 @@ namespace pk
             ~InputField();
 
             void setActive(bool arg);
+            virtual void setConstraintValues(float horizontal, float vertical);
 
             // *Button's text element is used as content text
             GUIText* getContentText();

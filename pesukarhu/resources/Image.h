@@ -27,8 +27,8 @@ namespace pk
         );
         ~ImageData();
 
-        virtual void load();
-        virtual void save();
+        virtual bool load();
+        virtual bool save();
 
         void clearData();
 

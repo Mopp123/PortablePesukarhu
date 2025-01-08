@@ -33,6 +33,9 @@ namespace pk
                 virtual void func(InputMouseButtonName button, InputAction action, int mods);
             };
 
+            const Font* _pFont = nullptr;
+            float _checkedImgMinification = 8.0f;
+
             GUIImage* _pBackground = nullptr;
             GUIImage* _pCheckedStatusIndicator = nullptr;
             GUIText* _pInfoText = nullptr;
@@ -51,6 +54,8 @@ namespace pk
             Checkbox(const Checkbox& other) = delete;
 
             virtual void setActive(bool arg);
+            virtual void setConstraintValues(float horizontal, float vertical);
+
             bool isChecked() const;
             void setChecked(bool arg);
 

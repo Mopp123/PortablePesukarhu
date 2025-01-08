@@ -326,6 +326,13 @@ namespace pk
                 pComponent->setActive(arg);
         }
 
+        void GUIButton::setConstraintValues(float horizontal, float vertical)
+        {
+            _pImage->setConstraintValues(horizontal, vertical);
+            const int padding = 4;
+            _pText->setConstraintValues(horizontal + padding, vertical);
+        }
+
         void GUIButton::setSelected(bool arg)
         {
             // If this was used as input field get text blinker...

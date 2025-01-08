@@ -1,7 +1,6 @@
 ﻿#include "Debug.h"
 #include "pesukarhu/ecs/components/Component.h"
 #include <iostream>
-#include <cassert>
 
 #ifdef PK_BUILD_WEB
 #include <emscripten/console.h>

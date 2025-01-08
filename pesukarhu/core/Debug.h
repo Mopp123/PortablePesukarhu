@@ -2,6 +2,9 @@
 
 #include "pesukarhu/ecs/Entity.h"
 #include <string>
+#include <cassert>
+
+#define PK_ASSERT(arg) assert(arg)
 
 
 namespace pk

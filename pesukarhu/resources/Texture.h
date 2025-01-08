@@ -56,8 +56,8 @@ namespace pk
         Texture(const Texture&) = delete;
         virtual ~Texture();
 
-        virtual void load() {}
-        virtual void save() {}
+        virtual bool load() { return false; }
+        virtual bool save() { return false; }
 
         virtual void update(
             void* pData,

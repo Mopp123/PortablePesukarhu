@@ -55,8 +55,8 @@ namespace pk
         Font(const std::string& filepath, unsigned int pixelSize);
         ~Font();
 
-        virtual void load();
-        virtual void save() {}
+        virtual bool load();
+        virtual bool save() { return false; }
 
         Texture* accessTexture();
         const Texture* getTexture() const;

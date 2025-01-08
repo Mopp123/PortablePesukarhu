@@ -112,6 +112,7 @@ namespace pk
             ~GUIButton();
 
             void setActive(bool arg);
+            virtual void setConstraintValues(float horizontal, float vertical);
             void setSelected(bool arg);
 
             inline GUIImage* getImage() { return _pImage; }

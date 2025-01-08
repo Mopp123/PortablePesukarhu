@@ -75,7 +75,8 @@ namespace pk
             vec3 checkedColor, // The color of the thing indicating checked status
             vec3 textColor
         ) :
-            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_CHECKBOX)
+            GUIElement(GUIElementType::PK_GUI_ELEMENT_TYPE_CHECKBOX),
+            _pFont(pFont)
         {
             Scene* pScene = Application::get()->accessCurrentScene();
 
@@ -85,15 +86,12 @@ namespace pk
             const float defaultWidth = pFont->getPixelSize();
             const float defaultHeight = pFont->getPixelSize();
 
-            float buttonDisplacement = get_text_visual_width(infoTxt, pFont);
-            float infoDisplacement = 0;
-
             // -> No fucking idea what that magic 4 comes from.. but seems good..
             //  ->same as with inputField...
-            buttonDisplacement += ((float)pFont->getPixelSize()) - 4;
+            float backgroundDisplacement = get_text_visual_width(infoTxt, pFont) + ((float)pFont->getPixelSize()) - 4;
 
             ConstraintProperties backgroundImgConstraintProperties = constraintProperties;
-            backgroundImgConstraintProperties.horizontalValue += buttonDisplacement;
+            backgroundImgConstraintProperties.horizontalValue += backgroundDisplacement;
             GUIImage::ImgCreationProperties backgroundImgProperties =
             {
                 backgroundImgConstraintProperties,
@@ -109,18 +107,18 @@ namespace pk
             _pBackground = new GUIImage(backgroundImgProperties);
             entityID_t backgroundImgEntity = _pBackground->getEntity();
 
-            const float checkedImgMinification = 8.0f; // how many pixels smaller than outer box
+            _checkedImgMinification = 8.0f; // how many pixels smaller than outer box
             ConstraintProperties checkedImgConstraintProperties = backgroundImgConstraintProperties;
-            checkedImgConstraintProperties.horizontalValue = backgroundImgConstraintProperties.horizontalValue + checkedImgMinification * 0.5f;
+            checkedImgConstraintProperties.horizontalValue = backgroundImgConstraintProperties.horizontalValue + _checkedImgMinification * 0.5f;
 
-            float checkedImgDisplacementY = checkedImgMinification * 0.5f;
+            float checkedImgDisplacementY = _checkedImgMinification * 0.5f;
 
             checkedImgConstraintProperties.verticalValue = backgroundImgConstraintProperties.verticalValue - checkedImgDisplacementY;
             GUIImage::ImgCreationProperties checkedImgProperties =
             {
                 checkedImgConstraintProperties,
-                defaultWidth - checkedImgMinification,
-                defaultHeight - checkedImgMinification,
+                defaultWidth - _checkedImgMinification,
+                defaultHeight - _checkedImgMinification,
                 checkedColor,
                 checkedColor,
                 true,
@@ -132,7 +130,6 @@ namespace pk
 
             // Create info txt
             ConstraintProperties infoTxtConstraintProperties = constraintProperties;
-            infoTxtConstraintProperties.horizontalValue += infoDisplacement;
             _pInfoText = new GUIText(
                 infoTxt, *pFont, // NOTE: DANGER! TODO: make all funcs here take font as ptr instead of ref!
                 infoTxtConstraintProperties,
@@ -189,6 +186,21 @@ namespace pk
             {
                 _pCheckedStatusIndicator->setActive(arg);
             }
+        }
+
+        void Checkbox::setConstraintValues(float horizontal, float vertical)
+        {
+            float textVisualWidth = get_text_visual_width(_pInfoText->getInternalStr(), _pFont);
+            float backgroundDisplacement = textVisualWidth + ((float)_pFont->getPixelSize()) - 4;
+            float backgroundHorizontalValue = horizontal + backgroundDisplacement;
+            _pBackground->setConstraintValues(backgroundHorizontalValue, vertical);
+
+            _pCheckedStatusIndicator->setConstraintValues(
+                backgroundHorizontalValue + _checkedImgMinification * 0.5f,
+                vertical - _checkedImgMinification * 0.5f
+            );
+
+            _pInfoText->setConstraintValues(horizontal, vertical);
         }
 
         bool Checkbox::isChecked() const

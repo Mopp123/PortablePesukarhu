@@ -17,8 +17,8 @@ namespace pk
         Animation(const Pose& bindPose, const std::vector<Pose>& poses);
         ~Animation();
 
-        void load() {};
-        void save() {};
+        bool load() { return false; };
+        bool save() { return false; };
 
         inline const Pose& getPose(int keyframe) const { return _poses[keyframe]; }
         inline size_t getKeyframeCount() const { return _poses.size(); }

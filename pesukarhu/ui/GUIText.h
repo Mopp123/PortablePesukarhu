@@ -41,8 +41,10 @@ namespace pk
             void setStr(const std::string& str);
 
             void setActive(bool arg);
+            virtual void setConstraintValues(float horizontal, float vertical);
 
             float getVisualWidth() const;
+            static float get_visual_width(const std::string& str, const Font& font);
 
         private:
             std::string getStr(bool getInternal) const;

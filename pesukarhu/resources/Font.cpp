@@ -12,6 +12,13 @@
 
 namespace pk
 {
+    static void clean_up_freetype(FT_Library* pFTLib, FT_Face* pFontFace)
+    {
+        if (pFontFace)
+            FT_Done_Face(*pFontFace);
+        FT_Done_FreeType(*pFTLib);
+    }
+
     Font::Font(const std::string& filepath, unsigned int pixelSize) :
         Resource(ResourceType::RESOURCE_FONT, filepath),
         _pixelSize(pixelSize)
@@ -21,16 +28,10 @@ namespace pk
     Font::~Font()
     {}
 
-    void Font::load()
+    bool Font::load()
     {
-        createFont(
-            " qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890.,:;?!&_'+-*^/()[]{}<>|äåöÄÅÖ"
-        );
-    }
+        const std::string charsToLoad = " qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890.,:;?!&_'+-*^/()[]{}<>|äåöÄÅÖ";
 
-    // TODO: Put into constructor -> doesnt need to be own func anymore!
-    void Font::createFont(const std::string& charsToLoad)
-    {
         std::string filepathStr = std::string(_filepath);
         FT_Library freetypeLib;
         if (FT_Init_FreeType(&freetypeLib))
@@ -40,7 +41,8 @@ namespace pk
                 "Failed to init Freetype library!",
                 Debug::MessageType::PK_FATAL_ERROR
             );
-            return;
+            clean_up_freetype(&freetypeLib, nullptr);
+            return false;
         }
 
         // Load font file
@@ -52,7 +54,9 @@ namespace pk
                 "Failed to load font file from location: " + filepathStr,
                 Debug::MessageType::PK_FATAL_ERROR
             );
-            return;
+            // NOTE: Not actually sure should we free the fontFace here?
+            clean_up_freetype(&freetypeLib, nullptr);
+            return false;
         }
 
         if (FT_Set_Pixel_Sizes(fontFace, 0, _pixelSize))
@@ -61,6 +65,8 @@ namespace pk
                 "@Font::createFont Failed to set pixel sizes to: " + std::to_string(_pixelSize),
                 Debug::MessageType::PK_FATAL_ERROR
             );
+            clean_up_freetype(&freetypeLib, &fontFace);
+            return false;
         }
 
         // Load data from each glyph(contained in "charsToLoad") of the font
@@ -87,6 +93,7 @@ namespace pk
                     "Failed to load character '" + std::to_string(c) + "' from a font. Font file path was " + filepathStr,
                     Debug::MessageType::PK_FATAL_ERROR
                 );
+                clean_up_freetype(&freetypeLib, &fontFace);
                 continue;
             }
 
@@ -170,7 +177,7 @@ namespace pk
             p.first = nullptr;
         }
 
-        // Create resources through ResourceManager
+        // Create additional required resources through ResourceManager
         Application* pApp = Application::get();
         if (!pApp)
         {
@@ -178,6 +185,8 @@ namespace pk
                 "@Font::createFont Application was nullptr!",
                 Debug::MessageType::PK_FATAL_ERROR
             );
+            clean_up_freetype(&freetypeLib, &fontFace);
+            return false;
         }
         ResourceManager& resourceManager = pApp->getResourceManager();
 
@@ -200,8 +209,13 @@ namespace pk
 
         _textureAtlasRowCount = textureAtlasRowCount;
 
-        FT_Done_Face(fontFace);
-        FT_Done_FreeType(freetypeLib);
+        clean_up_freetype(&freetypeLib, &fontFace);
+        return true;
+    }
+
+    // TODO: Put into constructor -> doesnt need to be own func anymore!
+    void Font::createFont(const std::string& charsToLoad)
+    {
     }
 
     Texture* Font::accessTexture()
