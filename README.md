@@ -1,7 +1,7 @@
 # PortablePesukarhu
-Some old game engine tools things (initially for using with emscripten+webgl)
+Some old game engine tools things (initially for using with emscripten+webgl)<br/>
 *Not continuing this project.<br/>
-  ->Started rewriting everything in Platypus engine project.<br/>
+  ->Started rewriting everything in https://github.com/Mopp123/Platypus<br/>
 
 ## Build
 ### Linux
